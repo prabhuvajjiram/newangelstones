@@ -1,0 +1,7 @@
+/* Combined and minified CSS file */
+@import url('bootstrap.min.css');
+@import url('animate.css');
+@import url('owl.carousel.min.css');
+@import url('owl.theme.default.min.css');
+@import url('magnific-popup.css');
+@import url('style.css');
