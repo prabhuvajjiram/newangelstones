@@ -1,5 +1,5 @@
 <?php
-require_once '../../includes/config.php';
+require_once '../includes/config.php';
 requireLogin();
 
 header('Content-Type: application/json');
@@ -18,15 +18,17 @@ try {
         echo json_encode(['success' => true]);
     } else {
         // Get follow-ups for a customer
-        $customerId = $_GET['customer_id'];
-        $followUps = [];
-        
-        $result = $conn->query("SELECT f.*, u.username as created_by_name 
+        $customerId = (int)$_GET['customer_id'];
+        $stmt = $conn->prepare("SELECT f.*, u.username as created_by_name 
                                FROM follow_ups f 
                                LEFT JOIN users u ON f.created_by = u.id 
-                               WHERE f.customer_id = $customerId 
+                               WHERE f.customer_id = ? 
                                ORDER BY f.follow_up_date DESC");
+        $stmt->bind_param("i", $customerId);
+        $stmt->execute();
+        $result = $stmt->get_result();
         
+        $followUps = [];
         while ($row = $result->fetch_assoc()) {
             $followUps[] = $row;
         }

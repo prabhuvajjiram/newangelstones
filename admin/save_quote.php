@@ -42,14 +42,6 @@ try {
     $conn->begin_transaction();
 
     try {
-        // Create quotes directory if it doesn't exist
-        $quotesDir = __DIR__ . DIRECTORY_SEPARATOR . 'quotes';
-        if (!file_exists($quotesDir)) {
-            if (!mkdir($quotesDir, 0777, true)) {
-                throw new Exception('Failed to create quotes directory: ' . error_get_last()['message']);
-            }
-        }
-
         // Get customer details
         $stmt = $conn->prepare("SELECT * FROM customers WHERE id = ?");
         if (!$stmt) {
@@ -66,43 +58,22 @@ try {
             throw new Exception('Customer not found');
         }
 
-        // Calculate total amount
-        $total_amount = 0;
-        foreach ($data['items'] as $item) {
-            $total_amount += floatval($item['price']);
-        }
-
         // Generate unique quote number
         $quote_number = 'Q' . date('Ymd') . rand(1000, 9999);
 
         // Get the first item for the main quote details
         $first_item = $data['items'][0];
 
-        // Insert quote into database
-        $stmt = $conn->prepare("INSERT INTO quotes (
-            quote_number, customer_id, total_amount, price, pdf_file, 
-            project_name, length, breadth, width_polish, 
-            color, quantity, sertop_type, sertop_price, 
-            commission_rate, total_area, price_per_sqft, 
-            width_polish_cost, sertop_total, subtotal, 
-            commission_amount, created_at
-        ) VALUES (
-            ?, ?, ?, ?, ?, 
-            ?, ?, ?, ?, 
-            ?, ?, ?, ?, 
-            ?, ?, ?, 
-            ?, ?, ?, 
-            ?, NOW()
-        )");
-
-        if (!$stmt) {
-            throw new Exception('Failed to prepare quote insert statement: ' . $conn->error);
+        // Calculate total amount
+        $total_amount = 0;
+        foreach ($data['items'] as $item) {
+            $total_amount += floatval($item['price']);
         }
-        
-        $pdf_file = 'quotes' . DIRECTORY_SEPARATOR . $quote_number . '.pdf';
-        $customer_id = $data['customer_id'];
-        $project_name = $first_item['type'] . ' - ' . $first_item['model'];
-        
+
+        // Get commission rate and amount
+        $commission_rate = floatval($data['commission_rate']);
+        $commission_amount = floatval($data['total_commission']);
+
         // Get color name
         $color_stmt = $conn->prepare("SELECT color_name FROM stone_color_rates WHERE id = ?");
         $color_stmt->bind_param('i', $first_item['colorId']);
@@ -113,48 +84,151 @@ try {
         $color_stmt->close();
 
         // Calculate additional values
+        $pdf_file = 'quotes' . DIRECTORY_SEPARATOR . $quote_number . '.pdf';
         $width_polish = isset($first_item['width_polish']) ? $first_item['width_polish'] : 0;
         $sertop_type = isset($first_item['sertop_type']) ? $first_item['sertop_type'] : 'base';
         $sertop_price = isset($first_item['sertop_price']) ? $first_item['sertop_price'] : 0;
-        $commission_rate = isset($data['commission_rate']) ? floatval($data['commission_rate']) : 10.00; // Get from input or use default
-        $price_per_sqft = $first_item['price'] / $first_item['sqft'];
+        $total_area = $first_item['sqft'] ?? 0;
+        $price_per_sqft = $total_area > 0 ? $first_item['price'] / $total_area : 0;
         $width_polish_cost = $width_polish * 50.00; // Default width polish rate
         $sertop_total = $first_item['price'];
         $subtotal = $first_item['price'];
-        $commission_amount = $subtotal * ($commission_rate / 100);
+
+        // Insert quote
+        $stmt = $conn->prepare("INSERT INTO quotes (
+            quote_number,
+            customer_id,
+            customer_name,
+            customer_email,
+            customer_phone,
+            project_name,
+            total_amount,
+            commission_rate,
+            commission_amount,
+            pdf_file,
+            length,
+            breadth,
+            width_polish,
+            color,
+            quantity,
+            sertop_type,
+            sertop_price,
+            total_area,
+            price_per_sqft,
+            width_polish_cost,
+            sertop_total,
+            subtotal
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+        if (!$stmt) {
+            throw new Exception('Failed to prepare quote insert statement: ' . $conn->error);
+        }
+
+        // Initialize all variables before binding
+        $quote_number = $quote_number ?? '';
+        $customer_id = $data['customer_id'] ?? 0;
+        $customer_name = $customer['name'] ?? '';
+        $customer_email = $customer['email'] ?? '';
+        $customer_phone = $customer['phone'] ?? '';
+        $project_name = $data['project_name'] ?? '';
+        $total_amount = $total_amount ?? 0.00;
+        $commission_rate = $commission_rate ?? 0.00;
+        $commission_amount = $commission_amount ?? 0.00;
+        $pdf_file_name = $pdf_file ?? '';
+        $item_length = $first_item['length'] ?? 0.00;
+        $item_breadth = $first_item['breadth'] ?? 0.00;
+        $item_width_polish = $width_polish ?? 0.00;
+        $item_color_name = $color_name ?? '';
+        $item_quantity = $first_item['quantity'] ?? 0;
+        $item_sertop_type = $sertop_type ?? '';
+        $item_sertop_price = $sertop_price ?? 0.00;
+        $item_total_area = $total_area ?? 0.00;
+        $item_price_per_sqft = $price_per_sqft ?? 0.00;
+        $item_width_polish_cost = $width_polish_cost ?? 0.00;
+        $item_sertop_total = $sertop_total ?? 0.00;
+        $item_subtotal = $subtotal ?? 0.00;
 
         $stmt->bind_param(
-            'sidssdddsiiidsdddddd',
+            'sissssdddsdddsisdddddd',
             $quote_number,
             $customer_id,
-            $total_amount,
-            $first_item['price'],
-            $pdf_file,
+            $customer_name,
+            $customer_email,
+            $customer_phone,
             $project_name,
-            $first_item['length'],
-            $first_item['breadth'],
-            $width_polish,
-            $color_name,
-            $first_item['quantity'],
-            $sertop_type,
-            $sertop_price,
+            $total_amount,
             $commission_rate,
-            $first_item['sqft'],
-            $price_per_sqft,
-            $width_polish_cost,
-            $sertop_total,
-            $subtotal,
-            $commission_amount
+            $commission_amount,
+            $pdf_file_name,
+            $item_length,
+            $item_breadth,
+            $item_width_polish,
+            $item_color_name,
+            $item_quantity,
+            $item_sertop_type,
+            $item_sertop_price,
+            $item_total_area,
+            $item_price_per_sqft,
+            $item_width_polish_cost,
+            $item_sertop_total,
+            $item_subtotal
         );
 
         if (!$stmt->execute()) {
             throw new Exception('Failed to insert quote: ' . $stmt->error);
         }
-        
-        $quote_id = $stmt->insert_id;
+
+        $quote_id = $conn->insert_id;
         $stmt->close();
 
-        file_put_contents(__DIR__ . '/debug.log', date('Y-m-d H:i:s') . " Quote inserted with ID: " . $quote_id . "\n", FILE_APPEND);
+        // Insert quote items
+        $stmt = $conn->prepare("INSERT INTO quote_items (
+            quote_id,
+            product_type,
+            size,
+            model,
+            color_id,
+            length,
+            breadth,
+            quantity,
+            base_price,
+            price_increase,
+            subtotal
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+        foreach ($data['items'] as $item) {
+            $product_type = strtolower($item['type']);
+            $color_id = $item['colorId'];
+            $base_price = $item['price'] / (1 + ($item['priceIncrease'] ?? 0) / 100);
+            $price_increase = $item['price'] - $base_price;
+            
+            $stmt->bind_param(
+                'isssiddiddd',
+                $quote_id,
+                $product_type,
+                $item['size'],
+                $item['model'],
+                $color_id,
+                $item['length'],
+                $item['breadth'],
+                $item['quantity'],
+                $base_price,
+                $price_increase,
+                $item['price']
+            );
+
+            if (!$stmt->execute()) {
+                throw new Exception('Failed to insert quote item: ' . $stmt->error);
+            }
+        }
+
+        // Create quotes directory if it doesn't exist
+        $quotesDir = __DIR__ . DIRECTORY_SEPARATOR . 'quotes';
+        if (!file_exists($quotesDir)) {
+            if (!mkdir($quotesDir, 0777, true)) {
+                throw new Exception('Failed to create quotes directory: ' . error_get_last()['message']);
+            }
+        }
 
         try {
             // Create PDF with custom settings
@@ -164,153 +238,73 @@ try {
             $pdf->setPrintHeader(false);
             $pdf->setPrintFooter(false);
             
-            // Set document information
-            $pdf->SetCreator('Angel Stones');
-            $pdf->SetAuthor('Angel Stones');
-            $pdf->SetTitle('Quote ' . $quote_number);
-            
-            // Set margins
-            $pdf->SetMargins(15, 15, 15);
-            $pdf->SetAutoPageBreak(true, 15);
-            
             // Add a page
             $pdf->AddPage();
-            
-            // Set default monospaced font
-            $pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
             
             // Set font
             $pdf->SetFont('helvetica', '', 12);
             
-            // Company header
-            $pdf->Cell(0, 10, 'Angel Stones', 0, 1, 'C');
-            $pdf->SetFont('helvetica', 'B', 14);
-            $pdf->Cell(0, 10, 'QUOTATION', 0, 1, 'C');
-            $pdf->SetFont('helvetica', '', 12);
-            $pdf->Cell(0, 10, 'Quote #: ' . $quote_number . '    Date: ' . date('Y-m-d'), 0, 1, 'R');
+            // Add content
+            $pdf->Cell(0, 10, 'Quote #: ' . $quote_number, 0, 1);
+            $pdf->Cell(0, 10, 'Date: ' . date('Y-m-d'), 0, 1);
+            $pdf->Cell(0, 10, 'Customer: ' . $customer['name'], 0, 1);
             
-            // Customer details
-            $pdf->Ln(5);
-            $pdf->SetFont('helvetica', 'B', 12);
-            $pdf->Cell(0, 10, 'Customer Details:', 0, 1);
-            $pdf->SetFont('helvetica', '', 12);
-            $pdf->Cell(0, 7, 'Name: ' . htmlspecialchars($customer['name']), 0, 1);
-            $pdf->Cell(0, 7, 'Email: ' . htmlspecialchars($customer['email']), 0, 1);
-            $pdf->Cell(0, 7, 'Phone: ' . htmlspecialchars($customer['phone']), 0, 1);
-            
-            // Items table
+            // Add items table
             $pdf->Ln(10);
             $pdf->SetFont('helvetica', 'B', 12);
-            $pdf->Cell(0, 10, 'Items:', 0, 1);
+            $pdf->Cell(40, 7, 'Item', 1);
+            $pdf->Cell(30, 7, 'Size', 1);
+            $pdf->Cell(30, 7, 'Color', 1);
+            $pdf->Cell(30, 7, 'Quantity', 1);
+            $pdf->Cell(40, 7, 'Price', 1);
+            $pdf->Ln();
             
-            // Table header
-            $pdf->SetFillColor(240, 240, 240);
-            $pdf->SetFont('helvetica', 'B', 10);
-            
-            // Calculate column widths for landscape orientation
-            $col1 = 35; // Type
-            $col2 = 30; // Model
-            $col3 = 25; // Size
-            $col4 = 35; // Color
-            $col5 = 35; // Dimensions
-            $col6 = 25; // Cu.Ft
-            $col7 = 20; // Qty
-            $col8 = 35; // Price
-            
-            $pdf->Cell($col1, 7, 'Type', 1, 0, 'C', true);
-            $pdf->Cell($col2, 7, 'Model', 1, 0, 'C', true);
-            $pdf->Cell($col3, 7, 'Size', 1, 0, 'C', true);
-            $pdf->Cell($col4, 7, 'Color', 1, 0, 'C', true);
-            $pdf->Cell($col5, 7, 'Dimensions', 1, 0, 'C', true);
-            $pdf->Cell($col6, 7, 'Cu.Ft', 1, 0, 'C', true);
-            $pdf->Cell($col7, 7, 'Qty', 1, 0, 'C', true);
-            $pdf->Cell($col8, 7, 'Price', 1, 1, 'C', true);
-
-            // Table content
-            $pdf->SetFont('helvetica', '', 10);
-            $total = 0;
-
+            $pdf->SetFont('helvetica', '', 12);
             foreach ($data['items'] as $item) {
-                // Get color name
-                $color_stmt = $conn->prepare("SELECT color_name FROM stone_color_rates WHERE id = ?");
-                $color_stmt->bind_param('i', $item['colorId']);
-                $color_stmt->execute();
-                $color_result = $color_stmt->get_result();
-                $color_data = $color_result->fetch_assoc();
-                $color_name = $color_data ? $color_data['color_name'] : 'Unknown';
-                $color_stmt->close();
-
-                // Add commission to item price
-                $price_with_commission = $item['price'] + (float)$item['commission'];
-                $total += $price_with_commission;
-
-                $pdf->Cell($col1, 7, $item['type'], 1, 0, 'L');
-                $pdf->Cell($col2, 7, $item['model'], 1, 0, 'L');
-                $pdf->Cell($col3, 7, $item['size'], 1, 0, 'C');
-                $pdf->Cell($col4, 7, $color_name, 1, 0, 'L');
-                $pdf->Cell($col5, 7, $item['length'] . '" × ' . $item['breadth'] . '"', 1, 0, 'C');
-                $pdf->Cell($col6, 7, number_format($item['cubicFeet'], 2), 1, 0, 'R');
-                $pdf->Cell($col7, 7, $item['quantity'], 1, 0, 'C');
-                $pdf->Cell($col8, 7, '$' . number_format($price_with_commission, 2), 1, 1, 'R');
+                $pdf->Cell(40, 7, $item['type'] . ' ' . $item['model'], 1);
+                $pdf->Cell(30, 7, $item['size'], 1);
+                $pdf->Cell(30, 7, $color_name, 1);
+                $pdf->Cell(30, 7, $item['quantity'], 1);
+                $pdf->Cell(40, 7, '$' . number_format($item['price'], 2), 1);
+                $pdf->Ln();
             }
-
-            // Total
-            $pdf->SetFont('helvetica', 'B', 10);
-            $pdf->Cell($col1 + $col2 + $col3 + $col4 + $col5 + $col6 + $col7, 7, 'Total:', 1, 0, 'R', true);
-            $pdf->Cell($col8, 7, '$' . number_format($total, 2), 1, 1, 'R', true);
-
-            // Terms and conditions
+            
+            // Add totals
             $pdf->Ln(10);
+            $pdf->Cell(130);
+            $pdf->Cell(30, 7, 'Subtotal:', 0);
+            $pdf->Cell(40, 7, '$' . number_format($total_amount, 2), 0);
+            $pdf->Ln();
+            $pdf->Cell(130);
+            $pdf->Cell(30, 7, 'Commission:', 0);
+            $pdf->Cell(40, 7, '$' . number_format($commission_amount, 2), 0);
+            $pdf->Ln();
+            $pdf->Cell(130);
             $pdf->SetFont('helvetica', 'B', 12);
-            $pdf->Cell(0, 10, 'Terms and Conditions:', 0, 1);
+            $pdf->Cell(30, 7, 'Total:', 0);
+            $pdf->Cell(40, 7, '$' . number_format($total_amount + $commission_amount, 2), 0);
+            
+            // Add terms and conditions
+            $pdf->Ln(20);
+            $pdf->SetFont('helvetica', 'B', 12);
+            $pdf->Cell(0, 7, 'Terms and Conditions:', 0, 1);
             $pdf->SetFont('helvetica', '', 10);
             $pdf->MultiCell(0, 5, "1. Prices are valid for 30 days from the date of quotation.\n2. Payment terms: 50% advance payment required.\n3. Delivery time: 4-6 weeks from order confirmation.\n4. Prices are subject to change without prior notice.\n5. GST/taxes extra as applicable.", 0, 'L');
 
             // Save PDF
             $pdf_path = __DIR__ . DIRECTORY_SEPARATOR . $pdf_file;
             $pdf->Output($pdf_path, 'F');
-            
-            // Insert quote items
-            $stmt = $conn->prepare("INSERT INTO quote_items (quote_id, product_id, product_type, model, size, color_id, length, breadth, sqft, cubic_feet, quantity, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            if (!$stmt) {
-                throw new Exception('Failed to prepare quote items insert statement: ' . $conn->error);
-            }
-            
-            foreach ($data['items'] as $item) {
-                file_put_contents(__DIR__ . '/debug.log', date('Y-m-d H:i:s') . " Inserting item: " . print_r($item, true) . "\n", FILE_APPEND);
-                
-                $stmt->bind_param('iisssiddddid', 
-                    $quote_id,
-                    $item['productId'],
-                    $item['type'],
-                    $item['model'],
-                    $item['size'],
-                    $item['colorId'],
-                    $item['length'],
-                    $item['breadth'],
-                    $item['sqft'],
-                    $item['cubicFeet'],
-                    $item['quantity'],
-                    $item['price']
-                );
-                if (!$stmt->execute()) {
-                    throw new Exception('Failed to insert quote item: ' . $stmt->error . '. Item data: ' . json_encode($item));
-                }
-            }
-            $stmt->close();
-
-            file_put_contents(__DIR__ . '/debug.log', date('Y-m-d H:i:s') . " All items inserted successfully\n", FILE_APPEND);
 
             // Commit transaction
             $conn->commit();
 
-            file_put_contents(__DIR__ . '/debug.log', date('Y-m-d H:i:s') . " Transaction committed\n", FILE_APPEND);
-
             // Return success response
             echo json_encode([
                 'success' => true,
+                'quote_id' => $quote_id,
                 'quote_number' => $quote_number,
-                'pdf_url' => $pdf_file
+                'pdf_url' => $pdf_file,
+                'message' => 'Quote saved successfully'
             ]);
 
         } catch (Exception $e) {
@@ -324,7 +318,6 @@ try {
         file_put_contents(__DIR__ . '/debug.log', date('Y-m-d H:i:s') . " Error in transaction: " . $e->getMessage() . "\n", FILE_APPEND);
         throw new Exception('Transaction failed: ' . $e->getMessage());
     }
-
 } catch (Exception $e) {
     file_put_contents(__DIR__ . '/debug.log', date('Y-m-d H:i:s') . " Fatal error: " . $e->getMessage() . "\n", FILE_APPEND);
     // Return error response

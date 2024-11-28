@@ -32,7 +32,8 @@ if (!$quote) {
 
 // Get quote items
 $stmt = $conn->prepare("
-    SELECT qi.*, scr.color_name
+    SELECT qi.*, scr.color_name,
+    ROUND((qi.length * qi.breadth * 0.75) / 1728, 2) as cubic_feet
     FROM quote_items qi
     LEFT JOIN stone_color_rates scr ON qi.color_id = scr.id
     WHERE qi.quote_id = ?
@@ -111,16 +112,17 @@ $stmt->close();
                             <?php 
                             $subtotal = 0;
                             foreach ($items as $item) {
-                                $subtotal += $item['price'];
+                                $subtotal += isset($item['price']) ? (float)$item['price'] : 0;
                             }
                             
                             // Calculate commission for each item
-                            $commission_rate = $quote['commission_rate'];
+                            $commission_rate = $quote['commission_rate'] ?? 0;
                             $total_commission = $subtotal * ($commission_rate / 100);
                             
                             foreach ($items as $item): 
                                 // Calculate proportional commission for this item
-                                $item_commission = ($item['price'] / $subtotal) * $total_commission;
+                                $item_price = isset($item['price']) ? (float)$item['price'] : 0;
+                                $item_commission = $subtotal > 0 ? ($item_price / $subtotal) * $total_commission : 0;
                             ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($item['product_type']); ?></td>
@@ -128,9 +130,9 @@ $stmt->close();
                                 <td><?php echo htmlspecialchars($item['size']); ?></td>
                                 <td><?php echo htmlspecialchars($item['color_name']); ?></td>
                                 <td><?php echo htmlspecialchars($item['length']); ?>" × <?php echo htmlspecialchars($item['breadth']); ?>"</td>
-                                <td><?php echo number_format($item['cubic_feet'], 2); ?></td>
+                                <td><?php echo number_format(isset($item['cubic_feet']) ? (float)$item['cubic_feet'] : 0, 2); ?></td>
                                 <td><?php echo htmlspecialchars($item['quantity']); ?></td>
-                                <td>$<?php echo number_format($item['price'] + $item_commission, 2); ?></td>
+                                <td>$<?php echo number_format($item_price + $item_commission, 2); ?></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>

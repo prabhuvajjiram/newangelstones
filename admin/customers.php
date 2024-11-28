@@ -5,11 +5,38 @@ requireLogin();
 // Handle AJAX requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json');
-    $data = json_decode(file_get_contents('php://input'), true);
+    
+    // Get raw POST data and decode
+    $raw_data = file_get_contents('php://input');
+    $data = json_decode($raw_data, true);
+    
+    // Debug logging
+    error_log("Received POST data: " . $raw_data);
+    
+    if ($data === null) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'Invalid JSON data received']);
+        exit;
+    }
+    
+    if (!isset($data['action'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'No action specified']);
+        exit;
+    }
     
     try {
         if ($data['action'] === 'add') {
+            // Validate required fields
+            if (empty($data['name'])) {
+                throw new Exception('Name is required');
+            }
+            
             $stmt = $conn->prepare("INSERT INTO customers (name, email, phone, address, city, state, postal_code, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            if (!$stmt) {
+                throw new Exception("Prepare failed: " . $conn->error);
+            }
+            
             $stmt->bind_param("ssssssss", 
                 $data['name'],
                 $data['email'],
@@ -20,10 +47,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data['postalCode'],
                 $data['notes']
             );
-            $stmt->execute();
+            
+            if (!$stmt->execute()) {
+                throw new Exception("Execute failed: " . $stmt->error);
+            }
+            
             echo json_encode(['success' => true, 'id' => $conn->insert_id]);
+            
         } elseif ($data['action'] === 'update') {
+            if (empty($data['id']) || empty($data['name'])) {
+                throw new Exception('ID and Name are required for update');
+            }
+            
             $stmt = $conn->prepare("UPDATE customers SET name=?, email=?, phone=?, address=?, city=?, state=?, postal_code=?, notes=? WHERE id=?");
+            if (!$stmt) {
+                throw new Exception("Prepare failed: " . $conn->error);
+            }
+            
             $stmt->bind_param("ssssssssi", 
                 $data['name'],
                 $data['email'],
@@ -35,10 +75,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data['notes'],
                 $data['id']
             );
-            $stmt->execute();
+            
+            if (!$stmt->execute()) {
+                throw new Exception("Execute failed: " . $stmt->error);
+            }
+            
             echo json_encode(['success' => true]);
+        } else {
+            throw new Exception('Invalid action specified');
         }
     } catch (Exception $e) {
+        error_log("Error in customers.php: " . $e->getMessage());
         http_response_code(400);
         echo json_encode(['success' => false, 'error' => $e->getMessage()]);
     }
@@ -243,6 +290,13 @@ while ($row = $result->fetch_assoc()) {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Reset form when modal is opened for new customer
+        $('#customerModal').on('show.bs.modal', function (e) {
+            if (!e.relatedTarget) return; // Don't reset if opened by edit button
+            $('#customerForm')[0].reset();
+            $('#customerId').val('');
+        });
+
         function editCustomer(id) {
             // Fetch customer data and populate modal
             $.get('api/customer.php?id=' + id, function(data) {
@@ -260,28 +314,56 @@ while ($row = $result->fetch_assoc()) {
         }
 
         function saveCustomer() {
-            const data = {
+            // Get form data
+            const formData = {
                 action: $('#customerId').val() ? 'update' : 'add',
                 id: $('#customerId').val(),
-                name: $('#customerName').val(),
-                email: $('#customerEmail').val(),
-                phone: $('#customerPhone').val(),
-                address: $('#customerAddress').val(),
-                city: $('#customerCity').val(),
-                state: $('#customerState').val(),
-                postalCode: $('#customerPostalCode').val(),
-                notes: $('#customerNotes').val()
+                name: $('#customerName').val().trim(),
+                email: $('#customerEmail').val().trim(),
+                phone: $('#customerPhone').val().trim(),
+                address: $('#customerAddress').val().trim(),
+                city: $('#customerCity').val().trim(),
+                state: $('#customerState').val().trim(),
+                postalCode: $('#customerPostalCode').val().trim(),
+                notes: $('#customerNotes').val().trim()
             };
 
+            // Validate required fields
+            if (!formData.name) {
+                alert('Name is required');
+                $('#customerName').focus();
+                return;
+            }
+
+            // Show loading state
+            const saveBtn = $('#customerModal .btn-primary');
+            const originalText = saveBtn.text();
+            saveBtn.prop('disabled', true).text('Saving...');
+
             $.ajax({
-                url: 'customers.php',
+                url: window.location.href,
                 method: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify(data),
+                data: JSON.stringify(formData),
                 success: function(response) {
                     if (response.success) {
+                        $('#customerModal').modal('hide');
                         location.reload();
+                    } else {
+                        alert('Error saving customer: ' + (response.error || 'Unknown error'));
+                        saveBtn.prop('disabled', false).text(originalText);
                     }
+                },
+                error: function(xhr, status, error) {
+                    let errorMessage = 'Error saving customer';
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        errorMessage += ': ' + (response.error || error);
+                    } catch(e) {
+                        errorMessage += ': ' + error;
+                    }
+                    alert(errorMessage);
+                    saveBtn.prop('disabled', false).text(originalText);
                 }
             });
         }
