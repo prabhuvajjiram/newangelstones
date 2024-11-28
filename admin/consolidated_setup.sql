@@ -42,9 +42,7 @@ INSERT INTO stone_color_rates (color_name, price_increase_percentage) VALUES
 ('Emeral Pearl', 100.00),
 ('rainforest Green', 45.00),
 ('Brazil Gold', 35.00),
-('Grey', 0.00),
-('Brown', 5.00),
-('Green', 15.00);
+('Grey', 0.00);
 
 -- Create customers table (referenced by quotes)
 CREATE TABLE customers (
@@ -180,10 +178,12 @@ CREATE TABLE base_products (
 
 -- Insert BASE products
 INSERT INTO base_products (product_code, model, size_inches, is_premium, base_price) VALUES
-('BASE-8-P1', 'P1', 8, FALSE, 72.15),
-('BASE-8-PM', 'P/M', 8, FALSE, 73.19),
-('BASE-6-P1', 'P1', 6, FALSE, 54.11),
-('BASE-6-PM', 'P/M', 6, FALSE, 54.89);
+('BASE-8-P1', 'P1', 8, FALSE, 57.72),
+('BASE-8-PM', 'P/M', 8, FALSE, 64.38),
+('BASE-6-P1', 'P1', 6, FALSE, 44.44),
+('BASE-6-PM', 'P/M', 6, FALSE, 48.84),
+('BASE-10-P1', 'P1', 10, FALSE, 68.82),
+('BASE-10-PM', 'P/M', 10, FALSE, 82.14);
 
 -- Create MARKER products table
 CREATE TABLE marker_products (
@@ -200,8 +200,8 @@ CREATE TABLE marker_products (
 
 -- Insert MARKER products
 INSERT INTO marker_products (product_code, model, square_feet, base_price) VALUES
-('MAR-3-P1', 'P1', 3.0, 28.86),
-('MAR-4-P1', 'P1', 4.0, 38.48);
+('MAR-3-P1', 'P1', 3.0, 26.64),
+('MAR-4-P1', 'P1', 4.0, 32.19);
 
 -- Create SLANT products table
 CREATE TABLE slant_products (
@@ -217,10 +217,10 @@ CREATE TABLE slant_products (
 
 -- Insert SLANT products
 INSERT INTO slant_products (product_code, model, base_price) VALUES
-('SLANT-P2', 'P2', 86.58),
-('SLANT-P3', 'P3', 87.83),
-('SLANT-P4', 'P4', 89.08),
-('SLANT-P5', 'P5', 90.33);
+('SLANT-P2', 'P2', 73.26),
+('SLANT-P3', 'P3', 77.77),
+('SLANT-P4', 'P4', 81.03),
+('SLANT-P5', 'P5', 83.89);
 
 -- Create price components table
 CREATE TABLE price_components (

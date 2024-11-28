@@ -1,18 +1,26 @@
 <?php
-// Database configuration
-define('DB_HOST', '127.0.0.1');  // Using IP instead of localhost
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'angelstones_quotes_new');
-
-// Environment detection and URL configuration
+// Environment detection
 $server_name = $_SERVER['SERVER_NAME'];
 $is_production = ($server_name === 'www.theangelstones.com' || $server_name === 'theangelstones.com');
 
+// Database configuration based on environment
 if ($is_production) {
+    // Production database credentials
+    define('DB_HOST', 'localhost');  // Usually 'localhost' for cPanel
+    define('DB_USER', 'angelston_quotes');  // Your cPanel database username
+    define('DB_PASS', 'your_production_password_here');  // Replace with your actual production password
+    define('DB_NAME', 'angelston_quotes');  // Your cPanel database name
+    
+    // Production URL
     define('BASE_URL', 'https://www.theangelstones.com/admin/');
 } else {
-    // Local development
+    // Local development database credentials
+    define('DB_HOST', '127.0.0.1');
+    define('DB_USER', 'root');
+    define('DB_PASS', '');
+    define('DB_NAME', 'angelstones_quotes_new');
+    
+    // Local development URL
     $port = $_SERVER['SERVER_PORT'];
     $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
     $port_suffix = ($port != '80' && $port != '443') ? ":$port" : '';

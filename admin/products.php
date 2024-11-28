@@ -29,25 +29,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Fetch all products
 $sertop_products = [];
-$result = $conn->query("SELECT * FROM sertop_products ORDER BY size_inches, model");
+$result = $conn->query("SELECT *, CONCAT(model, size_inches) as product_code FROM sertop_products ORDER BY size_inches, model");
 while ($row = $result->fetch_assoc()) {
     $sertop_products[] = $row;
 }
 
 $base_products = [];
-$result = $conn->query("SELECT * FROM base_products ORDER BY size_inches, model");
+$result = $conn->query("SELECT *, CONCAT(model, size_inches) as product_code FROM base_products ORDER BY size_inches, model");
 while ($row = $result->fetch_assoc()) {
     $base_products[] = $row;
 }
 
 $marker_products = [];
-$result = $conn->query("SELECT * FROM marker_products ORDER BY square_feet, model");
+$result = $conn->query("SELECT *, CONCAT(model, square_feet) as product_code FROM marker_products ORDER BY square_feet, model");
 while ($row = $result->fetch_assoc()) {
     $marker_products[] = $row;
 }
 
 $slant_products = [];
-$result = $conn->query("SELECT * FROM slant_products ORDER BY model");
+$result = $conn->query("SELECT *, CONCAT(model, id) as product_code FROM slant_products ORDER BY model");
 while ($row = $result->fetch_assoc()) {
     $slant_products[] = $row;
 }

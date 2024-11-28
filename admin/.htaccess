@@ -33,6 +33,8 @@ php_value error_reporting E_ALL
     Header set X-XSS-Protection "1; mode=block"
     Header set X-Frame-Options "SAMEORIGIN"
     Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Header set Connection keep-alive
 </IfModule>
 
 # Disable directory browsing
@@ -43,4 +45,33 @@ Options All -Indexes
     Order allow,deny
     Deny from all
 </FilesMatch>
-http://localhost/newangelstones/admin/http://localhost/newangelstones/admin/
+
+# Enable GZIP compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css text/javascript application/javascript application/x-javascript application/xml application/json
+</IfModule>
+
+# Enable browser caching
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/pdf "access plus 1 week"
+    ExpiresByType text/javascript "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType application/x-javascript "access plus 1 week"
+    ExpiresDefault "access plus 1 day"
+</IfModule>
+
+# Prevent directory listing
+IndexIgnore *
+
+# php -- BEGIN cPanel-generated handler, do not edit
+# Set the "ea-php74" package as the default "PHP" programming language.
+<IfModule mime_module>
+  AddHandler application/x-httpd-ea-php74___lsphp .php .php7 .phtml
+</IfModule>
+# php -- END cPanel-generated handler, do not edit
