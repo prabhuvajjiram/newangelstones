@@ -24,13 +24,10 @@ CREATE TABLE IF NOT EXISTS overhead_costs (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS stone_colors (
+CREATE TABLE IF NOT EXISTS stone_color_rates (
     id INT AUTO_INCREMENT PRIMARY KEY,
     color_name VARCHAR(100) NOT NULL,
-    price_per_sqft DECIMAL(10, 2) NOT NULL,
-    width_polish_rate DECIMAL(10, 2) NOT NULL,
-    base_price DECIMAL(10, 2) NOT NULL,
-    slant_price DECIMAL(10, 2) NOT NULL,
+    price_increase_percentage DECIMAL(5, 2) NOT NULL DEFAULT 0.00,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -45,6 +42,7 @@ CREATE TABLE IF NOT EXISTS commission_rates (
 
 CREATE TABLE IF NOT EXISTS quotes (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    quote_number VARCHAR(50) NOT NULL UNIQUE,
     customer_name VARCHAR(255) NOT NULL,
     customer_email VARCHAR(255) NOT NULL,
     customer_phone VARCHAR(50) NOT NULL,
@@ -88,15 +86,6 @@ CREATE TABLE IF NOT EXISTS quote_labor (
     FOREIGN KEY (quote_id) REFERENCES quotes(id),
     FOREIGN KEY (labor_id) REFERENCES labor_rates(id)
 );
-
--- Insert initial stone colors and prices
-INSERT INTO stone_colors (color_name, price_per_sqft, width_polish_rate, base_price, slant_price) VALUES
-('Black', 140.00, 50.00, 75.00, 85.00),
-('Grey', 120.00, 50.00, 75.00, 85.00),
-('White', 160.00, 50.00, 75.00, 85.00),
-('Brown', 130.00, 50.00, 75.00, 85.00),
-('Green', 150.00, 50.00, 75.00, 85.00),
-('Multi Color', 170.00, 50.00, 75.00, 85.00);
 
 -- Insert commission rates
 INSERT INTO commission_rates (rate_name, percentage) VALUES

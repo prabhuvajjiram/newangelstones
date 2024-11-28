@@ -1,5 +1,5 @@
 <?php
-require_once 'config.php';
+require_once 'includes/config.php';
 require_once 'vendor/autoload.php'; // Make sure you have TCPDF installed via composer
 
 use TCPDF;

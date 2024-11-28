@@ -5,3 +5,4 @@ node_modules
 /quotes/*.pdf
 /admin/vendor
 /vendor
+/admin/quotes

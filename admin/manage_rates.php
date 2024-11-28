@@ -1,5 +1,5 @@
 <?php
-require_once 'config.php';
+require_once 'includes/config.php';
 requireLogin();
 
 $message = '';
@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $base_price = $_POST['base_price'];
         $slant_price = $_POST['slant_price'];
         
-        $stmt = $conn->prepare("UPDATE stone_colors SET price_per_sqft = ?, width_polish_rate = ?, base_price = ?, slant_price = ? WHERE id = ?");
+        $stmt = $conn->prepare("UPDATE stone_color_rates SET price_per_sqft = ?, width_polish_rate = ?, base_price = ?, slant_price = ? WHERE id = ?");
         $stmt->bind_param("ddiddi", $price, $polish_rate, $base_price, $slant_price, $id);
         
         if ($stmt->execute()) {
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Fetch stone colors
 $stones = [];
-$result = $conn->query("SELECT * FROM stone_colors ORDER BY color_name");
+$result = $conn->query("SELECT * FROM stone_color_rates ORDER BY color_name");
 if ($result) {
     while ($row = $result->fetch_assoc()) {
         $stones[] = $row;

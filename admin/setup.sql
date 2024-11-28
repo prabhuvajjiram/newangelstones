@@ -1,9 +1,12 @@
--- Create and setup the database
+-- Consolidated database setup script for Angel Stones Quote Management System
+-- This script combines all database setup and update scripts into a single file
+
+-- Drop database if exists and create new
 DROP DATABASE IF EXISTS angelstones_quotes_new;
 CREATE DATABASE angelstones_quotes_new;
 USE angelstones_quotes_new;
 
--- Create stone colors table with only color name and price increase percentage
+-- Create stone colors table with price increase percentage
 CREATE TABLE stone_color_rates (
     id INT AUTO_INCREMENT PRIMARY KEY,
     color_name VARCHAR(100) NOT NULL,
@@ -148,18 +151,28 @@ INSERT INTO price_components (component_name, base_rate, description) VALUES
 ('Lamination', 25.00, 'Base rate for lamination'),
 ('Engraving', 30.00, 'Base rate for engraving');
 
+-- Create customers table
+CREATE TABLE customers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100),
+    phone VARCHAR(20),
+    address TEXT,
+    city VARCHAR(100),
+    state VARCHAR(100),
+    postal_code VARCHAR(20),
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 -- Create quotes table
 CREATE TABLE quotes (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    quote_number VARCHAR(20) NOT NULL UNIQUE,
     customer_id INT,
-    customer_name VARCHAR(100) NOT NULL,
-    customer_email VARCHAR(100),
-    customer_phone VARCHAR(20),
-    requested_by VARCHAR(100),
-    project_name VARCHAR(100),
     total_amount DECIMAL(10, 2) NOT NULL,
-    commission_rate DECIMAL(5, 2) NOT NULL,
-    commission_amount DECIMAL(10, 2) NOT NULL,
+    pdf_file VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customers(id)
@@ -169,16 +182,17 @@ CREATE TABLE quotes (
 CREATE TABLE quote_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     quote_id INT NOT NULL,
+    product_id INT,
     product_type VARCHAR(50) NOT NULL,
-    size VARCHAR(20) NOT NULL,
     model VARCHAR(20) NOT NULL,
+    size VARCHAR(20) NOT NULL,
     color_id INT NOT NULL,
     length DECIMAL(10, 2) NOT NULL,
     breadth DECIMAL(10, 2) NOT NULL,
+    sqft DECIMAL(10, 2),
+    cubic_feet DECIMAL(10, 2),
     quantity INT NOT NULL,
-    base_price DECIMAL(10, 2) NOT NULL,
-    price_increase DECIMAL(10, 2) NOT NULL,
-    subtotal DECIMAL(10, 2) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (quote_id) REFERENCES quotes(id),
     FOREIGN KEY (color_id) REFERENCES stone_color_rates(id)
@@ -197,45 +211,8 @@ CREATE TABLE users (
 INSERT INTO users (username, password, email) VALUES
 ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@example.com');
 
--- Create customers table
-CREATE TABLE customers (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100),
-    phone VARCHAR(20),
-    address TEXT,
-    city VARCHAR(50),
-    state VARCHAR(50),
-    postal_code VARCHAR(20),
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
--- Create follow_ups table
-CREATE TABLE follow_ups (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT,
-    quote_id INT,
-    status ENUM('pending', 'contacted', 'interested', 'not_interested', 'converted', 'cancelled') NOT NULL DEFAULT 'pending',
-    follow_up_date DATE NOT NULL,
-    notes TEXT,
-    created_by INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES customers(id),
-    FOREIGN KEY (quote_id) REFERENCES quotes(id),
-    FOREIGN KEY (created_by) REFERENCES users(id)
-);
-
--- Create quote_status_history table
-CREATE TABLE quote_status_history (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    quote_id INT NOT NULL,
-    status ENUM('created', 'sent', 'viewed', 'accepted', 'rejected', 'expired') NOT NULL,
-    notes TEXT,
-    created_by INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (quote_id) REFERENCES quotes(id),
-    FOREIGN KEY (created_by) REFERENCES users(id)
-);
+-- Add indexes for better performance
+CREATE INDEX idx_quotes_customer ON quotes(customer_id);
+CREATE INDEX idx_quote_items_quote ON quote_items(quote_id);
+CREATE INDEX idx_quote_items_color ON quote_items(color_id);
+CREATE INDEX idx_quote_items_product ON quote_items(product_id);

@@ -1,5 +1,5 @@
 <?php
-require_once 'config.php';
+require_once 'includes/config.php';
 
 echo "<pre>";
 echo "Starting admin user creation process...\n\n";
