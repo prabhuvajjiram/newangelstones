@@ -655,17 +655,18 @@ while ($row = $result->fetch_assoc()) {
                 let subtotal = 0;
                 window.cart.forEach(item => subtotal += item.price);
                 const totalCommission = subtotal * (commissionRate / 100);
-                const commissionPerItem = totalCommission / window.cart.length;
 
-                // Add commission to each item
-                const itemsWithCommission = window.cart.map(item => ({
-                    ...item,
-                    commission: commissionPerItem
-                }));
+                // Add commission to each item proportionally based on price
+                const itemsWithCommission = window.cart.map(item => {
+                    const itemCommission = (item.price / subtotal) * totalCommission;
+                    return {
+                        ...item,
+                        commission: itemCommission
+                    };
+                });
 
-                const quoteId = $('input[name="quote_id"]').val();
                 const data = {
-                    quote_id: quoteId,
+                    quote_id: $('input[name="quote_id"]').val(),
                     customer_id: customerId,
                     items: itemsWithCommission,
                     commission_rate: commissionRate,

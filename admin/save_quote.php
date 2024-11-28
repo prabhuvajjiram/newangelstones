@@ -158,7 +158,7 @@ try {
 
         try {
             // Create PDF with custom settings
-            $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8');
+            $pdf = new TCPDF('L', 'mm', 'A4', true, 'UTF-8');
             
             // Remove default header/footer
             $pdf->setPrintHeader(false);
@@ -171,6 +171,7 @@ try {
             
             // Set margins
             $pdf->SetMargins(15, 15, 15);
+            $pdf->SetAutoPageBreak(true, 15);
             
             // Add a page
             $pdf->AddPage();
@@ -186,17 +187,16 @@ try {
             $pdf->SetFont('helvetica', 'B', 14);
             $pdf->Cell(0, 10, 'QUOTATION', 0, 1, 'C');
             $pdf->SetFont('helvetica', '', 12);
-            $pdf->Cell(0, 10, 'Quote #: ' . $quote_number, 0, 1, 'R');
-            $pdf->Cell(0, 10, 'Date: ' . date('Y-m-d'), 0, 1, 'R');
+            $pdf->Cell(0, 10, 'Quote #: ' . $quote_number . '    Date: ' . date('Y-m-d'), 0, 1, 'R');
             
             // Customer details
             $pdf->Ln(5);
             $pdf->SetFont('helvetica', 'B', 12);
             $pdf->Cell(0, 10, 'Customer Details:', 0, 1);
             $pdf->SetFont('helvetica', '', 12);
-            $pdf->Cell(0, 10, 'Name: ' . htmlspecialchars($customer['name']), 0, 1);
-            $pdf->Cell(0, 10, 'Email: ' . htmlspecialchars($customer['email']), 0, 1);
-            $pdf->Cell(0, 10, 'Phone: ' . htmlspecialchars($customer['phone']), 0, 1);
+            $pdf->Cell(0, 7, 'Name: ' . htmlspecialchars($customer['name']), 0, 1);
+            $pdf->Cell(0, 7, 'Email: ' . htmlspecialchars($customer['email']), 0, 1);
+            $pdf->Cell(0, 7, 'Phone: ' . htmlspecialchars($customer['phone']), 0, 1);
             
             // Items table
             $pdf->Ln(10);
@@ -204,22 +204,31 @@ try {
             $pdf->Cell(0, 10, 'Items:', 0, 1);
             
             // Table header
-            $pdf->SetFont('helvetica', 'B', 10);
             $pdf->SetFillColor(240, 240, 240);
-            $pdf->Cell(30, 7, 'Type', 1, 0, 'C', true);
-            $pdf->Cell(25, 7, 'Model', 1, 0, 'C', true);
-            $pdf->Cell(25, 7, 'Size', 1, 0, 'C', true);
-            $pdf->Cell(30, 7, 'Color', 1, 0, 'C', true);
-            $pdf->Cell(30, 7, 'Dimensions', 1, 0, 'C', true);
-            $pdf->Cell(20, 7, 'Cu.Ft', 1, 0, 'C', true);
-            $pdf->Cell(15, 7, 'Qty', 1, 0, 'C', true);
-            $pdf->Cell(25, 7, 'Price', 1, 1, 'C', true);
+            $pdf->SetFont('helvetica', 'B', 10);
+            
+            // Calculate column widths for landscape orientation
+            $col1 = 35; // Type
+            $col2 = 30; // Model
+            $col3 = 25; // Size
+            $col4 = 35; // Color
+            $col5 = 35; // Dimensions
+            $col6 = 25; // Cu.Ft
+            $col7 = 20; // Qty
+            $col8 = 35; // Price
+            
+            $pdf->Cell($col1, 7, 'Type', 1, 0, 'C', true);
+            $pdf->Cell($col2, 7, 'Model', 1, 0, 'C', true);
+            $pdf->Cell($col3, 7, 'Size', 1, 0, 'C', true);
+            $pdf->Cell($col4, 7, 'Color', 1, 0, 'C', true);
+            $pdf->Cell($col5, 7, 'Dimensions', 1, 0, 'C', true);
+            $pdf->Cell($col6, 7, 'Cu.Ft', 1, 0, 'C', true);
+            $pdf->Cell($col7, 7, 'Qty', 1, 0, 'C', true);
+            $pdf->Cell($col8, 7, 'Price', 1, 1, 'C', true);
 
             // Table content
             $pdf->SetFont('helvetica', '', 10);
-            $subtotal = 0;
-            $total_commission = isset($data['total_commission']) ? $data['total_commission'] : 0;
-            $commission_per_item = $total_commission / count($data['items']);
+            $total = 0;
 
             foreach ($data['items'] as $item) {
                 // Get color name
@@ -231,27 +240,24 @@ try {
                 $color_name = $color_data ? $color_data['color_name'] : 'Unknown';
                 $color_stmt->close();
 
-                $pdf->Cell(30, 7, $item['type'], 1, 0, 'L');
-                $pdf->Cell(25, 7, $item['model'], 1, 0, 'L');
-                $pdf->Cell(25, 7, $item['size'], 1, 0, 'C');
-                $pdf->Cell(30, 7, $color_name, 1, 0, 'L');
-                $pdf->Cell(30, 7, $item['length'] . '" × ' . $item['breadth'] . '"', 1, 0, 'C');
-                $pdf->Cell(20, 7, number_format($item['cubicFeet'], 2), 1, 0, 'R');
-                $pdf->Cell(15, 7, $item['quantity'], 1, 0, 'C');
-                $pdf->Cell(25, 7, '$' . number_format($item['price'], 2), 1, 1, 'R');
-                
-                $subtotal += $item['price'];
+                // Add commission to item price
+                $price_with_commission = $item['price'] + (float)$item['commission'];
+                $total += $price_with_commission;
+
+                $pdf->Cell($col1, 7, $item['type'], 1, 0, 'L');
+                $pdf->Cell($col2, 7, $item['model'], 1, 0, 'L');
+                $pdf->Cell($col3, 7, $item['size'], 1, 0, 'C');
+                $pdf->Cell($col4, 7, $color_name, 1, 0, 'L');
+                $pdf->Cell($col5, 7, $item['length'] . '" × ' . $item['breadth'] . '"', 1, 0, 'C');
+                $pdf->Cell($col6, 7, number_format($item['cubicFeet'], 2), 1, 0, 'R');
+                $pdf->Cell($col7, 7, $item['quantity'], 1, 0, 'C');
+                $pdf->Cell($col8, 7, '$' . number_format($price_with_commission, 2), 1, 1, 'R');
             }
 
-            // Totals
+            // Total
             $pdf->SetFont('helvetica', 'B', 10);
-            $pdf->Cell(175, 7, 'Subtotal:', 1, 0, 'R');
-            $pdf->Cell(25, 7, '$' . number_format($subtotal, 2), 1, 1, 'R');
-
-            // Total (including commission)
-            $total = $subtotal + $total_commission;
-            $pdf->Cell(175, 7, 'Total:', 1, 0, 'R');
-            $pdf->Cell(25, 7, '$' . number_format($total, 2), 1, 1, 'R');
+            $pdf->Cell($col1 + $col2 + $col3 + $col4 + $col5 + $col6 + $col7, 7, 'Total:', 1, 0, 'R', true);
+            $pdf->Cell($col8, 7, '$' . number_format($total, 2), 1, 1, 'R', true);
 
             // Terms and conditions
             $pdf->Ln(10);

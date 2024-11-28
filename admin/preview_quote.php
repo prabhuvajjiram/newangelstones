@@ -108,7 +108,20 @@ $stmt->close();
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($items as $item): ?>
+                            <?php 
+                            $subtotal = 0;
+                            foreach ($items as $item) {
+                                $subtotal += $item['price'];
+                            }
+                            
+                            // Calculate commission for each item
+                            $commission_rate = $quote['commission_rate'];
+                            $total_commission = $subtotal * ($commission_rate / 100);
+                            
+                            foreach ($items as $item): 
+                                // Calculate proportional commission for this item
+                                $item_commission = ($item['price'] / $subtotal) * $total_commission;
+                            ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($item['product_type']); ?></td>
                                 <td><?php echo htmlspecialchars($item['model']); ?></td>
@@ -117,23 +130,35 @@ $stmt->close();
                                 <td><?php echo htmlspecialchars($item['length']); ?>" × <?php echo htmlspecialchars($item['breadth']); ?>"</td>
                                 <td><?php echo number_format($item['cubic_feet'], 2); ?></td>
                                 <td><?php echo htmlspecialchars($item['quantity']); ?></td>
-                                <td>$<?php echo number_format($item['price'], 2); ?></td>
+                                <td>$<?php echo number_format($item['price'] + $item_commission, 2); ?></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="7" class="text-end"><strong>Total:</strong></td>
-                                <td><strong>$<?php echo number_format($quote['total_amount'], 2); ?></strong></td>
+                                <td colspan="7" class="text-end"><strong>Subtotal:</strong></td>
+                                <td><strong>$<?php echo number_format($subtotal, 2); ?></strong></td>
                             </tr>
-                            <?php if ($quote['commission_rate'] > 0): ?>
+                            <?php if ($quote['commission_rate'] > 0): 
+                                $commission = $subtotal * ($quote['commission_rate'] / 100);
+                                $total = $subtotal + $commission;
+                            ?>
                             <tr>
                                 <td colspan="7" class="text-end"><strong>Commission Rate:</strong></td>
                                 <td><?php echo number_format($quote['commission_rate'], 2); ?>%</td>
                             </tr>
                             <tr>
                                 <td colspan="7" class="text-end"><strong>Commission Amount:</strong></td>
-                                <td>$<?php echo number_format($quote['commission_amount'], 2); ?></td>
+                                <td>$<?php echo number_format($commission, 2); ?></td>
+                            </tr>
+                            <tr class="table-primary">
+                                <td colspan="7" class="text-end"><strong>Total:</strong></td>
+                                <td><strong>$<?php echo number_format($total, 2); ?></strong></td>
+                            </tr>
+                            <?php else: ?>
+                            <tr class="table-primary">
+                                <td colspan="7" class="text-end"><strong>Total:</strong></td>
+                                <td><strong>$<?php echo number_format($subtotal, 2); ?></strong></td>
                             </tr>
                             <?php endif; ?>
                         </tfoot>
