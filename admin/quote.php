@@ -133,7 +133,8 @@ function getProductsByType($conn, $type) {
         $products[$size][] = [
             'id' => $row['id'],
             'model' => $row['model'],
-            'base_price' => $row['base_price']
+            'base_price' => $row['base_price'],
+            'square_feet' => isset($row['square_feet']) ? $row['square_feet'] : null
         ];
     }
     
@@ -374,6 +375,29 @@ while ($row = $result->fetch_assoc()) {
             
             console.log('Product Data:', productData);
             
+            function clearProductForm(clearType = false) {
+                if (clearType) {
+                    $('#productType').val('');
+                }
+                $('#productSize').val('');
+                $('#productModel').val('');
+                $('#length').val('');
+                $('#breadth').val('');
+                $('#quantity').val('1');
+                $('#sqft').val('');
+                $('#cubicFeet').val('');
+                $('#price').val('');
+            }
+
+            function resetDropdowns() {
+                const sizeSelect = $('#productSize');
+                const modelSelect = $('#productModel');
+                
+                // Clear dropdowns
+                sizeSelect.empty().append('<option value="">Select Size</option>');
+                modelSelect.empty().append('<option value="">Select Model</option>');
+            }
+
             // Add to Cart button handler
             $('#addToCartBtn').click(function(e) {
                 e.preventDefault();
@@ -381,23 +405,37 @@ while ($row = $result->fetch_assoc()) {
                 const type = $('#productType').val();
                 const size = $('#productSize').val();
                 const model = $('#productModel').val();
-                const colorOption = $('#stoneColor option:selected');
-                const colorId = colorOption.val();
-                const colorName = colorOption.text();
-                const length = $('#length').val();
-                const breadth = $('#breadth').val();
-                const quantity = parseInt($('#quantity').val()) || 1;
-                const sqft = parseFloat($('#sqft').val()) || 0;
-                const cubicFeet = parseFloat($('#cubicFeet').val()) || 0;
-                const price = parseFloat($('#price').val()) || 0;
+                const colorId = $('#stoneColor').val();
+                const colorName = $('#stoneColor option:selected').text();
+                const length = parseFloat($('#length').val());
+                const breadth = parseFloat($('#breadth').val());
+                const quantity = parseInt($('#quantity').val());
+                const sqft = parseFloat($('#sqft').val());
+                const cubicFeet = parseFloat($('#cubicFeet').val());
+                const price = parseFloat($('#price').val());
 
-                // Validation
                 if (!type || !size || !model || !colorId || !length || !breadth || !quantity) {
                     alert('Please fill in all required fields');
                     return;
                 }
 
-                // Create cart item
+                // Check for duplicate items
+                const isDuplicate = window.cart.some(item => 
+                    item.type === type &&
+                    item.model === model &&
+                    item.size === size &&
+                    item.color_id === colorId &&
+                    item.length === length &&
+                    item.breadth === breadth &&
+                    item.totalPrice === price &&
+                    item.color === colorName.trim()
+                );
+
+                if (isDuplicate) {
+                    alert('This item is already in the cart. Please modify the existing item or change the specifications.');
+                    return;
+                }
+
                 const cartItem = {
                     type: type,
                     size: size,
@@ -420,15 +458,56 @@ while ($row = $result->fetch_assoc()) {
                 // Update cart display
                 updateCartTable();
 
-                // Clear form
-                $('#productType').val('').trigger('change');
-                $('#length').val('');
-                $('#breadth').val('');
-                $('#quantity').val('1');
+                // Clear form including product type
+                clearProductForm(true);
+                resetDropdowns();
+            });
+
+            // Event handlers for dropdown population
+            $('#productType').change(function() {
+                const type = $(this).val();
+                const sizeSelect = $('#productSize');
+                const modelSelect = $('#productModel');
+                
+                resetDropdowns();
+                clearProductForm();
+                
+                if (type && productData[type.toLowerCase()]) {
+                    // Get unique sizes
+                    const sizes = Object.keys(productData[type.toLowerCase()]);
+                    sizes.sort((a, b) => parseFloat(a) - parseFloat(b)); // Sort numerically
+                    
+                    // Add sizes to dropdown
+                    sizes.forEach(size => {
+                        sizeSelect.append(`<option value="${size}">${size}"</option>`);
+                    });
+                }
+            });
+
+            $('#productSize').change(function() {
+                const type = $('#productType').val();
+                const size = $(this).val();
+                const modelSelect = $('#productModel');
+                
+                // Clear model dropdown and calculations
+                modelSelect.empty().append('<option value="">Select Model</option>');
                 $('#sqft').val('');
                 $('#cubicFeet').val('');
                 $('#price').val('');
+                
+                if (type && size && productData[type.toLowerCase()][size]) {
+                    const models = productData[type.toLowerCase()][size];
+                    models.sort((a, b) => a.model.localeCompare(b.model)); // Sort alphabetically
+                    
+                    // Add models to dropdown
+                    models.forEach(model => {
+                        modelSelect.append(`<option value="${model.model}">${model.model}</option>`);
+                    });
+                }
             });
+
+            $('#productModel').change(calculateDimensions);
+            $('#length, #breadth, #quantity').on('change', calculateDimensions);
 
             <?php if ($quote_items): ?>
             // Load existing quote items into cart
@@ -448,11 +527,11 @@ while ($row = $result->fetch_assoc()) {
             });
 
             // Pre-select values in the form for the last item (for editing)
-            $('#productType').val('<?php echo strtoupper($item['product_type']); ?>').trigger('change');
+            $('#productType').val('<?php echo strtoupper($item['product_type']); ?>');
             
             // Wait for size options to be populated
             setTimeout(() => {
-                $('#productSize').val('<?php echo $item['size']; ?>').trigger('change');
+                $('#productSize').val('<?php echo $item['size']; ?>');
                 
                 // Wait for model options to be populated
                 setTimeout(() => {
@@ -475,76 +554,42 @@ while ($row = $result->fetch_assoc()) {
             updateCartTable();
             <?php endif; ?>
 
-            // Event handlers for dropdown population
-            $('#productType').change(function() {
-                const type = $(this).val();
-                const sizeSelect = $('#productSize');
-                const modelSelect = $('#productModel');
-                
-                // Clear dependent dropdowns
-                sizeSelect.empty().append('<option value="">Select Size</option>');
-                modelSelect.empty().append('<option value="">Select Model</option>');
-                
-                if (type && productData[type.toLowerCase()]) {
-                    // Get unique sizes
-                    const sizes = Object.keys(productData[type.toLowerCase()]);
-                    sizes.sort((a, b) => parseFloat(a) - parseFloat(b)); // Sort numerically
-                    
-                    // Add sizes to dropdown
-                    sizes.forEach(size => {
-                        sizeSelect.append(`<option value="${size}">${size}"</option>`);
-                    });
-                }
-            });
-
-            $('#productSize').change(function() {
-                const type = $('#productType').val();
-                const size = $(this).val();
-                const modelSelect = $('#productModel');
-                
-                // Clear model dropdown
-                modelSelect.empty().append('<option value="">Select Model</option>');
-                
-                if (type && size && productData[type.toLowerCase()][size]) {
-                    const models = productData[type.toLowerCase()][size];
-                    models.sort((a, b) => a.model.localeCompare(b.model)); // Sort alphabetically
-                    
-                    // Add models to dropdown
-                    models.forEach(model => {
-                        modelSelect.append(`<option value="${model.model}">${model.model}</option>`);
-                    });
-                }
-                
-                calculateDimensions();
-            });
-
-            $('#productModel').change(function() {
-                calculateDimensions();
-            });
-
-            // Event handlers for dimension calculations
-            $('#length, #breadth, #productSize, #quantity').on('change', calculateDimensions);
-
             function calculateDimensions() {
+                const type = $('#productType').val();
+                const size = $('#productSize').val();
+                const model = $('#productModel').val();
+                console.log('Product type:', type);
+                console.log('Product size:', size);
+                console.log('Product model:', model);
+
                 const length = parseFloat($('#length').val()) || 0;
                 const breadth = parseFloat($('#breadth').val()) || 0;
-                const size = parseFloat($('#productSize').val()) || 0;
                 const quantity = parseInt($('#quantity').val()) || 1;
 
-                // Calculate square feet: (Length * Breadth) / 144
-                const sqft = (length * breadth) / 144;
-                $('#sqft').val(sqft.toFixed(2));
+                if (length && breadth && quantity) {
+                    // Calculate SQFT - same for all products
+                    const sqft = (length * breadth) / 144;
+                    console.log('Calculated SQFT:', sqft);
+                    $('#sqft').val(sqft.toFixed(2));
 
-                // Calculate cubic feet: ((Length * Breadth * Size) / 1728) * quantity
-                const cubicFeet = ((length * breadth * size) / 1728) * quantity;
-                $('#cubicFeet').val(cubicFeet.toFixed(2));
+                    // Calculate Cubic Feet
+                    let height;
+                    if (type.toUpperCase() === 'MARKER') {
+                        height = 4; // Always use 4 inches for markers
+                        console.log('Using marker height (4 inches) for type:', type);
+                    } else {
+                        height = parseFloat(size);
+                        console.log('Using size as height for type:', type);
+                    }
+                    
+                    const cubicFeet = ((length * breadth * height) / 1728) * quantity;
+                    console.log('Cubic feet calc:', length, '*', breadth, '*', height, '/', 1728, '*', quantity, '=', cubicFeet);
+                    $('#cubicFeet').val(cubicFeet.toFixed(2));
 
-                // Update price after dimensions change
-                updatePrice();
+                    // Update price
+                    updatePrice();
+                }
             }
-
-            // Initialize the form
-            $('#productType').trigger('change');
 
             function updatePrice() {
                 const type = $('#productType').val();
@@ -578,7 +623,8 @@ while ($row = $result->fetch_assoc()) {
                 console.log('Base price:', basePrice);
                 
                 // Calculate total price using square feet for all product types
-                let totalPrice = sqft * basePrice;
+                // Multiply by quantity here since sqft is now per unit
+                let totalPrice = sqft * basePrice * quantity;
                 
                 // Apply color increase if selected
                 if (colorId) {
@@ -586,9 +632,6 @@ while ($row = $result->fetch_assoc()) {
                     const priceIncrease = parseFloat(colorOption.data('price-increase')) || 0;
                     totalPrice = totalPrice * (1 + priceIncrease / 100);
                 }
-                
-                // Apply quantity
-                totalPrice = totalPrice * quantity;
                 
                 // Update price field
                 $('#price').val(totalPrice.toFixed(2));
@@ -603,14 +646,14 @@ while ($row = $result->fetch_assoc()) {
                 
                 window.cart.forEach((item, index) => {
                     const row = $('<tr>');
-                    row.append($('<td>').text(item.type.toLowerCase()));
+                    row.append($('<td>').text(item.type));
                     row.append($('<td>').text(item.model));
                     row.append($('<td>').text(item.size));
                     row.append($('<td>').text(item.color));
                     row.append($('<td>').text(item.dimensions));
-                    row.append($('<td>').text(item.cubicFeet.toFixed(2)));
+                    row.append($('<td>').text(parseFloat(item.cubicFeet).toFixed(2)));
                     row.append($('<td>').text(item.quantity));
-                    row.append($('<td>').text('$' + item.totalPrice.toFixed(2)));
+                    row.append($('<td>').text('$' + parseFloat(item.totalPrice).toFixed(2)));
                     
                     const deleteBtn = $('<button>')
                         .addClass('btn btn-danger btn-sm')
@@ -623,7 +666,7 @@ while ($row = $result->fetch_assoc()) {
                     row.append($('<td>').append(deleteBtn));
                     tbody.append(row);
                     
-                    subtotal += item.totalPrice;
+                    subtotal += parseFloat(item.totalPrice);
                 });
                 
                 // Update totals

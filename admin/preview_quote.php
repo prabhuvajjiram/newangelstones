@@ -37,26 +37,41 @@ $stmt = $conn->prepare("
            scr.price_increase_percentage,
            COALESCE(sp.base_price, bp.base_price, mp.base_price, slp.base_price) as product_base_price,
            q.commission_rate,
-           -- Calculate cubic feet
-           ROUND(((qi.length * qi.breadth * qi.size) / 1728) * qi.quantity, 2) as cubic_feet,
-           -- Calculate SQFT
-           ROUND((qi.length * qi.breadth) / 144, 2) as sqft,
+           -- Calculate cubic feet (use 4 inches for markers)
+           CASE 
+               WHEN qi.product_type = 'marker' THEN ROUND(((qi.length * qi.breadth * 4) / 1728) * qi.quantity, 2)
+               ELSE ROUND(((qi.length * qi.breadth * qi.size) / 1728) * qi.quantity, 2)
+           END as cubic_feet,
+           -- Calculate SQFT (use square_feet from marker_products for markers)
+           CASE 
+               WHEN qi.product_type = 'marker' THEN ROUND((qi.length * qi.breadth) / 144, 2)
+               ELSE ROUND((qi.length * qi.breadth) / 144, 2)
+           END as sqft,
            -- Calculate base price without quantity
-           ROUND(((qi.length * qi.breadth) / 144) * COALESCE(sp.base_price, bp.base_price, mp.base_price, slp.base_price), 2) as base_price,
+           CASE 
+               WHEN qi.product_type = 'marker' THEN mp.base_price
+               ELSE ROUND(((qi.length * qi.breadth) / 144) * COALESCE(sp.base_price, bp.base_price, slp.base_price), 2)
+           END as base_price,
            -- Calculate color price without quantity
-           ROUND(((qi.length * qi.breadth) / 144) * COALESCE(sp.base_price, bp.base_price, mp.base_price, slp.base_price) * (COALESCE(scr.price_increase_percentage, 0) / 100), 2) as color_price,
+           CASE 
+               WHEN qi.product_type = 'marker' THEN ROUND(mp.base_price * (COALESCE(scr.price_increase_percentage, 0) / 100), 2)
+               ELSE ROUND(((qi.length * qi.breadth) / 144) * COALESCE(sp.base_price, bp.base_price, slp.base_price) * (COALESCE(scr.price_increase_percentage, 0) / 100), 2)
+           END as color_price,
            -- Calculate total price before commission (base + color) * quantity
-           ROUND((
-               ((qi.length * qi.breadth) / 144) * COALESCE(sp.base_price, bp.base_price, mp.base_price, slp.base_price) * (1 + COALESCE(scr.price_increase_percentage, 0) / 100)
-           ) * qi.quantity, 2) as total_price_before_commission,
+           CASE 
+               WHEN qi.product_type = 'marker' THEN ROUND(mp.base_price * (1 + COALESCE(scr.price_increase_percentage, 0) / 100) * qi.quantity, 2)
+               ELSE ROUND((((qi.length * qi.breadth) / 144) * COALESCE(sp.base_price, bp.base_price, slp.base_price) * (1 + COALESCE(scr.price_increase_percentage, 0) / 100)) * qi.quantity, 2)
+           END as total_price_before_commission,
            -- Calculate commission on total price after quantity
-           ROUND((
-               ((qi.length * qi.breadth) / 144) * COALESCE(sp.base_price, bp.base_price, mp.base_price, slp.base_price) * (1 + COALESCE(scr.price_increase_percentage, 0) / 100) * qi.quantity
-           ) * (q.commission_rate / 100), 2) as commission_price,
+           CASE 
+               WHEN qi.product_type = 'marker' THEN ROUND((mp.base_price * (1 + COALESCE(scr.price_increase_percentage, 0) / 100) * qi.quantity) * (q.commission_rate / 100), 2)
+               ELSE ROUND((((qi.length * qi.breadth) / 144) * COALESCE(sp.base_price, bp.base_price, slp.base_price) * (1 + COALESCE(scr.price_increase_percentage, 0) / 100) * qi.quantity) * (q.commission_rate / 100), 2)
+           END as commission_price,
            -- Calculate final total price including commission
-           ROUND((
-               ((qi.length * qi.breadth) / 144) * COALESCE(sp.base_price, bp.base_price, mp.base_price, slp.base_price) * (1 + COALESCE(scr.price_increase_percentage, 0) / 100) * qi.quantity
-           ) * (1 + q.commission_rate / 100), 2) as total_price
+           CASE 
+               WHEN qi.product_type = 'marker' THEN ROUND((mp.base_price * (1 + COALESCE(scr.price_increase_percentage, 0) / 100) * qi.quantity) * (1 + q.commission_rate / 100), 2)
+               ELSE ROUND((((qi.length * qi.breadth) / 144) * COALESCE(sp.base_price, bp.base_price, slp.base_price) * (1 + COALESCE(scr.price_increase_percentage, 0) / 100) * qi.quantity) * (1 + q.commission_rate / 100), 2)
+           END as total_price
     FROM quote_items qi
     JOIN quotes q ON qi.quote_id = q.id
     LEFT JOIN stone_color_rates scr ON qi.color_id = scr.id
