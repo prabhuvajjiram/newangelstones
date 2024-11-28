@@ -5,6 +5,10 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_NAME', 'angelstones_quotes_new');
 
+// Environment detection
+$is_local = ($_SERVER['SERVER_PORT'] == '3000');
+define('BASE_URL', $is_local ? 'http://localhost:3000/admin/' : '/admin/');
+
 // Create database connection
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
@@ -30,8 +34,13 @@ function isLoggedIn() {
 // Function to require login
 function requireLogin() {
     if (!isLoggedIn()) {
-        header('Location: login.php');
+        header('Location: ' . BASE_URL . 'login.php');
         exit();
     }
+}
+
+// Function to get URL
+function getUrl($path = '') {
+    return BASE_URL . ltrim($path, '/');
 }
 ?>

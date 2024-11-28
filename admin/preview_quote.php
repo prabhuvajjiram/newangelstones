@@ -30,12 +30,40 @@ if (!$quote) {
     die('Quote not found');
 }
 
-// Get quote items
+// Get quote items with total prices
 $stmt = $conn->prepare("
-    SELECT qi.*, scr.color_name,
-    ROUND((qi.length * qi.breadth * 0.75) / 1728, 2) as cubic_feet
+    SELECT qi.*,
+           scr.color_name,
+           scr.price_increase_percentage,
+           COALESCE(sp.base_price, bp.base_price, mp.base_price, slp.base_price) as product_base_price,
+           q.commission_rate,
+           -- Calculate cubic feet
+           ROUND(((qi.length * qi.breadth * qi.size) / 1728) * qi.quantity, 2) as cubic_feet,
+           -- Calculate SQFT
+           ROUND((qi.length * qi.breadth) / 144, 2) as sqft,
+           -- Calculate base price without quantity
+           ROUND(((qi.length * qi.breadth) / 144) * COALESCE(sp.base_price, bp.base_price, mp.base_price, slp.base_price), 2) as base_price,
+           -- Calculate color price without quantity
+           ROUND(((qi.length * qi.breadth) / 144) * COALESCE(sp.base_price, bp.base_price, mp.base_price, slp.base_price) * (COALESCE(scr.price_increase_percentage, 0) / 100), 2) as color_price,
+           -- Calculate total price before commission (base + color) * quantity
+           ROUND((
+               ((qi.length * qi.breadth) / 144) * COALESCE(sp.base_price, bp.base_price, mp.base_price, slp.base_price) * (1 + COALESCE(scr.price_increase_percentage, 0) / 100)
+           ) * qi.quantity, 2) as total_price_before_commission,
+           -- Calculate commission on total price after quantity
+           ROUND((
+               ((qi.length * qi.breadth) / 144) * COALESCE(sp.base_price, bp.base_price, mp.base_price, slp.base_price) * (1 + COALESCE(scr.price_increase_percentage, 0) / 100) * qi.quantity
+           ) * (q.commission_rate / 100), 2) as commission_price,
+           -- Calculate final total price including commission
+           ROUND((
+               ((qi.length * qi.breadth) / 144) * COALESCE(sp.base_price, bp.base_price, mp.base_price, slp.base_price) * (1 + COALESCE(scr.price_increase_percentage, 0) / 100) * qi.quantity
+           ) * (1 + q.commission_rate / 100), 2) as total_price
     FROM quote_items qi
+    JOIN quotes q ON qi.quote_id = q.id
     LEFT JOIN stone_color_rates scr ON qi.color_id = scr.id
+    LEFT JOIN sertop_products sp ON qi.model = sp.model AND qi.size = sp.size_inches AND qi.product_type = 'sertop'
+    LEFT JOIN base_products bp ON qi.model = bp.model AND qi.size = bp.size_inches AND qi.product_type = 'base'
+    LEFT JOIN marker_products mp ON qi.model = mp.model AND qi.size = mp.square_feet AND qi.product_type = 'marker'
+    LEFT JOIN slant_products slp ON qi.model = slp.model AND qi.product_type = 'slant'
     WHERE qi.quote_id = ?
 ");
 
@@ -43,6 +71,18 @@ $stmt->bind_param('i', $quote_id);
 $stmt->execute();
 $items = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
+
+// Calculate totals
+$total_before_commission = 0;
+$total_commission = 0;
+$grand_total = 0;
+
+foreach ($items as $item) {
+    $total_before_commission += $item['total_price_before_commission'];
+    $total_commission += $item['commission_price'];
+    $grand_total += $item['total_price'];
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -64,7 +104,7 @@ $stmt->close();
                 <p class="text-muted">Quote #<?php echo htmlspecialchars($quote['quote_number']); ?></p>
             </div>
             <div class="col text-end">
-                <a href="<?php echo htmlspecialchars($quote['pdf_file']); ?>" class="btn btn-primary" target="_blank">
+                <a href="generate_pdf.php?id=<?php echo htmlspecialchars($quote_id); ?>" class="btn btn-primary" target="_blank">
                     <i class="bi bi-file-pdf"></i> View PDF
                 </a>
             </div>
@@ -104,65 +144,39 @@ $stmt->close();
                                 <th>Color</th>
                                 <th>Dimensions</th>
                                 <th>Cubic Feet</th>
+                                <th>SQFT</th>
                                 <th>Quantity</th>
                                 <th>Price</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php 
-                            $subtotal = 0;
-                            foreach ($items as $item) {
-                                $subtotal += isset($item['price']) ? (float)$item['price'] : 0;
-                            }
-                            
-                            // Calculate commission for each item
-                            $commission_rate = $quote['commission_rate'] ?? 0;
-                            $total_commission = $subtotal * ($commission_rate / 100);
-                            
-                            foreach ($items as $item): 
-                                // Calculate proportional commission for this item
-                                $item_price = isset($item['price']) ? (float)$item['price'] : 0;
-                                $item_commission = $subtotal > 0 ? ($item_price / $subtotal) * $total_commission : 0;
-                            ?>
+                            <?php foreach ($items as $item): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($item['product_type']); ?></td>
                                 <td><?php echo htmlspecialchars($item['model']); ?></td>
                                 <td><?php echo htmlspecialchars($item['size']); ?></td>
                                 <td><?php echo htmlspecialchars($item['color_name']); ?></td>
                                 <td><?php echo htmlspecialchars($item['length']); ?>" × <?php echo htmlspecialchars($item['breadth']); ?>"</td>
-                                <td><?php echo number_format(isset($item['cubic_feet']) ? (float)$item['cubic_feet'] : 0, 2); ?></td>
+                                <td><?php echo number_format($item['cubic_feet'], 2); ?></td>
+                                <td><?php echo number_format($item['sqft'], 2); ?></td>
                                 <td><?php echo htmlspecialchars($item['quantity']); ?></td>
-                                <td>$<?php echo number_format($item_price + $item_commission, 2); ?></td>
+                                <td>$<?php echo number_format($item['total_price'], 2); ?></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="7" class="text-end"><strong>Subtotal:</strong></td>
-                                <td><strong>$<?php echo number_format($subtotal, 2); ?></strong></td>
-                            </tr>
-                            <?php if ($quote['commission_rate'] > 0): 
-                                $commission = $subtotal * ($quote['commission_rate'] / 100);
-                                $total = $subtotal + $commission;
-                            ?>
-                            <tr>
-                                <td colspan="7" class="text-end"><strong>Commission Rate:</strong></td>
-                                <td><?php echo number_format($quote['commission_rate'], 2); ?>%</td>
+                                <td colspan="8" class="text-end"><strong>Subtotal:</strong></td>
+                                <td><strong>$<?php echo number_format($total_before_commission, 2); ?></strong></td>
                             </tr>
                             <tr>
-                                <td colspan="7" class="text-end"><strong>Commission Amount:</strong></td>
-                                <td>$<?php echo number_format($commission, 2); ?></td>
+                                <td colspan="8" class="text-end"><strong>Commission (<?php echo number_format($quote['commission_rate'], 2); ?>%):</strong></td>
+                                <td><strong>$<?php echo number_format($total_commission, 2); ?></strong></td>
                             </tr>
-                            <tr class="table-primary">
-                                <td colspan="7" class="text-end"><strong>Total:</strong></td>
-                                <td><strong>$<?php echo number_format($total, 2); ?></strong></td>
+                            <tr>
+                                <td colspan="8" class="text-end"><strong>Total:</strong></td>
+                                <td><strong>$<?php echo number_format($grand_total, 2); ?></strong></td>
                             </tr>
-                            <?php else: ?>
-                            <tr class="table-primary">
-                                <td colspan="7" class="text-end"><strong>Total:</strong></td>
-                                <td><strong>$<?php echo number_format($subtotal, 2); ?></strong></td>
-                            </tr>
-                            <?php endif; ?>
                         </tfoot>
                     </table>
                 </div>
@@ -176,7 +190,10 @@ $stmt->close();
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <p><strong>Project Name:</strong> <?php echo htmlspecialchars($quote['project_name']); ?></p>
+                        <div class="mb-3">
+                            <strong>Project Name:</strong>
+                            <?php echo htmlspecialchars($quote['project_name'] ?? 'N/A'); ?>
+                        </div>
                         <p><strong>Created At:</strong> <?php echo date('F j, Y g:i A', strtotime($quote['created_at'])); ?></p>
                     </div>
                 </div>

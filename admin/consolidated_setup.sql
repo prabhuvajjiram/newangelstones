@@ -80,29 +80,13 @@ INSERT INTO commission_rates (rate_name, percentage) VALUES
 -- Create quotes table
 CREATE TABLE quotes (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    quote_number VARCHAR(50) NOT NULL UNIQUE,
+    quote_number VARCHAR(20) NOT NULL UNIQUE,
     customer_id INT,
-    customer_name VARCHAR(100) NOT NULL,
     customer_email VARCHAR(100),
-    customer_phone VARCHAR(20),
-    requested_by VARCHAR(100),
-    project_name VARCHAR(100),
     total_amount DECIMAL(10, 2) NOT NULL,
-    commission_rate DECIMAL(5, 2) NOT NULL,
-    commission_amount DECIMAL(10, 2) NOT NULL,
-    pdf_file VARCHAR(255),
-    length DECIMAL(10, 2),
-    breadth DECIMAL(10, 2),
-    width_polish DECIMAL(10, 2),
-    color VARCHAR(100),
-    quantity INT,
-    sertop_type VARCHAR(50),
-    sertop_price DECIMAL(10, 2),
-    total_area DECIMAL(10, 2),
-    price_per_sqft DECIMAL(10, 2),
-    width_polish_cost DECIMAL(10, 2),
-    sertop_total DECIMAL(10, 2),
-    subtotal DECIMAL(10, 2),
+    commission_rate DECIMAL(5, 2) NOT NULL DEFAULT 0.00,
+    commission_amount DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    status VARCHAR(50) NOT NULL DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL ON UPDATE CASCADE
@@ -113,15 +97,17 @@ CREATE TABLE quote_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     quote_id INT NOT NULL,
     product_type VARCHAR(50) NOT NULL,
-    size VARCHAR(20) NOT NULL,
     model VARCHAR(20) NOT NULL,
+    size VARCHAR(20) NOT NULL,
     color_id INT NOT NULL,
     length DECIMAL(10, 2) NOT NULL,
     breadth DECIMAL(10, 2) NOT NULL,
+    sqft DECIMAL(10, 2) NOT NULL,
+    cubic_feet DECIMAL(10, 2) NOT NULL,
     quantity INT NOT NULL,
-    base_price DECIMAL(10, 2) NOT NULL,
-    price_increase DECIMAL(10, 2) NOT NULL,
-    subtotal DECIMAL(10, 2) NOT NULL,
+    unit_price DECIMAL(10, 2) NOT NULL,
+    total_price DECIMAL(10, 2) NOT NULL,
+    commission_rate DECIMAL(5, 2) NOT NULL DEFAULT 0.00,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (color_id) REFERENCES stone_color_rates(id) ON DELETE RESTRICT ON UPDATE CASCADE
@@ -158,28 +144,25 @@ CREATE TABLE follow_ups (
 -- Create SERTOP products table
 CREATE TABLE sertop_products (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    product_code VARCHAR(10) NOT NULL,
-    model VARCHAR(10) NOT NULL,
-    size_inches INT NOT NULL,
-    length_inches DECIMAL(10, 2) NOT NULL,
-    breadth_inches DECIMAL(10, 2) NOT NULL,
-    description VARCHAR(100),
-    base_price DECIMAL(10, 2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    model VARCHAR(100) NOT NULL,
+    size_inches DECIMAL(10,2) NOT NULL,
+    base_price DECIMAL(10,2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Insert SERTOP products
-INSERT INTO sertop_products (product_code, model, size_inches, base_price) VALUES
-('SER-8-P1', 'P1', 8, 57.72),
-('SER-8-P2', 'P2', 8, 58.55),
-('SER-8-P3', 'P3', 8, 59.38),
-('SER-8-P4', 'P4', 8, 60.22),
-('SER-8-P5', 'P5', 8, 61.05),
-('SER-6-P1', 'P1', 6, 43.29),
-('SER-6-P2', 'P2', 6, 43.91),
-('SER-6-P3', 'P3', 6, 44.54),
-('SER-6-P4', 'P4', 6, 45.17),
-('SER-6-P5', 'P5', 6, 45.79);
+-- Insert sertop products with correct prices
+INSERT INTO sertop_products (model, size_inches, base_price) VALUES
+('P1', 8, 57.72),
+('P2', 8, 57.72),
+('P3', 8, 61.05),
+('P4', 8, 61.05),
+('P5', 8, 61.05),
+('P1', 6, 44.40),
+('P2', 6, 44.40),
+('P3', 6, 46.62),
+('P4', 6, 46.62),
+('P5', 6, 46.62);
 
 -- Create BASE products table
 CREATE TABLE base_products (

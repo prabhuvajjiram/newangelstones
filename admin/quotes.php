@@ -4,11 +4,16 @@ requireLogin();
 
 // Get all quotes with customer information
 $quotes = [];
-$result = $conn->query("SELECT q.*, c.name as customer_name, 
+$result = $conn->query("SELECT q.*, c.name as customer_name, c.email as customer_email,
                               (SELECT COUNT(*) FROM quote_items WHERE quote_id = q.id) as items_count
                        FROM quotes q 
                        LEFT JOIN customers c ON q.customer_id = c.id 
                        ORDER BY q.created_at DESC");
+
+if (!$result) {
+    error_log("Query failed: " . $conn->error);
+    die("Failed to fetch quotes");
+}
 
 while ($row = $result->fetch_assoc()) {
     $quotes[] = $row;
@@ -56,27 +61,24 @@ while ($row = $result->fetch_assoc()) {
                                 <td><?php echo $quote['id']; ?></td>
                                 <td>
                                     <?php echo htmlspecialchars($quote['customer_name']); ?><br>
-                                    <small class="text-muted"><?php echo htmlspecialchars($quote['customer_email']); ?></small>
+                                    <?php if (!empty($quote['customer_email'])): ?>
+                                        <small class="text-muted"><?php echo htmlspecialchars($quote['customer_email']); ?></small>
+                                    <?php endif; ?>
                                 </td>
-                                <td><?php echo htmlspecialchars($quote['project_name']); ?></td>
+                                <td>N/A</td>
                                 <td><?php echo $quote['items_count']; ?></td>
                                 <td>$<?php echo number_format($quote['total_amount'], 2); ?></td>
                                 <td><?php echo date('M d, Y', strtotime($quote['created_at'])); ?></td>
                                 <td>
-                                    <?php
-                                    $status = $conn->query("SELECT status FROM quote_status_history 
-                                                          WHERE quote_id = {$quote['id']} 
-                                                          ORDER BY created_at DESC LIMIT 1")->fetch_assoc();
-                                    if ($status) {
-                                        echo '<span class="badge bg-' . 
-                                            ($status['status'] === 'accepted' ? 'success' : 
-                                            ($status['status'] === 'sent' ? 'primary' : 
-                                            ($status['status'] === 'rejected' ? 'danger' : 'warning'))) . 
-                                            '">' . ucfirst($status['status']) . '</span>';
-                                    } else {
-                                        echo '<span class="badge bg-secondary">Draft</span>';
-                                    }
-                                    ?>
+                                    <span class="badge bg-<?php 
+                                        echo isset($quote['status']) ? 
+                                            ($quote['status'] === 'accepted' ? 'success' : 
+                                            ($quote['status'] === 'sent' ? 'primary' : 
+                                            ($quote['status'] === 'rejected' ? 'danger' : 'warning'))) 
+                                            : 'secondary';
+                                    ?>">
+                                        <?php echo isset($quote['status']) ? ucfirst($quote['status']) : 'Draft'; ?>
+                                    </span>
                                 </td>
                                 <td>
                                     <div class="btn-group">
