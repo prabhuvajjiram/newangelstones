@@ -35,10 +35,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $success_message = "New price component added successfully!";
     } elseif (isset($_POST['delete_color'])) {
-        $stmt = $conn->prepare("DELETE FROM stone_color_rates WHERE id = ?");
-        $stmt->bind_param("i", $_POST['delete_id']);
-        $stmt->execute();
-        $success_message = "Stone color deleted successfully!";
+        try {
+            // Begin transaction
+            $conn->begin_transaction();
+
+            // Delete the color
+            $stmt = $conn->prepare("DELETE FROM stone_color_rates WHERE id = ?");
+            $stmt->bind_param("i", $_POST['delete_id']);
+            $stmt->execute();
+
+            // Commit transaction
+            $conn->commit();
+            $success_message = "Stone color deleted successfully!";
+        } catch (Exception $e) {
+            // Rollback transaction on error
+            $conn->rollback();
+            $error_message = "Cannot delete this color as it is being used in existing quotes. Please update or delete the related quotes first.";
+        }
     } elseif (isset($_POST['delete_commission'])) {
         $stmt = $conn->prepare("DELETE FROM commission_rates WHERE id = ?");
         $stmt->bind_param("i", $_POST['delete_id']);
@@ -110,6 +123,12 @@ while ($row = $result->fetch_assoc()) {
         <?php if (isset($success_message)): ?>
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <?php echo $success_message; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <?php endif; ?>
+        <?php if (isset($error_message)): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?php echo $error_message; ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
         <?php endif; ?>
