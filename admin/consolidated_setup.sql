@@ -12,12 +12,13 @@ CREATE TABLE users (
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
+    role ENUM('admin', 'staff') NOT NULL DEFAULT 'staff',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Insert default admin user (password: P@ssword1)
-INSERT INTO users (username, password, email) VALUES
-('admin', '$2y$10$vs3H7J.kjRb4H36xZP.QU.YAjhAPQJV0zW2PCTQFOpxvuAH2.v.UG', 'admin@example.com');
+INSERT INTO users (username, password, email, role) VALUES
+('admin', '$2y$10$vs3H7J.kjRb4H36xZP.QU.YAjhAPQJV0zW2PCTQFOpxvuAH2.v.UG', 'admin@example.com', 'admin');
 
 -- Create stone colors table
 CREATE TABLE stone_color_rates (

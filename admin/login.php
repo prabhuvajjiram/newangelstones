@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     error_log("Database connection status: " . ($conn->connect_errno ? "Failed" : "Success"));
 
     // Prepare SQL statement to prevent SQL injection
-    $stmt = $conn->prepare("SELECT id, username, password FROM users WHERE username = ?");
+    $stmt = $conn->prepare("SELECT id, password, role FROM users WHERE username = ?");
     if (!$stmt) {
         error_log("Prepare failed: " . $conn->error);
         $error = "Database error occurred";
@@ -29,14 +29,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             error_log("Number of rows found: " . $result->num_rows);
             
             if ($result->num_rows === 1) {
-                $user = $result->fetch_assoc();
-                error_log("Stored hash: " . $user['password']);
+                $row = $result->fetch_assoc();
+                error_log("Stored hash: " . $row['password']);
                 error_log("Attempting to verify password...");
                 
-                if (password_verify($password, $user['password'])) {
+                if (password_verify($password, $row['password'])) {
                     error_log("Password verified successfully!");
-                    $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['username'] = $user['username'];
+                    // Set session variables
+                    $_SESSION['user_id'] = $row['id'];
+                    $_SESSION['username'] = $username;
+                    $_SESSION['user_role'] = $row['role'];
+                    
                     header("Location: quote.php");
                     exit();
                 } else {

@@ -1,6 +1,6 @@
 <?php
 require_once 'includes/config.php';
-requireLogin();
+requireAdmin();
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

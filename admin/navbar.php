@@ -17,17 +17,18 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link <?php echo $current_page == 'customers.php' ? 'active' : ''; ?>" 
-                       href="<?php echo getUrl('customers.php'); ?>">
-                        <i class="bi bi-people"></i> Customers
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link <?php echo $current_page == 'quotes.php' ? 'active' : ''; ?>" 
                        href="<?php echo getUrl('quotes.php'); ?>">
                         <i class="bi bi-files"></i> All Quotes
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link <?php echo $current_page == 'customers.php' ? 'active' : ''; ?>" 
+                       href="<?php echo getUrl('customers.php'); ?>">
+                        <i class="bi bi-people"></i> Customers
+                    </a>
+                </li>
+                <?php if (isAdmin()): ?>
                 <li class="nav-item">
                     <a class="nav-link <?php echo $current_page == 'products.php' ? 'active' : ''; ?>" 
                        href="<?php echo getUrl('products.php'); ?>">
@@ -40,6 +41,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <i class="bi bi-gear"></i> Settings
                     </a>
                 </li>
+                <?php endif; ?>
             </ul>
             <ul class="navbar-nav">
                 <?php if (isset($_SESSION['username'])): ?>

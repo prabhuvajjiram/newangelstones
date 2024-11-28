@@ -49,6 +49,23 @@ function isLoggedIn() {
     return isset($_SESSION['user_id']);
 }
 
+// Function to check if user is admin
+function isAdmin() {
+    return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
+}
+
+// Function to require admin role
+function requireAdmin() {
+    if (!isLoggedIn()) {
+        header('Location: login.php');
+        exit;
+    }
+    if (!isAdmin()) {
+        header('Location: index.php?error=unauthorized');
+        exit;
+    }
+}
+
 // Function to require login
 function requireLogin() {
     if (!isLoggedIn()) {
