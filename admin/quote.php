@@ -241,7 +241,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_quote'])) {
         
         <!-- Customer Selection Card -->
         <form id="quoteForm" method="post" action="preview_quote.php">
-            <input type="hidden" id="customer_id" name="customer_id" value="">
+            <input type="hidden" id="customer_id" name="customer_id" value="<?php echo htmlspecialchars($customer_id); ?>">
             <input type="hidden" id="customer_email" name="customer_email" value="">
             <input type="hidden" id="commission_rate" name="commission_rate" value="">
             <input type="hidden" id="items" name="items" value="">
@@ -387,7 +387,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_quote'])) {
                                 </div>
                                 <div class="card-body p-0">
                                     <div class="table-responsive">
-                                        <table class="table table-hover">
+                                        <table class="table table-hover mb-0">
                                             <thead>
                                                 <tr>
                                                     <th>Type</th>
@@ -398,18 +398,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_quote'])) {
                                                     <th>Qty</th>
                                                     <th>SQFT</th>
                                                     <th>Cu.Ft</th>
-                                                    <th>Base Price</th>
-                                                    <th>Total Price</th>
-                                                    <th>Action</th>
+                                                    <th class="text-end">Base Price</th>
+                                                    <th class="text-end">Total Price</th>
+                                                    <th class="text-center">Action</th>
                                                 </tr>
                                             </thead>
-                                            <tbody id="cartTable">
+                                            <tbody id="cartTableBody">
                                             </tbody>
                                             <tfoot>
                                                 <tr>
                                                     <td colspan="8" class="text-end"><strong>Totals:</strong></td>
-                                                    <td><strong id="totalBasePrice">$0.00</strong></td>
-                                                    <td><strong id="cartTotal">$0.00</strong></td>
+                                                    <td class="text-end"><strong id="cartBasePrice">$0.00</strong></td>
+                                                    <td class="text-end"><strong id="cartTotal">$0.00</strong></td>
                                                     <td></td>
                                                 </tr>
                                             </tfoot>
@@ -417,7 +417,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_quote'])) {
                                     </div>
                                 </div>
                                 <div class="card-footer text-center py-3">
-                                    <button type="button" class="btn btn-success btn-lg" onclick="window.quoteManager.showCommissionModal()">
+                                    <button type="button" class="btn btn-success btn-lg" id="generateQuoteBtn" disabled>
                                         <i class="bi bi-file-earmark-text"></i> Generate Quote
                                     </button>
                                 </div>
@@ -465,7 +465,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_quote'])) {
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="window.quoteManager.finalizeQuote()">Generate Quote</button>
+                <button type="button" class="btn btn-primary" id="finalizeQuoteBtn">Generate Quote</button>
             </div>
         </div>
     </div>

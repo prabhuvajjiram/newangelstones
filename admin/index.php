@@ -1,47 +1,59 @@
 <?php
 require_once 'includes/config.php';
-requireLogin();
+require_once 'session_check.php';
 
 // Get statistics
 $stats = [];
-$stats['total_customers'] = $pdo->query("SELECT COUNT(*) as count FROM customers")->fetchColumn();
-$stats['total_quotes'] = $pdo->query("SELECT COUNT(*) as count FROM quotes")->fetchColumn();
-$stats['pending_quotes'] = $pdo->query("SELECT COUNT(*) as count FROM quotes WHERE status = 'pending'")->fetchColumn();
-$result = $pdo->query("SELECT SUM(total_amount) as total FROM quotes WHERE status = 'approved'");
-$stats['total_revenue'] = $result->fetchColumn() ?? 0;
+try {
+    if (!isset($pdo)) {
+        throw new Exception("Database connection not established");
+    }
+    
+    $stats['total_customers'] = $pdo->query("SELECT COUNT(*) as count FROM customers")->fetchColumn();
+    $stats['total_quotes'] = $pdo->query("SELECT COUNT(*) as count FROM quotes")->fetchColumn();
+    $stats['pending_quotes'] = $pdo->query("SELECT COUNT(*) as count FROM quotes WHERE status = 'pending'")->fetchColumn();
+    $result = $pdo->query("SELECT COALESCE(SUM(total_amount), 0) as total FROM quotes WHERE status = 'approved'");
+    $stats['total_revenue'] = $result->fetchColumn();
 
-// Get recent activities (last 30 days)
-$stmt = $pdo->query("
-    SELECT q.*, c.name as customer_name, c.phone as customer_phone 
-    FROM quotes q 
-    JOIN customers c ON q.customer_id = c.id 
-    WHERE q.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-    ORDER BY q.created_at DESC 
-    LIMIT 5
-");
-$recent_quotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Get recent activities (last 30 days)
+    $stmt = $pdo->query("
+        SELECT q.*, c.name as customer_name, c.phone as customer_phone 
+        FROM quotes q 
+        JOIN customers c ON q.customer_id = c.id 
+        WHERE q.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        ORDER BY q.created_at DESC 
+        LIMIT 5
+    ");
+    $recent_quotes = $stmt->fetchAll();
 
-// Get top customers
-$stmt = $pdo->query("
-    SELECT c.*, COUNT(q.id) as quote_count, SUM(q.total_amount) as total_spent
-    FROM customers c
-    LEFT JOIN quotes q ON c.id = q.customer_id
-    GROUP BY c.id
-    ORDER BY quote_count DESC
-    LIMIT 5
-");
-$top_customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Get top customers
+    $stmt = $pdo->query("
+        SELECT 
+            c.*, 
+            COUNT(q.id) as quote_count, 
+            COALESCE(SUM(q.total_amount), 0) as total_spent
+        FROM customers c
+        LEFT JOIN quotes q ON c.id = q.customer_id
+        GROUP BY c.id
+        ORDER BY total_spent DESC
+        LIMIT 5
+    ");
+    $top_customers = $stmt->fetchAll();
 
-// Get follow-ups needed (pending quotes older than 7 days)
-$stmt = $pdo->query("
-    SELECT q.*, c.name as customer_name, c.phone as customer_phone
-    FROM quotes q
-    JOIN customers c ON q.customer_id = c.id
-    WHERE q.status = 'pending' 
-    AND q.created_at <= DATE_SUB(NOW(), INTERVAL 7 DAY)
-    ORDER BY q.created_at ASC
-");
-$follow_ups = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Get follow-ups needed (pending quotes older than 7 days)
+    $stmt = $pdo->query("
+        SELECT q.*, c.name as customer_name, c.phone as customer_phone
+        FROM quotes q
+        JOIN customers c ON q.customer_id = c.id
+        WHERE q.status = 'pending' 
+        AND q.created_at <= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        ORDER BY q.created_at ASC
+    ");
+    $follow_ups = $stmt->fetchAll();
+} catch (Exception $e) {
+    error_log("Error in index.php: " . $e->getMessage());
+    $error = "An error occurred while fetching dashboard data. Please check the error logs.";
+}
 ?>
 
 <!DOCTYPE html>
@@ -202,8 +214,8 @@ $follow_ups = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <strong><?php echo htmlspecialchars($customer['name']); ?></strong><br>
                                         <small class="text-muted"><?php echo htmlspecialchars($customer['email']); ?></small>
                                     </td>
-                                    <td><?php echo $customer['quote_count']; ?></td>
-                                    <td>$<?php echo number_format($customer['total_spent'], 2); ?></td>
+                                    <td><?php echo (int)$customer['quote_count']; ?></td>
+                                    <td>$<?php echo number_format((float)$customer['total_spent'], 2); ?></td>
                                     <td><?php echo date('M j, Y', strtotime($customer['created_at'])); ?></td>
                                     <td>
                                         <a href="view_quotes.php?customer_id=<?php echo $customer['id']; ?>" class="btn btn-sm btn-primary">

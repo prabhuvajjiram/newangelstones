@@ -1,6 +1,11 @@
 <?php
 require_once __DIR__ . '/includes/config.php';
-requireLogin();
+require_once 'session_check.php';
+
+if (!isLoggedIn()) {
+    header('Location: login.php');
+    exit;
+}
 
 // Get customer ID from URL
 $customer_id = isset($_GET['customer_id']) ? intval($_GET['customer_id']) : 0;
@@ -21,19 +26,24 @@ if (!$customer) {
     exit;
 }
 
-// Get all quotes for this customer
-$stmt = $pdo->prepare("
-    SELECT q.*, COUNT(qi.id) as item_count 
-    FROM quotes q 
-    LEFT JOIN quote_items qi ON q.id = qi.quote_id 
-    WHERE q.customer_id = ? 
-    GROUP BY q.id 
-    ORDER BY q.created_at DESC
-");
-$stmt->execute([$customer_id]);
-$quotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+try {
+    // Get all quotes for this customer
+    $stmt = $pdo->prepare("
+        SELECT q.*, c.name as customer_name, c.email as customer_email, COUNT(qi.id) as item_count
+        FROM quotes q
+        LEFT JOIN customers c ON q.customer_id = c.id
+        LEFT JOIN quote_items qi ON q.id = qi.quote_id
+        WHERE q.customer_id = ?
+        GROUP BY q.id
+        ORDER BY q.created_at DESC
+    ");
+    $stmt->execute([$customer_id]);
+    $quotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log("Error fetching quotes: " . $e->getMessage());
+    $error = "Failed to fetch quotes";
+}
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,26 +76,32 @@ $quotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
 
+        <?php if (isset($error)): ?>
+            <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
+        <?php endif; ?>
+
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">Quote History</h5>
             </div>
             <div class="card-body">
-                <?php if (empty($quotes)): ?>
-                    <p class="text-muted">No quotes found for this customer.</p>
-                <?php else: ?>
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Quote #</th>
+                                <th>Date</th>
+                                <th>Items</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($quotes)): ?>
                                 <tr>
-                                    <th>Quote #</th>
-                                    <th>Date</th>
-                                    <th>Items</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
+                                    <td colspan="5" class="text-center">No quotes found</td>
                                 </tr>
-                            </thead>
-                            <tbody>
+                            <?php else: ?>
                                 <?php foreach ($quotes as $quote): ?>
                                     <tr>
                                         <td><?php echo htmlspecialchars($quote['id']); ?></td>
@@ -102,10 +118,10 @@ $quotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php endif; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

@@ -51,6 +51,15 @@ if (isset($_GET['id'])) {
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($row) {
+            // Add debug info right at the start
+            $pdf = new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+            $pdf->SetFont('helvetica', '', 8);
+            $pdf->AddPage();
+            $pdf->Cell(0, 8, 'Debug - Database Values:', 0, 1, 'L');
+            $pdf->Cell(0, 8, 'Quote ID: ' . $quote_id, 0, 1, 'L');
+            $pdf->Cell(0, 8, 'Commission from DB: ' . $row['commission_amount'] . ' | Rate: ' . $row['commission_rate'], 0, 1, 'L');
+            $pdf->Cell(0, 8, 'Total from DB: ' . $row['total_amount'], 0, 1, 'L');
+
             // Format data for PDF generation
             $data = [
                 'customer' => [
@@ -62,10 +71,11 @@ if (isset($_GET['id'])) {
                     'state' => $row['customer_state'],
                     'postal_code' => $row['customer_postal_code']
                 ],
-                'date' => date('Y-m-d', strtotime($row['quote_date'])),
-                'total_amount' => $row['total_amount'],
-                'commission_amount' => $row['commission_amount'],
-                'commission_rate' => $row['commission_rate'],
+                'quote_number' => $row['quote_number'],
+                'quote_date' => $row['quote_date'],
+                'commission_amount' => floatval($row['commission_amount']),
+                'commission_rate' => floatval($row['commission_rate']),
+                'total_amount' => floatval($row['total_amount']),
                 'items' => []
             ];
             
@@ -157,7 +167,7 @@ if (isset($_GET['id'])) {
             $pdf->SetTextColor(51, 51, 51);
             $pdf->SetFont('helvetica', '', 11);
             $pdf->Cell(90, 10, 'Quote #' . $row['quote_number'], 0, 0, 'L');
-            $pdf->Cell(90, 10, 'Date: ' . date('m/d/Y', strtotime($data['date'])), 0, 1, 'R');
+            $pdf->Cell(90, 10, 'Date: ' . date('m/d/Y', strtotime($data['quote_date'])), 0, 1, 'R');
 
             // Customer Information Section
             $pdf->Ln(5);
@@ -234,29 +244,70 @@ if (isset($_GET['id'])) {
             
             $total = 0;
             $total_cubic_feet = 0;
+            $subtotal = 0;
+            $total_commission = isset($data['commission_amount']) ? floatval($data['commission_amount']) : 0;
+
+            // First calculate subtotal for commission distribution
             foreach ($data['items'] as $item) {
-                // Output the row
-                $pdf->Cell(45, 8, $item['description'], 1, 0, 'L');
-                $pdf->Cell(45, 8, $item['dimensions'], 1, 0, 'C');
-                $pdf->Cell(25, 8, number_format($item['cubic_feet'], 2), 1, 0, 'C');
-                $pdf->Cell(15, 8, $item['quantity'], 1, 0, 'C');
-                $pdf->Cell(25, 8, '$' . number_format($item['unit_price'], 2), 1, 0, 'R');
-                $pdf->Cell(25, 8, '$' . number_format($item['total_price'], 2), 1, 1, 'R');
+                $quantity = isset($item['quantity']) ? intval($item['quantity']) : 1;
+                $unit_price = isset($item['unit_price']) ? floatval($item['unit_price']) : 0;
+                $subtotal += ($unit_price * $quantity);
+            }
+
+            // Now process items and add commission to each
+            foreach ($data['items'] as $item) {
+                $length = isset($item['length']) ? floatval($item['length']) : 0;
+                $breadth = isset($item['breadth']) ? floatval($item['breadth']) : 0;
+                $size = isset($item['size']) ? floatval($item['size']) : 0;
                 
-                $total += $item['total_price'];
-                $total_cubic_feet += $item['cubic_feet'];
+                $quantity = isset($item['quantity']) ? intval($item['quantity']) : 1;
+                $unit_price = isset($item['unit_price']) ? floatval($item['unit_price']) : 0;
+                $item_total = $unit_price * $quantity;
+                
+                // Calculate commission for this item
+                $item_commission = 0;
+                if ($subtotal > 0) {
+                    $commission_ratio = $item_total / $subtotal;
+                    $item_commission = $total_commission * $commission_ratio;
+                }
+
+                // Add commission to unit price and total
+                $unit_price_with_commission = $unit_price + ($item_commission / $quantity);
+                $item_total_with_commission = $item_total + $item_commission;
+                $total += $item_total_with_commission;
+                
+                // Calculate cubic feet
+                $cubic_feet = ($length * $breadth * $size) / 1728;
+                $cubic_feet = round($cubic_feet, 2);
+                $total_cubic_feet += ($cubic_feet * $quantity);
+                
+                // Get description
+                $description = ucfirst($item['type']);
+                if (!empty($item['model'])) {
+                    $description .= ' - ' . $item['model'];
+                }
+                if (!empty($item['color_name'])) {
+                    $description .= ' - ' . $item['color_name'];
+                }
+                
+                // Display row with commission included in unit price and total
+                $pdf->Cell(45, 8, $description, 1, 0, 'L');
+                $pdf->Cell(45, 8, sprintf('%.2f" × %.2f" × %.2f"', $length, $breadth, $size), 1, 0, 'C');
+                $pdf->Cell(25, 8, number_format($cubic_feet, 2), 1, 0, 'C');
+                $pdf->Cell(15, 8, $quantity, 1, 0, 'C');
+                $pdf->Cell(25, 8, '$' . number_format($unit_price_with_commission, 2), 1, 0, 'R');
+                $pdf->Cell(25, 8, '$' . number_format($item_total_with_commission, 2), 1, 1, 'R');
             }
             
-            // Totals row
+            // Display totals
             $pdf->SetFont('helvetica', 'B', 11);
-            // First total row for cubic feet
+            
+            // Cubic feet total
             $pdf->Cell(90, 8, 'Total Cu.Ft:', 1, 0, 'R');
             $pdf->Cell(25, 8, number_format($total_cubic_feet, 2), 1, 0, 'C');
-            $pdf->Cell(15, 8, '', 1, 0, 'C');
-            $pdf->Cell(25, 8, '', 1, 0, 'R');
-            $pdf->Cell(25, 8, '', 1, 1, 'R');
+            $pdf->Cell(65, 8, '', 1, 1, 'R');
             
-            // Second total row for price
+            // Final total (includes commission)
             $pdf->Cell(155, 8, 'Total:', 1, 0, 'R');
             $pdf->Cell(25, 8, '$' . number_format($total, 2), 1, 1, 'R');
 
@@ -436,38 +487,44 @@ if (isset($_GET['id'])) {
         
         $total = 0;
         $total_cubic_feet = 0;
+        $subtotal = 0;
+        $total_commission = isset($data['commission_amount']) ? floatval($data['commission_amount']) : 0;
+
+        // First calculate subtotal for commission distribution
         foreach ($data['items'] as $item) {
-            // Initialize dimensions with default values
+            $quantity = isset($item['quantity']) ? intval($item['quantity']) : 1;
+            $unit_price = isset($item['unit_price']) ? floatval($item['unit_price']) : 0;
+            $subtotal += ($unit_price * $quantity);
+        }
+
+        // Now process items and add commission to each
+        foreach ($data['items'] as $item) {
             $length = isset($item['length']) ? floatval($item['length']) : 0;
             $breadth = isset($item['breadth']) ? floatval($item['breadth']) : 0;
             $size = isset($item['size']) ? floatval($item['size']) : 0;
             
-            // Set default height based on product type
-            if (isset($item['product_type'])) {
-                $type = strtolower($item['product_type']);
-                if ($type === 'marker') {
-                    $size = 4; // Standard height for markers
-                } elseif ($type === 'slant') {
-                    $size = 6; // Standard height for slants
-                }
-                // For sertop and base, use the size from the item data
-            }
-            
-            // Format dimensions string
-            $dimensions = sprintf('%.2f" × %.2f" × %.2f"', $length, $breadth, $size);
-            
-            // Get quantity and calculate total cubic feet
             $quantity = isset($item['quantity']) ? intval($item['quantity']) : 1;
-            $cubic_feet = ($length * $breadth * $size) / 1728; // Convert to cubic feet
+            $unit_price = isset($item['unit_price']) ? floatval($item['unit_price']) : 0;
+            $item_total = $unit_price * $quantity;
+            
+            // Calculate commission for this item
+            $item_commission = 0;
+            if ($subtotal > 0) {
+                $commission_ratio = $item_total / $subtotal;
+                $item_commission = $total_commission * $commission_ratio;
+            }
+
+            // Add commission to unit price and total
+            $unit_price_with_commission = $unit_price + ($item_commission / $quantity);
+            $item_total_with_commission = $item_total + $item_commission;
+            $total += $item_total_with_commission;
+            
+            // Calculate cubic feet
+            $cubic_feet = ($length * $breadth * $size) / 1728;
             $cubic_feet = round($cubic_feet, 2);
             $total_cubic_feet += ($cubic_feet * $quantity);
             
-            // Calculate price with quantity
-            $unit_price = isset($item['unit_price']) ? floatval($item['unit_price']) : 0;
-            $item_total = $unit_price * $quantity;
-            $total += $item_total;
-            
-            // Get description from type and model
+            // Get description
             $description = ucfirst($item['type']);
             if (!empty($item['model'])) {
                 $description .= ' - ' . $item['model'];
@@ -476,24 +533,24 @@ if (isset($_GET['id'])) {
                 $description .= ' - ' . $item['color_name'];
             }
             
+            // Display row with commission included in unit price and total
             $pdf->Cell(45, 8, $description, 1, 0, 'L');
-            $pdf->Cell(45, 8, $dimensions, 1, 0, 'C');
+            $pdf->Cell(45, 8, sprintf('%.2f" × %.2f" × %.2f"', $length, $breadth, $size), 1, 0, 'C');
             $pdf->Cell(25, 8, number_format($cubic_feet, 2), 1, 0, 'C');
             $pdf->Cell(15, 8, $quantity, 1, 0, 'C');
-            $pdf->Cell(25, 8, '$' . number_format($unit_price, 2), 1, 0, 'R');
-            $pdf->Cell(25, 8, '$' . number_format($item_total, 2), 1, 1, 'R');
+            $pdf->Cell(25, 8, '$' . number_format($unit_price_with_commission, 2), 1, 0, 'R');
+            $pdf->Cell(25, 8, '$' . number_format($item_total_with_commission, 2), 1, 1, 'R');
         }
         
-        // Totals row
+        // Display totals
         $pdf->SetFont('helvetica', 'B', 11);
-        // First total row for cubic feet
+        
+        // Cubic feet total
         $pdf->Cell(90, 8, 'Total Cu.Ft:', 1, 0, 'R');
         $pdf->Cell(25, 8, number_format($total_cubic_feet, 2), 1, 0, 'C');
-        $pdf->Cell(15, 8, '', 1, 0, 'C');
-        $pdf->Cell(25, 8, '', 1, 0, 'R');
-        $pdf->Cell(25, 8, '', 1, 1, 'R');
+        $pdf->Cell(65, 8, '', 1, 1, 'R');
         
-        // Second total row for price
+        // Final total (includes commission)
         $pdf->Cell(155, 8, 'Total:', 1, 0, 'R');
         $pdf->Cell(25, 8, '$' . number_format($total, 2), 1, 1, 'R');
 

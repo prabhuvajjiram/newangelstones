@@ -55,8 +55,21 @@ ini_set('display_errors', 1);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/error.log');
 
-// Function to get URL
+/**
+ * Get the full URL for a path
+ * @param string $path The path relative to the admin directory
+ * @return string The full URL
+ */
 function getUrl($path = '') {
+    if (!defined('BASE_URL')) {
+        // Fallback if BASE_URL is not defined
+        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
+        $server = $_SERVER['HTTP_HOST'];
+        $port = $_SERVER['SERVER_PORT'];
+        $port_suffix = ($port != '80' && $port != '443') ? ":$port" : '';
+        $admin_path = '/admin/';
+        return $protocol . $server . $port_suffix . $admin_path . ltrim($path, '/');
+    }
     return BASE_URL . ltrim($path, '/');
 }
 

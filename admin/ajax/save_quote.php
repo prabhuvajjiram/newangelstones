@@ -1,27 +1,27 @@
 <?php
-// Start output buffering to catch any unwanted output
+// Prevent any unwanted output
 ob_start();
 
-// Enable error reporting for debugging but disable display
+// Disable error display but enable logging
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 error_log("Starting save_quote.php");
 
-require_once __DIR__ . '/includes/config.php';
-require_once __DIR__ . '/includes/session.php';
-
-// Clean any output buffered so far
-ob_clean();
-
-// Set headers for JSON response
-header('Content-Type: application/json');
-
-// Function to send JSON response
+// Function to send JSON response and exit
 function sendJsonResponse($success, $message, $data = null) {
-    // Clean any output buffered so far
-    ob_clean();
+    // Clean any buffered output
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
     
+    // Set JSON header
+    header('Content-Type: application/json');
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+    
+    // Prepare response
     $response = [
         'success' => $success,
         'message' => $message
@@ -29,20 +29,25 @@ function sendJsonResponse($success, $message, $data = null) {
     if ($data !== null) {
         $response['data'] = $data;
     }
-    echo json_encode($response);
     
-    // End output buffering and flush
-    ob_end_flush();
+    // Send response and exit
+    echo json_encode($response);
     exit;
 }
 
 try {
+    // Include files after error handling setup
+    require_once __DIR__ . '/../includes/config.php';
+    require_once __DIR__ . '/../includes/session.php';
+
     // Check if user is logged in
-    if (!isLoggedIn()) {
-        sendJsonResponse(false, 'User not logged in');
+    if (!isset($_SESSION['user_id'])) {
+        sendJsonResponse(false, 'Session expired. Please refresh the page and try again.', [
+            'redirect' => '../login.php'
+        ]);
     }
 
-    // Get JSON data
+    // Get and validate JSON input
     $jsonInput = file_get_contents('php://input');
     if (empty($jsonInput)) {
         error_log("Empty input received");
@@ -54,6 +59,9 @@ try {
         error_log("JSON decode error: " . json_last_error_msg());
         sendJsonResponse(false, 'Invalid JSON: ' . json_last_error_msg());
     }
+
+    // Log received data for debugging
+    error_log("Received data: " . print_r($data, true));
 
     // Validate required fields
     if (empty($data['customer_id'])) {
@@ -68,66 +76,19 @@ try {
         sendJsonResponse(false, 'Commission rate is required');
     }
 
-    foreach ($data['items'] as $item) {
-        if (empty($item['product_type'])) {
-            sendJsonResponse(false, 'Product type is required');
-        }
-
-        if (empty($item['model'])) {
-            sendJsonResponse(false, 'Model is required');
-        }
-
-        if (empty($item['size'])) {
-            sendJsonResponse(false, 'Size is required');
-        }
-
-        if (empty($item['color_id'])) {
-            sendJsonResponse(false, 'Color ID is required');
-        }
-
-        if (empty($item['length'])) {
-            sendJsonResponse(false, 'Length is required');
-        }
-
-        if (empty($item['breadth'])) {
-            sendJsonResponse(false, 'Breadth is required');
-        }
-
-        if (empty($item['sqft'])) {
-            sendJsonResponse(false, 'SQFT is required');
-        }
-
-        if (empty($item['cubic_feet'])) {
-            sendJsonResponse(false, 'Cubic feet is required');
-        }
-
-        if (empty($item['quantity'])) {
-            sendJsonResponse(false, 'Quantity is required');
-        }
-
-        if (empty($item['unit_price'])) {
-            sendJsonResponse(false, 'Unit price is required');
-        }
-
-        if (empty($item['total_price'])) {
-            sendJsonResponse(false, 'Total price is required');
-        }
-    }
-
     // Start transaction
     $pdo->beginTransaction();
 
     try {
         // Calculate totals
         $total_amount = 0;
-        $commission_amount = 0;
-
         foreach ($data['items'] as $item) {
-            $total_amount += $item['total_price'] * $item['quantity'];
-            $commission_amount = $total_amount * ($data['commission_rate'] / 100);
+            $total_amount += floatval($item['total_price']);
         }
+        $commission_amount = $total_amount * (floatval($data['commission_rate']) / 100);
+        $final_total = $total_amount + $commission_amount;
 
-        // Generate unique quote number
+        // Generate quote number
         $quote_number = 'Q' . date('Ymd') . sprintf('%04d', rand(1, 9999));
 
         // Insert quote
@@ -140,7 +101,7 @@ try {
         $stmt->execute([
             $quote_number,
             $data['customer_id'],
-            $total_amount,
+            $final_total,
             $data['commission_rate'],
             $commission_amount
         ]);
