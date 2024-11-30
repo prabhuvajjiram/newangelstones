@@ -15,22 +15,25 @@ function isAdmin() {
     return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
 }
 
-// Function to require admin role
-function requireAdmin() {
-    if (!isLoggedIn()) {
-        header('Location: ' . BASE_URL . 'login.php');
-        exit;
-    }
-    if (!isAdmin()) {
-        header('Location: ' . BASE_URL . 'index.php?error=unauthorized');
-        exit;
-    }
-}
-
 // Function to require login
 function requireLogin() {
     if (!isLoggedIn()) {
-        header('Location: ' . BASE_URL . 'login.php');
+        // Store the current URL for redirect after login
+        $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
+        header('Location: ' . ADMIN_BASE_URL . 'login.php');
+        exit();
+    }
+}
+
+// Function to require admin role
+function requireAdmin() {
+    if (!isLoggedIn()) {
+        $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
+        header('Location: ' . ADMIN_BASE_URL . 'login.php');
+        exit();
+    }
+    if (!isAdmin()) {
+        header('Location: ' . ADMIN_BASE_URL . 'index.php?error=unauthorized');
         exit();
     }
 }

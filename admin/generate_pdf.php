@@ -3,32 +3,60 @@
 error_reporting(0);
 ini_set('display_errors', 0);
 
-// Clean any existing output buffers
-while (ob_get_level()) {
-    ob_end_clean();
-}
-
-// Start a new output buffer
-ob_start();
-
-require_once 'includes/config.php';
+require_once('includes/config.php');
 require_once('tcpdf/tcpdf.php');
 
-// Custom PDF class for header styling
 class MYPDF extends TCPDF {
     public function Header() {
-        // Background color for header
-        $this->Rect(0, 0, $this->getPageWidth(), 45, 'F', array(), array(34, 40, 49));
+        // Get the current directory and go up one level from admin to root
+        $root_dir = dirname(dirname(__FILE__));
+        // Construct absolute path to image
+        $image_file = $root_dir . '/images/logo03.png';
         
-        // Company name
-        $this->SetY(12);
-        $this->SetFont('helvetica', 'B', 24);
+        // Check if image exists
+        if (file_exists($image_file)) {
+            // Add black backdrop
+            $this->SetFillColor(34, 40, 49);
+            $this->Rect(0, 0, $this->GetPageWidth(), 45, 'F');
+            
+            // Reset position
+            $this->SetY(5);
+            
+            // Calculate center position for logo
+            $logo_width = 60;  // Increased width
+            $logo_height = 35; // Proportional height
+            $page_width = $this->GetPageWidth();
+            $x_pos = ($page_width - $logo_width) / 2;
+            
+            // Add image centered
+            $this->Image($image_file, $x_pos, 5, $logo_width, $logo_height, 'PNG', '', 'T', false, 300, '', false, false, 0, false, false, false);
+            
+            // Add company name below logo
+            $this->SetY($this->GetY() + $logo_height + 2);
+            $this->SetTextColor(255, 255, 255);
+            $this->SetFont('helvetica', '', 10);
+          //  $this->Cell($page_width, 0, 'ANGEL STONES', 0, 0, 'C');
+        } else {
+            // Log error if image not found
+            error_log('Logo image not found at: ' . $image_file);
+        }
+        
+        // Move position below the header
+        $this->SetY(50);
+    }
+
+    public function Footer() {
+        // Position at 15 mm from bottom
+        $this->SetY(-35);
+        $this->SetFillColor(34, 40, 49);
         $this->SetTextColor(255, 255, 255);
-        $this->Cell(0, 10, 'Angel Stones', 0, 1, 'C');
-        
-        // Tagline
-        $this->SetFont('helvetica', '', 12);
-        $this->Cell(0, 8, 'Quality Stone Products & Services', 0, 1, 'C');
+        $this->Cell(0, 25, '', 0, 1, 'C', true);
+        $this->SetY(-30);
+        $this->SetFont('helvetica', 'B', 10);
+        $this->Cell(0, 5, 'Angel Stones', 0, 1, 'C');
+        $this->SetFont('helvetica', '', 9);
+        $this->Cell(0, 5, 'Quality Stone Products & Services', 0, 1, 'C');
+        $this->Cell(0, 5, 'Phone: 919-535-7574 | Email: info@theangelstones.com', 0, 1, 'C');
     }
 }
 
@@ -51,15 +79,6 @@ if (isset($_GET['id'])) {
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($row) {
-            // Add debug info right at the start
-            $pdf = new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-            $pdf->SetFont('helvetica', '', 8);
-            $pdf->AddPage();
-            $pdf->Cell(0, 8, 'Debug - Database Values:', 0, 1, 'L');
-            $pdf->Cell(0, 8, 'Quote ID: ' . $quote_id, 0, 1, 'L');
-            $pdf->Cell(0, 8, 'Commission from DB: ' . $row['commission_amount'] . ' | Rate: ' . $row['commission_rate'], 0, 1, 'L');
-            $pdf->Cell(0, 8, 'Total from DB: ' . $row['total_amount'], 0, 1, 'L');
-
             // Format data for PDF generation
             $data = [
                 'customer' => [
@@ -98,55 +117,6 @@ if (isset($_GET['id'])) {
             $items_stmt->execute([$quote_id]);
             $items_data = $items_stmt->fetchAll(PDO::FETCH_ASSOC);
             
-            // Process each item
-            foreach ($items_data as $item) {
-                // Get dimensions and height based on product type
-                $length = floatval($item['length']);
-                $breadth = floatval($item['breadth']);
-                $quantity = intval($item['quantity']);
-                
-                // Set height based on product type
-                $type = strtolower($item['type']);
-                if ($type === 'marker') {
-                    $height = 4; // Standard height for markers
-                    $dimensions = sprintf('%.2f" × %.2f"', $length, $breadth);
-                } elseif ($type === 'slant') {
-                    $height = 6; // Standard height for slants
-                    $dimensions = sprintf('%.2f" × %.2f" × %.2f"', $length, $breadth, $height);
-                } else {
-                    // For sertop and base, use the size from the respective product table
-                    $height = floatval($item['size']);
-                    $dimensions = sprintf('%.2f" × %.2f" × %.2f"', $length, $breadth, $height);
-                }
-                
-                // Calculate cubic feet
-                $cubic_feet = ($length * $breadth * $height * $quantity) / 1728;
-                $cubic_feet = round($cubic_feet, 2);
-                
-                // Format description
-                $description = ucfirst($type);
-                if (!empty($item['model'])) {
-                    $description .= " - " . $item['model'];
-                }
-                if (!empty($item['color_name'])) {
-                    $description .= " - " . $item['color_name'];
-                }
-                
-                // Add to items array
-                $data['items'][] = [
-                    'description' => $description,
-                    'dimensions' => $dimensions,
-                    'cubic_feet' => $cubic_feet,
-                    'quantity' => $quantity,
-                    'unit_price' => floatval($item['unit_price']),
-                    'total_price' => floatval($item['total_price']),
-                    'length' => $length,
-                    'breadth' => $breadth,
-                    'height' => $height,
-                    'type' => $type
-                ];
-            }
-            
             // Create new PDF document
             $pdf = new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
             
@@ -155,15 +125,36 @@ if (isset($_GET['id'])) {
             $pdf->SetAuthor('Angel Stones');
             $pdf->SetTitle('Quote #' . $row['quote_number']);
             
-            // Set margins and disable auto page breaks
-            $pdf->SetMargins(15, 55, 15);
-            $pdf->SetAutoPageBreak(false);
+            // Essential to show header
+            $pdf->setHeaderData('', 0, '', '');
+            $pdf->setHeaderFont(Array('helvetica', '', 10));
             
-            // Add a page
+            // Set margins
+            $pdf->SetMargins(15, 55, 15);
+            $pdf->SetHeaderMargin(10);
+            $pdf->SetFooterMargin(35);
+            
+            // Set auto page breaks
+            $pdf->SetAutoPageBreak(true, 35);
+            
+            // Set image scale factor
+            $pdf->setImageScale(1.25);
+            
+            // Enable header and footer
+            $pdf->setPrintHeader(true);
+            $pdf->setPrintFooter(true);
+            
+            // Add first and only page
             $pdf->AddPage();
             
-            // Quote Number and Date
+            // Ensure we start from the top after header
             $pdf->SetY(50);
+            
+            // Set font for the content
+            $pdf->SetFont('helvetica', '', 10);
+            $pdf->SetTextColor(0, 0, 0);
+            
+            // Quote Number and Date
             $pdf->SetTextColor(51, 51, 51);
             $pdf->SetFont('helvetica', '', 11);
             $pdf->Cell(90, 10, 'Quote #' . $row['quote_number'], 0, 0, 'L');
@@ -248,17 +239,16 @@ if (isset($_GET['id'])) {
             $total_commission = isset($data['commission_amount']) ? floatval($data['commission_amount']) : 0;
 
             // First calculate subtotal for commission distribution
-            foreach ($data['items'] as $item) {
+            foreach ($items_data as $item) {
                 $quantity = isset($item['quantity']) ? intval($item['quantity']) : 1;
                 $unit_price = isset($item['unit_price']) ? floatval($item['unit_price']) : 0;
                 $subtotal += ($unit_price * $quantity);
             }
 
             // Now process items and add commission to each
-            foreach ($data['items'] as $item) {
+            foreach ($items_data as $item) {
                 $length = isset($item['length']) ? floatval($item['length']) : 0;
                 $breadth = isset($item['breadth']) ? floatval($item['breadth']) : 0;
-                $size = isset($item['size']) ? floatval($item['size']) : 0;
                 
                 $quantity = isset($item['quantity']) ? intval($item['quantity']) : 1;
                 $unit_price = isset($item['unit_price']) ? floatval($item['unit_price']) : 0;
@@ -276,27 +266,46 @@ if (isset($_GET['id'])) {
                 $item_total_with_commission = $item_total + $item_commission;
                 $total += $item_total_with_commission;
                 
+                // Set height based on product type
+                $type = strtolower($item['type']);
+                if ($type === 'marker') {
+                    $height = 4; // Fixed height for markers
+                } else if ($type === 'sertop' && isset($item['sertop_size'])) {
+                    $height = floatval($item['sertop_size']);
+                } else if ($type === 'base' && isset($item['base_size'])) {
+                    $height = floatval($item['base_size']);
+                } else if ($type === 'slant' && isset($item['size'])) {
+                    $height = floatval($item['size']);
+                } else {
+                    $height = 0; // Default if no valid height found
+                }
+                
                 // Calculate cubic feet
-                $cubic_feet = ($length * $breadth * $size) / 1728;
-                $cubic_feet = round($cubic_feet, 2);
-                $total_cubic_feet += ($cubic_feet * $quantity);
+                $cubic_feet = ($length * $breadth * $height) / 1728;
+                $cubic_feet = round($cubic_feet * $quantity, 2);
                 
-                // Get description
-                $description = ucfirst($item['type']);
-                if (!empty($item['model'])) {
-                    $description .= ' - ' . $item['model'];
-                }
-                if (!empty($item['color_name'])) {
-                    $description .= ' - ' . $item['color_name'];
-                }
+                $total_cubic_feet += $cubic_feet;
                 
-                // Display row with commission included in unit price and total
-                $pdf->Cell(45, 8, $description, 1, 0, 'L');
-                $pdf->Cell(45, 8, sprintf('%.2f" × %.2f" × %.2f"', $length, $breadth, $size), 1, 0, 'C');
-                $pdf->Cell(25, 8, number_format($cubic_feet, 2), 1, 0, 'C');
-                $pdf->Cell(15, 8, $quantity, 1, 0, 'C');
-                $pdf->Cell(25, 8, '$' . number_format($unit_price_with_commission, 2), 1, 0, 'R');
-                $pdf->Cell(25, 8, '$' . number_format($item_total_with_commission, 2), 1, 1, 'R');
+                // Add to items array
+                $data['items'][] = [
+                    'description' => ucfirst($type) . (isset($item['model']) ? ' - ' . $item['model'] : '') . (isset($item['color_name']) ? ' - ' . $item['color_name'] : ''),
+                    'dimensions' => sprintf('%.2f" × %.2f" × %.2f"', $length, $breadth, $height),
+                    'cubic_feet' => $cubic_feet,
+                    'quantity' => $quantity,
+                    'unit_price' => $unit_price_with_commission,
+                    'total_price' => $item_total_with_commission,
+                    'type' => $type
+                ];
+            }
+            
+            // Display rows with commission included in unit price and total
+            foreach ($data['items'] as $item) {
+                $pdf->Cell(45, 8, $item['description'], 1, 0, 'L');
+                $pdf->Cell(45, 8, $item['dimensions'], 1, 0, 'C');
+                $pdf->Cell(25, 8, number_format($item['cubic_feet'], 2), 1, 0, 'C');
+                $pdf->Cell(15, 8, $item['quantity'], 1, 0, 'C');
+                $pdf->Cell(25, 8, '$' . number_format($item['unit_price'], 2), 1, 0, 'R');
+                $pdf->Cell(25, 8, '$' . number_format($item['total_price'], 2), 1, 1, 'R');
             }
             
             // Display totals
@@ -312,15 +321,15 @@ if (isset($_GET['id'])) {
             $pdf->Cell(25, 8, '$' . number_format($total, 2), 1, 1, 'R');
 
             // Terms and Conditions
-            $pdf->Ln(8);
+            $pdf->Ln(10);
             $pdf->SetFillColor(34, 40, 49);
             $pdf->SetTextColor(255, 255, 255);
             $pdf->SetFont('helvetica', 'B', 12);
             $pdf->Cell(0, 8, 'Terms and Conditions', 0, 1, 'L', true);
             
+            // Reset text color for terms
             $pdf->SetTextColor(51, 51, 51);
             $pdf->SetFont('helvetica', '', 10);
-            $pdf->Ln(5);
             
             $terms = array(
                 "1. This quote is valid for 30 days from the date of issue.",
@@ -331,22 +340,11 @@ if (isset($_GET['id'])) {
             );
             
             foreach ($terms as $term) {
-                $pdf->Cell(0, 6, $term, 0, 1, 'L');
+                $pdf->Ln(2);
+                $pdf->MultiCell(0, 6, $term, 0, 'L');
             }
 
-            // Footer
-            $pdf->SetY(-35);
-            $pdf->SetFillColor(34, 40, 49);
-            $pdf->SetTextColor(255, 255, 255);
-            $pdf->Cell(0, 25, '', 0, 1, 'C', true);
-            $pdf->SetY(-30);
-            $pdf->SetFont('helvetica', 'B', 10);
-            $pdf->Cell(0, 5, 'Angel Stones', 0, 1, 'C');
-            $pdf->SetFont('helvetica', '', 9);
-            $pdf->Cell(0, 5, 'Quality Stone Products & Services', 0, 1, 'C');
-            $pdf->Cell(0, 5, 'Phone: 919-535-7574 | Email: info@theangelstones.com', 0, 1, 'C');
-            
-            // Output PDF
+            // Output the PDF
             $pdf->Output('Quote_' . $row['quote_number'] . '.pdf', 'I');
             exit;
         } else {
@@ -392,21 +390,42 @@ if (isset($_GET['id'])) {
 
         // Create new PDF document
         $pdf = new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-        
+
         // Set document information
         $pdf->SetCreator('Angel Stones');
         $pdf->SetAuthor('Angel Stones');
         $pdf->SetTitle('Quote');
         
-        // Set margins and disable auto page breaks
-        $pdf->SetMargins(15, 55, 15);
-        $pdf->SetAutoPageBreak(false);
+        // Essential to show header
+        $pdf->setHeaderData('', 0, '', '');
+        $pdf->setHeaderFont(Array('helvetica', '', 10));
         
-        // Add a page
+        // Set margins
+        $pdf->SetMargins(15, 55, 15);
+        $pdf->SetHeaderMargin(10);
+        $pdf->SetFooterMargin(35);
+        
+        // Set auto page breaks
+        $pdf->SetAutoPageBreak(true, 35);
+        
+        // Set image scale factor
+        $pdf->setImageScale(1.25);
+        
+        // Enable header and footer
+        $pdf->setPrintHeader(true);
+        $pdf->setPrintFooter(true);
+        
+        // Add first page
         $pdf->AddPage();
         
-        // Quote title and date
+        // Start content after header
         $pdf->SetY(50);
+        
+        // Set font for the content
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetTextColor(0, 0, 0);
+        
+        // Quote title and date
         $pdf->SetTextColor(51, 51, 51);
         $pdf->SetFont('helvetica', '', 11);
         $pdf->Cell(90, 10, 'Quote', 0, 0, 'L');
@@ -520,17 +539,30 @@ if (isset($_GET['id'])) {
             $total += $item_total_with_commission;
             
             // Calculate cubic feet
-            $cubic_feet = ($length * $breadth * $size) / 1728;
+            $type = strtolower($item['type']);
+            if ($type === 'marker') {
+                $height = 4; // Fixed height for markers
+            } else if ($type === 'sertop') {
+                $height = floatval($item['size']); // Use the size directly for sertop
+            } else if ($type === 'base') {
+                $height = floatval($item['size']); // Use the size directly for base
+            } else if ($type === 'slant') {
+                $height = floatval($item['size']); // Use the size directly for slant
+            }
+            
+            // Calculate cubic feet
+            $cubic_feet = ($length * $breadth * $height) / 1728;
             $cubic_feet = round($cubic_feet, 2);
+            
             $total_cubic_feet += ($cubic_feet * $quantity);
             
             // Get description
-            $description = ucfirst($item['type']);
+            $description = ucfirst($type);
             if (!empty($item['model'])) {
-                $description .= ' - ' . $item['model'];
+                $description .= " - " . $item['model'];
             }
             if (!empty($item['color_name'])) {
-                $description .= ' - ' . $item['color_name'];
+                $description .= " - " . $item['color_name'];
             }
             
             // Display row with commission included in unit price and total
@@ -574,7 +606,8 @@ if (isset($_GET['id'])) {
         );
         
         foreach ($terms as $term) {
-            $pdf->Cell(0, 6, $term, 0, 1, 'L');
+            $pdf->Ln(2);
+            $pdf->MultiCell(0, 6, $term, 0, 'L');
         }
 
         // Footer

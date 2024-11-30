@@ -1,5 +1,6 @@
 <?php
 require_once 'includes/config.php';
+require_once 'session_check.php';
 requireAdmin();
 
 // Handle form submissions
@@ -41,7 +42,6 @@ $stmt = $pdo->query("SELECT *, CONCAT(model, id) as product_code FROM slant_prod
 $slant_products = $stmt->fetchAll();
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>

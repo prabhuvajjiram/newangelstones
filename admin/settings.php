@@ -1,5 +1,6 @@
 <?php
 require_once 'includes/config.php';
+require_once 'session_check.php';
 requireAdmin();
 
 // Handle form submissions
@@ -171,7 +172,7 @@ $price_components = $result->fetchAll(PDO::FETCH_ASSOC);
                                     <option value="new">+ Add New Color</option>
                                 </select>
                             </div>
-                            
+                             
                             <!-- Existing Color Form -->
                             <div id="existingColorForm">
                                 <div class="mb-3">

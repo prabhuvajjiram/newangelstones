@@ -12,6 +12,38 @@
         .navbar-brand, .navbar-nav .nav-link { color: white; }
         .card { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     </style>
+    <script>
+        // Session check function
+        function checkSession() {
+            fetch('check_session.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.valid) {
+                        window.location.href = 'login.php';
+                    }
+                })
+                .catch(error => console.error('Session check error:', error));
+        }
+
+        // Check session every minute
+        setInterval(checkSession, 60000);
+
+        // Also check when user becomes active after being idle
+        let activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+        let activityTimeout;
+
+        function resetActivityTimer() {
+            clearTimeout(activityTimeout);
+            activityTimeout = setTimeout(checkSession, 30 * 60 * 1000); // 30 minutes
+        }
+
+        activityEvents.forEach(event => {
+            document.addEventListener(event, resetActivityTimer);
+        });
+
+        // Initial setup
+        resetActivityTimer();
+    </script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark mb-4">
