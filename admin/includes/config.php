@@ -8,17 +8,16 @@ if (session_status() === PHP_SESSION_NONE) {
 $server_name = $_SERVER['SERVER_NAME'];
 $is_production = ($server_name === 'www.theangelstones.com' || $server_name === 'theangelstones.com');
 
-// Database configuration based on environment
-if ($is_production) {
-    // Production database credentials
-    $db_host = 'localhost';
-    $db_name = 'angelston_quotes';
-    $db_user = 'angelston_quotes';
-    $db_pass = 'your_production_password_here';
-    
-    // Production URL
-    define('BASE_URL', 'https://www.theangelstones.com/admin/');
-} else {
+    // Database configuration
+    if ($is_production) {
+        if (file_exists(__DIR__ . '/db_config.php')) {
+            require_once __DIR__ . '/db_config.php';
+            error_log("Loaded production db_config.php");
+        } else {
+            throw new Exception("db_config.php not found");
+        }
+        define('BASE_URL', 'https://www.theangelstones.com/admin/');
+    } else {
     // Local development database credentials
     $db_host = '127.0.0.1';
     $db_name = 'angelstones_quotes_new';
