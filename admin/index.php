@@ -2,22 +2,46 @@
 require_once 'includes/config.php';
 requireLogin();
 
-// Fetch customers for the table
-$customers = [];
-$result = $conn->query("SELECT * FROM customers ORDER BY id DESC");
-while ($row = $result->fetch_assoc()) {
-    $customers[] = $row;
-}
+// Get statistics
+$stats = [];
+$stats['total_customers'] = $pdo->query("SELECT COUNT(*) as count FROM customers")->fetchColumn();
+$stats['total_quotes'] = $pdo->query("SELECT COUNT(*) as count FROM quotes")->fetchColumn();
+$stats['pending_quotes'] = $pdo->query("SELECT COUNT(*) as count FROM quotes WHERE status = 'pending'")->fetchColumn();
+$result = $pdo->query("SELECT SUM(total_amount) as total FROM quotes WHERE status = 'approved'");
+$stats['total_revenue'] = $result->fetchColumn() ?? 0;
 
-// Get quote count for each customer
-foreach ($customers as &$customer) {
-    $stmt = $conn->prepare("SELECT COUNT(*) as quote_count FROM quotes WHERE customer_id = ?");
-    $stmt->bind_param("i", $customer['id']);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $count = $result->fetch_assoc();
-    $customer['quote_count'] = $count['quote_count'];
-}
+// Get recent activities (last 30 days)
+$stmt = $pdo->query("
+    SELECT q.*, c.name as customer_name, c.phone as customer_phone 
+    FROM quotes q 
+    JOIN customers c ON q.customer_id = c.id 
+    WHERE q.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+    ORDER BY q.created_at DESC 
+    LIMIT 5
+");
+$recent_quotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Get top customers
+$stmt = $pdo->query("
+    SELECT c.*, COUNT(q.id) as quote_count, SUM(q.total_amount) as total_spent
+    FROM customers c
+    LEFT JOIN quotes q ON c.id = q.customer_id
+    GROUP BY c.id
+    ORDER BY quote_count DESC
+    LIMIT 5
+");
+$top_customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Get follow-ups needed (pending quotes older than 7 days)
+$stmt = $pdo->query("
+    SELECT q.*, c.name as customer_name, c.phone as customer_phone
+    FROM quotes q
+    JOIN customers c ON q.customer_id = c.id
+    WHERE q.status = 'pending' 
+    AND q.created_at <= DATE_SUB(NOW(), INTERVAL 7 DAY)
+    ORDER BY q.created_at ASC
+");
+$follow_ups = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -29,11 +53,20 @@ foreach ($customers as &$customer) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        .action-buttons .btn {
-            margin-right: 5px;
+        .stats-card {
+            transition: transform 0.2s;
+            cursor: pointer;
         }
-        .table-responsive {
-            margin-top: 20px;
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        .activity-item {
+            border-left: 3px solid #0d6efd;
+            padding-left: 15px;
+            margin-bottom: 15px;
+        }
+        .follow-up-item {
+            border-left: 3px solid #dc3545;
         }
     </style>
 </head>
@@ -41,56 +74,146 @@ foreach ($customers as &$customer) {
     <?php include 'navbar.php'; ?>
 
     <div class="container mt-4">
+        <!-- Statistics Cards -->
         <div class="row mb-4">
-            <div class="col">
-                <h2>Dashboard</h2>
+            <div class="col-md-3">
+                <div class="card stats-card bg-primary text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Customers</h5>
+                        <h2><?php echo number_format($stats['total_customers']); ?></h2>
+                        <p class="mb-0"><i class="bi bi-people"></i> Active Leads</p>
+                    </div>
+                </div>
             </div>
-            <div class="col-auto">
-                <a href="customers.php" class="btn btn-primary">
-                    <i class="bi bi-person-plus"></i> Manage Customers
-                </a>
-                <a href="settings.php" class="btn btn-secondary">
-                    <i class="bi bi-gear"></i> Settings
-                </a>
+            <div class="col-md-3">
+                <div class="card stats-card bg-success text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Quotes</h5>
+                        <h2><?php echo number_format($stats['total_quotes']); ?></h2>
+                        <p class="mb-0"><i class="bi bi-file-text"></i> Generated</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card bg-warning text-dark">
+                    <div class="card-body">
+                        <h5 class="card-title">Pending Quotes</h5>
+                        <h2><?php echo number_format($stats['pending_quotes']); ?></h2>
+                        <p class="mb-0"><i class="bi bi-clock"></i> Need Follow-up</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card bg-info text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Revenue</h5>
+                        <h2>$<?php echo number_format($stats['total_revenue'], 2); ?></h2>
+                        <p class="mb-0"><i class="bi bi-graph-up"></i> From Approved Quotes</p>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <?php if (isset($success_message)): ?>
-            <div class="alert alert-success"><?php echo $success_message; ?></div>
-        <?php endif; ?>
+        <div class="row">
+            <!-- Recent Activities -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="bi bi-activity"></i> Recent Activities</h5>
+                    </div>
+                    <div class="card-body">
+                        <?php foreach ($recent_quotes as $quote): ?>
+                            <div class="activity-item">
+                                <h6 class="mb-1">New Quote for <?php echo htmlspecialchars($quote['customer_name']); ?></h6>
+                                <p class="text-muted mb-1">
+                                    <small>
+                                        <i class="bi bi-clock"></i> 
+                                        <?php echo date('M j, Y g:i A', strtotime($quote['created_at'])); ?>
+                                    </small>
+                                </p>
+                                <p class="mb-0">
+                                    Amount: $<?php echo number_format($quote['total_amount'], 2); ?> | 
+                                    Status: <span class="badge bg-<?php echo $quote['status'] === 'pending' ? 'warning' : ($quote['status'] === 'approved' ? 'success' : 'danger'); ?>">
+                                        <?php echo ucfirst($quote['status']); ?>
+                                    </span>
+                                </p>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Recent Customers</h5>
+            <!-- Follow-ups Needed -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="bi bi-telephone"></i> Follow-ups Needed</h5>
+                    </div>
+                    <div class="card-body">
+                        <?php if (empty($follow_ups)): ?>
+                            <p class="text-muted">No pending follow-ups at this time.</p>
+                        <?php else: ?>
+                            <?php foreach ($follow_ups as $quote): ?>
+                                <div class="activity-item follow-up-item">
+                                    <h6 class="mb-1"><?php echo htmlspecialchars($quote['customer_name']); ?></h6>
+                                    <p class="text-muted mb-1">
+                                        <small>
+                                            <i class="bi bi-telephone"></i> <?php echo htmlspecialchars($quote['customer_phone']); ?><br>
+                                            Quote created: <?php echo date('M j, Y', strtotime($quote['created_at'])); ?>
+                                        </small>
+                                    </p>
+                                    <div class="mt-2">
+                                        <a href="preview_quote.php?id=<?php echo $quote['id']; ?>" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-eye"></i> View Quote
+                                        </a>
+                                        <a href="tel:<?php echo $quote['customer_phone']; ?>" class="btn btn-sm btn-success">
+                                            <i class="bi bi-telephone"></i> Call
+                                        </a>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Customers -->
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-star"></i> Top Customers</h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-striped table-hover">
+                    <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Phone</th>
-                                <th>Quotes</th>
+                                <th>Customer</th>
+                                <th>Total Quotes</th>
+                                <th>Total Spent</th>
+                                <th>Last Quote</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($customers as $customer): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($customer['name']); ?></td>
-                                <td><?php echo htmlspecialchars($customer['email']); ?></td>
-                                <td><?php echo htmlspecialchars($customer['phone']); ?></td>
-                                <td><?php echo $customer['quote_count']; ?></td>
-                                <td class="action-buttons">
-                                    <a href="quote.php?customer_id=<?php echo $customer['id']; ?>" class="btn btn-success btn-sm">
-                                        <i class="bi bi-file-earmark-plus"></i> New Quote
-                                    </a>
-                                    <a href="view_quotes.php?customer_id=<?php echo $customer['id']; ?>" class="btn btn-info btn-sm">
-                                        <i class="bi bi-files"></i> View Quotes
-                                    </a>
-                                </td>
-                            </tr>
+                            <?php foreach ($top_customers as $customer): ?>
+                                <tr>
+                                    <td>
+                                        <strong><?php echo htmlspecialchars($customer['name']); ?></strong><br>
+                                        <small class="text-muted"><?php echo htmlspecialchars($customer['email']); ?></small>
+                                    </td>
+                                    <td><?php echo $customer['quote_count']; ?></td>
+                                    <td>$<?php echo number_format($customer['total_spent'], 2); ?></td>
+                                    <td><?php echo date('M j, Y', strtotime($customer['created_at'])); ?></td>
+                                    <td>
+                                        <a href="view_quotes.php?customer_id=<?php echo $customer['id']; ?>" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-file-text"></i> Quotes
+                                        </a>
+                                        <a href="quote.php?customer_id=<?php echo $customer['id']; ?>" class="btn btn-sm btn-success">
+                                            <i class="bi bi-plus"></i> New Quote
+                                        </a>
+                                    </td>
+                                </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
@@ -99,7 +222,6 @@ foreach ($customers as &$customer) {
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

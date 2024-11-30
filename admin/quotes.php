@@ -1,22 +1,24 @@
 <?php
-require_once 'includes/config.php';
+require_once 'session_check.php';
 requireLogin();
 
-// Get all quotes with customer information
-$quotes = [];
-$result = $conn->query("SELECT q.*, c.name as customer_name, c.email as customer_email,
-                              (SELECT COUNT(*) FROM quote_items WHERE quote_id = q.id) as items_count
-                       FROM quotes q 
-                       LEFT JOIN customers c ON q.customer_id = c.id 
-                       ORDER BY q.created_at DESC");
+require_once 'includes/config.php';
 
-if (!$result) {
-    error_log("Query failed: " . $conn->error);
-    die("Failed to fetch quotes");
-}
-
-while ($row = $result->fetch_assoc()) {
-    $quotes[] = $row;
+try {
+    $stmt = $pdo->query("
+        SELECT q.*, c.name as customer_name, c.email as customer_email,
+        COUNT(qi.id) as item_count,
+        SUM(qi.total_price) as total_amount
+        FROM quotes q
+        LEFT JOIN customers c ON q.customer_id = c.id
+        LEFT JOIN quote_items qi ON q.id = qi.quote_id
+        GROUP BY q.id
+        ORDER BY q.created_at DESC
+    ");
+    $quotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log("Error fetching quotes: " . $e->getMessage());
+    $quotes = [];
 }
 ?>
 <!DOCTYPE html>
@@ -66,7 +68,7 @@ while ($row = $result->fetch_assoc()) {
                                     <?php endif; ?>
                                 </td>
                                 <td>N/A</td>
-                                <td><?php echo $quote['items_count']; ?></td>
+                                <td><?php echo $quote['item_count']; ?></td>
                                 <td>$<?php echo number_format($quote['total_amount'], 2); ?></td>
                                 <td><?php echo date('M d, Y', strtotime($quote['created_at'])); ?></td>
                                 <td>

@@ -22,6 +22,30 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <i class="bi bi-files"></i> All Quotes
                     </a>
                 </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle <?php echo in_array($current_page, ['crm_dashboard.php', 'view_customer.php', 'tasks.php']) ? 'active' : ''; ?>" 
+                       href="#" id="crmDropdown" role="button" 
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-briefcase"></i> CRM
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="crmDropdown">
+                        <li>
+                            <a class="dropdown-item" href="<?php echo getUrl('crm_dashboard.php'); ?>">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="<?php echo getUrl('tasks.php'); ?>">
+                                <i class="bi bi-list-task"></i> Tasks
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="<?php echo getUrl('customers.php'); ?>">
+                                <i class="bi bi-people"></i> Customers
+                            </a>
+                        </li>
+                    </ul>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link <?php echo $current_page == 'customers.php' ? 'active' : ''; ?>" 
                        href="<?php echo getUrl('customers.php'); ?>">

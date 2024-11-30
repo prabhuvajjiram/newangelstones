@@ -26,18 +26,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     try {
+        global $pdo;
+        
         if ($data['action'] === 'add') {
             // Validate required fields
             if (empty($data['name'])) {
                 throw new Exception('Name is required');
             }
             
-            $stmt = $conn->prepare("INSERT INTO customers (name, email, phone, address, city, state, postal_code, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-            if (!$stmt) {
-                throw new Exception("Prepare failed: " . $conn->error);
-            }
-            
-            $stmt->bind_param("ssssssss", 
+            $stmt = $pdo->prepare("INSERT INTO customers (name, email, phone, address, city, state, postal_code, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
                 $data['name'],
                 $data['email'],
                 $data['phone'],
@@ -46,25 +44,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data['state'],
                 $data['postalCode'],
                 $data['notes']
-            );
+            ]);
             
-            if (!$stmt->execute()) {
-                throw new Exception("Execute failed: " . $stmt->error);
-            }
-            
-            echo json_encode(['success' => true, 'id' => $conn->insert_id]);
+            echo json_encode(['success' => true, 'id' => $pdo->lastInsertId()]);
             
         } elseif ($data['action'] === 'update') {
             if (empty($data['id']) || empty($data['name'])) {
                 throw new Exception('ID and Name are required for update');
             }
             
-            $stmt = $conn->prepare("UPDATE customers SET name=?, email=?, phone=?, address=?, city=?, state=?, postal_code=?, notes=? WHERE id=?");
-            if (!$stmt) {
-                throw new Exception("Prepare failed: " . $conn->error);
-            }
-            
-            $stmt->bind_param("ssssssssi", 
+            $stmt = $pdo->prepare("UPDATE customers SET name=?, email=?, phone=?, address=?, city=?, state=?, postal_code=?, notes=? WHERE id=?");
+            $stmt->execute([
                 $data['name'],
                 $data['email'],
                 $data['phone'],
@@ -74,11 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data['postalCode'],
                 $data['notes'],
                 $data['id']
-            );
-            
-            if (!$stmt->execute()) {
-                throw new Exception("Execute failed: " . $stmt->error);
-            }
+            ]);
             
             echo json_encode(['success' => true]);
         } else {
@@ -93,11 +79,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Get customers list
+global $pdo;
 $customers = [];
-$result = $conn->query("SELECT * FROM customers ORDER BY name");
-while ($row = $result->fetch_assoc()) {
-    $customers[] = $row;
-}
+$stmt = $pdo->query("SELECT * FROM customers ORDER BY name");
+$customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -147,13 +132,15 @@ while ($row = $result->fetch_assoc()) {
                                 </td>
                                 <td>
                                     <?php
-                                    $quoteCount = $conn->query("SELECT COUNT(*) as count FROM quotes WHERE customer_id = " . $customer['id'])->fetch_assoc()['count'];
+                                    $stmt = $pdo->query("SELECT COUNT(*) as count FROM quotes WHERE customer_id = " . $customer['id']);
+                                    $quoteCount = $stmt->fetchColumn();
                                     echo $quoteCount;
                                     ?>
                                 </td>
                                 <td>
                                     <?php
-                                    $lastFollowup = $conn->query("SELECT follow_up_date, status FROM follow_ups WHERE customer_id = " . $customer['id'] . " ORDER BY follow_up_date DESC LIMIT 1")->fetch_assoc();
+                                    $stmt = $pdo->query("SELECT follow_up_date, status FROM follow_ups WHERE customer_id = " . $customer['id'] . " ORDER BY follow_up_date DESC LIMIT 1");
+                                    $lastFollowup = $stmt->fetch(PDO::FETCH_ASSOC);
                                     if ($lastFollowup) {
                                         echo date('M d, Y', strtotime($lastFollowup['follow_up_date']));
                                         echo '<br><span class="badge bg-' . 

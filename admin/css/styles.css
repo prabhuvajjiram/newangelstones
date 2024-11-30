@@ -1,0 +1,39 @@
+.form-select, .form-control {
+    border-radius: 0.5rem;
+}
+
+.card {
+    border-radius: 1rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.table th {
+    background-color: #f8f9fa;
+}
+
+.btn {
+    border-radius: 0.5rem;
+}
+
+.modal-content {
+    border-radius: 1rem;
+}
+
+#cartTable {
+    font-size: 0.9rem;
+}
+
+.product-summary {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+.measurements-table td {
+    padding: 0.5rem;
+}
+
+.error-message {
+    color: #dc3545;
+    margin-bottom: 1rem;
+}

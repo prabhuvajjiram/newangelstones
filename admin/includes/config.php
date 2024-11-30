@@ -1,60 +1,94 @@
 <?php
-// Environment detection
-$server_name = $_SERVER['SERVER_NAME'];
-$is_production = ($server_name === 'www.theangelstones.com' || $server_name === 'theangelstones.com');
+// Error reporting - at the very top
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Changed to 0 to prevent HTML error output
+ini_set('log_errors', 1);
+ini_set('error_log', dirname(__DIR__) . '/php_errors.log');
 
-// Database configuration based on environment
-if ($is_production) {
-    // Production database credentials
-    define('DB_HOST', 'localhost');  // Usually 'localhost' for cPanel
-    define('DB_USER', 'angelston_quotes');  // Your cPanel database username
-    define('DB_PASS', 'your_production_password_here');  // Replace with your actual production password
-    define('DB_NAME', 'angelston_quotes');  // Your cPanel database name
+// Log the script execution
+error_log("Config.php started execution");
+
+// Initialize global PDO variable
+global $pdo;
+
+try {
+    // Session configuration
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+        error_log("Session started successfully");
+    }
+
+    // Environment detection
+    $server_name = $_SERVER['SERVER_NAME'] ?? 'localhost';
+    error_log("Server name: " . $server_name);
     
-    // Production URL
-    define('BASE_URL', 'https://www.theangelstones.com/admin/');
-} else {
-    // Local development database credentials
-    define('DB_HOST', '127.0.0.1');
-    define('DB_USER', 'root');
-    define('DB_PASS', '');
-    define('DB_NAME', 'angelstones_quotes_new');
-    
-    // Local development URL
-    $port = $_SERVER['SERVER_PORT'];
-    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
-    $port_suffix = ($port != '80' && $port != '443') ? ":$port" : '';
-    define('BASE_URL', $protocol . $server_name . $port_suffix . '/admin/');
+    $is_production = ($server_name === 'www.theangelstones.com' || $server_name === 'theangelstones.com');
+    error_log("Is production: " . ($is_production ? 'yes' : 'no'));
+
+    // Database configuration
+    if ($is_production) {
+        if (file_exists(__DIR__ . '/db_config.php')) {
+            require_once __DIR__ . '/db_config.php';
+            error_log("Loaded production db_config.php");
+        } else {
+            throw new Exception("db_config.php not found");
+        }
+        define('BASE_URL', 'https://www.theangelstones.com/admin/');
+    } else {
+        define('DB_HOST', '127.0.0.1');  // Using IP instead of localhost
+        define('DB_USER', 'root');
+        define('DB_PASS', '');
+        define('DB_NAME', 'angelstones_quotes_new');
+        define('BASE_URL', 'http://localhost:3000/admin/');
+        error_log("Loaded local database config");
+    }
+
+    // Create PDO connection
+    try {
+        $pdo = new PDO(
+            "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
+            DB_USER,
+            DB_PASS,
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false
+            ]
+        );
+        error_log("Database connection established successfully");
+    } catch (PDOException $e) {
+        error_log("Database connection failed: " . $e->getMessage());
+        throw new Exception("Database connection failed. Please try again later.");
+    }
+
+    // Make PDO available globally
+    $GLOBALS['pdo'] = $pdo;
+
+    // Google OAuth Configuration
+    define('GOOGLE_CLIENT_ID', '204729895453-04n5arjok7fvjcn6dshvq4d65ssju45h.apps.googleusercontent.com');
+    define('GOOGLE_CLIENT_SECRET', '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');
+    define('GOOGLE_OAUTH_REDIRECT_URI', 'https://theangelstones.com/admin/gmail_callback.php');
+    define('GMAIL_SENDER_EMAIL', 'info@theangelstones.com');
+
+} catch (Exception $e) {
+    error_log("Fatal error in config.php: " . $e->getMessage());
+    error_log("Stack trace: " . $e->getTraceAsString());
+    die("A configuration error occurred. Please check the error log.");
 }
 
-// Create database connection
-$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-
-// Check connection
-if ($conn->connect_error) {
-    error_log("Database connection failed: " . $conn->connect_error);
-    die("Connection failed: " . $conn->connect_error);
+// Helper Functions
+function getUrl($path = '') {
+    return BASE_URL . ltrim($path, '/');
 }
 
-// Set charset to utf8mb4
-$conn->set_charset("utf8mb4");
-
-// Start session if not already started
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Function to check if user is logged in
 function isLoggedIn() {
     return isset($_SESSION['user_id']);
 }
 
-// Function to check if user is admin
 function isAdmin() {
     return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
 }
 
-// Function to require admin role
 function requireAdmin() {
     if (!isLoggedIn()) {
         header('Location: login.php');
@@ -66,7 +100,6 @@ function requireAdmin() {
     }
 }
 
-// Function to require login
 function requireLogin() {
     if (!isLoggedIn()) {
         header('Location: ' . BASE_URL . 'login.php');
@@ -74,8 +107,5 @@ function requireLogin() {
     }
 }
 
-// Function to get URL
-function getUrl($path = '') {
-    return BASE_URL . ltrim($path, '/');
-}
+error_log("Config.php completed execution");
 ?>

@@ -11,11 +11,9 @@ if (!$customer_id) {
 }
 
 // Get customer details
-$stmt = $conn->prepare("SELECT * FROM customers WHERE id = ?");
-$stmt->bind_param('i', $customer_id);
-$stmt->execute();
-$customer = $stmt->get_result()->fetch_assoc();
-$stmt->close();
+$stmt = $pdo->prepare("SELECT * FROM customers WHERE id = ?");
+$stmt->execute([$customer_id]);
+$customer = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$customer) {
     $_SESSION['error'] = "Customer not found.";
@@ -24,7 +22,7 @@ if (!$customer) {
 }
 
 // Get all quotes for this customer
-$stmt = $conn->prepare("
+$stmt = $pdo->prepare("
     SELECT q.*, COUNT(qi.id) as item_count 
     FROM quotes q 
     LEFT JOIN quote_items qi ON q.id = qi.quote_id 
@@ -32,54 +30,39 @@ $stmt = $conn->prepare("
     GROUP BY q.id 
     ORDER BY q.created_at DESC
 ");
-$stmt->bind_param('i', $customer_id);
-$stmt->execute();
-$quotes = $stmt->get_result();
-$stmt->close();
+$stmt->execute([$customer_id]);
+$quotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quotes for <?php echo htmlspecialchars($customer['name']); ?></title>
+    <title>View Quotes - <?php echo htmlspecialchars($customer['name']); ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #f8f9fa; padding: 20px; }
-        .card { box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <h1 class="mb-4">Quotes for <?php echo htmlspecialchars($customer['name']); ?></h1>
+    <?php include 'navbar.php'; ?>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Quotes for <?php echo htmlspecialchars($customer['name']); ?></h1>
+            <a href="customers.php" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Customers
+            </a>
+        </div>
         
-        <div class="card">
+        <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0">Customer Information</h5>
+                <h5 class="mb-0">Customer Details</h5>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong>Name:</strong> <?php echo htmlspecialchars($customer['name']); ?></p>
-                        <p><strong>Email:</strong> <?php echo htmlspecialchars($customer['email']); ?></p>
-                        <p><strong>Phone:</strong> <?php echo htmlspecialchars($customer['phone']); ?></p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>Address:</strong> <?php echo htmlspecialchars($customer['address']); ?></p>
-                        <?php if (!empty($customer['city']) || !empty($customer['state'])): ?>
-                        <p><strong>Location:</strong> 
-                            <?php 
-                            $location = [];
-                            if (!empty($customer['city'])) $location[] = htmlspecialchars($customer['city']);
-                            if (!empty($customer['state'])) $location[] = htmlspecialchars($customer['state']);
-                            if (!empty($customer['postal_code'])) $location[] = htmlspecialchars($customer['postal_code']);
-                            echo implode(', ', $location);
-                            ?>
-                        </p>
-                        <?php endif; ?>
-                    </div>
-                </div>
+                <p><strong>Name:</strong> <?php echo htmlspecialchars($customer['name']); ?></p>
+                <p><strong>Email:</strong> <?php echo htmlspecialchars($customer['email']); ?></p>
+                <p><strong>Phone:</strong> <?php echo htmlspecialchars($customer['phone']); ?></p>
+                <p><strong>Address:</strong> <?php echo htmlspecialchars($customer['address']); ?></p>
             </div>
         </div>
 
@@ -88,73 +71,42 @@ $stmt->close();
                 <h5 class="mb-0">Quote History</h5>
             </div>
             <div class="card-body">
-                <?php if ($quotes->num_rows > 0): ?>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th>Quote Number</th>
-                                <th>Date</th>
-                                <th>Items</th>
-                                <th>Total Amount</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php while ($quote = $quotes->fetch_assoc()): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($quote['quote_number']); ?></td>
-                                <td><?php echo date('M d, Y', strtotime($quote['created_at'])); ?></td>
-                                <td><?php echo intval($quote['item_count']); ?></td>
-                                <td>$<?php echo number_format($quote['total_amount'], 2); ?></td>
-                                <td>
-                                    <span class="badge bg-<?php 
-                                        echo $quote['status'] === 'pending' ? 'warning' : 
-                                            ($quote['status'] === 'approved' ? 'success' : 
-                                            ($quote['status'] === 'rejected' ? 'danger' : 'secondary')); 
-                                        ?>">
-                                        <?php echo ucfirst(htmlspecialchars($quote['status'])); ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <a href="view_quote.php?id=<?php echo $quote['id']; ?>" 
-                                           class="btn btn-sm btn-primary" title="View Quote">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a href="quotes/<?php echo htmlspecialchars($quote['quote_number']); ?>.pdf" 
-                                           class="btn btn-sm btn-secondary" title="Download PDF" target="_blank">
-                                            <i class="fas fa-file-pdf"></i>
-                                        </a>
-                                        <?php if ($quote['status'] === 'pending'): ?>
-                                        <a href="edit_quote.php?id=<?php echo $quote['id']; ?>" 
-                                           class="btn btn-sm btn-warning" title="Edit Quote">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <?php endif; ?>
-                                    </div>
-                                </td>
-                            </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-                    </table>
-                </div>
+                <?php if (empty($quotes)): ?>
+                    <p class="text-muted">No quotes found for this customer.</p>
                 <?php else: ?>
-                <div class="alert alert-info">
-                    No quotes found for this customer.
-                </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Quote #</th>
+                                    <th>Date</th>
+                                    <th>Items</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($quotes as $quote): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($quote['id']); ?></td>
+                                        <td><?php echo date('M j, Y', strtotime($quote['created_at'])); ?></td>
+                                        <td><?php echo htmlspecialchars($quote['item_count']); ?></td>
+                                        <td><?php echo htmlspecialchars($quote['status']); ?></td>
+                                        <td>
+                                            <a href="preview_quote.php?id=<?php echo $quote['id']; ?>" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-eye"></i> View
+                                            </a>
+                                            <a href="generate_pdf.php?id=<?php echo $quote['id']; ?>" class="btn btn-sm btn-success" target="_blank">
+                                                <i class="bi bi-file-pdf"></i> PDF
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 <?php endif; ?>
             </div>
-        </div>
-        
-        <div class="mb-4">
-            <a href="customers.php" class="btn btn-secondary">
-                <i class="fas fa-arrow-left me-1"></i> Back to Customers
-            </a>
-            <a href="create_quote.php?customer_id=<?php echo $customer_id; ?>" class="btn btn-primary">
-                <i class="fas fa-plus me-1"></i> Create New Quote
-            </a>
         </div>
     </div>
 

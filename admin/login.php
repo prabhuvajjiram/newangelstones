@@ -2,120 +2,175 @@
 session_start();
 require_once 'includes/config.php';
 
+// Temporary debug code - remove after testing
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Debug session status
+error_log("Session status: " . session_status());
+error_log("Session ID: " . session_id());
+
+try {
+    // Test database connection
+    $test = $pdo->query("SELECT 1");
+    error_log("Database connection successful");
+} catch (PDOException $e) {
+    error_log("Database connection error: " . $e->getMessage());
+    die("Database connection error: " . $e->getMessage());
+}
+
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
 
-    // Debug statements
-    error_log("Login attempt - Username: " . $username);
-    error_log("Database connection status: " . ($conn->connect_errno ? "Failed" : "Success"));
-
-    // Prepare SQL statement to prevent SQL injection
-    $stmt = $conn->prepare("SELECT id, password, role FROM users WHERE username = ?");
-    if (!$stmt) {
-        error_log("Prepare failed: " . $conn->error);
-        $error = "Database error occurred";
-    } else {
-        $stmt->bind_param("s", $username);
+    try {
+        // Debug log
+        error_log("Login attempt for username: " . $username);
         
-        // Debug execution
-        if (!$stmt->execute()) {
-            error_log("Execute failed: " . $stmt->error);
-            $error = "Database error occurred";
-        } else {
-            $result = $stmt->get_result();
-            error_log("Number of rows found: " . $result->num_rows);
+        // Prepare SQL statement to prevent SQL injection
+        $stmt = $pdo->prepare("SELECT id, password, role FROM users WHERE username = ?");
+        if (!$stmt) {
+            error_log("Failed to prepare statement");
+            throw new PDOException("Failed to prepare statement");
+        }
+        
+        $stmt->execute([$username]);
+        error_log("Query executed, found rows: " . $stmt->rowCount());
+        
+        if ($stmt->rowCount() === 1) {
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            error_log("User found, stored password hash: " . $row['password']);
             
-            if ($result->num_rows === 1) {
-                $row = $result->fetch_assoc();
-                error_log("Stored hash: " . $row['password']);
-                error_log("Attempting to verify password...");
+            if (password_verify($password, $row['password'])) {
+                error_log("Password verified successfully for user: " . $username);
+                // Set session variables
+                $_SESSION['user_id'] = $row['id'];
+                $_SESSION['username'] = $username;
+                $_SESSION['user_role'] = $row['role'];
                 
-                if (password_verify($password, $row['password'])) {
-                    error_log("Password verified successfully!");
-                    // Set session variables
-                    $_SESSION['user_id'] = $row['id'];
-                    $_SESSION['username'] = $username;
-                    $_SESSION['user_role'] = $row['role'];
-                    
+                error_log("Session variables set - user_id: " . $_SESSION['user_id'] . ", username: " . $_SESSION['username'] . ", role: " . $_SESSION['user_role']);
+                
+                // Make sure headers haven't been sent yet
+                if (!headers_sent($filename, $linenum)) {
+                    error_log("Redirecting to quote.php");
                     header("Location: quote.php");
                     exit();
                 } else {
-                    error_log("Password verification failed for user: " . $username);
-                    $error = "Invalid username or password";
+                    error_log("Headers already sent in $filename on line $linenum");
+                    echo "<script>window.location.href = 'quote.php';</script>";
+                    exit();
                 }
             } else {
-                error_log("No user found with username: " . $username);
-                $error = "Invalid username or password";
+                error_log("Password verification failed for user: " . $username);
+                $error = "Invalid password";  
             }
+        } else {
+            error_log("No user found with username: " . $username);
+            $error = "Username not found";  
         }
-        $stmt->close();
+    } catch (PDOException $e) {
+        error_log("Login error: " . $e->getMessage());
+        $error = "Database error: " . $e->getMessage();  
     }
 }
-
-// Debug: Check if database has the admin user
-$debug_query = "SELECT * FROM users WHERE username = 'admin'";
-$debug_result = $conn->query($debug_query);
-error_log("Debug - Number of admin users in database: " . ($debug_result ? $debug_result->num_rows : "query failed"));
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Angel Stones - Admin Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="../css/style.css" rel="stylesheet">
+    <title>Admin Login - Angel Stones</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body {
             background-color: #f8f9fa;
             height: 100vh;
             display: flex;
             align-items: center;
-            justify-content: center;
+            padding-top: 40px;
+            padding-bottom: 40px;
         }
-        .login-container {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            max-width: 400px;
+        .form-signin {
             width: 100%;
+            max-width: 400px;
+            padding: 15px;
+            margin: auto;
+        }
+        .form-signin .card {
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .form-signin .card-body {
+            padding: 2rem;
+        }
+        .form-signin .form-floating {
+            margin-bottom: 1rem;
+        }
+        .brand-logo {
+            width: 150px;
+            margin-bottom: 1.5rem;
+        }
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            padding: 0.75rem;
+            font-size: 1rem;
+        }
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+        .alert {
+            border-radius: 0.5rem;
         }
     </style>
 </head>
-<body class="bg-light">
-    <div class="container">
-        <div class="row justify-content-center mt-5">
-            <div class="col-md-6 col-lg-4">
-                <div class="card shadow">
-                    <div class="card-body">
-                        <h2 class="text-center mb-4">Angel Stones</h2>
-                        <h4 class="text-center mb-4">Admin Login</h4>
-                        
-                        <?php if ($error): ?>
-                            <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
-                        <?php endif; ?>
+<body>
+    <main class="form-signin">
+        <div class="card">
+            <div class="card-body text-center">
+                <img src="../images/logo.png" alt="Angel Stones Logo" class="brand-logo">
+                <h1 class="h3 mb-4 fw-normal">Admin Login</h1>
 
-                        <form method="POST" action="">
-                            <div class="mb-3">
-                                <label for="username" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="username" name="username" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Login</button>
-                        </form>
+                <?php if ($error): ?>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <?php echo htmlspecialchars($error); ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-                </div>
+                <?php endif; ?>
+
+                <form method="POST" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Username" required value="<?php echo htmlspecialchars($username ?? ''); ?>">
+                        <label for="username">Username</label>
+                    </div>
+                    <div class="form-floating">
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                        <label for="password">Password</label>
+                    </div>
+                    <div class="form-check text-start mb-3">
+                        <input class="form-check-input" type="checkbox" id="remember" name="remember">
+                        <label class="form-check-label" for="remember">
+                            Remember me
+                        </label>
+                    </div>
+                    <button class="w-100 btn btn-lg btn-primary mb-3" type="submit">
+                        <i class="fas fa-sign-in-alt me-2"></i>Sign in
+                    </button>
+                    <div class="text-muted">
+                        <small>Protected by Angel Stones Security</small>
+                    </div>
+                </form>
             </div>
         </div>
-    </div>
+    </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

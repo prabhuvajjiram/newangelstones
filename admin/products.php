@@ -5,52 +5,41 @@ requireAdmin();
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['update_sertop'])) {
-        $stmt = $conn->prepare("UPDATE sertop_products SET base_price = ? WHERE id = ?");
-        $stmt->bind_param("di", $_POST['base_price'], $_POST['product_id']);
-        $stmt->execute();
+        $stmt = $pdo->prepare("UPDATE sertop_products SET base_price = ? WHERE id = ?");
+        $stmt->execute([$_POST['base_price'], $_POST['product_id']]);
         $success_message = "SERTOP product updated successfully!";
     } elseif (isset($_POST['update_base'])) {
-        $stmt = $conn->prepare("UPDATE base_products SET base_price = ? WHERE id = ?");
-        $stmt->bind_param("di", $_POST['base_price'], $_POST['product_id']);
-        $stmt->execute();
+        $stmt = $pdo->prepare("UPDATE base_products SET base_price = ? WHERE id = ?");
+        $stmt->execute([$_POST['base_price'], $_POST['product_id']]);
         $success_message = "BASE product updated successfully!";
     } elseif (isset($_POST['update_marker'])) {
-        $stmt = $conn->prepare("UPDATE marker_products SET base_price = ? WHERE id = ?");
-        $stmt->bind_param("di", $_POST['base_price'], $_POST['product_id']);
-        $stmt->execute();
+        $stmt = $pdo->prepare("UPDATE marker_products SET base_price = ? WHERE id = ?");
+        $stmt->execute([$_POST['base_price'], $_POST['product_id']]);
         $success_message = "MARKER product updated successfully!";
     } elseif (isset($_POST['update_slant'])) {
-        $stmt = $conn->prepare("UPDATE slant_products SET base_price = ? WHERE id = ?");
-        $stmt->bind_param("di", $_POST['base_price'], $_POST['product_id']);
-        $stmt->execute();
+        $stmt = $pdo->prepare("UPDATE slant_products SET base_price = ? WHERE id = ?");
+        $stmt->execute([$_POST['base_price'], $_POST['product_id']]);
         $success_message = "SLANT product updated successfully!";
     }
 }
 
 // Fetch all products
 $sertop_products = [];
-$result = $conn->query("SELECT *, CONCAT(model, size_inches) as product_code FROM sertop_products ORDER BY size_inches, model");
-while ($row = $result->fetch_assoc()) {
-    $sertop_products[] = $row;
-}
+$stmt = $pdo->query("SELECT *, CONCAT(model, size_inches) as product_code FROM sertop_products ORDER BY size_inches, model");
+$sertop_products = $stmt->fetchAll();
 
 $base_products = [];
-$result = $conn->query("SELECT *, CONCAT(model, size_inches) as product_code FROM base_products ORDER BY size_inches, model");
-while ($row = $result->fetch_assoc()) {
-    $base_products[] = $row;
-}
+$stmt = $pdo->query("SELECT *, CONCAT(model, size_inches) as product_code FROM base_products ORDER BY size_inches, model");
+$base_products = $stmt->fetchAll();
 
 $marker_products = [];
-$result = $conn->query("SELECT *, CONCAT(model, square_feet) as product_code FROM marker_products ORDER BY square_feet, model");
-while ($row = $result->fetch_assoc()) {
-    $marker_products[] = $row;
-}
+$stmt = $pdo->query("SELECT *, CONCAT(model, square_feet) as product_code FROM marker_products ORDER BY square_feet, model");
+$marker_products = $stmt->fetchAll();
 
 $slant_products = [];
-$result = $conn->query("SELECT *, CONCAT(model, id) as product_code FROM slant_products ORDER BY model");
-while ($row = $result->fetch_assoc()) {
-    $slant_products[] = $row;
-}
+$stmt = $pdo->query("SELECT *, CONCAT(model, id) as product_code FROM slant_products ORDER BY model");
+$slant_products = $stmt->fetchAll();
+
 ?>
 
 <!DOCTYPE html>

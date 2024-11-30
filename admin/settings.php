@@ -5,84 +5,69 @@ requireAdmin();
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['update_rates'])) {
-        $stmt = $conn->prepare("UPDATE stone_color_rates SET color_name = ?, price_increase_percentage = ? WHERE id = ?");
-        $stmt->bind_param("sdi", $_POST['color_name'], $_POST['color_rate'], $_POST['color_id']);
-        $stmt->execute();
+        $stmt = $pdo->prepare("UPDATE stone_color_rates SET color_name = ?, price_increase_percentage = ? WHERE id = ?");
+        $stmt->execute([$_POST['color_name'], $_POST['color_rate'], $_POST['color_id']]);
         $success_message = "Stone color rate updated successfully!";
     } elseif (isset($_POST['add_color'])) {
-        $stmt = $conn->prepare("INSERT INTO stone_color_rates (color_name, price_increase_percentage) VALUES (?, ?)");
-        $stmt->bind_param("sd", $_POST['new_color_name'], $_POST['new_color_rate']);
-        $stmt->execute();
+        $stmt = $pdo->prepare("INSERT INTO stone_color_rates (color_name, price_increase_percentage) VALUES (?, ?)");
+        $stmt->execute([$_POST['new_color_name'], $_POST['new_color_rate']]);
         $success_message = "New stone color added successfully!";
     } elseif (isset($_POST['update_commission'])) {
-        $stmt = $conn->prepare("UPDATE commission_rates SET rate_name = ?, percentage = ? WHERE id = ?");
-        $stmt->bind_param("sdi", $_POST['commission_name'], $_POST['commission_rate'], $_POST['commission_id']);
-        $stmt->execute();
+        $stmt = $pdo->prepare("UPDATE commission_rates SET rate_name = ?, percentage = ? WHERE id = ?");
+        $stmt->execute([$_POST['commission_name'], $_POST['commission_rate'], $_POST['commission_id']]);
         $success_message = "Commission rate updated successfully!";
     } elseif (isset($_POST['add_commission'])) {
-        $stmt = $conn->prepare("INSERT INTO commission_rates (rate_name, percentage) VALUES (?, ?)");
-        $stmt->bind_param("sd", $_POST['new_commission_name'], $_POST['new_commission_rate']);
-        $stmt->execute();
+        $stmt = $pdo->prepare("INSERT INTO commission_rates (rate_name, percentage) VALUES (?, ?)");
+        $stmt->execute([$_POST['new_commission_name'], $_POST['new_commission_rate']]);
         $success_message = "New commission rate added successfully!";
     } elseif (isset($_POST['update_components'])) {
-        $stmt = $conn->prepare("UPDATE price_components SET component_name = ?, base_rate = ?, description = ? WHERE id = ?");
-        $stmt->bind_param("sdsi", $_POST['component_name'], $_POST['component_rate'], $_POST['component_desc'], $_POST['component_id']);
-        $stmt->execute();
+        $stmt = $pdo->prepare("UPDATE price_components SET component_name = ?, base_rate = ?, description = ? WHERE id = ?");
+        $stmt->execute([$_POST['component_name'], $_POST['component_rate'], $_POST['component_desc'], $_POST['component_id']]);
         $success_message = "Price component updated successfully!";
     } elseif (isset($_POST['add_component'])) {
-        $stmt = $conn->prepare("INSERT INTO price_components (component_name, base_rate, description) VALUES (?, ?, ?)");
-        $stmt->bind_param("sds", $_POST['new_component_name'], $_POST['new_component_rate'], $_POST['new_component_desc']);
-        $stmt->execute();
+        $stmt = $pdo->prepare("INSERT INTO price_components (component_name, base_rate, description) VALUES (?, ?, ?)");
+        $stmt->execute([$_POST['new_component_name'], $_POST['new_component_rate'], $_POST['new_component_desc']]);
         $success_message = "New price component added successfully!";
     } elseif (isset($_POST['delete_color'])) {
         try {
             // Begin transaction
-            $conn->begin_transaction();
+            $pdo->beginTransaction();
 
             // Delete the color
-            $stmt = $conn->prepare("DELETE FROM stone_color_rates WHERE id = ?");
-            $stmt->bind_param("i", $_POST['delete_id']);
-            $stmt->execute();
+            $stmt = $pdo->prepare("DELETE FROM stone_color_rates WHERE id = ?");
+            $stmt->execute([$_POST['delete_id']]);
 
             // Commit transaction
-            $conn->commit();
+            $pdo->commit();
             $success_message = "Stone color deleted successfully!";
         } catch (Exception $e) {
             // Rollback transaction on error
-            $conn->rollback();
+            $pdo->rollBack();
             $error_message = "Cannot delete this color as it is being used in existing quotes. Please update or delete the related quotes first.";
         }
     } elseif (isset($_POST['delete_commission'])) {
-        $stmt = $conn->prepare("DELETE FROM commission_rates WHERE id = ?");
-        $stmt->bind_param("i", $_POST['delete_id']);
-        $stmt->execute();
+        $stmt = $pdo->prepare("DELETE FROM commission_rates WHERE id = ?");
+        $stmt->execute([$_POST['delete_id']]);
         $success_message = "Commission rate deleted successfully!";
     } elseif (isset($_POST['delete_component'])) {
-        $stmt = $conn->prepare("DELETE FROM price_components WHERE id = ?");
-        $stmt->bind_param("i", $_POST['delete_id']);
-        $stmt->execute();
+        $stmt = $pdo->prepare("DELETE FROM price_components WHERE id = ?");
+        $stmt->execute([$_POST['delete_id']]);
         $success_message = "Price component deleted successfully!";
     }
 }
 
 // Get current settings
 $color_rates = [];
-$result = $conn->query("SELECT * FROM stone_color_rates ORDER BY color_name");
-while ($row = $result->fetch_assoc()) {
-    $color_rates[] = $row;
-}
+$result = $pdo->query("SELECT * FROM stone_color_rates ORDER BY color_name");
+$color_rates = $result->fetchAll(PDO::FETCH_ASSOC);
 
 $commission_rates = [];
-$result = $conn->query("SELECT * FROM commission_rates ORDER BY rate_name");
-while ($row = $result->fetch_assoc()) {
-    $commission_rates[] = $row;
-}
+$result = $pdo->query("SELECT * FROM commission_rates ORDER BY rate_name");
+$commission_rates = $result->fetchAll(PDO::FETCH_ASSOC);
 
 $price_components = [];
-$result = $conn->query("SELECT * FROM price_components ORDER BY component_name");
-while ($row = $result->fetch_assoc()) {
-    $price_components[] = $row;
-}
+$result = $pdo->query("SELECT * FROM price_components ORDER BY component_name");
+$price_components = $result->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -92,6 +77,7 @@ while ($row = $result->fetch_assoc()) {
     <title>Settings - Angel Stones</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         .new-item-form {
             display: none;
@@ -405,6 +391,41 @@ while ($row = $result->fetch_assoc()) {
                                 <button type="submit" name="add_component" class="btn btn-success">Add Component</button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+            <!-- Email Settings -->
+            <div class="row">
+            <div class="col-md-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Email Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Gmail Integration Status</h6>
+                                <?php
+                                try {
+                                    $stmt = $pdo->prepare("SELECT setting_value FROM email_settings WHERE setting_name = 'access_token'");
+                                    $stmt->execute();
+                                    $access_token = $stmt->fetchColumn();
+                                    
+                                    if ($access_token) {
+                                        echo '<p class="text-success"><i class="fas fa-check-circle"></i> Gmail integration is configured</p>';
+                                        echo '<button class="btn btn-warning" onclick="window.location.href=\'gmail_auth.php\'">Reconfigure Gmail</button>';
+                                    } else {
+                                        echo '<p class="text-warning"><i class="fas fa-exclamation-circle"></i> Gmail integration not configured</p>';
+                                        echo '<button class="btn btn-primary" onclick="window.location.href=\'gmail_auth.php\'">Configure Gmail</button>';
+                                    }
+                                } catch (PDOException $e) {
+                                    echo '<p class="text-danger"><i class="fas fa-exclamation-triangle"></i> Error checking Gmail configuration</p>';
+                                }
+                                ?>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
