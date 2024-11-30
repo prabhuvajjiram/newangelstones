@@ -6,3 +6,4 @@ node_modules
 /admin/vendor
 /vendor
 /admin/quotes
+/admin/includes/config.php
