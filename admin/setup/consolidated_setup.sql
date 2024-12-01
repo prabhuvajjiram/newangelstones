@@ -1,7 +1,7 @@
 -- Drop database if exists and create new one
-DROP DATABASE IF EXISTS theangel_quotes;
-CREATE DATABASE theangel_quotes;
-USE theangel_quotes;
+DROP DATABASE IF EXISTS angelstones_quotes_new;
+CREATE DATABASE angelstones_quotes_new;
+USE angelstones_quotes_new;
 
 -- Create users table first (referenced by other tables)
 CREATE TABLE users (
@@ -96,6 +96,7 @@ CREATE TABLE customers (
     postal_code VARCHAR(20),
     notes TEXT,
     lead_score INT DEFAULT 0,
+    last_contact_date TIMESTAMP NULL,
     lead_source_id INT NULL,
     last_campaign_id INT NULL,
     preferred_contact_method ENUM('email', 'phone', 'sms', 'mail') DEFAULT 'email',
@@ -104,7 +105,6 @@ CREATE TABLE customers (
     status ENUM('active', 'inactive', 'potential', 'converted') DEFAULT 'potential',
     total_quotes INT DEFAULT 0,
     total_spent DECIMAL(10,2) DEFAULT 0.00,
-    last_contact_date TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (lead_source_id) REFERENCES lead_sources(id),
@@ -221,7 +221,7 @@ CREATE TABLE customer_communications (
 -- Create tasks table for task management
 CREATE TABLE tasks (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(200) NOT NULL,
+    title VARCHAR(255) NOT NULL,
     description TEXT,
     customer_id INT NULL,
     quote_id INT NULL,
@@ -514,3 +514,32 @@ CREATE TABLE IF NOT EXISTS email_logs (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (email_id) REFERENCES email_queue(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tasks table
+CREATE TABLE IF NOT EXISTS tasks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    customer_id INT,
+    assigned_to INT,
+    priority ENUM('low', 'medium', 'high') DEFAULT 'medium',
+    status ENUM('pending', 'in_progress', 'completed', 'cancelled') DEFAULT 'pending',
+    due_date DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,
+    FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Customer Communications table
+CREATE TABLE IF NOT EXISTS customer_communications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT,
+    type ENUM('email', 'phone', 'meeting', 'other') NOT NULL,
+    subject VARCHAR(255) NOT NULL,
+    content TEXT,
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

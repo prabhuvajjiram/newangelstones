@@ -1,6 +1,37 @@
 <?php
+// Enable error reporting
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require_once 'includes/config.php';
 require_once 'includes/crm_functions.php';
+require_once 'session_check.php';
+
+// Debug logging
+error_log("Session status: " . session_status());
+error_log("Session ID: " . session_id());
+error_log("User ID: " . ($_SESSION['user_id'] ?? 'not set'));
+error_log("Username: " . ($_SESSION['username'] ?? 'not set'));
+error_log("User Role: " . ($_SESSION['user_role'] ?? 'not set'));
+
+// Helper functions
+function getPriorityClass($priority) {
+    switch($priority) {
+        case 'high': return 'danger';
+        case 'medium': return 'warning';
+        case 'low': return 'success';
+        default: return 'secondary';
+    }
+}
+
+function getStatusClass($status) {
+    switch($status) {
+        case 'completed': return 'success';
+        case 'in_progress': return 'warning';
+        case 'pending': return 'secondary';
+        default: return 'secondary';
+    }
+}
 
 // Initialize Task Manager
 $taskManager = getCRMInstance('TaskManagement');
@@ -35,6 +66,8 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
 </head>
 <body>
     <?php include 'navbar.php'; ?>
@@ -229,95 +262,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            // Initialize date range picker
-            $('input[name="daterange"]').daterangepicker({
-                opens: 'left',
-                autoUpdateInput: false,
-                locale: {
-                    cancelLabel: 'Clear'
-                }
-            });
-
-            // Handle date range picker events
-            $('input[name="daterange"]').on('apply.daterangepicker', function(ev, picker) {
-                $(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
-            });
-
-            $('input[name="daterange"]').on('cancel.daterangepicker', function(ev, picker) {
-                $(this).val('');
-            });
-
-            // Task status update
-            $('.task-status').change(function() {
-                const taskId = $(this).data('task-id');
-                const status = $(this).val();
-                
-                $.post('ajax/update_task_status.php', {
-                    task_id: taskId,
-                    status: status
-                }).done(function(response) {
-                    // Handle response
-                });
-            });
-
-            // View task details
-            $('.view-task').click(function() {
-                const taskId = $(this).data('task-id');
-                
-                // Load task details via AJAX
-                $.get('ajax/get_task_details.php', {
-                    task_id: taskId
-                }).done(function(response) {
-                    $('#viewTaskModal .modal-body').html(response);
-                    $('#viewTaskModal').modal('show');
-                });
-            });
-
-            // Delete task
-            $('.delete-task').click(function() {
-                if (!confirm('Are you sure you want to delete this task?')) {
-                    return;
-                }
-
-                const taskId = $(this).data('task-id');
-                
-                $.post('ajax/delete_task.php', {
-                    task_id: taskId
-                }).done(function(response) {
-                    if (response.success) {
-                        location.reload();
-                    }
-                });
-            });
-
-            // Task filters
-            $('#taskFilters').submit(function(e) {
-                e.preventDefault();
-                // Implement task filtering via AJAX
-            });
-        });
-
-        // Helper function for priority badges
-        function getPriorityClass(priority) {
-            switch(priority) {
-                case 'high': return 'danger';
-                case 'medium': return 'warning';
-                case 'low': return 'success';
-                default: return 'secondary';
-            }
-        }
-
-        // Helper function for status badges
-        function getStatusClass(status) {
-            switch(status) {
-                case 'completed': return 'success';
-                case 'in_progress': return 'warning';
-                case 'pending': return 'secondary';
-                default: return 'secondary';
-            }
-        }
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.js"></script>
+    <script src="js/tasks.js"></script>
 </body>
 </html>

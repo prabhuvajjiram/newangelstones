@@ -293,6 +293,7 @@ class CartManager {
 class QuoteManager {
     constructor() {
         this.productData = window.QUOTE_DATA.productData;
+        this.quoteData = window.QUOTE_DATA.quoteData;
         
         // Initialize components
         this.productDetails = new ProductDetails(this.productData, (product) => {
@@ -315,11 +316,17 @@ class QuoteManager {
         this.modalTotal = document.getElementById('modalTotal');
         
         // Initialize customer selection
-        $('#customer_select').on('change', (e) => {
+        this.customerSelect = $('#customer_select');
+        this.customerSelect.on('change', (e) => {
             const selectedOption = $(e.target).find('option:selected');
             $('#customer_id').val($(e.target).val());
             $('#customer_email').val(selectedOption.data('email'));
         });
+
+        // Set initial customer if provided in URL
+        if (this.quoteData.customer_id) {
+            this.customerSelect.val(this.quoteData.customer_id).trigger('change');
+        }
         
         // Initialize add to cart button
         $('#addToCartBtn').on('click', (e) => {

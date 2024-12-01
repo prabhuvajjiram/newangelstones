@@ -1,5 +1,6 @@
 <?php
 require_once 'includes/config.php';
+require_once 'session_check.php';
 require_once 'includes/crm_functions.php';
 
 // Get customer ID from URL
@@ -67,7 +68,6 @@ $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $leadManager = getCRMInstance('LeadManagement');
 $leadScore = $leadManager->calculateLeadScore($customerId);
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -355,7 +355,8 @@ $leadScore = $leadManager->calculateLeadScore($customerId);
         }
     </script>
 </body>
-</html><?php
+</html>
+<?php
 
 // Helper functions
 function getLeadScoreClass($score) {

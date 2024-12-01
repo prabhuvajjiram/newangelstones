@@ -4,34 +4,8 @@ session_start();
 // Define base URL for admin
 define('ADMIN_BASE_URL', '/admin/');
 
-function getCurrentUserId() {
-    return $_SESSION['user_id'] ?? null;
-}
-
-function setLoginSession($userId, $role = 'user') {
-    $_SESSION['user_id'] = $userId;
-    $_SESSION['user_role'] = $role;
-    $_SESSION['last_activity'] = time();
-}
-
-function clearLoginSession() {
-    session_unset();
-    session_destroy();
-    // Start a new session to allow for messages
-    session_start();
-    $_SESSION['timeout_message'] = "Your session has expired. Please log in again.";
-}
-
-function checkSessionTimeout() {
-    $timeout = 30 * 60; // 30 minutes in seconds
-    if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $timeout)) {
-        clearLoginSession();
-        // Use JavaScript to redirect to ensure all resources are properly unloaded
-        echo "<script>window.location.href = '" . ADMIN_BASE_URL . "login.php?timeout=1';</script>";
-        exit;
-    }
-    $_SESSION['last_activity'] = time();
-}
+// Include session functions
+require_once __DIR__ . '/session_functions.php';
 
 // Call this at the start of every admin page
 if (isset($_SESSION['user_id'])) {

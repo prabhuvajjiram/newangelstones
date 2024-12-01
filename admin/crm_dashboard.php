@@ -1,29 +1,60 @@
 <?php
 require_once 'includes/config.php';
-require_once 'includes/crm_functions.php';
+require_once 'session_check.php';
 
-// Initialize CRM classes
-$leadManager = getCRMInstance('LeadManagement');
-$campaignManager = getCRMInstance('CampaignManagement');
-$taskManager = getCRMInstance('TaskManagement');
-$documentManager = getCRMInstance('DocumentManagement');
-$communicationManager = getCRMInstance('CommunicationManagement');
+// Require admin access
+requireAdmin();
 
-// Get top leads
-$topLeads = $leadManager->getLeadsByScore(50, 5);
+try {
+    // Get top leads
+    $stmt = $pdo->query("
+        SELECT c.*, COUNT(q.id) as quote_count 
+        FROM customers c 
+        LEFT JOIN quotes q ON c.id = q.customer_id 
+        GROUP BY c.id 
+        ORDER BY quote_count DESC, c.last_contact_date DESC 
+        LIMIT 5
+    ");
+    $topLeads = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Get user's tasks
-$userTasks = $taskManager->getTasksByUser($_SESSION['user_id']);
+    // Get user's tasks
+    $stmt = $pdo->prepare("
+        SELECT t.*, c.name as customer_name 
+        FROM tasks t 
+        LEFT JOIN customers c ON t.customer_id = c.id 
+        WHERE t.user_id = ? AND t.status != 'completed' 
+        ORDER BY t.due_date ASC 
+        LIMIT 5
+    ");
+    $stmt->execute([$_SESSION['user_id']]);
+    $userTasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Get active campaigns
-$stmt = $pdo->query("
-    SELECT * FROM campaigns 
-    WHERE status IN ('active', 'scheduled') 
-    ORDER BY start_date DESC 
-    LIMIT 5
-");
-$activeCampaigns = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Get recent communications
+    $stmt = $pdo->prepare("
+        SELECT cc.*, c.name as customer_name 
+        FROM customer_communications cc 
+        LEFT JOIN customers c ON cc.customer_id = c.id 
+        ORDER BY cc.created_at DESC 
+        LIMIT 5
+    ");
+    $stmt->execute();
+    $recentCommunications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+} catch (PDOException $e) {
+    error_log("Database error in CRM Dashboard: " . $e->getMessage() . "\nStack trace: " . $e->getTraceAsString());
+    $error = "An error occurred while loading the dashboard. Please try again later. Error: " . $e->getMessage();
+}
+
+// Initialize arrays if not set
+if (!isset($userTasks)) $userTasks = [];
+if (!isset($recentCommunications)) $recentCommunications = [];
+if (!isset($topLeads)) $topLeads = [];
+
+// Debug information
+error_log("Session user_id: " . (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'not set'));
+error_log("Top Leads count: " . count($topLeads));
+error_log("User Tasks count: " . count($userTasks));
+error_log("Communications count: " . count($recentCommunications));
 ?>
 
 <!DOCTYPE html>
@@ -33,143 +64,93 @@ $activeCampaigns = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRM Dashboard - Angel Stones</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .quick-actions {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .quick-actions .btn {
+            margin-right: 10px;
+        }
+    </style>
 </head>
 <body>
     <?php include 'navbar.php'; ?>
 
     <div class="container-fluid py-4">
-        <h1 class="h3 mb-4">CRM Dashboard</h1>
-
-        <div class="row">
-            <!-- Quick Actions -->
-            <div class="col-md-3 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Quick Actions</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-grid gap-2">
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newTaskModal">
-                                <i class="bi bi-plus-circle"></i> New Task
-                            </button>
-                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#newCommunicationModal">
-                                <i class="bi bi-chat"></i> Log Communication
-                            </button>
-                            <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#uploadDocumentModal">
-                                <i class="bi bi-file-earmark"></i> Upload Document
-                            </button>
-                        </div>
-                    </div>
-                </div>
+        <?php if (isset($error)): ?>
+            <div class="alert alert-danger" role="alert">
+                <?php echo htmlspecialchars($error); ?>
             </div>
+        <?php endif; ?>
 
+        <!-- Quick Actions Section -->
+        <div class="quick-actions">
+            <h5 class="mb-3">Quick Actions</h5>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#taskModal">
+                <i class="bi bi-plus-circle"></i> Create Task
+            </button>
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#communicationModal">
+                <i class="bi bi-chat-dots"></i> Log Communication
+            </button>
+            <a href="customers.php" class="btn btn-info">
+                <i class="bi bi-people"></i> View All Customers
+            </a>
+        </div>
+
+        <div class="row g-4">
             <!-- Top Leads -->
-            <div class="col-md-4 mb-4">
+            <div class="col-12">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">Top Leads</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="list-group">
-                            <?php foreach ($topLeads as $lead): ?>
-                            <a href="view_customer.php?id=<?= $lead['id'] ?>" class="list-group-item list-group-item-action">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1"><?= htmlspecialchars($lead['name']) ?></h6>
-                                    <span class="badge bg-primary"><?= $lead['lead_score'] ?></span>
-                                </div>
-                                <small><?= htmlspecialchars($lead['email']) ?></small>
-                            </a>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tasks -->
-            <div class="col-md-5 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">My Tasks</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
-                                        <th>Title</th>
-                                        <th>Priority</th>
-                                        <th>Due Date</th>
-                                        <th>Status</th>
+                                        <th>Customer</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Quotes</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($userTasks as $task): ?>
-                                    <tr>
-                                        <td><?= htmlspecialchars($task['title']) ?></td>
-                                        <td>
-                                            <span class="badge bg-<?= getPriorityClass($task['priority']) ?>">
-                                                <?= ucfirst($task['priority']) ?>
-                                            </span>
-                                        </td>
-                                        <td><?= date('M d, Y', strtotime($task['due_date'])) ?></td>
-                                        <td>
-                                            <select class="form-select form-select-sm task-status" 
-                                                    data-task-id="<?= $task['id'] ?>">
-                                                <option value="pending" <?= $task['status'] == 'pending' ? 'selected' : '' ?>>Pending</option>
-                                                <option value="in_progress" <?= $task['status'] == 'in_progress' ? 'selected' : '' ?>>In Progress</option>
-                                                <option value="completed" <?= $task['status'] == 'completed' ? 'selected' : '' ?>>Completed</option>
-                                            </select>
-                                        </td>
-                                    </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <!-- Active Campaigns -->
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Active Campaigns</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Campaign</th>
-                                        <th>Type</th>
-                                        <th>Status</th>
-                                        <th>Progress</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($activeCampaigns as $campaign): ?>
-                                    <tr>
-                                        <td><?= htmlspecialchars($campaign['name']) ?></td>
-                                        <td><?= ucfirst($campaign['type']) ?></td>
-                                        <td><?= ucfirst($campaign['status']) ?></td>
-                                        <td>
-                                            <?php
-                                            $progress = calculateCampaignProgress($campaign);
-                                            $progressClass = getProgressClass($progress);
-                                            ?>
-                                            <div class="progress">
-                                                <div class="progress-bar bg-<?= $progressClass ?>" 
-                                                     role="progressbar" 
-                                                     style="width: <?= $progress ?>%">
-                                                    <?= $progress ?>%
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <?php endforeach; ?>
+                                    <?php if (empty($topLeads)): ?>
+                                        <tr>
+                                            <td colspan="5" class="text-center">No leads found</td>
+                                        </tr>
+                                    <?php else: ?>
+                                        <?php foreach ($topLeads as $lead): ?>
+                                            <tr>
+                                                <td><?php echo htmlspecialchars($lead['name']); ?></td>
+                                                <td><?php echo htmlspecialchars($lead['email']); ?></td>
+                                                <td><?php echo htmlspecialchars($lead['phone']); ?></td>
+                                                <td><?php echo htmlspecialchars($lead['quote_count']); ?></td>
+                                                <td>
+                                                    <div class="btn-group">
+                                                        <button type="button" class="btn btn-sm btn-primary" 
+                                                                onclick="createTask(<?php echo $lead['id']; ?>, '<?php echo addslashes($lead['name']); ?>')">
+                                                            <i class="bi bi-plus-circle"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-success" 
+                                                                onclick="logCommunication(<?php echo $lead['id']; ?>, '<?php echo addslashes($lead['name']); ?>')">
+                                                            <i class="bi bi-chat-dots"></i>
+                                                        </button>
+                                                        <a href="view_customer.php?id=<?php echo $lead['id']; ?>" 
+                                                           class="btn btn-sm btn-info">
+                                                            <i class="bi bi-eye"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>
@@ -177,151 +158,90 @@ $activeCampaigns = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
             </div>
 
-            <!-- Recent Communications -->
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Recent Communications</h5>
+            <!-- Tasks and Communications -->
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">My Tasks</h5>
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#taskModal">
+                            <i class="bi bi-plus-circle"></i> New Task
+                        </button>
                     </div>
                     <div class="card-body">
-                        <?php
-                        $stmt = $pdo->query("
-                            SELECT cc.*, c.name as customer_name, u.username
-                            FROM customer_communications cc
-                            JOIN customers c ON cc.customer_id = c.id
-                            JOIN users u ON cc.user_id = u.id
-                            ORDER BY cc.created_at DESC
-                            LIMIT 5
-                        ");
-                        $communications = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                        ?>
-                        <div class="list-group">
-                            <?php foreach ($communications as $comm): ?>
-                            <div class="list-group-item">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">
-                                        <?= htmlspecialchars($comm['customer_name']) ?> - 
-                                        <?= htmlspecialchars($comm['subject']) ?>
-                                    </h6>
-                                    <small><?= getTimeAgo($comm['created_at']) ?></small>
-                                </div>
-                                <p class="mb-1"><?= htmlspecialchars($comm['content']) ?></p>
-                                <small>By <?= htmlspecialchars($comm['username']) ?> via <?= ucfirst($comm['type']) ?></small>
+                        <?php if (empty($userTasks)): ?>
+                            <p class="text-center text-muted">No tasks found. Click "New Task" to create one.</p>
+                        <?php else: ?>
+                            <div class="list-group">
+                                <?php foreach ($userTasks as $task): ?>
+                                    <div class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1"><?php echo htmlspecialchars($task['title']); ?></h6>
+                                            <small class="text-muted">Due: <?php echo date('M j, Y', strtotime($task['due_date'])); ?></small>
+                                        </div>
+                                        <p class="mb-1"><?php echo htmlspecialchars($task['description']); ?></p>
+                                        <?php if ($task['customer_name']): ?>
+                                            <small class="text-muted">Customer: <?php echo htmlspecialchars($task['customer_name']); ?></small>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endforeach; ?>
                             </div>
-                            <?php endforeach; ?>
-                        </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Recent Communications</h5>
+                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#communicationModal">
+                            <i class="bi bi-chat-dots"></i> New Communication
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <?php if (empty($recentCommunications)): ?>
+                            <p class="text-center text-muted">No communications found. Click "New Communication" to log one.</p>
+                        <?php else: ?>
+                            <div class="list-group">
+                                <?php foreach ($recentCommunications as $comm): ?>
+                                    <div class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1"><?php echo htmlspecialchars($comm['subject']); ?></h6>
+                                            <small class="text-muted"><?php echo date('M j, Y', strtotime($comm['created_at'])); ?></small>
+                                        </div>
+                                        <p class="mb-1"><?php echo htmlspecialchars($comm['content']); ?></p>
+                                        <?php if ($comm['customer_name']): ?>
+                                            <small class="text-muted">Customer: <?php echo htmlspecialchars($comm['customer_name']); ?></small>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modals -->
+    <!-- Include Modals -->
     <?php include 'modals/task_modal.php'; ?>
     <?php include 'modals/communication_modal.php'; ?>
-    <?php include 'modals/document_modal.php'; ?>
 
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="js/crm.js"></script>
     <script>
-        // Helper functions
-        function getPriorityClass(priority) {
-            switch(priority) {
-                case 'urgent': return 'danger';
-                case 'high': return 'warning';
-                case 'medium': return 'info';
-                default: return 'secondary';
-            }
+        function createTask(customerId, customerName) {
+            document.getElementById('task_customer_id').value = customerId;
+            document.getElementById('task_customer_name').value = customerName;
+            new bootstrap.Modal(document.getElementById('taskModal')).show();
         }
 
-        function calculateCampaignProgress(campaign) {
-            const start = new Date(campaign.start_date);
-            const end = new Date(campaign.end_date);
-            const now = new Date();
-            
-            if (now < start) return 0;
-            if (now > end) return 100;
-            
-            const total = end - start;
-            const current = now - start;
-            return Math.round((current / total) * 100);
+        function logCommunication(customerId, customerName) {
+            document.getElementById('communication_customer_id').value = customerId;
+            document.getElementById('communication_customer_name').value = customerName;
+            new bootstrap.Modal(document.getElementById('communicationModal')).show();
         }
-
-        function getProgressClass(progress) {
-            if (progress < 25) return 'info';
-            if (progress < 50) return 'primary';
-            if (progress < 75) return 'warning';
-            return 'success';
-        }
-
-        function getTimeAgo(timestamp) {
-            const now = new Date();
-            const then = new Date(timestamp);
-            const diff = Math.floor((now - then) / 1000); // seconds
-
-            if (diff < 60) return 'just now';
-            if (diff < 3600) return Math.floor(diff / 60) + ' minutes ago';
-            if (diff < 86400) return Math.floor(diff / 3600) + ' hours ago';
-            return Math.floor(diff / 86400) + ' days ago';
-        }
-
-        // Event handlers
-        $(document).ready(function() {
-            // Task status update
-            $('.task-status').change(function() {
-                const taskId = $(this).data('task-id');
-                const status = $(this).val();
-                
-                $.post('ajax/update_task_status.php', {
-                    task_id: taskId,
-                    status: status
-                }).done(function(response) {
-                    // Handle response
-                });
-            });
-        });
     </script>
 </body>
-</html><?php
-
-// Helper functions
-function getPriorityClass($priority) {
-    switch($priority) {
-        case 'urgent': return 'danger';
-        case 'high': return 'warning';
-        case 'medium': return 'info';
-        default: return 'secondary';
-    }
-}
-
-function calculateCampaignProgress($campaign) {
-    $start = strtotime($campaign['start_date']);
-    $end = strtotime($campaign['end_date']);
-    $now = time();
-    
-    if ($now < $start) return 0;
-    if ($now > $end) return 100;
-    
-    $total = $end - $start;
-    $current = $now - $start;
-    return round(($current / $total) * 100);
-}
-
-function getProgressClass($progress) {
-    if ($progress < 25) return 'info';
-    if ($progress < 50) return 'primary';
-    if ($progress < 75) return 'warning';
-    return 'success';
-}
-
-function getTimeAgo($timestamp) {
-    $now = time();
-    $then = strtotime($timestamp);
-    $diff = $now - $then;
-
-    if ($diff < 60) return 'just now';
-    if ($diff < 3600) return floor($diff / 60) . ' minutes ago';
-    if ($diff < 86400) return floor($diff / 3600) . ' hours ago';
-    return floor($diff / 86400) . ' days ago';
-}
-?>
+</html>

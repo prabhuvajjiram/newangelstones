@@ -382,5 +382,10 @@ class ReminderManagement {
 // Helper function to get database instance
 function getCRMInstance($className) {
     global $pdo;
+    
+    if (!class_exists($className)) {
+        throw new Exception("Class $className not found");
+    }
+    
     return new $className($pdo);
 }

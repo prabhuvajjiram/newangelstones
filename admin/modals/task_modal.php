@@ -11,7 +11,7 @@ $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <h5 class="modal-title">Create New Task</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="newTaskForm" action="ajax/create_task.php" method="POST">
+            <form id="taskForm" action="ajax/create_task.php" method="POST">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Title</label>
@@ -23,12 +23,13 @@ $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Customer</label>
-                        <select class="form-select" name="customer_id">
+                        <select class="form-select" name="customer_id" id="task_customer_id">
                             <option value="">Select Customer</option>
                             <?php foreach ($customers as $customer): ?>
                             <option value="<?= $customer['id'] ?>"><?= htmlspecialchars($customer['name']) ?></option>
                             <?php endforeach; ?>
                         </select>
+                        <input type="hidden" id="task_customer_name" name="customer_name">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Priority</label>
@@ -55,7 +56,7 @@ $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <script>
 $(document).ready(function() {
-    $('#newTaskForm').submit(function(e) {
+    $('#taskForm').submit(function(e) {
         e.preventDefault();
         $.post($(this).attr('action'), $(this).serialize())
             .done(function(response) {

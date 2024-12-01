@@ -3,24 +3,25 @@
 $stmt = $pdo->query("SELECT id, name FROM customers ORDER BY name");
 $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
-<!-- New Communication Modal -->
-<div class="modal fade" id="newCommunicationModal" tabindex="-1">
+<!-- Communication Modal -->
+<div class="modal fade" id="communicationModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Log Communication</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="newCommunicationForm" action="ajax/log_communication.php" method="POST">
+            <form id="communicationForm" action="ajax/log_communication.php" method="POST">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Customer</label>
-                        <select class="form-select" name="customer_id" required>
+                        <select class="form-select" name="customer_id" id="communication_customer_id" required>
                             <option value="">Select Customer</option>
                             <?php foreach ($customers as $customer): ?>
                             <option value="<?= $customer['id'] ?>"><?= htmlspecialchars($customer['name']) ?></option>
                             <?php endforeach; ?>
                         </select>
+                        <input type="hidden" id="communication_customer_name" name="customer_name">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Communication Type</label>
@@ -51,14 +52,19 @@ $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <script>
 $(document).ready(function() {
-    $('#newCommunicationForm').submit(function(e) {
+    $('#communicationForm').submit(function(e) {
         e.preventDefault();
         $.post($(this).attr('action'), $(this).serialize())
             .done(function(response) {
-                location.reload();
+                if (response.success) {
+                    $('#communicationModal').modal('hide');
+                    location.reload();
+                } else {
+                    alert('Error: ' + response.message);
+                }
             })
-            .fail(function(xhr) {
-                alert('Error logging communication: ' + xhr.responseText);
+            .fail(function() {
+                alert('Error occurred while logging communication');
             });
     });
 });
