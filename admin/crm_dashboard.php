@@ -2,8 +2,8 @@
 require_once 'includes/config.php';
 require_once 'session_check.php';
 
-// Require admin access
-requireAdmin();
+// Require staff or admin access
+requireStaffOrAdmin();
 
 try {
     // Get top leads
@@ -56,7 +56,6 @@ error_log("Top Leads count: " . count($topLeads));
 error_log("User Tasks count: " . count($userTasks));
 error_log("Communications count: " . count($recentCommunications));
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -79,14 +78,12 @@ error_log("Communications count: " . count($recentCommunications));
 </head>
 <body>
     <?php include 'navbar.php'; ?>
-
     <div class="container-fluid py-4">
         <?php if (isset($error)): ?>
             <div class="alert alert-danger" role="alert">
                 <?php echo htmlspecialchars($error); ?>
             </div>
         <?php endif; ?>
-
         <!-- Quick Actions Section -->
         <div class="quick-actions">
             <h5 class="mb-3">Quick Actions</h5>
@@ -226,7 +223,6 @@ error_log("Communications count: " . count($recentCommunications));
     <!-- Include Modals -->
     <?php include 'modals/task_modal.php'; ?>
     <?php include 'modals/communication_modal.php'; ?>
-
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/crm.js"></script>
