@@ -2,6 +2,7 @@
 session_start();
 require_once 'includes/config.php';
 require_once 'includes/auth_config.php';
+require_once 'session_check.php';  // Added this to get ADMIN_BASE_URL
 
 // Generate Google OAuth URL
 $google_auth_url = 'https://accounts.google.com/o/oauth2/v2/auth';
@@ -31,7 +32,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_SESSION['username'] = $username;
                 $_SESSION['user_role'] = $row['role'];
                 
-                header("Location: quote.php");
+                // Use ADMIN_BASE_URL for proper redirection
+                $redirect_to = isset($_SESSION['redirect_after_login']) ? $_SESSION['redirect_after_login'] : ADMIN_BASE_URL . 'quote.php';
+                unset($_SESSION['redirect_after_login']); // Clear the stored URL
+                
+                header("Location: " . $redirect_to);
                 exit();
             } else {
                 $error = "Invalid password";
@@ -126,7 +131,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 <?php endif; ?>
-
                 <!-- Google Login Button -->
                 <a href="<?php echo htmlspecialchars($google_login_url); ?>" class="google-btn">
                     <img src="https://www.google.com/favicon.ico" alt="Google" width="20" height="20">

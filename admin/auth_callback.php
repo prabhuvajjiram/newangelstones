@@ -2,10 +2,11 @@
 session_start();
 require_once 'includes/config.php';
 require_once 'includes/auth_config.php';
+require_once 'session_check.php';  // Added this to get ADMIN_BASE_URL
 
 if (!isset($_GET['code'])) {
     $_SESSION['error'] = "Authorization code not received";
-    header('Location: login.php');
+    header('Location: ' . ADMIN_BASE_URL . 'login.php');
     exit();
 }
 
@@ -30,7 +31,7 @@ $token_response = curl_exec($ch);
 if (curl_errno($ch)) {
     error_log('Curl error: ' . curl_error($ch));
     $_SESSION['error'] = "Failed to connect to Google servers";
-    header('Location: login.php');
+    header('Location: ' . ADMIN_BASE_URL . 'login.php');
     exit();
 }
 curl_close($ch);
@@ -40,7 +41,7 @@ $token_data = json_decode($token_response, true);
 if (!isset($token_data['access_token'])) {
     error_log('Token error: ' . print_r($token_response, true));
     $_SESSION['error'] = "Failed to get access token";
-    header('Location: login.php');
+    header('Location: ' . ADMIN_BASE_URL . 'login.php');
     exit();
 }
 
@@ -55,7 +56,7 @@ $user_info_response = curl_exec($ch);
 if (curl_errno($ch)) {
     error_log('Curl error: ' . curl_error($ch));
     $_SESSION['error'] = "Failed to get user information";
-    header('Location: login.php');
+    header('Location: ' . ADMIN_BASE_URL . 'login.php');
     exit();
 }
 curl_close($ch);
@@ -65,7 +66,7 @@ $google_user = json_decode($user_info_response, true);
 if (!isset($google_user['email'])) {
     error_log('User info error: ' . print_r($user_info_response, true));
     $_SESSION['error'] = "Failed to get user email";
-    header('Location: login.php');
+    header('Location: ' . ADMIN_BASE_URL . 'login.php');
     exit();
 }
 
@@ -148,12 +149,15 @@ try {
     error_log("User logged in: " . print_r($user, true));
     error_log("Session roles: " . print_r($_SESSION['roles'], true));
 
-    header('Location: index.php');
+    // Redirect to dashboard or stored URL after successful login
+    $redirect_to = isset($_SESSION['redirect_after_login']) ? $_SESSION['redirect_after_login'] : ADMIN_BASE_URL . 'quote.php';
+    unset($_SESSION['redirect_after_login']); // Clear the stored URL
+    header('Location: ' . $redirect_to);
     exit();
 
 } catch (Exception $e) {
     error_log("Google OAuth error: " . $e->getMessage());
     $_SESSION['error'] = "Authentication failed. Please try again.";
-    header('Location: login.php');
+    header('Location: ' . ADMIN_BASE_URL . 'login.php');
     exit();
 }
