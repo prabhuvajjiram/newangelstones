@@ -14,12 +14,12 @@ if ($server_name === 'www.theangelstones.com' || $server_name === 'theangelstone
     define('GOOGLE_REDIRECT_URI', $protocol . $server_name . $port_suffix . '/admin/auth_callback.php');
 }
 
-// Allowed Google email domains (empty array means all domains are allowed)
-$ALLOWED_DOMAINS = [];
+// Allow only theangelstones.com domain
+$ALLOWED_DOMAINS = ['theangelstones.com'];
 
-// Allowed Google email addresses (empty array means all emails are allowed)
+// Also allow specific email addresses (like Gmail accounts for admins)
 $ALLOWED_EMAILS = [
-    'prabhuvajjiram@gmail.com',
-    'prabhu@theangelstones.com'
+    'prabhuvajjiram@gmail.com',     // Allow this Gmail account
+    'prabhu@theangelstones.com'     // This would be allowed anyway due to domain
 ];
 ?>
