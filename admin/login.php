@@ -46,92 +46,56 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (password_verify($password, $row['password'])) {
                 $_SESSION['user_id'] = $row['id'];
                 $_SESSION['username'] = $username;
-                $_SESSION['roles'] = [$row['role']]; // Store role in roles array
+                $_SESSION['user_role'] = $row['role']; // Store role directly
                 
-                // Use ADMIN_BASE_URL for proper redirection
-                $redirect_to = isset($_SESSION['redirect_after_login']) ? $_SESSION['redirect_after_login'] : ADMIN_BASE_URL . 'quote.php';
-                unset($_SESSION['redirect_after_login']); // Clear the stored URL
-                
-                header("Location: " . $redirect_to);
+                // Redirect to stored URL or default page
+                $redirect_to = $_SESSION['redirect_after_login'] ?? ADMIN_BASE_URL . 'quote.php';
+                unset($_SESSION['redirect_after_login']); // Clear stored URL
+                header('Location: ' . $redirect_to);
                 exit();
-            } else {
-                $error = "Invalid password";
             }
-        } else {
-            $error = "Username not found";
         }
+        $error = 'Invalid username or password';
     } catch (PDOException $e) {
-        error_log("Login error: " . $e->getMessage());
-        $error = "Database error occurred";
+        $error = 'Database error occurred';
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - Angel Stones</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>Login - Angel Stones Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            background-color: #f8f9fa;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            padding-top: 40px;
-            padding-bottom: 40px;
-        }
         .form-signin {
             width: 100%;
             max-width: 400px;
             padding: 15px;
             margin: auto;
+            margin-top: 100px;
         }
-        .form-signin .card {
-            border-radius: 1rem;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
-        .form-signin .card-body {
-            padding: 2rem;
-        }
-        .google-btn {
-            width: 100%;
-            background: #fff;
+        .btn-google {
+            background-color: #fff;
             color: #757575;
             border: 1px solid #ddd;
             padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
+            width: 100%;
+            margin-top: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            text-decoration: none;
-            transition: background-color 0.3s;
         }
-        .google-btn:hover {
-            background: #f1f1f1;
-            text-decoration: none;
-            color: #757575;
+        .btn-google img {
+            margin-right: 10px;
+            width: 20px;
         }
-        .divider {
-            text-align: center;
-            margin: 20px 0;
-            position: relative;
-        }
-        .divider::before,
-        .divider::after {
-            content: "";
-            position: absolute;
-            top: 50%;
-            width: 45%;
-            height: 1px;
-            background: #ddd;
-        }
-        .divider::before { left: 0; }
-        .divider::after { right: 0; }
     </style>
 </head>
 <body>
@@ -139,21 +103,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="card">
             <div class="card-body text-center">
                 <img src="../images/logo.png" alt="Angel Stones Logo" class="mb-4" style="width: 150px;">
-                <h1 class="h3 mb-4 fw-normal">Admin Login</h1>
-
+                <h1 class="h3 mb-3 fw-normal">Admin Login</h1>
+                
                 <?php if (isset($error)): ?>
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <?php echo htmlspecialchars($error); ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
+                    <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
                 <?php endif; ?>
-                <!-- Google Login Button -->
-                <a href="<?php echo htmlspecialchars($google_login_url); ?>" class="google-btn">
-                    <img src="https://www.google.com/favicon.ico" alt="Google" width="20" height="20">
-                    Sign in with Google
-                </a>
-
-                <div class="divider">OR</div>
 
                 <form method="POST" action="">
                     <div class="form-floating mb-3">
@@ -164,11 +118,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
                         <label for="password">Password</label>
                     </div>
-                    <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
+                    <button class="w-100 btn btn-lg btn-primary mb-3" type="submit">Sign in</button>
                 </form>
+                
+                <a href="<?php echo htmlspecialchars($google_login_url); ?>" class="btn btn-google">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google Logo">
+                    Sign in with Google
+                </a>
             </div>
         </div>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

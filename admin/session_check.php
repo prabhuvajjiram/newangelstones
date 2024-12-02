@@ -5,9 +5,6 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once 'includes/config.php';
 
-// Debug logging
-error_log("Session data: " . print_r($_SESSION, true));
-
 // Define admin base URL if not already defined
 if (!defined('ADMIN_BASE_URL')) {
     $server_name = $_SERVER['SERVER_NAME'];
@@ -26,27 +23,24 @@ function isLoggedIn() {
     return isset($_SESSION['user_id']);
 }
 
-// Function to check if user has a specific role
-function hasRole($role) {
-    error_log("Checking for role: " . $role);
-    error_log("Available roles: " . print_r($_SESSION['roles'] ?? [], true));
-    return isset($_SESSION['roles']) && in_array($role, $_SESSION['roles']);
-}
-
 // Function to check if user is admin
 function isAdmin() {
-    return hasRole('admin');
+    return isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'super_admin');
+}
+
+// Function to check if user is super admin
+function isSuperAdmin() {
+    return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'super_admin';
 }
 
 // Function to check if user is staff
 function isStaff() {
-    return hasRole('staff');
+    return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'staff';
 }
 
 // Function to require login
 function requireLogin() {
     if (!isLoggedIn()) {
-        error_log("User not logged in, redirecting to login");
         // Store the current URL for redirect after login
         $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
         header('Location: ' . ADMIN_BASE_URL . 'login.php');
@@ -57,13 +51,11 @@ function requireLogin() {
 // Function to require admin role
 function requireAdmin() {
     if (!isLoggedIn()) {
-        error_log("User not logged in, redirecting to login");
         $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
         header('Location: ' . ADMIN_BASE_URL . 'login.php');
         exit();
     }
     if (!isAdmin()) {
-        error_log("User is not admin, unauthorized");
         header('Location: ' . ADMIN_BASE_URL . 'index.php?error=unauthorized');
         exit();
     }
@@ -72,13 +64,11 @@ function requireAdmin() {
 // Function to require staff or admin role
 function requireStaffOrAdmin() {
     if (!isLoggedIn()) {
-        error_log("User not logged in, redirecting to login");
         $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
         header('Location: ' . ADMIN_BASE_URL . 'login.php');
         exit();
     }
     if (!isAdmin() && !isStaff()) {
-        error_log("User is not staff or admin, unauthorized");
         header('Location: ' . ADMIN_BASE_URL . 'index.php?error=unauthorized');
         exit();
     }
