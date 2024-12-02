@@ -2,7 +2,17 @@
 session_start();
 require_once 'includes/config.php';
 require_once 'includes/auth_config.php';
-require_once 'session_check.php';  // Added this to get ADMIN_BASE_URL
+
+// Define admin base URL
+$server_name = $_SERVER['SERVER_NAME'];
+if ($server_name === 'www.theangelstones.com' || $server_name === 'theangelstones.com') {
+    define('ADMIN_BASE_URL', '/admin/');
+} else {
+    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
+    $port = $_SERVER['SERVER_PORT'];
+    $port_suffix = ($port != '80' && $port != '443') ? ":$port" : '';
+    define('ADMIN_BASE_URL', $protocol . $server_name . $port_suffix . '/admin/');
+}
 
 if (!isset($_GET['code'])) {
     $_SESSION['error'] = "Authorization code not received";

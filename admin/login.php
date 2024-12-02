@@ -2,7 +2,23 @@
 session_start();
 require_once 'includes/config.php';
 require_once 'includes/auth_config.php';
-require_once 'session_check.php';  // Added this to get ADMIN_BASE_URL
+
+// Define admin base URL
+$server_name = $_SERVER['SERVER_NAME'];
+if ($server_name === 'www.theangelstones.com' || $server_name === 'theangelstones.com') {
+    define('ADMIN_BASE_URL', '/admin/');
+} else {
+    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
+    $port = $_SERVER['SERVER_PORT'];
+    $port_suffix = ($port != '80' && $port != '443') ? ":$port" : '';
+    define('ADMIN_BASE_URL', $protocol . $server_name . $port_suffix . '/admin/');
+}
+
+// If user is already logged in, redirect to dashboard
+if (isset($_SESSION['user_id'])) {
+    header('Location: ' . ADMIN_BASE_URL . 'quote.php');
+    exit();
+}
 
 // Generate Google OAuth URL
 $google_auth_url = 'https://accounts.google.com/o/oauth2/v2/auth';
@@ -30,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (password_verify($password, $row['password'])) {
                 $_SESSION['user_id'] = $row['id'];
                 $_SESSION['username'] = $username;
-                $_SESSION['user_role'] = $row['role'];
+                $_SESSION['roles'] = [$row['role']]; // Store role in roles array
                 
                 // Use ADMIN_BASE_URL for proper redirection
                 $redirect_to = isset($_SESSION['redirect_after_login']) ? $_SESSION['redirect_after_login'] : ADMIN_BASE_URL . 'quote.php';
