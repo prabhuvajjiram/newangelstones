@@ -1,78 +1,47 @@
 <?php
 session_start();
 require_once 'includes/config.php';
+require_once 'includes/auth_config.php';
 
-// Temporary debug code - remove after testing
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// Debug session status
-error_log("Session status: " . session_status());
-error_log("Session ID: " . session_id());
-
-try {
-    // Test database connection
-    $test = $pdo->query("SELECT 1");
-    error_log("Database connection successful");
-} catch (PDOException $e) {
-    error_log("Database connection error: " . $e->getMessage());
-    die("Database connection error: " . $e->getMessage());
-}
-
-$error = '';
+// Generate Google OAuth URL
+$google_auth_url = 'https://accounts.google.com/o/oauth2/v2/auth';
+$params = array(
+    'client_id' => GOOGLE_CLIENT_ID,
+    'redirect_uri' => GOOGLE_REDIRECT_URI,
+    'response_type' => 'code',
+    'scope' => 'email profile',
+    'access_type' => 'online',
+    'prompt' => 'select_account'
+);
+$google_login_url = $google_auth_url . '?' . http_build_query($params);
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
 
     try {
-        // Debug log
-        error_log("Login attempt for username: " . $username);
-        
-        // Prepare SQL statement to prevent SQL injection
         $stmt = $pdo->prepare("SELECT id, password, role FROM users WHERE username = ?");
-        if (!$stmt) {
-            error_log("Failed to prepare statement");
-            throw new PDOException("Failed to prepare statement");
-        }
-        
         $stmt->execute([$username]);
-        error_log("Query executed, found rows: " . $stmt->rowCount());
         
         if ($stmt->rowCount() === 1) {
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            error_log("User found, stored password hash: " . $row['password']);
             
             if (password_verify($password, $row['password'])) {
-                error_log("Password verified successfully for user: " . $username);
-                // Set session variables
                 $_SESSION['user_id'] = $row['id'];
                 $_SESSION['username'] = $username;
                 $_SESSION['user_role'] = $row['role'];
                 
-                error_log("Session variables set - user_id: " . $_SESSION['user_id'] . ", username: " . $_SESSION['username'] . ", role: " . $_SESSION['user_role']);
-                
-                // Make sure headers haven't been sent yet
-                if (!headers_sent($filename, $linenum)) {
-                    error_log("Redirecting to quote.php");
-                    header("Location: quote.php");
-                    exit();
-                } else {
-                    error_log("Headers already sent in $filename on line $linenum");
-                    echo "<script>window.location.href = 'quote.php';</script>";
-                    exit();
-                }
+                header("Location: quote.php");
+                exit();
             } else {
-                error_log("Password verification failed for user: " . $username);
-                $error = "Invalid password";  
+                $error = "Invalid password";
             }
         } else {
-            error_log("No user found with username: " . $username);
-            $error = "Username not found";  
+            $error = "Username not found";
         }
     } catch (PDOException $e) {
         error_log("Login error: " . $e->getMessage());
-        $error = "Database error: " . $e->getMessage();  
+        $error = "Database error occurred";
     }
 }
 ?>
@@ -82,9 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - Angel Stones</title>
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body {
@@ -108,69 +75,80 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .form-signin .card-body {
             padding: 2rem;
         }
-        .form-signin .form-floating {
-            margin-bottom: 1rem;
+        .google-btn {
+            width: 100%;
+            background: #fff;
+            color: #757575;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+            transition: background-color 0.3s;
         }
-        .brand-logo {
-            width: 150px;
-            margin-bottom: 1.5rem;
+        .google-btn:hover {
+            background: #f1f1f1;
+            text-decoration: none;
+            color: #757575;
         }
-        .btn-primary {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
-            padding: 0.75rem;
-            font-size: 1rem;
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
         }
-        .btn-primary:hover {
-            background-color: #0b5ed7;
-            border-color: #0a58ca;
+        .divider::before,
+        .divider::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background: #ddd;
         }
-        .alert {
-            border-radius: 0.5rem;
-        }
+        .divider::before { left: 0; }
+        .divider::after { right: 0; }
     </style>
 </head>
 <body>
     <main class="form-signin">
         <div class="card">
             <div class="card-body text-center">
-                <img src="../images/logo.png" alt="Angel Stones Logo" class="brand-logo">
+                <img src="../images/logo.png" alt="Angel Stones Logo" class="mb-4" style="width: 150px;">
                 <h1 class="h3 mb-4 fw-normal">Admin Login</h1>
 
-                <?php if ($error): ?>
+                <?php if (isset($error)): ?>
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <?php echo htmlspecialchars($error); ?>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 <?php endif; ?>
 
-                <form method="POST" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="username" name="username" placeholder="Username" required value="<?php echo htmlspecialchars($username ?? ''); ?>">
+                <!-- Google Login Button -->
+                <a href="<?php echo htmlspecialchars($google_login_url); ?>" class="google-btn">
+                    <img src="https://www.google.com/favicon.ico" alt="Google" width="20" height="20">
+                    Sign in with Google
+                </a>
+
+                <div class="divider">OR</div>
+
+                <form method="POST" action="">
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Username" required>
                         <label for="username">Username</label>
                     </div>
-                    <div class="form-floating">
+                    <div class="form-floating mb-3">
                         <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
                         <label for="password">Password</label>
                     </div>
-                    <div class="form-check text-start mb-3">
-                        <input class="form-check-input" type="checkbox" id="remember" name="remember">
-                        <label class="form-check-label" for="remember">
-                            Remember me
-                        </label>
-                    </div>
-                    <button class="w-100 btn btn-lg btn-primary mb-3" type="submit">
-                        <i class="fas fa-sign-in-alt me-2"></i>Sign in
-                    </button>
-                    <div class="text-muted">
-                        <small>Protected by Angel Stones Security</small>
-                    </div>
+                    <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
                 </form>
             </div>
         </div>
     </main>
-
-    <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

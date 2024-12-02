@@ -26,19 +26,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Fetch all products
 $sertop_products = [];
-$stmt = $pdo->query("SELECT *, CONCAT(model, size_inches) as product_code FROM sertop_products ORDER BY size_inches, model");
+$stmt = $pdo->query("SELECT *, CONCAT(model, ' - ', size_inches, ' inches') as product_code FROM sertop_products ORDER BY size_inches, model");
 $sertop_products = $stmt->fetchAll();
 
 $base_products = [];
-$stmt = $pdo->query("SELECT *, CONCAT(model, size_inches) as product_code FROM base_products ORDER BY size_inches, model");
+$stmt = $pdo->query("SELECT *, CONCAT(model, ' - ', size_inches, ' inches') as product_code FROM base_products ORDER BY size_inches, model");
 $base_products = $stmt->fetchAll();
 
 $marker_products = [];
-$stmt = $pdo->query("SELECT *, CONCAT(model, square_feet) as product_code FROM marker_products ORDER BY square_feet, model");
+$stmt = $pdo->query("SELECT *, CONCAT(product_code, ' - ', square_feet, ' sq ft') as display_code FROM marker_products ORDER BY square_feet, product_code");
 $marker_products = $stmt->fetchAll();
 
 $slant_products = [];
-$stmt = $pdo->query("SELECT *, CONCAT(model, id) as product_code FROM slant_products ORDER BY model");
+$stmt = $pdo->query("SELECT *, CONCAT(product_code, ' - ', model) as display_code FROM slant_products ORDER BY product_code");
 $slant_products = $stmt->fetchAll();
 
 ?>
@@ -75,7 +75,7 @@ $slant_products = $stmt->fetchAll();
                         <thead>
                             <tr>
                                 <th>Code</th>
-                                <th>Model</th>
+                                <th>Name</th>
                                 <th>Size</th>
                                 <th>Base Price</th>
                                 <th>Actions</th>
@@ -121,7 +121,7 @@ $slant_products = $stmt->fetchAll();
                         <thead>
                             <tr>
                                 <th>Code</th>
-                                <th>Model</th>
+                                <th>Name</th>
                                 <th>Size</th>
                                 <th>Base Price</th>
                                 <th>Actions</th>
@@ -167,7 +167,7 @@ $slant_products = $stmt->fetchAll();
                         <thead>
                             <tr>
                                 <th>Code</th>
-                                <th>Model</th>
+                                <th>Name</th>
                                 <th>Square Feet</th>
                                 <th>Base Price</th>
                                 <th>Actions</th>
@@ -176,8 +176,8 @@ $slant_products = $stmt->fetchAll();
                         <tbody>
                             <?php foreach ($marker_products as $product): ?>
                                 <tr>
+                                    <td><?php echo htmlspecialchars($product['display_code']); ?></td>
                                     <td><?php echo htmlspecialchars($product['product_code']); ?></td>
-                                    <td><?php echo htmlspecialchars($product['model']); ?></td>
                                     <td><?php echo htmlspecialchars($product['square_feet']); ?> SQFT</td>
                                     <td>
                                         <form method="post" class="d-flex align-items-center">
@@ -213,7 +213,7 @@ $slant_products = $stmt->fetchAll();
                         <thead>
                             <tr>
                                 <th>Code</th>
-                                <th>Model</th>
+                                <th>Name</th>
                                 <th>Base Price</th>
                                 <th>Actions</th>
                             </tr>
@@ -221,7 +221,7 @@ $slant_products = $stmt->fetchAll();
                         <tbody>
                             <?php foreach ($slant_products as $product): ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($product['product_code']); ?></td>
+                                    <td><?php echo htmlspecialchars($product['display_code']); ?></td>
                                     <td><?php echo htmlspecialchars($product['model']); ?></td>
                                     <td>
                                         <form method="post" class="d-flex align-items-center">

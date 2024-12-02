@@ -7,3 +7,4 @@ node_modules
 /vendor
 /admin/quotes
 /admin/includes/config.php
+/admin/includes/auth_config.php

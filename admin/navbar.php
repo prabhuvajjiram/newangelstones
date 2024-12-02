@@ -1,7 +1,17 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once 'includes/config.php';
 require_once 'includes/functions.php';
+
+// Debug information
+error_log("Debug - Session Data: " . print_r($_SESSION, true));
+error_log("Debug - User Roles: " . print_r($_SESSION['roles'] ?? [], true));
+
 $current_page = basename($_SERVER['PHP_SELF']);
+require_once 'session_check.php';
+
 ?>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
@@ -11,6 +21,18 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link <?php echo $current_page == 'crm_dashboard.php' ? 'active' : ''; ?>" 
+                       href="<?php echo getUrl('crm_dashboard.php'); ?>">
+                        <i class="bi bi-speedometer2"></i> CRM Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?php echo $current_page == 'tasks.php' ? 'active' : ''; ?>" 
+                       href="<?php echo getUrl('tasks.php'); ?>">
+                        <i class="bi bi-list-check"></i> Tasks
+                    </a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link <?php echo $current_page == 'quote.php' ? 'active' : ''; ?>" 
                        href="<?php echo getUrl('quote.php'); ?>">
@@ -22,30 +44,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
                        href="<?php echo getUrl('quotes.php'); ?>">
                         <i class="bi bi-files"></i> All Quotes
                     </a>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle <?php echo in_array($current_page, ['crm_dashboard.php', 'view_customer.php', 'tasks.php']) ? 'active' : ''; ?>" 
-                       href="#" id="crmDropdown" role="button" 
-                       data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-briefcase"></i> CRM
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="crmDropdown">
-                        <li>
-                            <a class="dropdown-item" href="<?php echo getUrl('crm_dashboard.php'); ?>">
-                                <i class="bi bi-speedometer2"></i> Dashboard
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="<?php echo getUrl('tasks.php'); ?>">
-                                <i class="bi bi-list-task"></i> Tasks
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="<?php echo getUrl('customers.php'); ?>">
-                                <i class="bi bi-people"></i> Customers
-                            </a>
-                        </li>
-                    </ul>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link <?php echo $current_page == 'customers.php' ? 'active' : ''; ?>" 
@@ -66,13 +64,21 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <i class="bi bi-gear"></i> Settings
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link <?php echo $current_page == 'manage_users.php' ? 'active' : ''; ?>" 
+                       href="<?php echo getUrl('manage_users.php'); ?>">
+                        <i class="bi bi-people-fill"></i> Users
+                    </a>
+                </li>
                 <?php endif; ?>
             </ul>
             <ul class="navbar-nav">
-                <?php if (isset($_SESSION['username'])): ?>
+                <?php if (isset($_SESSION['email'])): ?>
                 <li class="nav-item">
                     <span class="nav-link">
-                        <i class="bi bi-person"></i> <?php echo htmlspecialchars($_SESSION['username']); ?>
+                        <i class="bi bi-person"></i> 
+                        <?php echo htmlspecialchars($_SESSION['email']); ?>
+                        (<?php echo implode(', ', $_SESSION['roles'] ?? ['Unknown']); ?>)
                     </span>
                 </li>
                 <li class="nav-item">
