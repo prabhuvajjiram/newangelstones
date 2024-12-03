@@ -20,51 +20,56 @@ $uiHandler = new QuoteUIHandler($productRepository, $calculator);
 
 // Get all necessary data
 $rawProductData = $uiHandler->getInitialData();
+error_log("Raw Product Data: " . print_r($rawProductData, true));
 
 // Process the product data for the frontend
-$processedProductData = [
-    'types' => ['sertop', 'base', 'marker', 'slant'],
-    'sizes' => [],
-    'models' => []
-];
+$processedProductData = [];
 
 // Process each product type
-foreach ($rawProductData as $type => $products) {
-    if (!empty($products)) {
-        // Add unique sizes
-        foreach ($products as $size => $models) {
-            if (!in_array($size, $processedProductData['sizes'])) {
-                $processedProductData['sizes'][] = $size;
-            }
-            // Add models with their details
-            foreach ($models as $model) {
-                $processedProductData['models'][] = [
-                    'type' => $type,
-                    'size' => $size,
-                    'model' => $model['model'],
-                    'base_price' => $model['base_price'],
-                    'length_inches' => $model['length_inches'] ?? null,
-                    'breadth_inches' => $model['breadth_inches'] ?? null
-                ];
-            }
+foreach ($rawProductData as $type => $sizeGroups) {
+    $processedProductData[$type] = [
+        'sizes' => [],
+        'models' => []
+    ];
+    
+    // First collect all unique sizes
+    foreach ($sizeGroups as $size => $models) {
+        if (!in_array($size, $processedProductData[$type]['sizes'])) {
+            $processedProductData[$type]['sizes'][] = $size;
         }
+    }
+    
+    // Sort sizes numerically
+    sort($processedProductData[$type]['sizes'], SORT_NUMERIC);
+    
+    // Then organize models by size
+    foreach ($sizeGroups as $size => $models) {
+        $processedProductData[$type]['models'][$size] = array_map(function($model) {
+            return [
+                'id' => $model['id'],
+                'name' => $model['model'],
+                'base_price' => $model['base_price']
+            ];
+        }, $models);
     }
 }
 
-// Sort sizes numerically
-sort($processedProductData['sizes'], SORT_NUMERIC);
+error_log("Processed Product Data: " . print_r($processedProductData, true));
 
-// Get stone colors
-$stone_colors = $quoteRepository->getStoneColors();
-$processedProductData['stone_colors'] = $stone_colors;
-
-// Convert data to JSON for JavaScript
+// Convert to JSON for JavaScript
 $productDataJson = json_encode($processedProductData);
+error_log("Product Data JSON: " . $productDataJson);
+
 $quoteDataJson = json_encode([
     'customer_id' => $customer_id,
-    'quote_id' => $quote_id,
-    'items' => []
+    'quote_id' => $quote_id
 ]);
+
+// Get stone colors and special monuments
+$stone_colors = $quoteRepository->getStoneColors();
+$special_monuments = $quoteRepository->getSpecialMonuments();
+$processedProductData['stone_colors'] = $stone_colors;
+$processedProductData['special_monuments'] = $special_monuments;
 
 // Get customers for dropdown
 $stmt = $pdo->query("SELECT id, name, email FROM customers ORDER BY name");
@@ -289,34 +294,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_quote'])) {
                     <div class="row g-3 mb-4">
                         <div class="col-md-3">
                             <label class="form-label">Product Type</label>
-                            <select class="form-select" id="type" name="type" required>
+                            <select class="form-select" id="productType">
                                 <option value="">Select Type</option>
-                                <option value="SERTOP">SERTOP</option>
-                                <option value="BASE">BASE</option>
-                                <option value="MARKER">MARKER</option>
-                                <option value="SLANT">SLANT</option>
+                                <?php foreach ($processedProductData as $type => $data): ?>
+                                    <option value="<?php echo htmlspecialchars($type); ?>"><?php echo ucfirst(htmlspecialchars($type)); ?></option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Size</label>
-                            <select class="form-select" id="size" name="size" required>
+                            <select class="form-select" id="productSize" disabled>
                                 <option value="">Select Size</option>
                             </select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Model</label>
-                            <select class="form-select" id="model" name="model" required>
+                            <select class="form-select" id="productModel" disabled>
                                 <option value="">Select Model</option>
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Stone Color</label>
-                            <select class="form-select" id="stoneColor" name="stoneColor">
+                            <label class="form-label">Color</label>
+                            <select class="form-select" id="stoneColor">
                                 <option value="">Select Color</option>
                                 <?php foreach ($stone_colors as $color): ?>
-                                <option value="<?php echo htmlspecialchars($color['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                    <?php echo htmlspecialchars($color['color_name'], ENT_QUOTES, 'UTF-8'); ?>
-                                </option>
+                                    <option value="<?php echo $color['id']; ?>" data-increase="<?php echo $color['price_increase']; ?>">
+                                        <?php echo htmlspecialchars($color['color_name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Special Monument</label>
+                            <select class="form-select" id="specialMonument">
+                                <option value="">Select Special Monument</option>
+                                <?php foreach ($special_monuments as $monument): ?>
+                                    <option value="<?php echo $monument['id']; ?>" data-increase="<?php echo $monument['sp_value']; ?>">
+                                        <?php echo htmlspecialchars($monument['sp_name']); ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -391,7 +406,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_quote'])) {
                                             <thead>
                                                 <tr>
                                                     <th>Type</th>
-                                                    <th>Size</th>
+                                                    <th>SPL MONUMENT</th>
                                                     <th>Model</th>
                                                     <th>Color</th>
                                                     <th>Dimensions</th>
@@ -484,6 +499,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_quote'])) {
     // Debug log the data
     console.log('Initialized Quote Data:', window.QUOTE_DATA);
 </script>
+<script src="js/productCalculations.js"></script>
 <script src="js/quote.js"></script>
 </body>
 </html>
