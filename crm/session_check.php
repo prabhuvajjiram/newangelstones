@@ -9,12 +9,12 @@ require_once 'includes/config.php';
 if (!defined('ADMIN_BASE_URL')) {
     $server_name = $_SERVER['SERVER_NAME'];
     if ($server_name === 'www.theangelstones.com' || $server_name === 'theangelstones.com') {
-        define('ADMIN_BASE_URL', '/admin/');
+        define('ADMIN_BASE_URL', '/crm/');
     } else {
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
         $port = $_SERVER['SERVER_PORT'];
         $port_suffix = ($port != '80' && $port != '443') ? ":$port" : '';
-        define('ADMIN_BASE_URL', $protocol . $server_name . $port_suffix . '/admin/');
+        define('ADMIN_BASE_URL', $protocol . $server_name . $port_suffix . '/crm/');
     }
 }
 
@@ -25,7 +25,7 @@ function isLoggedIn() {
 
 // Function to check if user is admin
 function isAdmin() {
-    return isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'super_admin');
+    return isset($_SESSION['roles']) && (in_array('admin', $_SESSION['roles']) || in_array('super_admin', $_SESSION['roles']));
 }
 
 // Function to check if user is super admin
@@ -35,7 +35,7 @@ function isSuperAdmin() {
 
 // Function to check if user is staff
 function isStaff() {
-    return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'staff';
+    return isset($_SESSION['roles']) && in_array('staff', $_SESSION['roles']);
 }
 
 // Function to require login

@@ -3,7 +3,8 @@ node_modules
 .DS_Store
 *.log
 /quotes/*.pdf
-/admin/vendor
+/crm/vendor
 /vendor
-/admin/quotes
-/admin/includes/config.php
+/crm/quotes
+/crm/includes/config.php
+/crm/includes/auth_config.php
