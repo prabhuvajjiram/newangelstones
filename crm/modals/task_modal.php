@@ -11,7 +11,7 @@ $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <h5 class="modal-title">Create New Task</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="taskForm" action="ajax/create_task.php" method="POST">
+            <form id="newTaskForm" action="ajax/create_task.php" method="POST">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Title</label>
@@ -56,7 +56,7 @@ $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <script>
 $(document).ready(function() {
-    $('#taskForm').submit(function(e) {
+    $('#newTaskForm').submit(function(e) {
         e.preventDefault();
         $.post($(this).attr('action'), $(this).serialize())
             .done(function(response) {

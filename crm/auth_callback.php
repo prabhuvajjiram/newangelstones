@@ -161,10 +161,10 @@ try {
     error_log("User logged in: " . print_r($user, true));
     error_log("Session roles: " . print_r($_SESSION['roles'], true));
 
-    // Redirect to dashboard or stored URL after successful login
-    $redirect_to = isset($_SESSION['redirect_after_login']) ? $_SESSION['redirect_after_login'] : ADMIN_BASE_URL . 'quote.php';
-    unset($_SESSION['redirect_after_login']); // Clear the stored URL
-    header('Location: ' . $redirect_to);
+    // Redirect to index.php or stored URL after successful login
+    $redirect_url = isset($_SESSION['redirect_after_login']) ? $_SESSION['redirect_after_login'] : 'index.php';
+    unset($_SESSION['redirect_after_login']); // Clear stored URL
+    header('Location: ' . ADMIN_BASE_URL . $redirect_url);
     exit();
 
 } catch (Exception $e) {
