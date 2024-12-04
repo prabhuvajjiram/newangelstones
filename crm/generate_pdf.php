@@ -10,6 +10,31 @@ if (!extension_loaded('gd') && !extension_loaded('imagick')) {
 
 require_once('includes/config.php');
 require_once('tcpdf/tcpdf.php');
+require_once 'session_check.php';
+requireLogin();
+
+if (isset($_GET['id'])) {
+    try {
+        $quote_id = intval($_GET['id']);
+        
+        // Check access rights
+        $access_check_sql = "SELECT created_by FROM quotes WHERE id = :quote_id";
+        $check_stmt = $pdo->prepare($access_check_sql);
+        $check_stmt->execute(['quote_id' => $quote_id]);
+        $quote_owner = $check_stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$quote_owner) {
+            die('Quote not found');
+        }
+
+        // Only allow admin or quote owner
+        if (!isAdmin() && $quote_owner['created_by'] != $_SESSION['user_id']) {
+            die('You do not have permission to view this quote');
+        }
+    } catch (Exception $e) {
+        die('Error accessing quote: ' . $e->getMessage());
+    }
+}
 
 class MYPDF extends TCPDF {
     public function Header() {

@@ -5,6 +5,25 @@ require_once 'session_check.php';
 
 requireLogin();
 
+if (isset($_GET['quote_id']) || isset($_GET['id'])) {
+    $quote_id = isset($_GET['quote_id']) ? (int)$_GET['quote_id'] : (int)$_GET['id'];
+    
+    // Check access rights
+    $access_check_sql = "SELECT created_by FROM quotes WHERE id = :quote_id";
+    $check_stmt = $pdo->prepare($access_check_sql);
+    $check_stmt->execute(['quote_id' => $quote_id]);
+    $quote_owner = $check_stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$quote_owner) {
+        die('Quote not found');
+    }
+
+    // Only allow admin or quote owner
+    if (!isAdmin() && $quote_owner['created_by'] != $_SESSION['user_id']) {
+        die('You do not have permission to view this quote');
+    }
+}
+
 $quote = null;
 $items = [];
 $error = null;
@@ -15,7 +34,26 @@ try {
         // Get saved quote by ID
         $quote_id = isset($_GET['quote_id']) ? (int)$_GET['quote_id'] : (int)$_GET['id'];
         
-        // Fetch quote details
+        // First check if the user has access to this quote
+        $access_check_sql = "
+            SELECT created_by 
+            FROM quotes 
+            WHERE id = :quote_id
+        ";
+        $check_stmt = $pdo->prepare($access_check_sql);
+        $check_stmt->execute(['quote_id' => $quote_id]);
+        $quote_owner = $check_stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$quote_owner) {
+            throw new Exception('Quote not found');
+        }
+
+        // Check if user has access (admin or quote owner)
+        if (!isAdmin() && $quote_owner['created_by'] != $_SESSION['user_id']) {
+            throw new Exception('You do not have permission to view this quote');
+        }
+
+        // If access check passes, get the full quote data
         $stmt = $pdo->prepare("
             SELECT q.*, c.name as customer_name, c.email as customer_email, c.phone as customer_phone,
                    DATE_FORMAT(q.created_at, '%Y-%m-%d') as quote_date 
@@ -207,7 +245,6 @@ if ($error && empty($post_data)) {
 </head>
 <body class="bg-light">
     <?php include 'navbar.php'; ?>
-
     <div class="container mt-4">
         <div class="row mb-4">
             <div class="col">
