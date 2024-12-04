@@ -1,44 +1,38 @@
 <?php
-// Turn off all error reporting
-error_reporting(0);
-ini_set('display_errors', 0);
+// Turn on error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Check for required extensions
+if (!extension_loaded('gd') && !extension_loaded('imagick')) {
+    die('Error: Neither GD nor Imagick extension is loaded. At least one is required for PDF generation.');
+}
 
 require_once('includes/config.php');
 require_once('tcpdf/tcpdf.php');
 
 class MYPDF extends TCPDF {
     public function Header() {
-        // Get the current directory and go up one level from admin to root
-        $root_dir = dirname(dirname(__FILE__));
+        // Get the current directory (crm folder)
+        $root_dir = dirname(__FILE__);
+        // Go up one level to find the images directory
+        $parent_dir = dirname($root_dir);
         // Construct absolute path to image
-        $image_file = $root_dir . '/images/logo03.png';
+        $image_file = $parent_dir . '/images/logo03.png';
         
-        // Check if image exists
+        // Check if image exists and add it
         if (file_exists($image_file)) {
             // Add black backdrop
             $this->SetFillColor(34, 40, 49);
             $this->Rect(0, 0, $this->GetPageWidth(), 45, 'F');
             
-            // Reset position
-            $this->SetY(5);
-            
-            // Calculate center position for logo
-            $logo_width = 60;  // Increased width
-            $logo_height = 35; // Proportional height
-            $page_width = $this->GetPageWidth();
-            $x_pos = ($page_width - $logo_width) / 2;
-            
-            // Add image centered
-            $this->Image($image_file, $x_pos, 5, $logo_width, $logo_height, 'PNG', '', 'T', false, 300, '', false, false, 0, false, false, false);
-            
-            // Add company name below logo
-            $this->SetY($this->GetY() + $logo_height + 2);
-            $this->SetTextColor(255, 255, 255);
-            $this->SetFont('helvetica', '', 10);
-          //  $this->Cell($page_width, 0, 'ANGEL STONES', 0, 0, 'C');
+            // Logo
+            $this->Image($image_file, 10, 10, 60);
         } else {
-            // Log error if image not found
-            error_log('Logo image not found at: ' . $image_file);
+            error_log("Logo file not found at: " . $image_file);
+            // Continue without the logo if image is missing
+            $this->SetFillColor(34, 40, 49);
+            $this->Rect(0, 0, $this->GetPageWidth(), 45, 'F');
         }
         
         // Move position below the header
@@ -98,8 +92,8 @@ if (isset($_GET['id'])) {
                 'items' => []
             ];
             
-            // Fetch quote items with color information
-            $items_sql = "SELECT qi.*, qi.product_type as type, scr.color_name,
+            // Fetch quote items with color and special monument information
+            $items_sql = "SELECT qi.*, qi.product_type as type, scr.color_name, sm.sp_name as special_monument_name,
                          qi.length, qi.breadth, qi.size,
                          qi.quantity, qi.unit_price, qi.total_price,
                          mp.square_feet as marker_size,
@@ -107,6 +101,7 @@ if (isset($_GET['id'])) {
                          bp.size_inches as base_size
                          FROM quote_items qi 
                          LEFT JOIN stone_color_rates scr ON qi.color_id = scr.id 
+                         LEFT JOIN special_monument sm ON qi.special_monument_id = sm.id
                          LEFT JOIN sertop_products sp ON qi.model = sp.model AND qi.size = sp.size_inches AND qi.product_type = 'sertop'
                          LEFT JOIN base_products bp ON qi.model = bp.model AND qi.size = bp.size_inches AND qi.product_type = 'base'
                          LEFT JOIN marker_products mp ON qi.model = mp.model AND qi.size = mp.square_feet AND qi.product_type = 'marker'
@@ -270,11 +265,8 @@ if (isset($_GET['id'])) {
                 $type = strtolower($item['type']);
                 if ($type === 'marker') {
                     $height = 4; // Fixed height for markers
-                } else if ($type === 'sertop' && isset($item['sertop_size'])) {
-                    $height = floatval($item['sertop_size']);
-                } else if ($type === 'base' && isset($item['base_size'])) {
-                    $height = floatval($item['base_size']);
-                } else if ($type === 'slant' && isset($item['size'])) {
+                } else if (isset($item['size'])) {
+                    // For all other types, use the size field directly
                     $height = floatval($item['size']);
                 } else {
                     $height = 0; // Default if no valid height found
@@ -288,7 +280,7 @@ if (isset($_GET['id'])) {
                 
                 // Add to items array
                 $data['items'][] = [
-                    'description' => ucfirst($type) . (isset($item['model']) ? ' - ' . $item['model'] : '') . (isset($item['color_name']) ? ' - ' . $item['color_name'] : ''),
+                    'description' => ucfirst($type) . (isset($item['model']) ? ' - ' . $item['model'] : '') . (isset($item['color_name']) ? ' - ' . $item['color_name'] : '') . (isset($item['special_monument_name']) ? ' - ' . $item['special_monument_name'] : ''),
                     'dimensions' => sprintf('%.2f" × %.2f" × %.2f"', $length, $breadth, $height),
                     'cubic_feet' => $cubic_feet,
                     'quantity' => $quantity,
@@ -538,23 +530,22 @@ if (isset($_GET['id'])) {
             $item_total_with_commission = $item_total + $item_commission;
             $total += $item_total_with_commission;
             
-            // Calculate cubic feet
+            // Set height based on product type
             $type = strtolower($item['type']);
             if ($type === 'marker') {
                 $height = 4; // Fixed height for markers
-            } else if ($type === 'sertop') {
-                $height = floatval($item['size']); // Use the size directly for sertop
-            } else if ($type === 'base') {
-                $height = floatval($item['size']); // Use the size directly for base
-            } else if ($type === 'slant') {
-                $height = floatval($item['size']); // Use the size directly for slant
+            } else if (isset($item['size'])) {
+                // For all other types, use the size field directly
+                $height = floatval($item['size']);
+            } else {
+                $height = 0; // Default if no valid height found
             }
             
             // Calculate cubic feet
             $cubic_feet = ($length * $breadth * $height) / 1728;
-            $cubic_feet = round($cubic_feet, 2);
+            $cubic_feet = round($cubic_feet * $quantity, 2);
             
-            $total_cubic_feet += ($cubic_feet * $quantity);
+            $total_cubic_feet += $cubic_feet;
             
             // Get description
             $description = ucfirst($type);

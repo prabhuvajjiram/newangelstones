@@ -64,6 +64,7 @@ error_log("Communications count: " . count($recentCommunications));
     <title>CRM Dashboard - Angel Stones</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         .quick-actions {
             background: #f8f9fa;
