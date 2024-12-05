@@ -1,27 +1,34 @@
 <?php
 require_once 'session_check.php';
 requireLogin();
-
 require_once 'includes/config.php';
 
 try {
-    // Base query
+    // Enable error logging
+    error_log("Fetching quotes for user: " . $_SESSION['email'] . " with role: " . $_SESSION['role']);
+
+    // Base query with all necessary joins
     $baseQuery = "
-        SELECT q.*, c.name as customer_name, c.email as customer_email,
-        COUNT(qi.id) as item_count,
-        SUM(qi.total_price) as total_amount,
-        u.first_name as created_by_first_name,
-        u.last_name as created_by_last_name
+        SELECT 
+            q.*,
+            c.name as customer_name,
+            c.email as customer_email,
+            COUNT(qi.id) as item_count,
+            COALESCE(SUM(qi.total_price), 0) as total_amount,
+            u.first_name as created_by_first_name,
+            u.last_name as created_by_last_name,
+            DATE_FORMAT(q.created_at, '%Y-%m-%d') as formatted_date
         FROM quotes q
         LEFT JOIN customers c ON q.customer_id = c.id
         LEFT JOIN quote_items qi ON q.id = qi.quote_id
-        LEFT JOIN users u ON q.created_by = u.id
+        LEFT JOIN users u ON q.username = u.email
         WHERE 1=1
     ";
 
     // Staff can only see their own quotes
     if (!isAdmin()) {
         $baseQuery .= " AND q.username = :username";
+        error_log("Adding staff restriction for username: " . $_SESSION['email']);
     }
 
     // Complete the query with GROUP BY and ORDER BY
@@ -31,13 +38,16 @@ try {
     
     // Bind parameters if not admin
     if (!isAdmin()) {
-        $stmt->bindParam(':username', $_SESSION['username'], PDO::PARAM_STR);
+        $stmt->bindParam(':username', $_SESSION['email'], PDO::PARAM_STR);
     }
 
     $stmt->execute();
     $quotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    error_log("Successfully fetched " . count($quotes) . " quotes");
 } catch (PDOException $e) {
     error_log("Error fetching quotes: " . $e->getMessage());
+    $_SESSION['error'] = "There was an error fetching the quotes. Please try again later.";
     $quotes = [];
 }
 ?>
@@ -52,6 +62,7 @@ try {
 </head>
 <body class="bg-light">
     <?php include 'navbar.php'; ?>
+    
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1>All Quotes</h1>
@@ -63,7 +74,7 @@ try {
         <?php if (isset($_SESSION['success'])): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <?php 
-                echo $_SESSION['success'];
+                echo htmlspecialchars($_SESSION['success']);
                 unset($_SESSION['success']);
                 ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -73,13 +84,13 @@ try {
         <?php if (isset($_SESSION['error'])): ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <?php 
-                echo $_SESSION['error'];
+                echo htmlspecialchars($_SESSION['error']);
                 unset($_SESSION['error']);
                 ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
-        
+
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
@@ -102,7 +113,7 @@ try {
                         <tbody>
                             <?php if (empty($quotes)): ?>
                                 <tr>
-                                    <td colspan="9" class="text-center">No quotes found</td>
+                                    <td colspan="<?php echo isAdmin() ? '9' : '8'; ?>" class="text-center">No quotes found</td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($quotes as $quote): ?>
@@ -113,9 +124,9 @@ try {
                                             <small class="text-muted"><?php echo htmlspecialchars($quote['customer_email']); ?></small>
                                         </td>
                                         <td><?php echo htmlspecialchars($quote['project_name'] ?? 'N/A'); ?></td>
-                                        <td><?php echo $quote['item_count']; ?></td>
+                                        <td><span class="badge bg-secondary"><?php echo $quote['item_count']; ?></span></td>
                                         <td>$<?php echo number_format($quote['total_amount'], 2); ?></td>
-                                        <td><?php echo date('M d, Y', strtotime($quote['created_at'])); ?></td>
+                                        <td><?php echo date('M d, Y', strtotime($quote['formatted_date'])); ?></td>
                                         <?php if (isAdmin()): ?>
                                         <td><?php echo htmlspecialchars($quote['created_by_first_name'] . ' ' . $quote['created_by_last_name']); ?></td>
                                         <?php endif; ?>
@@ -131,9 +142,11 @@ try {
                                             <a href="generate_pdf.php?id=<?php echo $quote['id']; ?>" class="btn btn-sm btn-success" target="_blank">
                                                 <i class="bi bi-file-pdf"></i>
                                             </a>
+                                            <?php if ($quote['customer_email']): ?>
                                             <a href="mailto:<?php echo $quote['customer_email']; ?>?subject=Quote #<?php echo $quote['id']; ?>" class="btn btn-sm btn-info">
                                                 <i class="bi bi-envelope"></i>
                                             </a>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

@@ -286,7 +286,7 @@ $leadScore = $leadManager->calculateLeadScore($customerId);
                                         <td><?= date('M d, Y', strtotime($quote['created_at'])) ?></td>
                                         <td><?= $quote['valid_until'] ? date('M d, Y', strtotime($quote['valid_until'])) : 'N/A' ?></td>
                                         <td>
-                                            <a href="view_quote.php?id=<?= $quote['id'] ?>" 
+                                            <a href="preview_quote.php?id=<?= $quote['id'] ?>" 
                                                class="btn btn-sm btn-primary">
                                                 <i class="bi bi-eye"></i> View
                                             </a>
