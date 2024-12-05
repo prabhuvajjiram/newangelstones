@@ -67,7 +67,11 @@ $quoteDataJson = json_encode([
 
 // Get stone colors and special monuments
 $stone_colors = $quoteRepository->getStoneColors();
+error_log("Stone Colors: " . print_r($stone_colors, true));
+
 $special_monuments = $quoteRepository->getSpecialMonuments();
+error_log("Special Monuments: " . print_r($special_monuments, true));
+
 $processedProductData['stone_colors'] = $stone_colors;
 $processedProductData['special_monuments'] = $special_monuments;
 
@@ -329,8 +333,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_quote'])) {
                             <select class="form-select" id="specialMonument">
                                 <option value="">Select Special Monument</option>
                                 <?php foreach ($special_monuments as $monument): ?>
-                                    <option value="<?php echo $monument['id']; ?>" data-increase="<?php echo $monument['sp_value']; ?>">
-                                        <?php echo htmlspecialchars($monument['sp_name']); ?>
+                                    <option value="<?php echo $monument['id']; ?>" 
+                                            data-increase="<?php echo $monument['price_increase_percentage']; ?>">
+                                        <?php echo htmlspecialchars($monument['name']); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>

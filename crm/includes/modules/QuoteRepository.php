@@ -61,9 +61,10 @@ class QuoteRepository {
 
     public function getSpecialMonuments() {
         try {
-            $stmt = $this->pdo->prepare("SELECT id, name, price_increase_percentage as price_increase FROM special_monuments ORDER BY name");
+            $stmt = $this->pdo->prepare("SELECT id, sp_name as name, sp_value as price_increase_percentage FROM special_monument ORDER BY sp_value");
             $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $result;
         } catch (PDOException $e) {
             error_log("Error fetching special monuments: " . $e->getMessage());
             return [];

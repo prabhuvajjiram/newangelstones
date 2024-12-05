@@ -8,19 +8,27 @@ requireLogin();
 if (isset($_GET['quote_id']) || isset($_GET['id'])) {
     $quote_id = isset($_GET['quote_id']) ? (int)$_GET['quote_id'] : (int)$_GET['id'];
     
-    // Check access rights
-    $access_check_sql = "SELECT created_by FROM quotes WHERE id = :quote_id";
+    // Check access rights - using customer_id instead of created_by
+    $access_check_sql = "SELECT customer_id FROM quotes WHERE id = :quote_id";
     $check_stmt = $pdo->prepare($access_check_sql);
     $check_stmt->execute(['quote_id' => $quote_id]);
-    $quote_owner = $check_stmt->fetch(PDO::FETCH_ASSOC);
+    $quote_data = $check_stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$quote_owner) {
+    if (!$quote_data) {
         die('Quote not found');
     }
 
-    // Only allow admin or quote owner
-    if (!isAdmin() && $quote_owner['created_by'] != $_SESSION['user_id']) {
-        die('You do not have permission to view this quote');
+    // Only allow access if user is admin or if the quote belongs to their customer
+    if (!in_array('admin', $_SESSION['roles'])) {
+        // Get the user's assigned customers
+        $user_customers_sql = "SELECT customer_id FROM user_customers WHERE user_id = :user_id";
+        $user_customers_stmt = $pdo->prepare($user_customers_sql);
+        $user_customers_stmt->execute(['user_id' => $_SESSION['user_id']]);
+        $user_customers = $user_customers_stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        if (!in_array($quote_data['customer_id'], $user_customers)) {
+            die('Access denied');
+        }
     }
 }
 
@@ -36,21 +44,29 @@ try {
         
         // First check if the user has access to this quote
         $access_check_sql = "
-            SELECT created_by 
+            SELECT customer_id 
             FROM quotes 
             WHERE id = :quote_id
         ";
         $check_stmt = $pdo->prepare($access_check_sql);
         $check_stmt->execute(['quote_id' => $quote_id]);
-        $quote_owner = $check_stmt->fetch(PDO::FETCH_ASSOC);
+        $quote_data = $check_stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$quote_owner) {
+        if (!$quote_data) {
             throw new Exception('Quote not found');
         }
 
-        // Check if user has access (admin or quote owner)
-        if (!isAdmin() && $quote_owner['created_by'] != $_SESSION['user_id']) {
-            throw new Exception('You do not have permission to view this quote');
+        // Check if user has access (admin or quote belongs to their customer)
+        if (!in_array('admin', $_SESSION['roles'])) {
+            // Get the user's assigned customers
+            $user_customers_sql = "SELECT customer_id FROM user_customers WHERE user_id = :user_id";
+            $user_customers_stmt = $pdo->prepare($user_customers_sql);
+            $user_customers_stmt->execute(['user_id' => $_SESSION['user_id']]);
+            $user_customers = $user_customers_stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            if (!in_array($quote_data['customer_id'], $user_customers)) {
+                throw new Exception('Access denied');
+            }
         }
 
         // If access check passes, get the full quote data
@@ -142,10 +158,12 @@ try {
             $stmt = $pdo->prepare("
                 INSERT INTO quotes (
                     customer_id, quote_number, status, total_amount, 
-                    commission_rate, commission_amount, created_at, updated_at
+                    commission_rate, commission_amount, created_at, updated_at,
+                    user_id
                 ) VALUES (
                     :customer_id, :quote_number, 'pending', :total_amount,
-                    :commission_rate, :commission_amount, NOW(), NOW()
+                    :commission_rate, :commission_amount, NOW(), NOW(),
+                    :user_id
                 )
             ");
 
@@ -159,7 +177,8 @@ try {
                 'quote_number' => $quote_number,
                 'total_amount' => $total_amount,
                 'commission_rate' => $commission_rate,
-                'commission_amount' => $commission_amount
+                'commission_amount' => $commission_amount,
+                'user_id' => $_SESSION['user_id']
             ]);
 
             $quote_id = $pdo->lastInsertId();

@@ -10,31 +10,6 @@ if (!extension_loaded('gd') && !extension_loaded('imagick')) {
 
 require_once('includes/config.php');
 require_once('tcpdf/tcpdf.php');
-require_once 'session_check.php';
-requireLogin();
-
-if (isset($_GET['id'])) {
-    try {
-        $quote_id = intval($_GET['id']);
-        
-        // Check access rights
-        $access_check_sql = "SELECT created_by FROM quotes WHERE id = :quote_id";
-        $check_stmt = $pdo->prepare($access_check_sql);
-        $check_stmt->execute(['quote_id' => $quote_id]);
-        $quote_owner = $check_stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$quote_owner) {
-            die('Quote not found');
-        }
-
-        // Only allow admin or quote owner
-        if (!isAdmin() && $quote_owner['created_by'] != $_SESSION['user_id']) {
-            die('You do not have permission to view this quote');
-        }
-    } catch (Exception $e) {
-        die('Error accessing quote: ' . $e->getMessage());
-    }
-}
 
 class MYPDF extends TCPDF {
     public function Header() {
@@ -47,24 +22,30 @@ class MYPDF extends TCPDF {
         
         // Check if image exists and add it
         if (file_exists($image_file)) {
-            // Add black backdrop
-            $this->SetFillColor(34, 40, 49);
-            $this->Rect(0, 0, $this->GetPageWidth(), 45, 'F');
+            // Center the image
+            $pageWidth = $this->getPageWidth();
+            $imageWidth = 50; // Width of the image in mm
+            $imageHeight = $imageWidth * 0.65; // Maintain aspect ratio
+            $x = ($pageWidth - $imageWidth) / 2;
             
-            // Logo
-            $this->Image($image_file, 10, 10, 60);
+            // Add black backdrop for the header
+            $this->SetFillColor(34, 40, 49);
+            $this->Rect(0, 0, $pageWidth, 45, 'F');
+            
+           // Center the image vertically within the header space
+            $y = (45 - $imageHeight) / 2;
+            // Add the image with specified width and height
+            $this->Image($image_file, $x, $y, $imageWidth, $imageHeight);
         } else {
-            error_log("Logo file not found at: " . $image_file);
-            // Continue without the logo if image is missing
             $this->SetFillColor(34, 40, 49);
             $this->Rect(0, 0, $this->GetPageWidth(), 45, 'F');
-        }
+    }
         
         // Move position below the header
         $this->SetY(50);
     }
 
-    public function Footer() {
+     function Footer() {
         // Position at 15 mm from bottom
         $this->SetY(-35);
         $this->SetFillColor(34, 40, 49);
@@ -338,10 +319,10 @@ if (isset($_GET['id'])) {
             $pdf->Cell(25, 8, '$' . number_format($total, 2), 1, 1, 'R');
 
             // Terms and Conditions
-            $pdf->Ln(10);
+            $pdf->SetY(-80); // Move up from bottom;
             $pdf->SetFillColor(34, 40, 49);
             $pdf->SetTextColor(255, 255, 255);
-            $pdf->SetFont('helvetica', 'B', 12);
+            $pdf->SetFont('helvetica', 'B', 10);
             $pdf->Cell(0, 8, 'Terms and Conditions', 0, 1, 'L', true);
             
             // Reset text color for terms
@@ -352,13 +333,12 @@ if (isset($_GET['id'])) {
                 "1. This quote is valid for 30 days from the date of issue.",
                 "2. 50% advance payment is required to confirm the order.",
                 "3. Delivery time will be confirmed after order confirmation.",
-                "4. Prices are subject to change without prior notice.",
-                "5. All disputes are subject to local jurisdiction."
+                "4. Delivery time: 6-8 weeks",
+                "5. All sales are final"
             );
             
             foreach ($terms as $term) {
-                $pdf->Ln(2);
-                $pdf->MultiCell(0, 6, $term, 0, 'L');
+                $pdf->Cell(0, 4, $term, 0, 1, 'L');
             }
 
             // Output the PDF
