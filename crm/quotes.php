@@ -21,7 +21,7 @@ try {
 
     // Staff can only see their own quotes
     if (!isAdmin()) {
-        $baseQuery .= " AND q.created_by = :user_id";
+        $baseQuery .= " AND q.username = :username";
     }
 
     // Complete the query with GROUP BY and ORDER BY
@@ -31,7 +31,7 @@ try {
     
     // Bind parameters if not admin
     if (!isAdmin()) {
-        $stmt->bindParam(':user_id', $_SESSION['user_id'], PDO::PARAM_INT);
+        $stmt->bindParam(':username', $_SESSION['username'], PDO::PARAM_STR);
     }
 
     $stmt->execute();
@@ -52,7 +52,6 @@ try {
 </head>
 <body class="bg-light">
     <?php include 'navbar.php'; ?>
-
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1>All Quotes</h1>
@@ -70,7 +69,7 @@ try {
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
-
+        
         <?php if (isset($_SESSION['error'])): ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <?php 
@@ -80,7 +79,7 @@ try {
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
-
+        
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">

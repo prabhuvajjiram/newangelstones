@@ -2,125 +2,107 @@
 require_once 'session_check.php';
 require_once 'includes/config.php';
 
-if (!isLoggedIn()) {
-    header('Location: login.php');
-    exit;
-}
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('log_errors', 1);
+error_log("Starting dashboard data fetch");
 
 try {
-    // Test database connection first
-    $pdo->query("SELECT 1");
+    // Initialize statistics array
+    $stats = array(
+        'total_quotes' => 0,
+        'pending_quotes' => 0,
+        'approved_quotes' => 0,
+        'total_amount' => 0
+    );
 
-    // Initialize statistics
-    $total_quotes = 0;
-    $total_amount = 0;
-    $pending_followups = 0;
-    $approved_amount = 0;
+    // Debug logging
+    error_log("Session data: " . print_r($_SESSION, true));
+    error_log("Is Admin: " . (isAdmin() ? 'Yes' : 'No'));
+    error_log("User Role: " . (isset($_SESSION['role']) ? $_SESSION['role'] : 'not set'));
 
-    // Get quotes statistics based on user role
-    $query = "
-        SELECT 
-            COUNT(*) as total_quotes,
-            COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0) as pending_followups,
-            COALESCE(SUM(
-                (SELECT COALESCE(SUM(qi.total_price), 0) 
-                FROM quote_items qi 
-                WHERE qi.quote_id = q.id)
-            ), 0) as total_amount,
-            COALESCE(SUM(
-                CASE WHEN status = 'approved' THEN 
-                    (SELECT COALESCE(SUM(qi.total_price), 0) 
-                    FROM quote_items qi 
-                    WHERE qi.quote_id = q.id)
-                ELSE 0 END
-            ), 0) as approved_amount
-        FROM quotes q
-        WHERE 1=1
-    ";
-
-    // Staff can only see their own quotes or unassigned quotes
+    // Base query for quotes
+    $base_where = isAdmin() ? "" : " AND q.username = :username";
+    
+    // Get total quotes count
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM quotes q WHERE 1=1" . $base_where);
     if (!isAdmin()) {
-        $query .= " AND (q.created_by = :user_id OR q.created_by IS NULL)";
-    }
-
-    $stmt = $pdo->prepare($query);
-    if (!isAdmin()) {
-        $stmt->bindParam(':user_id', $_SESSION['user_id'], PDO::PARAM_INT);
+        $stmt->bindValue(':username', $_SESSION['email']);
     }
     $stmt->execute();
-    $stats = $stmt->fetch(PDO::FETCH_ASSOC);
+    $stats['total_quotes'] = $stmt->fetchColumn();
 
-    if ($stats === false) {
-        throw new PDOException("Failed to fetch statistics");
+    // Get pending quotes count
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM quotes q WHERE status = 'pending'" . $base_where);
+    if (!isAdmin()) {
+        $stmt->bindValue(':username', $_SESSION['email']);
     }
+    $stmt->execute();
+    $stats['pending_quotes'] = $stmt->fetchColumn();
+
+    // Get approved quotes count and total amount
+    $stmt = $pdo->prepare("
+        SELECT COUNT(*) as approved_count, COALESCE(SUM(total_amount), 0) as total_amount 
+        FROM quotes q 
+        WHERE status = 'approved'" . $base_where
+    );
+    if (!isAdmin()) {
+        $stmt->bindValue(':username', $_SESSION['email']);
+    }
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $stats['approved_quotes'] = $result['approved_count'];
+    $stats['total_amount'] = $result['total_amount'];
 
     // Get recent activities
-    $recent_activities_query = "
-        SELECT 
-            q.*,
-            c.name as customer_name,
-            u.first_name as created_by_first_name,
-            u.last_name as created_by_last_name,
-            (SELECT COALESCE(SUM(qi.total_price), 0) 
-             FROM quote_items qi 
-             WHERE qi.quote_id = q.id) as total_amount
-        FROM quotes q
-        LEFT JOIN customers c ON q.customer_id = c.id
-        LEFT JOIN users u ON q.created_by = u.id
-        WHERE 1=1
-    ";
-
-    // Staff can see their own quotes and unassigned quotes
+    $stmt = $pdo->prepare("
+        SELECT q.*, c.name as customer_name 
+        FROM quotes q 
+        LEFT JOIN customers c ON q.customer_id = c.id 
+        WHERE 1=1" . $base_where . "
+        ORDER BY q.created_at DESC 
+        LIMIT 5"
+    );
     if (!isAdmin()) {
-        $recent_activities_query .= " AND (q.created_by = :user_id OR q.created_by IS NULL)";
-    }
-
-    $recent_activities_query .= " ORDER BY q.created_at DESC LIMIT 5";
-
-    $stmt = $pdo->prepare($recent_activities_query);
-    if (!isAdmin()) {
-        $stmt->bindParam(':user_id', $_SESSION['user_id'], PDO::PARAM_INT);
+        $stmt->bindValue(':username', $_SESSION['email']);
     }
     $stmt->execute();
-    $recent_activities = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    $recent_activities = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Get pending follow-ups from recent activities
-    $followup_quotes = array_values(array_filter($recent_activities ?: [], function($quote) {
-        return isset($quote['status']) && $quote['status'] === 'pending';
-    }));
+    // Get pending follow-ups
+    $stmt = $pdo->prepare("
+        SELECT q.*, c.name as customer_name 
+        FROM quotes q 
+        LEFT JOIN customers c ON q.customer_id = c.id 
+        WHERE q.status = 'pending'" . $base_where . "
+        ORDER BY q.created_at DESC"
+    );
+    if (!isAdmin()) {
+        $stmt->bindValue(':username', $_SESSION['email']);
+    }
+    $stmt->execute();
+    $followup_quotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Get top customers
-    $top_customers_query = "
+    $stmt = $pdo->prepare("
         SELECT 
-            c.*,
-            COUNT(DISTINCT q.id) as quote_count,
-            COALESCE(SUM(
-                (SELECT COALESCE(SUM(qi.total_price), 0) 
-                FROM quote_items qi 
-                WHERE qi.quote_id = q.id)
-            ), 0) as total_amount
+            c.id,
+            c.name,
+            COUNT(q.id) as quote_count,
+            COALESCE(SUM(q.total_amount), 0) as total_amount
         FROM customers c
         LEFT JOIN quotes q ON c.id = q.customer_id
-        WHERE 1=1
-    ";
-
-    // Staff can see customers with their quotes or unassigned quotes
-    if (!isAdmin()) {
-        $top_customers_query .= " AND (q.created_by = :user_id OR q.created_by IS NULL)";
-    }
-
-    $top_customers_query .= " 
-        GROUP BY c.id
+        WHERE 1=1" . $base_where . "
+        GROUP BY c.id, c.name
         ORDER BY total_amount DESC
-        LIMIT 5
-    ";
-
-    $stmt = $pdo->prepare($top_customers_query);
+        LIMIT 5"
+    );
     if (!isAdmin()) {
-        $stmt->bindParam(':user_id', $_SESSION['user_id'], PDO::PARAM_INT);
+        $stmt->bindValue(':username', $_SESSION['email']);
     }
     $stmt->execute();
-    $top_customers = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    $top_customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
     // Log detailed error information
@@ -135,9 +117,9 @@ try {
     // Initialize empty data structures
     $stats = [
         'total_quotes' => 0,
-        'pending_followups' => 0,
-        'total_amount' => 0,
-        'approved_amount' => 0
+        'pending_quotes' => 0,
+        'approved_quotes' => 0,
+        'total_amount' => 0
     ];
     $recent_activities = [];
     $followup_quotes = [];
@@ -188,7 +170,7 @@ try {
                 <div class="card stats-card bg-success text-white">
                     <div class="card-body">
                         <h5 class="card-title">Generated</h5>
-                        <h3 class="card-text"><?php echo number_format($stats['total_quotes'] ?? 0); ?></h3>
+                        <h3 class="card-text"><?php echo number_format($stats['total_quotes']); ?></h3>
                     </div>
                 </div>
             </div>
@@ -196,7 +178,7 @@ try {
                 <div class="card stats-card bg-warning text-dark">
                     <div class="card-body">
                         <h5 class="card-title">Need Follow-up</h5>
-                        <h3 class="card-text"><?php echo number_format($stats['pending_followups'] ?? 0); ?></h3>
+                        <h3 class="card-text"><?php echo number_format($stats['pending_quotes']); ?></h3>
                     </div>
                 </div>
             </div>
@@ -204,7 +186,7 @@ try {
                 <div class="card stats-card bg-info text-white">
                     <div class="card-body">
                         <h5 class="card-title">From Approved Quotes</h5>
-                        <h3 class="card-text">$<?php echo number_format($stats['approved_amount'] ?? 0, 2); ?></h3>
+                        <h3 class="card-text">$<?php echo number_format($stats['approved_quotes'], 2); ?></h3>
                     </div>
                 </div>
             </div>
@@ -212,7 +194,7 @@ try {
                 <div class="card stats-card bg-primary text-white">
                     <div class="card-body">
                         <h5 class="card-title">Total Amount</h5>
-                        <h3 class="card-text">$<?php echo number_format($stats['total_amount'] ?? 0, 2); ?></h3>
+                        <h3 class="card-text">$<?php echo number_format($stats['total_amount'], 2); ?></h3>
                     </div>
                 </div>
             </div>
@@ -237,7 +219,6 @@ try {
                                             <small class="text-muted"><?php echo date('M j, Y', strtotime($activity['created_at'])); ?></small>
                                         </div>
                                         <p class="mb-1">Status: <?php echo ucfirst($activity['status']); ?></p>
-                                        <small>Created by: <?php echo htmlspecialchars($activity['created_by_first_name'] . ' ' . $activity['created_by_last_name']); ?></small>
                                     </a>
                                 <?php endforeach; ?>
                             </div>

@@ -91,11 +91,15 @@ try {
         // Generate quote number
         $quote_number = 'Q' . date('Ymd') . sprintf('%04d', rand(1, 9999));
 
+        // Get username from session
+        $username = isset($_SESSION['email']) ? $_SESSION['email'] : '';
+        error_log("Saving quote for user: " . $username);
+
         // Insert quote
         $stmt = $pdo->prepare("
             INSERT INTO quotes 
-            (quote_number, customer_id, total_amount, commission_rate, commission_amount, status, valid_until, created_at)
-            VALUES (?, ?, ?, ?, ?, 'pending', DATE_ADD(NOW(), INTERVAL 30 DAY), NOW())
+            (quote_number, customer_id, total_amount, commission_rate, commission_amount, status, valid_until, created_at, username)
+            VALUES (?, ?, ?, ?, ?, 'pending', DATE_ADD(NOW(), INTERVAL 30 DAY), NOW(), ?)
         ");
 
         $stmt->execute([
@@ -103,7 +107,8 @@ try {
             $data['customer_id'],
             $final_total,
             $data['commission_rate'],
-            $commission_amount
+            $commission_amount,
+            $username
         ]);
 
         $quote_id = $pdo->lastInsertId();

@@ -151,6 +151,7 @@ try {
     // Set session variables
     $_SESSION['user_id'] = $user['id'] ?? $pdo->lastInsertId();
     $_SESSION['email'] = $google_user['email'];
+    $_SESSION['username'] = $google_user['email'];
     $_SESSION['first_name'] = $google_user['given_name'] ?? '';
     $_SESSION['last_name'] = $google_user['family_name'] ?? '';
     
@@ -160,13 +161,14 @@ try {
         FROM roles r 
         JOIN user_roles ur ON r.id = ur.role_id 
         WHERE ur.user_id = ?
+        LIMIT 1
     ");
-    $stmt->execute([$user['id']]);
-    $_SESSION['roles'] = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $stmt->execute([$_SESSION['user_id']]);
+    $_SESSION['role'] = $stmt->fetchColumn() ?: 'staff'; // Default to staff if no role found
 
     // Debug log
     error_log("User logged in: " . print_r($user, true));
-    error_log("Session roles: " . print_r($_SESSION['roles'], true));
+    error_log("Session role: " . $_SESSION['role']);
 
     // Redirect to index.php or stored URL after successful login
     $redirect_url = isset($_SESSION['redirect_after_login']) ? $_SESSION['redirect_after_login'] : 'index.php';

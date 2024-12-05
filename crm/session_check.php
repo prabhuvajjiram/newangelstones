@@ -1,7 +1,11 @@
 <?php
+// Start the session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+error_log("Session check - Session ID: " . session_id());
+error_log("Session data: " . print_r($_SESSION, true));
 
 require_once 'includes/config.php';
 
@@ -20,22 +24,24 @@ if (!defined('ADMIN_BASE_URL')) {
 
 // Function to check if user is logged in
 function isLoggedIn() {
+    error_log("Checking if logged in - User ID: " . (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'not set'));
     return isset($_SESSION['user_id']);
 }
 
 // Function to check if user is admin
 function isAdmin() {
-    return isset($_SESSION['roles']) && (in_array('admin', $_SESSION['roles']) || in_array('super_admin', $_SESSION['roles']));
+    error_log("Checking if admin - Role: " . (isset($_SESSION['role']) ? $_SESSION['role'] : 'not set'));
+    return isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
 }
 
 // Function to check if user is super admin
 function isSuperAdmin() {
-    return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'super_admin';
+    return isset($_SESSION['role']) && $_SESSION['role'] === 'super_admin';
 }
 
 // Function to check if user is staff
 function isStaff() {
-    return isset($_SESSION['roles']) && in_array('staff', $_SESSION['roles']);
+    return isset($_SESSION['role']) && $_SESSION['role'] === 'staff';
 }
 
 // Function to require login
