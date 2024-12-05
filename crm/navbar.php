@@ -73,12 +73,11 @@ require_once 'session_check.php';
                 <?php endif; ?>
             </ul>
             <ul class="navbar-nav">
-                <?php if (isset($_SESSION['email'])): ?>
+                <?php if (isset($_SESSION['first_name']) && isset($_SESSION['last_name'])): ?>
                 <li class="nav-item">
                     <span class="nav-link">
                         <i class="bi bi-person"></i> 
-                        <?php echo htmlspecialchars($_SESSION['email']); ?>
-                        (<?php echo implode(', ', $_SESSION['roles'] ?? ['Unknown']); ?>)
+                        <?php echo htmlspecialchars($_SESSION['first_name'] . ' ' . $_SESSION['last_name']); ?>
                     </span>
                 </li>
                 <li class="nav-item">

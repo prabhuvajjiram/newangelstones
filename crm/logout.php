@@ -13,6 +13,17 @@ if (isset($_COOKIE[session_name()])) {
 // Destroy the session
 session_destroy();
 
-// Redirect to login page
-header('Location: login.php');
+// Get the correct base URL
+$server_name = $_SERVER['SERVER_NAME'];
+if ($server_name === 'www.theangelstones.com' || $server_name === 'theangelstones.com') {
+    $base_url = '/crm';
+} else {
+    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
+    $port = $_SERVER['SERVER_PORT'];
+    $port_suffix = ($port != '80' && $port != '443') ? ":$port" : '';
+    $base_url = $protocol . $server_name . $port_suffix . '/crm';
+}
+
+// Redirect to login page with correct path
+header('Location: ' . $base_url . '/login.php');
 exit();

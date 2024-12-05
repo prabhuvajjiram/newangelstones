@@ -94,25 +94,31 @@ try {
             UPDATE users 
             SET last_login = NOW(),
                 google_id = ?,
-                oauth_token = ?
+                oauth_token = ?,
+                first_name = ?,
+                last_name = ?
             WHERE id = ?
         ");
         $stmt->execute([
             $google_user['id'],
             $token_data['access_token'],
+            $google_user['given_name'] ?? '',
+            $google_user['family_name'] ?? '',
             $user['id']
         ]);
     } else {
         // Create new user
         $stmt = $pdo->prepare("
-            INSERT INTO users (username, email, google_id, oauth_provider, oauth_token, created_at)
-            VALUES (?, ?, ?, 'google', ?, NOW())
+            INSERT INTO users (username, email, google_id, oauth_provider, oauth_token, first_name, last_name, created_at)
+            VALUES (?, ?, ?, 'google', ?, ?, ?, NOW())
         ");
         $stmt->execute([
             $google_user['email'],
             $google_user['email'],
             $google_user['id'],
-            $token_data['access_token']
+            $token_data['access_token'],
+            $google_user['given_name'] ?? '',
+            $google_user['family_name'] ?? ''
         ]);
         
         $user_id = $pdo->lastInsertId();
@@ -143,9 +149,10 @@ try {
     }
 
     // Set session variables
-    $_SESSION['user_id'] = $user['id'];
-    $_SESSION['username'] = $user['username'];
-    $_SESSION['email'] = $user['email'];
+    $_SESSION['user_id'] = $user['id'] ?? $pdo->lastInsertId();
+    $_SESSION['email'] = $google_user['email'];
+    $_SESSION['first_name'] = $google_user['given_name'] ?? '';
+    $_SESSION['last_name'] = $google_user['family_name'] ?? '';
     
     // Get user roles
     $stmt = $pdo->prepare("

@@ -15,29 +15,46 @@ if (!$customer_id) {
     exit;
 }
 
-// Get customer details
-$stmt = $pdo->prepare("SELECT * FROM customers WHERE id = ?");
-$stmt->execute([$customer_id]);
-$customer = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$customer) {
-    $_SESSION['error'] = "Customer not found.";
-    header('Location: customers.php');
-    exit;
-}
-
 try {
-    // Get all quotes for this customer
-    $stmt = $pdo->prepare("
-        SELECT q.*, c.name as customer_name, c.email as customer_email, COUNT(qi.id) as item_count
+    // Get customer details (all users can see all customers)
+    $stmt = $pdo->prepare("SELECT * FROM customers WHERE id = ?");
+    $stmt->execute([$customer_id]);
+    $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$customer) {
+        $_SESSION['error'] = "Customer not found.";
+        header('Location: customers.php');
+        exit;
+    }
+
+    // Get quotes for this customer based on user role
+    $query = "
+        SELECT q.*, c.name as customer_name, c.email as customer_email, 
+        COUNT(qi.id) as item_count,
+        u.first_name as created_by_first_name,
+        u.last_name as created_by_last_name
         FROM quotes q
         LEFT JOIN customers c ON q.customer_id = c.id
         LEFT JOIN quote_items qi ON q.id = qi.quote_id
-        WHERE q.customer_id = ?
-        GROUP BY q.id
-        ORDER BY q.created_at DESC
-    ");
-    $stmt->execute([$customer_id]);
+        LEFT JOIN users u ON q.created_by = u.id
+        WHERE q.customer_id = :customer_id
+    ";
+
+    // Staff can only see their own quotes
+    if (!isAdmin()) {
+        $query .= " AND q.created_by = :user_id";
+    }
+
+    $query .= " GROUP BY q.id ORDER BY q.created_at DESC";
+
+    $stmt = $pdo->prepare($query);
+    $stmt->bindParam(':customer_id', $customer_id, PDO::PARAM_INT);
+    
+    if (!isAdmin()) {
+        $stmt->bindParam(':user_id', $_SESSION['user_id'], PDO::PARAM_INT);
+    }
+
+    $stmt->execute();
     $quotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     error_log("Error fetching quotes: " . $e->getMessage());
@@ -93,13 +110,14 @@ try {
                                 <th>Date</th>
                                 <th>Items</th>
                                 <th>Status</th>
+                                <th>Created By</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (empty($quotes)): ?>
                                 <tr>
-                                    <td colspan="5" class="text-center">No quotes found</td>
+                                    <td colspan="6" class="text-center">No quotes found</td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($quotes as $quote): ?>
@@ -108,6 +126,7 @@ try {
                                         <td><?php echo date('M j, Y', strtotime($quote['created_at'])); ?></td>
                                         <td><?php echo htmlspecialchars($quote['item_count']); ?></td>
                                         <td><?php echo htmlspecialchars($quote['status']); ?></td>
+                                        <td><?php echo htmlspecialchars($quote['created_by_first_name'] . ' ' . $quote['created_by_last_name']); ?></td>
                                         <td>
                                             <a href="preview_quote.php?id=<?php echo $quote['id']; ?>" class="btn btn-sm btn-primary">
                                                 <i class="bi bi-eye"></i> View

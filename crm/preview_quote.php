@@ -1,38 +1,64 @@
 <?php
-require_once 'includes/config.php';
-require_once 'includes/functions.php';
 require_once 'session_check.php';
-
 requireLogin();
+require_once 'includes/config.php';
 
-if (isset($_GET['quote_id']) || isset($_GET['id'])) {
-    $quote_id = isset($_GET['quote_id']) ? (int)$_GET['quote_id'] : (int)$_GET['id'];
-    
-    // Check access rights - using customer_id instead of created_by
-    $access_check_sql = "SELECT customer_id FROM quotes WHERE id = :quote_id";
-    $check_stmt = $pdo->prepare($access_check_sql);
-    $check_stmt->execute(['quote_id' => $quote_id]);
-    $quote_data = $check_stmt->fetch(PDO::FETCH_ASSOC);
+// Get quote ID from URL
+$quote_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-    if (!$quote_data) {
-        die('Quote not found');
-    }
-
-    // Only allow access if user is admin or if the quote belongs to their customer
-    if (!in_array('admin', $_SESSION['roles'])) {
-        // Get the user's assigned customers
-        $user_customers_sql = "SELECT customer_id FROM user_customers WHERE user_id = :user_id";
-        $user_customers_stmt = $pdo->prepare($user_customers_sql);
-        $user_customers_stmt->execute(['user_id' => $_SESSION['user_id']]);
-        $user_customers = $user_customers_stmt->fetchAll(PDO::FETCH_COLUMN);
-
-        if (!in_array($quote_data['customer_id'], $user_customers)) {
-            die('Access denied');
-        }
-    }
+if (!$quote_id) {
+    header('Location: quotes.php');
+    exit;
 }
 
-$quote = null;
+try {
+    // Get quote details with permission check
+    $query = "
+        SELECT q.*, c.*, u.first_name as created_by_first_name, u.last_name as created_by_last_name
+        FROM quotes q
+        LEFT JOIN customers c ON q.customer_id = c.id
+        LEFT JOIN users u ON q.created_by = u.id
+        WHERE q.id = :quote_id
+    ";
+
+    // Add user restriction for non-admin users
+    if (!isAdmin()) {
+        $query .= " AND q.created_by = :user_id";
+    }
+
+    $stmt = $pdo->prepare($query);
+    $stmt->bindParam(':quote_id', $quote_id, PDO::PARAM_INT);
+    
+    if (!isAdmin()) {
+        $stmt->bindParam(':user_id', $_SESSION['user_id'], PDO::PARAM_INT);
+    }
+
+    $stmt->execute();
+    $quote = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$quote) {
+        $_SESSION['error'] = "Quote not found or access denied.";
+        header('Location: quotes.php');
+        exit;
+    }
+
+    // Get quote items
+    $stmt = $pdo->prepare("
+        SELECT qi.*, p.name as product_name, p.description as product_description
+        FROM quote_items qi
+        LEFT JOIN products p ON qi.product_id = p.id
+        WHERE qi.quote_id = ?
+    ");
+    $stmt->execute([$quote_id]);
+    $quote_items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+} catch (PDOException $e) {
+    error_log("Error fetching quote: " . $e->getMessage());
+    $_SESSION['error'] = "Failed to fetch quote details";
+    header('Location: quotes.php');
+    exit;
+}
+
 $items = [];
 $error = null;
 

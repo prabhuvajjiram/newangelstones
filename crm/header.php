@@ -44,8 +44,27 @@
         // Initial setup
         resetActivityTimer();
     </script>
+    <script src="js/session-manager.js"></script>
 </head>
 <body>
+    <!-- Session Warning Modal -->
+    <div class="modal fade" id="sessionWarningModal" tabindex="-1" aria-labelledby="sessionWarningModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="sessionWarningModalLabel">Session Timeout Warning</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Your session is about to expire. Would you like to continue?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Logout</button>
+                    <button type="button" class="btn btn-primary" onclick="extendSession()">Continue Session</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <nav class="navbar navbar-expand-lg navbar-dark mb-4">
         <div class="container-fluid">
             <a class="navbar-brand" href="index.php">Angel Stones CRM</a>
