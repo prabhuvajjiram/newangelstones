@@ -143,7 +143,7 @@ try {
                 ?>
             </div>
         <?php endif; ?>
-
+        
         <?php if (isset($_SESSION['success'])): ?>
             <div class="alert alert-success">
                 <?php 
@@ -152,7 +152,7 @@ try {
                 ?>
             </div>
         <?php endif; ?>
-
+        
         <div class="row mb-4">
             <div class="col">
                 <h2>Quote #<?php echo htmlspecialchars($quote['quote_number']); ?></h2>
@@ -164,9 +164,14 @@ try {
                 </p>
             </div>
             <div class="col-auto">
-                <a href="quotes.php" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left"></i> Back to Quotes
-                </a>
+                <div class="d-flex justify-content-end mb-4">
+                    <button type="button" class="btn btn-danger me-2" data-bs-toggle="modal" data-bs-target="#deleteQuoteModal">
+                        <i class="bi bi-trash"></i> Delete Quote
+                    </button>
+                    <a href="quotes.php" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Quotes
+                    </a>
+                </div>
                 <?php if ($quote['status'] === 'pending' && ($quote['username'] === $_SESSION['email'] || isAdmin())): ?>
                     <a href="quote.php?edit=<?php echo $quote_id; ?>" class="btn btn-primary">
                         <i class="bi bi-pencil"></i> Edit Quote
@@ -306,6 +311,28 @@ try {
             </div>
         </div>
         <?php endif; ?>
+    </div>
+
+    <!-- Delete Quote Modal -->
+    <div class="modal fade" id="deleteQuoteModal" tabindex="-1" aria-labelledby="deleteQuoteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteQuoteModalLabel">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete this quote? This action cannot be undone.
+                </div>
+                <div class="modal-footer">
+                    <form action="delete_quote.php" method="POST">
+                        <input type="hidden" name="quote_id" value="<?php echo htmlspecialchars($quote['id']); ?>">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">Delete Quote</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
