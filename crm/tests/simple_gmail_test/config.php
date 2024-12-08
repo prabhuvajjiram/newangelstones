@@ -1,7 +1,7 @@
 <?php
 // Gmail OAuth2 credentials
-define('GMAIL_CLIENT_ID', '204729895453-5pm7f5oalknp8vl1q9sqf658j6ce996o.apps.googleusercontent.com');
-define('GMAIL_CLIENT_SECRET', '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');
+define('GMAIL_CLIENT_ID', '');
+define('GMAIL_CLIENT_SECRET', '');
 define('GMAIL_REDIRECT_URI', 'https://www.theangelstones.com/crm/tests/simple_gmail_test/callback.php');
 
 // OAuth2 endpoints
