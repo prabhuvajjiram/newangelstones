@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('Name is required');
             }
             
-            $stmt = $pdo->prepare("INSERT INTO customers (name, email, phone, address, city, state, postal_code, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO customers (name, email, phone, address, city, state, postal_code, notes, company_id, job_title) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $data['name'],
                 $data['email'],
@@ -42,8 +42,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data['address'],
                 $data['city'],
                 $data['state'],
-                $data['postalCode'],
-                $data['notes']
+                $data['postal_code'],
+                $data['notes'],
+                $data['company_id'] ?: null,
+                $data['job_title'] ?: null
             ]);
             
             echo json_encode(['success' => true, 'id' => $pdo->lastInsertId()]);
@@ -53,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('ID and Name are required for update');
             }
             
-            $stmt = $pdo->prepare("UPDATE customers SET name=?, email=?, phone=?, address=?, city=?, state=?, postal_code=?, notes=? WHERE id=?");
+            $stmt = $pdo->prepare("UPDATE customers SET name=?, email=?, phone=?, address=?, city=?, state=?, postal_code=?, notes=?, company_id=?, job_title=? WHERE id=?");
             $stmt->execute([
                 $data['name'],
                 $data['email'],
@@ -61,8 +63,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data['address'],
                 $data['city'],
                 $data['state'],
-                $data['postalCode'],
+                $data['postal_code'],
                 $data['notes'],
+                $data['company_id'] ?: null,
+                $data['job_title'] ?: null,
                 $data['id']
             ]);
             
@@ -81,7 +85,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Get customers list
 global $pdo;
 $customers = [];
-$stmt = $pdo->query("SELECT * FROM customers ORDER BY name");
+$stmt = $pdo->query("
+    SELECT c.*, comp.name as company_name 
+    FROM customers c 
+    LEFT JOIN companies comp ON c.company_id = comp.id 
+    ORDER BY c.name ASC
+");
 $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
@@ -98,80 +107,46 @@ $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Customer Management</h2>
+            <h2>Customers</h2>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#customerModal">
-                <i class="bi bi-plus-lg"></i> Add Customer
+                <i class="bi bi-person-plus"></i> Add Customer
             </button>
         </div>
 
-        <div class="card">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Contact</th>
-                                <th>Location</th>
-                                <th>Quotes</th>
-                                <th>Last Follow-up</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($customers as $customer): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($customer['name']); ?></td>
-                                <td>
-                                    <?php echo htmlspecialchars($customer['email']); ?><br>
-                                    <?php echo htmlspecialchars($customer['phone']); ?>
-                                </td>
-                                <td>
-                                    <?php echo htmlspecialchars($customer['city']); ?>,
-                                    <?php echo htmlspecialchars($customer['state']); ?>
-                                </td>
-                                <td>
-                                    <?php
-                                    $stmt = $pdo->query("SELECT COUNT(*) as count FROM quotes WHERE customer_id = " . $customer['id']);
-                                    $quoteCount = $stmt->fetchColumn();
-                                    echo $quoteCount;
-                                    ?>
-                                </td>
-                                <td>
-                                    <?php
-                                    $stmt = $pdo->query("SELECT follow_up_date, status FROM follow_ups WHERE customer_id = " . $customer['id'] . " ORDER BY follow_up_date DESC LIMIT 1");
-                                    $lastFollowup = $stmt->fetch(PDO::FETCH_ASSOC);
-                                    if ($lastFollowup) {
-                                        echo date('M d, Y', strtotime($lastFollowup['follow_up_date']));
-                                        echo '<br><span class="badge bg-' . 
-                                            ($lastFollowup['status'] === 'converted' ? 'success' : 
-                                            ($lastFollowup['status'] === 'interested' ? 'primary' : 
-                                            ($lastFollowup['status'] === 'not_interested' ? 'danger' : 'warning'))) . 
-                                            '">' . ucfirst(str_replace('_', ' ', $lastFollowup['status'])) . '</span>';
-                                    } else {
-                                        echo '-';
-                                    }
-                                    ?>
-                                </td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-primary" onclick="editCustomer(<?php echo $customer['id']; ?>)">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-success" onclick="addFollowUp(<?php echo $customer['id']; ?>)">
-                                            <i class="bi bi-calendar-plus"></i>
-                                        </button>
-                                        <a href="quote.php?customer_id=<?php echo $customer['id']; ?>" class="btn btn-sm btn-outline-info">
-                                            <i class="bi bi-file-earmark-plus"></i>
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Company</th>
+                        <th>Job Title</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($customers as $customer): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($customer['name']) ?></td>
+                        <td><?= $customer['company_name'] ? htmlspecialchars($customer['company_name']) : '-' ?></td>
+                        <td><?= $customer['job_title'] ? htmlspecialchars($customer['job_title']) : '-' ?></td>
+                        <td><?= htmlspecialchars($customer['email']) ?></td>
+                        <td><?= htmlspecialchars($customer['phone']) ?></td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-primary edit-customer" data-id="<?= $customer['id'] ?>">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <a href="view_customer.php?id=<?= $customer['id'] ?>" class="btn btn-sm btn-outline-info">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -185,90 +160,68 @@ $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
                 <div class="modal-body">
                     <form id="customerForm">
-                        <input type="hidden" id="customerId">
+                        <input type="hidden" name="id" id="customerId">
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label class="form-label">Name</label>
-                                <input type="text" class="form-control" id="customerName" required>
+                                <label for="name" class="form-label">Name *</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Email</label>
-                                <input type="email" class="form-control" id="customerEmail">
+                                <label for="company_id" class="form-label">Company</label>
+                                <select class="form-select" id="company_id" name="company_id">
+                                    <option value="">Select Company</option>
+                                    <?php
+                                    $companies = $pdo->query("SELECT id, name FROM companies ORDER BY name ASC");
+                                    while ($company = $companies->fetch(PDO::FETCH_ASSOC)) {
+                                        echo '<option value="' . $company['id'] . '">' . htmlspecialchars($company['name']) . '</option>';
+                                    }
+                                    ?>
+                                </select>
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label class="form-label">Phone</label>
-                                <input type="tel" class="form-control" id="customerPhone">
+                                <label for="jobTitle" class="form-label">Job Title</label>
+                                <input type="text" class="form-control" id="jobTitle" name="jobTitle">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Address</label>
-                                <input type="text" class="form-control" id="customerAddress">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Phone</label>
+                                <input type="tel" class="form-control" id="phone" name="phone">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="address" class="form-label">Address</label>
+                                <input type="text" class="form-control" id="address" name="address">
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-4">
-                                <label class="form-label">City</label>
-                                <input type="text" class="form-control" id="customerCity">
+                                <label for="city" class="form-label">City</label>
+                                <input type="text" class="form-control" id="city" name="city">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">State</label>
-                                <input type="text" class="form-control" id="customerState">
+                                <label for="state" class="form-label">State</label>
+                                <input type="text" class="form-control" id="state" name="state">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">Postal Code</label>
-                                <input type="text" class="form-control" id="customerPostalCode">
+                                <label for="postalCode" class="form-label">Postal Code</label>
+                                <input type="text" class="form-control" id="postalCode" name="postalCode">
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Notes</label>
-                            <textarea class="form-control" id="customerNotes" rows="3"></textarea>
+                            <label for="notes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="saveCustomer()">Save</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Follow-up Modal -->
-    <div class="modal fade" id="followUpModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add Follow-up</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="followUpForm">
-                        <input type="hidden" id="followUpCustomerId">
-                        <div class="mb-3">
-                            <label class="form-label">Follow-up Date</label>
-                            <input type="date" class="form-control" id="followUpDate" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Status</label>
-                            <select class="form-select" id="followUpStatus" required>
-                                <option value="pending">Pending</option>
-                                <option value="contacted">Contacted</option>
-                                <option value="interested">Interested</option>
-                                <option value="not_interested">Not Interested</option>
-                                <option value="converted">Converted</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Notes</label>
-                            <textarea class="form-control" id="followUpNotes" rows="3"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="saveFollowUp()">Save</button>
+                    <button type="submit" form="customerForm" class="btn btn-primary">Save</button>
                 </div>
             </div>
         </div>
@@ -277,104 +230,88 @@ $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Reset form when modal is opened for new customer
-        $('#customerModal').on('show.bs.modal', function (e) {
-            if (!e.relatedTarget) return; // Don't reset if opened by edit button
-            $('#customerForm')[0].reset();
-            $('#customerId').val('');
-        });
+        $(document).ready(function() {
+            // Function to save customer data
+            function saveCustomer(e) {
+                e.preventDefault();
+                
+                const formData = {
+                    action: $('#customerId').val() ? 'update' : 'add',
+                    id: $('#customerId').val(),
+                    name: $('#name').val(),
+                    company_id: $('#company_id').val() || null,
+                    job_title: $('#jobTitle').val(),
+                    email: $('#email').val(),
+                    phone: $('#phone').val(),
+                    address: $('#address').val(),
+                    city: $('#city').val(),
+                    state: $('#state').val(),
+                    postal_code: $('#postalCode').val(),
+                    notes: $('#notes').val()
+                };
 
-        function editCustomer(id) {
-            // Fetch customer data and populate modal
-            $.get('api/customer.php?id=' + id, function(data) {
-                $('#customerId').val(data.id);
-                $('#customerName').val(data.name);
-                $('#customerEmail').val(data.email);
-                $('#customerPhone').val(data.phone);
-                $('#customerAddress').val(data.address);
-                $('#customerCity').val(data.city);
-                $('#customerState').val(data.state);
-                $('#customerPostalCode').val(data.postal_code);
-                $('#customerNotes').val(data.notes);
-                $('#customerModal').modal('show');
-            });
-        }
-
-        function saveCustomer() {
-            // Get form data
-            const formData = {
-                action: $('#customerId').val() ? 'update' : 'add',
-                id: $('#customerId').val(),
-                name: $('#customerName').val().trim(),
-                email: $('#customerEmail').val().trim(),
-                phone: $('#customerPhone').val().trim(),
-                address: $('#customerAddress').val().trim(),
-                city: $('#customerCity').val().trim(),
-                state: $('#customerState').val().trim(),
-                postalCode: $('#customerPostalCode').val().trim(),
-                notes: $('#customerNotes').val().trim()
-            };
-
-            // Validate required fields
-            if (!formData.name) {
-                alert('Name is required');
-                $('#customerName').focus();
-                return;
+                $.ajax({
+                    url: 'ajax/save_customer.php',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    success: function(response) {
+                        if (response.success) {
+                            $('#customerModal').modal('hide');
+                            location.reload(); // Refresh to show updated data
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert('Error saving customer: ' + error);
+                        console.error('Error details:', xhr.responseText);
+                    }
+                });
             }
 
-            // Show loading state
-            const saveBtn = $('#customerModal .btn-primary');
-            const originalText = saveBtn.text();
-            saveBtn.prop('disabled', true).text('Saving...');
-
-            $.ajax({
-                url: window.location.href,
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(formData),
-                success: function(response) {
-                    if (response.success) {
-                        $('#customerModal').modal('hide');
-                        location.reload();
-                    } else {
-                        alert('Error saving customer: ' + (response.error || 'Unknown error'));
-                        saveBtn.prop('disabled', false).text(originalText);
+            // Function to load customer data for editing
+            function loadCustomerData(id) {
+                $.ajax({
+                    url: 'ajax/get_customer.php',
+                    method: 'GET',
+                    data: { id: id },
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.error) {
+                            alert('Error: ' + data.error);
+                            return;
+                        }
+                        
+                        $('#customerId').val(data.id);
+                        $('#name').val(data.name);
+                        $('#company_id').val(data.company_id);
+                        $('#jobTitle').val(data.job_title);
+                        $('#email').val(data.email);
+                        $('#phone').val(data.phone);
+                        $('#address').val(data.address);
+                        $('#city').val(data.city);
+                        $('#state').val(data.state);
+                        $('#postalCode').val(data.postal_code);
+                        $('#notes').val(data.notes);
+                        
+                        $('#customerModal').modal('show');
+                    },
+                    error: function(xhr, status, error) {
+                        alert('Error loading customer data: ' + error);
                     }
-                },
-                error: function(xhr, status, error) {
-                    let errorMessage = 'Error saving customer';
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        errorMessage += ': ' + (response.error || error);
-                    } catch(e) {
-                        errorMessage += ': ' + error;
-                    }
-                    alert(errorMessage);
-                    saveBtn.prop('disabled', false).text(originalText);
-                }
+                });
+            }
+
+            // Handle form submission
+            $('#customerForm').on('submit', saveCustomer);
+
+            // Edit customer button click
+            $('.edit-customer').click(function() {
+                const id = $(this).data('id');
+                loadCustomerData(id);
             });
-        }
-
-        function addFollowUp(customerId) {
-            $('#followUpCustomerId').val(customerId);
-            $('#followUpDate').val(new Date().toISOString().split('T')[0]);
-            $('#followUpModal').modal('show');
-        }
-
-        function saveFollowUp() {
-            const data = {
-                customerId: $('#followUpCustomerId').val(),
-                date: $('#followUpDate').val(),
-                status: $('#followUpStatus').val(),
-                notes: $('#followUpNotes').val()
-            };
-
-            $.post('api/follow_up.php', data, function(response) {
-                if (response.success) {
-                    location.reload();
-                }
-            });
-        }
+        });
     </script>
 </body>
 </html>

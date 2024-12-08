@@ -2,16 +2,24 @@
 require_once 'includes/config.php';
 require_once 'session_check.php';
 require_once 'includes/crm_functions.php';
+require_once 'includes/ContactManager.php';
 
 // Get customer ID from URL
 $customerId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
+// Initialize ContactManager
+$contactManager = new ContactManager($pdo);
+
 // Get customer details
 $stmt = $pdo->prepare("
-    SELECT c.*, ls.source_name as lead_source, camp.name as campaign_name
+    SELECT c.*, ls.source_name as lead_source, camp.name as campaign_name,
+           lcs.name as lifecycle_stage_name, lcs.id as lifecycle_stage_id,
+           comp.name as company_name, comp.id as company_id
     FROM customers c
     LEFT JOIN lead_sources ls ON c.lead_source_id = ls.id
     LEFT JOIN campaigns camp ON c.last_campaign_id = camp.id
+    LEFT JOIN lifecycle_stages lcs ON c.lifecycle_stage_id = lcs.id
+    LEFT JOIN companies comp ON c.company_id = comp.id
     WHERE c.id = ?
 ");
 $stmt->execute([$customerId]);
@@ -21,6 +29,18 @@ if (!$customer) {
     header('Location: customers.php');
     exit;
 }
+
+// Get lifecycle stages for dropdown
+$lifecycleStages = $contactManager->getLifecycleStages();
+
+// Get custom fields
+$customFields = $contactManager->getCustomFieldValues($customerId);
+
+// Get activity timeline
+$activityTimeline = $contactManager->getActivityTimeline($customerId);
+
+// Calculate lead score
+$leadScore = $contactManager->calculateLeadScore($customerId);
 
 // Get customer's quotes
 $stmt = $pdo->prepare("
@@ -63,10 +83,6 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$customerId]);
 $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Calculate lead score
-$leadManager = getCRMInstance('LeadManagement');
-$leadScore = $leadManager->calculateLeadScore($customerId);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -100,64 +116,93 @@ $leadScore = $leadManager->calculateLeadScore($customerId);
             <!-- Customer Information -->
             <div class="col-md-4 mb-4">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">Customer Information</h5>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editCustomerModal">
+                            <i class="bi bi-pencil"></i> Edit
+                        </button>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <strong>Lead Score:</strong>
-                            <span class="badge bg-<?= getLeadScoreClass($leadScore) ?> ms-2"><?= $leadScore ?></span>
+                            <h6>Lifecycle Stage</h6>
+                            <select class="form-select" id="lifecycleStage" data-customer-id="<?= $customerId ?>">
+                                <?php foreach ($lifecycleStages as $stage): ?>
+                                    <option value="<?= $stage['id'] ?>" <?= $stage['id'] == $customer['lifecycle_stage_id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($stage['name']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
-                        <div class="mb-2">
-                            <strong>Email:</strong> <?= htmlspecialchars($customer['email']) ?>
+                        <div class="mb-3">
+                            <h6>Lead Score</h6>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: <?= min(100, $leadScore) ?>%"
+                                     aria-valuenow="<?= $leadScore ?>" aria-valuemin="0" aria-valuemax="100">
+                                    <?= $leadScore ?> points
+                                </div>
+                            </div>
                         </div>
-                        <div class="mb-2">
-                            <strong>Phone:</strong> <?= htmlspecialchars($customer['phone']) ?>
+                        <div class="mb-3">
+                            <h6>Company</h6>
+                            <p><?= $customer['company_name'] ? htmlspecialchars($customer['company_name']) : 'Not assigned' ?></p>
                         </div>
-                        <div class="mb-2">
-                            <strong>Address:</strong><br>
-                            <?= nl2br(htmlspecialchars($customer['address'])) ?><br>
-                            <?= htmlspecialchars($customer['city']) ?>, <?= htmlspecialchars($customer['state']) ?> <?= htmlspecialchars($customer['postal_code']) ?>
+                        <!-- Basic Info -->
+                        <div class="mb-3">
+                            <h6>Contact Details</h6>
+                            <p class="mb-1"><strong>Name:</strong> <?= htmlspecialchars($customer['name']) ?></p>
+                            <p class="mb-1"><strong>Email:</strong> <?= htmlspecialchars($customer['email']) ?></p>
+                            <p class="mb-1"><strong>Phone:</strong> <?= htmlspecialchars($customer['phone']) ?></p>
+                            <p class="mb-1"><strong>Address:</strong> <?= htmlspecialchars($customer['address']) ?></p>
                         </div>
-                        <div class="mb-2">
-                            <strong>Lead Source:</strong> <?= htmlspecialchars($customer['lead_source'] ?? 'N/A') ?>
-                        </div>
-                        <div class="mb-2">
-                            <strong>Status:</strong> 
-                            <span class="badge bg-<?= getStatusClass($customer['status']) ?>">
-                                <?= ucfirst($customer['status']) ?>
-                            </span>
-                        </div>
-                        <div class="mb-2">
-                            <strong>Last Campaign:</strong> <?= htmlspecialchars($customer['campaign_name'] ?? 'N/A') ?>
-                        </div>
-                        <div class="mb-2">
-                            <strong>Total Quotes:</strong> <?= $customer['total_quotes'] ?>
-                        </div>
-                        <div class="mb-2">
-                            <strong>Total Spent:</strong> $<?= number_format($customer['total_spent'], 2) ?>
-                        </div>
+                        <!-- Custom Fields -->
+                        <?php if ($customFields): ?>
+                            <div class="mb-3">
+                                <h6>Additional Information</h6>
+                                <?php 
+                                $currentGroup = '';
+                                foreach ($customFields as $field): 
+                                    if ($currentGroup != $field['field_group']): 
+                                        $currentGroup = $field['field_group'];
+                                ?>
+                                    <h6 class="mt-3"><?= htmlspecialchars($currentGroup) ?></h6>
+                                <?php endif; ?>
+                                    <p class="mb-1">
+                                        <strong><?= htmlspecialchars($field['display_name']) ?>:</strong>
+                                        <?= htmlspecialchars($field['field_value'] ?? 'Not set') ?>
+                                    </p>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
-
-            <!-- Recent Communications -->
+            
+            <!-- Activity Timeline -->
             <div class="col-md-8 mb-4">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="card-title mb-0">Recent Communications</h5>
+                        <h5 class="card-title mb-0">Activity Timeline</h5>
                     </div>
                     <div class="card-body">
-                        <div class="list-group">
-                            <?php foreach ($communications as $comm): ?>
-                            <div class="list-group-item">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1"><?= htmlspecialchars($comm['subject']) ?></h6>
-                                    <small><?= getTimeAgo($comm['created_at']) ?></small>
+                        <div class="timeline">
+                            <?php foreach ($activityTimeline as $activity): ?>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker">
+                                        <i class="bi bi-<?= getActivityIcon($activity['activity_type']) ?>"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-0"><?= htmlspecialchars($activity['title']) ?></h6>
+                                        <p class="text-muted mb-0">
+                                            <?= date('M j, Y g:i A', strtotime($activity['activity_date'])) ?>
+                                            <?php if ($activity['performed_by_name']): ?>
+                                                by <?= htmlspecialchars($activity['performed_by_name']) ?>
+                                            <?php endif; ?>
+                                        </p>
+                                        <?php if ($activity['description']): ?>
+                                            <p class="mb-0"><?= htmlspecialchars($activity['description']) ?></p>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
-                                <p class="mb-1"><?= nl2br(htmlspecialchars($comm['content'])) ?></p>
-                                <small>By <?= htmlspecialchars($comm['username']) ?> via <?= ucfirst($comm['type']) ?></small>
-                            </div>
                             <?php endforeach; ?>
                         </div>
                     </div>
@@ -356,28 +401,16 @@ $leadScore = $leadManager->calculateLeadScore($customerId);
 </html>
 <?php
 
-// Helper functions
-function getLeadScoreClass($score) {
-    if ($score >= 80) return 'success';
-    if ($score >= 50) return 'warning';
-    return 'danger';
-}
-
-function getStatusClass($status) {
-    switch($status) {
-        case 'active': return 'success';
-        case 'potential': return 'info';
-        case 'converted': return 'primary';
-        default: return 'secondary';
+// Helper function for activity icons
+function getActivityIcon($type) {
+    switch ($type) {
+        case 'email': return 'envelope';
+        case 'call': return 'telephone';
+        case 'meeting': return 'calendar-event';
+        case 'note': return 'sticky';
+        case 'task': return 'check2-square';
+        case 'quote': return 'file-text';
+        case 'website_visit': return 'globe';
+        default: return 'circle';
     }
 }
-
-function getQuoteStatusClass($status) {
-    switch($status) {
-        case 'approved': return 'success';
-        case 'pending': return 'warning';
-        case 'rejected': return 'danger';
-        default: return 'secondary';
-    }
-}
-?>
