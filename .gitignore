@@ -8,3 +8,5 @@ node_modules
 /crm/quotes
 /crm/includes/config.php
 /crm/includes/auth_config.php
+/crm/includes/Angestonescrm.json
+/crm/includes/db_config.php

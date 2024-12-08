@@ -88,7 +88,7 @@ error_log("Communications count: " . count($recentCommunications));
         <!-- Quick Actions Section -->
         <div class="quick-actions">
             <h5 class="mb-3">Quick Actions</h5>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#taskModal">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newTaskModal">
                 <i class="bi bi-plus-circle"></i> Create Task
             </button>
             <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#communicationModal">
@@ -161,7 +161,7 @@ error_log("Communications count: " . count($recentCommunications));
                 <div class="card h-100">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">My Tasks</h5>
-                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#taskModal">
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newTaskModal">
                             <i class="bi bi-plus-circle"></i> New Task
                         </button>
                     </div>
@@ -231,7 +231,7 @@ error_log("Communications count: " . count($recentCommunications));
         function createTask(customerId, customerName) {
             document.getElementById('task_customer_id').value = customerId;
             document.getElementById('task_customer_name').value = customerName;
-            new bootstrap.Modal(document.getElementById('taskModal')).show();
+            new bootstrap.Modal(document.getElementById('newTaskModal')).show();
         }
 
         function logCommunication(customerId, customerName) {

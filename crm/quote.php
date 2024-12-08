@@ -48,22 +48,16 @@ foreach ($rawProductData as $type => $sizeGroups) {
             return [
                 'id' => $model['id'],
                 'name' => $model['model'],
-                'base_price' => $model['base_price']
+                'base_price' => $model['base_price'],
+                'length' => isset($model['length_inches']) ? $model['length_inches'] : null,
+                'breadth' => isset($model['breadth_inches']) ? $model['breadth_inches'] : null,
+                'thickness_inches' => isset($model['thickness_inches']) ? $model['thickness_inches'] : null
             ];
         }, $models);
     }
 }
 
 error_log("Processed Product Data: " . print_r($processedProductData, true));
-
-// Convert to JSON for JavaScript
-$productDataJson = json_encode($processedProductData);
-error_log("Product Data JSON: " . $productDataJson);
-
-$quoteDataJson = json_encode([
-    'customer_id' => $customer_id,
-    'quote_id' => $quote_id
-]);
 
 // Get stone colors and special monuments
 $stone_colors = $quoteRepository->getStoneColors();
@@ -72,8 +66,16 @@ error_log("Stone Colors: " . print_r($stone_colors, true));
 $special_monuments = $quoteRepository->getSpecialMonuments();
 error_log("Special Monuments: " . print_r($special_monuments, true));
 
-$processedProductData['stone_colors'] = $stone_colors;
-$processedProductData['special_monuments'] = $special_monuments;
+// Convert to JSON for JavaScript
+$productDataJson = json_encode($processedProductData);
+error_log("Product Data JSON: " . $productDataJson);
+
+$quoteDataJson = json_encode([
+    'customer_id' => $customer_id,
+    'quote_id' => $quote_id,
+    'stone_colors' => $stone_colors,
+    'special_monuments' => $special_monuments
+]);
 
 // Get customers for dropdown
 $stmt = $pdo->query("SELECT id, name, email FROM customers ORDER BY name");

@@ -307,8 +307,6 @@ $leadScore = $leadManager->calculateLeadScore($customerId);
     <?php include 'modals/communication_modal.php'; ?>
     <?php include 'modals/document_modal.php'; ?>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         // Pre-fill customer ID in modals
         $(document).ready(function() {

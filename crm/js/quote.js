@@ -1,13 +1,13 @@
 class QuoteManager {
     constructor() {
+        // Initialize with data from window.QUOTE_DATA
         this.productData = window.QUOTE_DATA.productData;
         this.quoteData = window.QUOTE_DATA.quoteData;
         
         // Initialize cart items from session storage or window data
         try {
             const storedCart = sessionStorage.getItem('cartItems');
-            this.cartItems = storedCart ? JSON.parse(storedCart) : 
-                           (window.QUOTE_DATA.cartItems || []);
+            this.cartItems = storedCart ? JSON.parse(storedCart) : [];
             console.log('Initialized cart with items:', this.cartItems);
         } catch (e) {
             console.error('Error initializing cart:', e);
@@ -82,6 +82,9 @@ class QuoteManager {
                 this.updatePrice();
             });
         });
+
+        this.populateStoneColors();
+        this.populateSpecialMonuments();
     }
 
     initializeEventListeners() {
@@ -152,80 +155,68 @@ class QuoteManager {
     }
 
     handleProductTypeChange(type) {
-        // Store current cart
-        const currentCart = [...this.getCartItems()];
-
         console.log('Product type changed to:', type);
-        console.log('Available data for type:', this.productData[type]);
-
-        if (!type) {
-            this.productSizeSelect.html('<option value="">Select Size</option>').prop('disabled', true);
-            this.productModelSelect.html('<option value="">Select Model</option>').prop('disabled', true);
-            return;
-        }
-
-        const typeData = this.productData[type];
-        if (!typeData || !typeData.sizes) {
-            console.error('No sizes found for type:', type);
-            return;
-        }
-
-        // Enable and populate size dropdown
-        this.productSizeSelect.prop('disabled', false);
-        this.productSizeSelect.html('<option value="">Select Size</option>');
+        console.log('Product data available:', this.productData);
         
-        typeData.sizes.forEach(size => {
-            this.productSizeSelect.append(`<option value="${size}">${size}</option>`);
-        });
-
-        // Reset and disable model dropdown
-        this.productModelSelect.html('<option value="">Select Model</option>').prop('disabled', true);
-
-        // Handle special monument field based on product type
-        const specialMonumentContainer = this.specialMonumentSelect.closest('.col-md-3');
-        if (type === 'sertop') {
-            this.specialMonumentSelect.prop('required', true);
-            specialMonumentContainer.show();
+        // Clear dependent dropdowns
+        this.productSizeSelect.empty().append('<option value="">Select Size</option>');
+        this.productModelSelect.empty().append('<option value="">Select Model</option>');
+        
+        // Only populate sizes if a valid product type is selected
+        if (type && this.productData[type]) {
+            const sizes = this.productData[type].sizes || [];
+            console.log('Available sizes:', sizes);
+            
+            sizes.forEach(size => {
+                this.productSizeSelect.append(`<option value="${size}">${this.getSizeDisplay(type, size)}</option>`);
+            });
+            
+            // Enable size dropdown
+            this.productSizeSelect.prop('disabled', false);
         } else {
-            this.specialMonumentSelect.prop('required', false);
-            this.specialMonumentSelect.val('');
-            specialMonumentContainer.hide();
+            // Disable size dropdown if no type selected
+            this.productSizeSelect.prop('disabled', true);
         }
-
-        // Restore cart
-        this.cartItems = currentCart;
-        this.updateCartDisplay();
-
-        // Update measurements after type change
-        this.updateMeasurements();
+        
+        // Disable model dropdown until size is selected
+        this.productModelSelect.prop('disabled', true);
+        
+        this.updateAddToCartState();
+        this.updatePrice();
     }
 
     handleSizeChange(type, size) {
         console.log('Size changed to:', size, 'for type:', type);
-        console.log('Available models:', this.productData[type]?.models?.[size]);
-
+        
+        // Clear and disable model dropdown by default
+        this.productModelSelect.empty().append('<option value="">Select Model</option>').prop('disabled', true);
+        
         if (!type || !size) {
-            this.productModelSelect.html('<option value="">Select Model</option>').prop('disabled', true);
             return;
         }
-
-        const typeData = this.productData[type];
-        const models = typeData?.models?.[size];
+        
+        const models = this.productData[type]?.models?.[size];
+        console.log('Available models:', models);
         
         if (!models || !models.length) {
             console.error('No models found for type/size:', type, size);
             return;
         }
-
+        
         // Enable and populate model dropdown
         this.productModelSelect.prop('disabled', false);
-        this.productModelSelect.html('<option value="">Select Model</option>');
         
         models.forEach(model => {
-            this.productModelSelect.append(`<option value="${model.id}" data-price="${model.base_price}" data-thickness_inches="${model.thickness_inches}">${model.name}</option>`);
+            this.productModelSelect.append(`
+                <option value="${model.id}" 
+                    data-price="${model.base_price}"
+                    data-length="${model.length || ''}"
+                    data-breadth="${model.breadth || ''}"
+                    data-thickness="${model.thickness_inches || ''}"
+                >${model.name}</option>
+            `);
         });
-
-        // Update measurements after size change
+        
         this.updateMeasurements();
     }
 
@@ -637,6 +628,31 @@ class QuoteManager {
 
         $('#cartBasePrice').text('$' + totalBasePrice.toFixed(2));
         $('#cartTotal').text('$' + totalPrice.toFixed(2));
+    }
+
+    populateStoneColors() {
+        this.stoneColorSelect.empty().append('<option value="">Select Color</option>');
+        if (this.quoteData.stone_colors) {
+            this.quoteData.stone_colors.forEach(color => {
+                this.stoneColorSelect.append(`<option value="${color.id}" data-increase="${color.price_increase}">${color.color_name}</option>`);
+            });
+        }
+    }
+
+    populateSpecialMonuments() {
+        this.specialMonumentSelect.empty().append('<option value="">Select Special Monument</option>');
+        if (this.quoteData.special_monuments) {
+            this.quoteData.special_monuments.forEach(monument => {
+                this.specialMonumentSelect.append(`<option value="${monument.id}" data-increase="${monument.price_increase_percentage}">${monument.name}</option>`);
+            });
+        }
+    }
+
+    getSizeDisplay(type, size) {
+        if (type.toLowerCase() === 'marker') {
+            return size + ' SQFT';
+        }
+        return size + ' inch';
     }
 }
 

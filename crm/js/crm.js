@@ -12,7 +12,7 @@ $(document).ready(function() {
                     const data = JSON.parse(response);
                     if (data.success) {
                         // Close modal and refresh page
-                        $('#taskModal').modal('hide');
+                        $('#newTaskModal').modal('hide');
                         location.reload();
                     } else {
                         alert(data.message || 'Failed to create task. Please try again.');
