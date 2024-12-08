@@ -12,6 +12,41 @@ if (!isAdmin()) {
 $emailManager = new EmailManager($pdo);
 $performanceStats = $emailManager->getEmailPerformanceStats();
 $activityStats = $emailManager->getEmailActivityStats();
+
+// Get quote email statistics
+$stmt = $pdo->prepare("
+    SELECT 
+        COUNT(*) as total_sent,
+        SUM(CASE WHEN opened_at IS NOT NULL THEN 1 ELSE 0 END) as opened_count,
+        SUM(CASE WHEN clicked_at IS NOT NULL THEN 1 ELSE 0 END) as clicked_count,
+        SUM(CASE WHEN provider = 'gmail' THEN 1 ELSE 0 END) as gmail_count,
+        SUM(CASE WHEN provider = 'outlook' THEN 1 ELSE 0 END) as outlook_count
+    FROM email_tracking 
+    WHERE subject LIKE '%Quote%'
+");
+$stmt->execute();
+$quoteEmailStats = $stmt->fetch();
+
+// Get recent quote emails
+$stmt = $pdo->prepare("
+    SELECT 
+        et.*,
+        q.id as quote_id,
+        q.quote_number,
+        c.name as customer_name,
+        c.email as customer_email,
+        CONCAT(u.first_name, ' ', u.last_name) as sent_by,
+        et.provider
+    FROM email_tracking et
+    LEFT JOIN quotes q ON et.quote_id = q.id
+    LEFT JOIN customers c ON q.customer_id = c.id
+    LEFT JOIN users u ON et.sent_by = u.email
+    WHERE et.subject LIKE '%Quote%'
+    ORDER BY et.sent_at DESC
+    LIMIT 10
+");
+$stmt->execute();
+$recentQuoteEmails = $stmt->fetchAll();
 ?>
 
 <!DOCTYPE html>
@@ -76,6 +111,118 @@ $activityStats = $emailManager->getEmailActivityStats();
                     <div class="card-body">
                         <h6 class="text-muted">Avg. Open Time</h6>
                         <h2 class="mb-0"><?= round($performanceStats['avg_open_time'] / 60, 1) ?> hrs</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quote Email Stats -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="mb-0">Quote Email Performance</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h6 class="text-muted mb-2">Total Quote Emails</h6>
+                                    <h3><?php echo number_format($quoteEmailStats['total_sent']); ?></h3>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h6 class="text-muted mb-2">Quote Open Rate</h6>
+                                    <h3><?php echo $quoteEmailStats['total_sent'] ? number_format(($quoteEmailStats['opened_count'] / $quoteEmailStats['total_sent']) * 100, 1) : 0; ?>%</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h6 class="text-muted mb-2">Gmail Sent</h6>
+                                    <h3><?php echo number_format($quoteEmailStats['gmail_count']); ?></h3>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h6 class="text-muted mb-2">Outlook Sent</h6>
+                                    <h3><?php echo number_format($quoteEmailStats['outlook_count']); ?></h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Quote Emails -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="mb-0">Recent Quote Emails</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Quote #</th>
+                                        <th>Customer</th>
+                                        <th>Status</th>
+                                        <th>Sent By</th>
+                                        <th>Provider</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($recentQuoteEmails as $email): ?>
+                                    <tr>
+                                        <td><?php echo date('M j, Y', strtotime($email['sent_at'])); ?></td>
+                                        <td>
+                                            <?php if ($email['quote_id']): ?>
+                                                <a href="preview_quote.php?id=<?php echo $email['quote_id']; ?>" target="_blank">
+                                                    <?php echo htmlspecialchars($email['quote_number']); ?>
+                                                </a>
+                                            <?php else: ?>
+                                                N/A
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><?php echo htmlspecialchars($email['customer_name']); ?></td>
+                                        <td>
+                                            <?php if ($email['opened_at']): ?>
+                                                <span class="badge bg-success">Opened</span>
+                                            <?php elseif ($email['clicked_at']): ?>
+                                                <span class="badge bg-primary">Clicked</span>
+                                            <?php else: ?>
+                                                <span class="badge bg-secondary">Sent</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><?php echo htmlspecialchars($email['sent_by']); ?></td>
+                                        <td>
+                                            <span class="badge bg-info">
+                                                <?php echo ucfirst($email['provider'] ?? 'Unknown'); ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <?php if ($email['quote_id']): ?>
+                                                <?php if ($email['provider'] == 'gmail'): ?>
+                                                    <a href="api/send_quote.php?id=<?php echo $email['quote_id']; ?>&resend=1" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-envelope"></i> Resend (Gmail)
+                                                    </a>
+                                                <?php else: ?>
+                                                    <a href="mailto:<?php echo $email['customer_email']; ?>?subject=Quote #<?php echo $email['quote_number']; ?>" class="btn btn-sm btn-outline-secondary">
+                                                        <i class="bi bi-envelope"></i> Open in Outlook
+                                                    </a>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -176,11 +323,6 @@ $activityStats = $emailManager->getEmailActivityStats();
                     label: 'Sent',
                     data: <?= json_encode(array_column($activityStats, 'sent_count')) ?>,
                     borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.1
-                }, {
-                    label: 'Received',
-                    data: <?= json_encode(array_column($activityStats, 'received_count')) ?>,
-                    borderColor: 'rgb(255, 99, 132)',
                     tension: 0.1
                 }, {
                     label: 'Opened',

@@ -12,6 +12,25 @@ error_log("Debug - User Roles: " . print_r($_SESSION['roles'] ?? [], true));
 $current_page = basename($_SERVER['PHP_SELF']);
 require_once 'session_check.php';
 ?>
+<!-- Initialize Bootstrap components immediately -->
+<script>
+(function() {
+    function initDropdowns() {
+        var dropdowns = document.querySelectorAll('.dropdown-toggle');
+        dropdowns.forEach(function(dropdown) {
+            new bootstrap.Dropdown(dropdown);
+        });
+    }
+
+    // Try to initialize immediately if DOM is ready
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initDropdowns();
+    }
+
+    // Also listen for DOMContentLoaded as a fallback
+    document.addEventListener('DOMContentLoaded', initDropdowns);
+})();
+</script>
 <div class="sidebar bg-dark text-white" style="width: 250px; height: 100vh; position: fixed; left: 0; top: 0; overflow-y: auto;">
     <div class="d-flex flex-column h-100">
         <!-- Logo/Brand -->
