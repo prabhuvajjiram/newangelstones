@@ -3,9 +3,6 @@ node_modules
 .DS_Store
 *.log
 /quotes/*.pdf
-/crm/vendor
-/vendor
-/crm/quotes
 /crm/includes/config.php
 /crm/includes/auth_config.php
 /crm/includes/Angestonescrm.json

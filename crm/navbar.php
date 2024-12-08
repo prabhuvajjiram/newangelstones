@@ -73,6 +73,11 @@ require_once 'session_check.php';
                 <i class="bi bi-box-seam me-2"></i> Products
             </a>
 
+            <a class="nav-link text-white <?php echo $current_page == 'email_analytics.php' ? 'active bg-primary' : ''; ?>" 
+               href="<?php echo getUrl('email_analytics.php'); ?>">
+                <i class="bi bi-graph-up me-2"></i> Email Analytics
+            </a>
+
             <a class="nav-link text-white <?php echo $current_page == 'settings.php' ? 'active bg-primary' : ''; ?>" 
                href="<?php echo getUrl('settings.php'); ?>">
                 <i class="bi bi-gear me-2"></i> Settings
