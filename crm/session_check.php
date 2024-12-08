@@ -49,20 +49,27 @@ function requireLogin() {
     if (!isLoggedIn()) {
         // Store the current URL for redirect after login
         $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
-        header('Location: ' . ADMIN_BASE_URL . 'login.php');
+        
+        // Fix double slash issue in redirect URL
+        $login_url = rtrim(ADMIN_BASE_URL, '/') . '/login.php';
+        if ($login_url[0] !== '/') {
+            $login_url = '/' . $login_url;
+        }
+        header('Location: ' . $login_url);
         exit();
     }
 }
 
 // Function to require admin role
 function requireAdmin() {
-    if (!isLoggedIn()) {
-        $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
-        header('Location: ' . ADMIN_BASE_URL . 'login.php');
-        exit();
-    }
-    if (!isAdmin()) {
-        header('Location: ' . ADMIN_BASE_URL . 'index.php?error=unauthorized');
+    requireLogin();
+    if (!isAdmin() && !isSuperAdmin()) {
+        // Fix double slash issue in redirect URL
+        $unauthorized_url = rtrim(ADMIN_BASE_URL, '/') . '/unauthorized.php';
+        if ($unauthorized_url[0] !== '/') {
+            $unauthorized_url = '/' . $unauthorized_url;
+        }
+        header('Location: ' . $unauthorized_url);
         exit();
     }
 }
