@@ -110,8 +110,13 @@ class ContactManager {
         $stmt = $this->pdo->query("SELECT * FROM lead_scoring_rules WHERE is_active = 1");
         $rules = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Get customer data
-        $stmt = $this->pdo->prepare("SELECT * FROM customers WHERE id = ?");
+        // Get customer data including company data
+        $stmt = $this->pdo->prepare("
+            SELECT c.*, comp.employee_count, comp.annual_revenue, comp.industry 
+            FROM customers c 
+            LEFT JOIN companies comp ON c.company_id = comp.id 
+            WHERE c.id = ?
+        ");
         $stmt->execute([$customerId]);
         $customer = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -125,35 +130,56 @@ class ContactManager {
             $value = $rule['condition_value'];
             $points = $rule['score_value'];
             
+            // Get the actual field value
+            $fieldValue = isset($customer[$field]) ? $customer[$field] : null;
+            
+            // Skip if field doesn't exist
+            if ($fieldValue === null) {
+                continue;
+            }
+            
             // Handle different types of conditions
+            $matches = false;
             switch ($operator) {
                 case 'equals':
-                    if (isset($customer[$field]) && $customer[$field] == $value) {
-                        $score += $points;
-                    }
+                    $matches = $fieldValue == $value;
                     break;
+                    
                 case 'not_equals':
-                    if (isset($customer[$field]) && $customer[$field] != $value) {
-                        $score += $points;
-                    }
+                    $matches = $fieldValue != $value;
                     break;
+                    
                 case 'contains':
-                    if (isset($customer[$field]) && strpos($customer[$field], $value) !== false) {
-                        $score += $points;
-                    }
+                    $matches = stripos($fieldValue, $value) !== false;
                     break;
+                    
                 case 'greater_than':
-                    if (isset($customer[$field]) && $customer[$field] > $value) {
-                        $score += $points;
+                    // Handle numeric comparisons
+                    if (is_numeric($fieldValue) && is_numeric($value)) {
+                        $matches = floatval($fieldValue) > floatval($value);
+                    }
+                    // Handle date comparisons
+                    elseif (strtotime($fieldValue) && strtotime($value)) {
+                        $matches = strtotime($fieldValue) > strtotime($value);
                     }
                     break;
-                // Add more operators as needed
+                    
+                case 'less_than':
+                    // Handle numeric comparisons
+                    if (is_numeric($fieldValue) && is_numeric($value)) {
+                        $matches = floatval($fieldValue) < floatval($value);
+                    }
+                    // Handle date comparisons
+                    elseif (strtotime($fieldValue) && strtotime($value)) {
+                        $matches = strtotime($fieldValue) < strtotime($value);
+                    }
+                    break;
+            }
+            
+            if ($matches) {
+                $score += $points;
             }
         }
-        
-        // Update the lead score in the customers table
-        $stmt = $this->pdo->prepare("UPDATE customers SET lead_score = ? WHERE id = ?");
-        $stmt->execute([$score, $customerId]);
         
         return $score;
     }
