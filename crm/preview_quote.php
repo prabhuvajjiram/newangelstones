@@ -180,11 +180,9 @@ try {
                 <a href="generate_pdf.php?id=<?php echo $quote_id; ?>" class="btn btn-success" target="_blank">
                     <i class="bi bi-file-pdf"></i> Generate PDF
                 </a>
-                <?php if ($quote['customer_email']): ?>
-                <a href="mailto:<?php echo htmlspecialchars($quote['customer_email']); ?>?subject=Quote #<?php echo $quote['quote_number']; ?>" class="btn btn-info">
-                    <i class="bi bi-envelope"></i> Email Customer
-                </a>
-                <?php endif; ?>
+                <button onclick="sendQuoteEmail(<?php echo $quote_id; ?>, event)" class="btn btn-info">
+                    <i class="bi bi-envelope"></i> Email Quote
+                </button>
             </div>
         </div>
 
@@ -336,5 +334,97 @@ try {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    function sendQuoteEmail(quoteId, event) {
+        if (!quoteId) {
+            console.error('No quote ID provided');
+            alert('Error: Invalid quote ID');
+            return;
+        }
+
+        console.log('Sending quote ID:', quoteId);
+
+        if (!confirm('Are you sure you want to send this quote via email?')) {
+            return;
+        }
+
+        // Show loading state
+        const button = event.target.closest('button');
+        const originalContent = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<i class="bi bi-hourglass-split"></i> Sending...';
+
+        fetch('api/send_quote.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ 
+                quote_id: parseInt(quoteId, 10) 
+            })
+        })
+        .then(async response => {
+            const text = await response.text();
+            console.log('Raw response:', text);
+            
+            try {
+                const data = JSON.parse(text);
+                console.log('Parsed response:', data);
+                
+                if (response.status === 401 || data.needsAuth) {
+                    console.log('Gmail auth required, redirecting...');
+                    // Redirect to gmail_auth.php with quote_id and return URL
+                    const returnUrl = encodeURIComponent(window.location.href);
+                    window.location.href = `gmail_auth.php?quote_id=${quoteId}&return=${returnUrl}`;
+                    return null;
+                }
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'Server error');
+                }
+                
+                return data;
+            } catch (e) {
+                console.error('JSON Parse Error:', e);
+                console.error('Response text:', text);
+                throw new Error('Error processing response: ' + e.message);
+            }
+        })
+        .then(data => {
+            if (data === null) return; // Auth redirect in progress
+            
+            if (data.success) {
+                alert('Quote sent successfully!');
+            } else {
+                throw new Error(data.message || 'Unknown error occurred');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error sending quote: ' + error.message);
+        })
+        .finally(() => {
+            if (!document.location.href.includes('gmail_auth.php')) {
+                button.disabled = false;
+                button.innerHTML = originalContent;
+            }
+        });
+    }
+
+    // Check for resend parameter on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const resendQuoteId = urlParams.get('resend');
+        if (resendQuoteId) {
+            // Remove the parameter from URL
+            urlParams.delete('resend');
+            const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+            history.replaceState({}, '', newUrl);
+            // Try sending again
+            sendQuoteEmail(parseInt(resendQuoteId, 10));
+        }
+    });
+    </script>
 </body>
 </html>

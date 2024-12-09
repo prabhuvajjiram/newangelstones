@@ -1,111 +1,92 @@
 <?php
-require_once 'includes/config.php';
-require_once 'includes/auth_config.php';
-
-// Enable error reporting for debugging
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// Initialize the session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Error handling with debugging
-function handleError($message) {
-    error_log("Auth Error: " . $message);
-    $_SESSION['auth_error'] = $message;
-    header('Location: login.php?error=' . urlencode($message));
-    exit;
-}
+require_once 'includes/config.php';
+require_once 'includes/auth_config.php';
 
-// Debug: Log the incoming request
-error_log("Received callback with code: " . $_GET['code']);
+error_log("Email Auth Callback - Starting");
+error_log("Session data: " . print_r($_SESSION, true));
+error_log("GET data: " . print_r($_GET, true));
 
-// Check for error parameter in the callback
-if (isset($_GET['error'])) {
-    handleError("Google authentication error: " . $_GET['error']);
-}
-
-// Check for the authorization code
 if (!isset($_GET['code'])) {
-    handleError("No authorization code received");
+    $_SESSION['error'] = "Authorization code not received";
+    header('Location: quotes.php');
+    exit();
 }
 
-// Exchange the authorization code for tokens
-$token_url = "https://oauth2.googleapis.com/token";
-$token_data = [
+// Get the correct redirect URI
+$redirect_uri = $is_local ? 
+    'http://localhost:3000/crm/email_auth_callback.php' : 
+    'https://www.theangelstones.com/crm/email_auth_callback.php';
+
+// Exchange authorization code for access token
+$token_url = 'https://oauth2.googleapis.com/token';
+$token_data = array(
     'code' => $_GET['code'],
     'client_id' => GOOGLE_CLIENT_ID,
     'client_secret' => GOOGLE_CLIENT_SECRET,
-    'redirect_uri' => GOOGLE_REDIRECT_URI,
+    'redirect_uri' => $redirect_uri,
     'grant_type' => 'authorization_code'
-];
+);
 
-error_log("Requesting token with data: " . print_r($token_data, true));
-
+// Get tokens
 $ch = curl_init($token_url);
 curl_setopt($ch, CURLOPT_POST, 1);
 curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($token_data));
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // For local testing only
-
-$response = curl_exec($ch);
-$err = curl_error($ch);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+$token_response = curl_exec($ch);
 curl_close($ch);
 
-if ($err) {
-    handleError("cURL Error during token exchange: " . $err);
+error_log("Token response: " . print_r($token_response, true));
+error_log("Decoded token data: " . print_r($token_data, true));
+
+$token_data = json_decode($token_response, true);
+
+if (isset($token_data['refresh_token'])) {
+    try {
+        // Store refresh token in database
+        $stmt = $pdo->prepare("UPDATE users SET refresh_token = ? WHERE email = ?");
+        $success = $stmt->execute([
+            $token_data['refresh_token'],
+            $_SESSION['email']
+        ]);
+        
+        if (!$success) {
+            error_log("Database error: " . print_r($stmt->errorInfo(), true));
+            throw new Exception("Failed to update database");
+        }
+        
+        // Verify the update
+        $stmt = $pdo->prepare("SELECT refresh_token FROM users WHERE email = ?");
+        $stmt->execute([$_SESSION['email']]);
+        $updated = $stmt->fetch();
+        error_log("Updated user tokens: " . print_r($updated, true));
+        
+        $_SESSION['success'] = 'Email authentication successful!';
+        
+        // Get the stored quote ID and return URL
+        $redirect_url = $_SESSION['auth_redirect'] ?? 'quotes.php';
+        if (isset($_SESSION['pending_quote_id'])) {
+            $redirect_url .= (strpos($redirect_url, '?') !== false ? '&' : '?') . 
+                            'resend=' . $_SESSION['pending_quote_id'];
+            unset($_SESSION['pending_quote_id']);
+        }
+        unset($_SESSION['auth_redirect']);
+        
+        header('Location: ' . $redirect_url);
+        exit;
+    } catch (Exception $e) {
+        error_log("Failed to store refresh token: " . $e->getMessage());
+        $_SESSION['error'] = "Failed to store authentication token";
+        header('Location: quotes.php');
+        exit;
+    }
+} else {
+    error_log("No refresh token received. Token data: " . print_r($token_data, true));
+    $_SESSION['error'] = "Failed to get refresh token from Google";
+    header('Location: quotes.php');
 }
-
-error_log("Token response: " . $response);
-
-$tokens = json_decode($response, true);
-if (!isset($tokens['access_token'])) {
-    handleError("Failed to get access token. Response: " . $response);
-}
-
-// Get user info with the access token
-$userinfo_url = "https://www.googleapis.com/oauth2/v2/userinfo";
-$ch = curl_init($userinfo_url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Authorization: Bearer ' . $tokens['access_token']
-]);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // For local testing only
-
-$response = curl_exec($ch);
-$err = curl_error($ch);
-curl_close($ch);
-
-if ($err) {
-    handleError("cURL Error during user info request: " . $err);
-}
-
-error_log("User info response: " . $response);
-
-$user_info = json_decode($response, true);
-if (!isset($user_info['email'])) {
-    handleError("Failed to get user email. Response: " . $response);
-}
-
-// Validate email domain
-if (!validateUserEmail($user_info['email'])) {
-    handleError("Email domain not allowed. Please use your @theangelstones.com account.");
-}
-
-// Store user info in session
-$_SESSION['user_email'] = $user_info['email'];
-$_SESSION['user_name'] = $user_info['name'];
-$_SESSION['access_token'] = $tokens['access_token'];
-if (isset($tokens['refresh_token'])) {
-    $_SESSION['refresh_token'] = $tokens['refresh_token'];
-}
-$_SESSION['token_expires'] = time() + $tokens['expires_in'];
-$_SESSION['logged_in'] = true;
-
-error_log("Session data set: " . print_r($_SESSION, true));
-
-// Redirect to the dashboard or home page
-header('Location: index.php');
-exit;
+exit(); 

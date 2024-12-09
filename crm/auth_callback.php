@@ -182,3 +182,15 @@ try {
     header('Location: ' . ADMIN_BASE_URL . 'login.php');
     exit();
 }
+
+if (isset($token_data['access_token'])) {
+    // Update user's OAuth token in database
+    $stmt = $pdo->prepare("UPDATE users SET oauth_token = ? WHERE email = ?");
+    $stmt->execute([$token_data['access_token'], $_SESSION['email']]);
+}
+
+if (isset($token_data['refresh_token'])) {
+    // Update user's Gmail refresh token in database
+    $stmt = $pdo->prepare("UPDATE users SET gmail_refresh_token = ? WHERE email = ?");
+    $stmt->execute([$token_data['refresh_token'], $_SESSION['email']]);
+}

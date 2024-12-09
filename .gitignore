@@ -3,8 +3,9 @@ node_modules
 .DS_Store
 *.log
 /quotes/*.pdf
+/crm/quotes
 /crm/includes/config.php
 /crm/includes/auth_config.php
 /crm/includes/Angestonescrm.json
 /crm/includes/db_config.php
-rm/tests/simple_gmail_test/config.php
+/crm/tests/simple_gmail_test/config.php

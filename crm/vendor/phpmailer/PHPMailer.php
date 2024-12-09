@@ -20,18 +20,21 @@ class PHPMailer {
     const ENCRYPTION_SMTPS = 'ssl';
 
     public $Host = 'smtp.gmail.com';
-    public $Port = 587;
+    public $Port = 465;
     public $SMTPAuth = true;
     public $CharSet = 'UTF-8';
-    public $SMTPSecure = 'tls';
+    public $SMTPSecure = 'ssl';
     public $From;
     public $FromName;
     public $Subject;
     public $Body;
     public $ErrorInfo;
+    public $SMTPDebug = 0;
+    public $Debugoutput = null;
     private $oauth;
     private $to = [];
     private $mailer = 'smtp';
+    private $attachments = [];
 
     public function isSMTP() {
         $this->mailer = 'smtp';
@@ -52,8 +55,35 @@ class PHPMailer {
     }
 
     public function isHTML($isHtml = true) {
-        // Implementation for HTML emails
         return true;
+    }
+
+    public function addAttachment($path, $name = '', $encoding = 'base64', $type = 'application/octet-stream') {
+        if (file_exists($path)) {
+            $this->attachments[] = [
+                'path' => $path,
+                'name' => $name ?: basename($path),
+                'encoding' => $encoding,
+                'type' => $type,
+                'content' => file_get_contents($path)
+            ];
+            return true;
+        }
+        return false;
+    }
+
+    public function addStringAttachment($string, $filename, $encoding = 'base64', $type = 'application/octet-stream') {
+        $this->attachments[] = [
+            'content' => $string,
+            'name' => $filename,
+            'encoding' => $encoding,
+            'type' => $type
+        ];
+        return true;
+    }
+
+    private function createBoundary() {
+        return md5(uniqid(time()));
     }
 
     public function send() {
@@ -61,21 +91,97 @@ class PHPMailer {
             throw new \Exception('OAuth not configured');
         }
 
-        if ($this->mailer !== 'smtp') {
-            throw new \Exception('Only SMTP mailer is supported');
+        try {
+            // Get OAuth token
+            $token = $this->oauth->getToken();
+            if (!$token) {
+                throw new \Exception('Failed to get OAuth token');
+            }
+
+            // Prepare email data
+            $boundary = $this->createBoundary();
+            $headers = [
+                'From: ' . ($this->FromName ? "{$this->FromName} <{$this->From}>" : $this->From),
+                'To: ' . implode(', ', array_map(function($recipient) {
+                    return $recipient['name'] ? "{$recipient['name']} <{$recipient['address']}>" : $recipient['address'];
+                }, $this->to)),
+                'Subject: ' . $this->Subject,
+                'MIME-Version: 1.0',
+                'Content-Type: multipart/mixed; boundary="' . $boundary . '"',
+                'Authorization: Bearer ' . $token
+            ];
+
+            $message = implode("\r\n", $headers) . "\r\n\r\n";
+            $message .= $this->createMessageBody($boundary);
+
+            // Initialize cURL
+            $ch = curl_init();
+
+            // Set cURL options
+            curl_setopt_array($ch, [
+                CURLOPT_URL => 'https://www.googleapis.com/upload/gmail/v1/users/me/messages/send?uploadType=multipart',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_HTTPHEADER => [
+                    'Authorization: Bearer ' . $token,
+                    'Content-Type: message/rfc822'
+                ],
+                CURLOPT_POSTFIELDS => $message
+            ]);
+
+            // Execute cURL request
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+            // Check for errors
+            if (curl_errno($ch)) {
+                throw new \Exception('cURL error: ' . curl_error($ch));
+            }
+
+            if ($httpCode !== 200) {
+                throw new \Exception('Gmail API error: ' . $response);
+            }
+
+            curl_close($ch);
+            return true;
+
+        } catch (\Exception $e) {
+            $this->ErrorInfo = $e->getMessage();
+            throw $e;
+        }
+    }
+
+    private function createMessageBody($boundary) {
+        $body = "--{$boundary}\r\n";
+        $body .= "Content-Type: text/html; charset={$this->CharSet}\r\n";
+        $body .= "Content-Transfer-Encoding: base64\r\n\r\n";
+        $body .= chunk_split(base64_encode($this->Body)) . "\r\n";
+
+        foreach ($this->attachments as $attachment) {
+            $body .= "--{$boundary}\r\n";
+            $body .= "Content-Type: {$attachment['type']}; name=\"{$attachment['name']}\"\r\n";
+            $body .= "Content-Disposition: attachment; filename=\"{$attachment['name']}\"\r\n";
+            $body .= "Content-Transfer-Encoding: base64\r\n\r\n";
+            
+            $content = isset($attachment['path']) ? 
+                file_get_contents($attachment['path']) : 
+                $attachment['content'];
+            
+            $body .= chunk_split(base64_encode($content)) . "\r\n";
         }
 
-        $to = implode(', ', array_map(function($recipient) {
-            return $recipient['name'] ? "{$recipient['name']} <{$recipient['address']}>" : $recipient['address'];
-        }, $this->to));
+        $body .= "--{$boundary}--\r\n";
+        return $body;
+    }
 
-        $headers = [
-            'From: ' . ($this->FromName ? "{$this->FromName} <{$this->From}>" : $this->From),
-            'MIME-Version: 1.0',
-            'Content-Type: text/html; charset=' . $this->CharSet,
-            'Authorization: Bearer ' . $this->oauth->getToken()
-        ];
+    public function setSMTPDebug($level) {
+        $this->SMTPDebug = $level;
+        return $this;
+    }
 
-        return mail($to, $this->Subject, $this->Body, implode("\r\n", $headers));
+    public function setDebugOutput($callback) {
+        $this->Debugoutput = $callback;
+        return $this;
     }
 }
