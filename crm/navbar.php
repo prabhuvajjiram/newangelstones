@@ -68,9 +68,9 @@ require_once 'session_check.php';
                 </a>
                 <ul class="dropdown-menu dropdown-menu-dark" style="position: relative; width: 100%; margin: 0; border-radius: 0;">
                     <li>
-                        <a class="dropdown-item ps-4 <?php echo $current_page == 'raw_material.php' ? 'active' : ''; ?>" 
-                        href="<?php echo getUrl('raw_material.php'); ?>">
-                            <i class="bi bi-boxes me-2"></i> Raw Material
+                        <a class="dropdown-item ps-4 <?php echo $current_page == 'raw_materials.php' ? 'active' : ''; ?>" 
+                        href="<?php echo getUrl('raw_materials.php'); ?>">
+                            <i class="bi bi-boxes me-2"></i> Raw Materials
                         </a>
                     </li>
                     <li>
