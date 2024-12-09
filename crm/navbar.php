@@ -5,32 +5,10 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once 'includes/config.php';
 require_once 'includes/functions.php';
 
-// Debug information
-error_log("Debug - Session Data: " . print_r($_SESSION, true));
-error_log("Debug - User Roles: " . print_r($_SESSION['roles'] ?? [], true));
-
 $current_page = basename($_SERVER['PHP_SELF']);
 require_once 'session_check.php';
 ?>
-<!-- Initialize Bootstrap components immediately -->
-<script>
-(function() {
-    function initDropdowns() {
-        var dropdowns = document.querySelectorAll('.dropdown-toggle');
-        dropdowns.forEach(function(dropdown) {
-            new bootstrap.Dropdown(dropdown);
-        });
-    }
 
-    // Try to initialize immediately if DOM is ready
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        initDropdowns();
-    }
-
-    // Also listen for DOMContentLoaded as a fallback
-    document.addEventListener('DOMContentLoaded', initDropdowns);
-})();
-</script>
 <div class="sidebar bg-dark text-white" style="width: 250px; height: 100vh; position: fixed; left: 0; top: 0; overflow-y: auto;">
     <div class="d-flex flex-column h-100">
         <!-- Logo/Brand -->
@@ -55,7 +33,7 @@ require_once 'session_check.php';
 
             <!-- Contacts & Companies Dropdown -->
             <div class="nav-item dropdown">
-                <a class="nav-link text-white dropdown-toggle" href="#" id="contactsDropdown" role="button" data-bs-toggle="dropdown">
+                <a class="nav-link text-white dropdown-toggle" href="#" id="contactsDropdown" role="button">
                     <i class="bi bi-people me-2"></i> Contacts & Companies
                 </a>
                 <ul class="dropdown-menu dropdown-menu-dark" style="position: relative; width: 100%; margin: 0; border-radius: 0;">
@@ -83,7 +61,51 @@ require_once 'session_check.php';
                href="<?php echo getUrl('quotes.php'); ?>">
                 <i class="bi bi-files me-2"></i> All Quotes
             </a>
-
+            <!-- Inventory Management Dropdown -->
+            <div class="nav-item dropdown">
+                <a class="nav-link text-white dropdown-toggle" href="#" id="inventoryDropdown" role="button">
+                    <i class="bi bi-box-seam me-2"></i> Inventory
+                </a>
+                <ul class="dropdown-menu dropdown-menu-dark" style="position: relative; width: 100%; margin: 0; border-radius: 0;">
+                    <li>
+                        <a class="dropdown-item ps-4 <?php echo $current_page == 'raw_material.php' ? 'active' : ''; ?>" 
+                        href="<?php echo getUrl('raw_material.php'); ?>">
+                            <i class="bi bi-boxes me-2"></i> Raw Material
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item ps-4 <?php echo $current_page == 'finished_products.php' ? 'active' : ''; ?>" 
+                        href="<?php echo getUrl('finished_products.php'); ?>">
+                            <i class="bi bi-box me-2"></i> Finished Products
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item ps-4 <?php echo $current_page == 'product_movement.php' ? 'active' : ''; ?>" 
+                        href="<?php echo getUrl('product_movement.php'); ?>">
+                            <i class="bi bi-arrows-move me-2"></i> Product Movement
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="nav-item dropdown">
+                <a class="nav-link text-white dropdown-toggle" href="#" id="orderProcessing" role="button">
+                    <i class="bi bi-box-seam me-2"></i> Order Processing
+                </a>
+                <ul class="dropdown-menu dropdown-menu-dark" style="position: relative; width: 100%; margin: 0; border-radius: 0;">
+                    <li>
+                        <a class="dropdown-item ps-4 <?php echo $current_page == 'purchase_management.php' ? 'active' : ''; ?>" 
+                        href="<?php echo getUrl('raw_material.php'); ?>">
+                            <i class="bi bi-cart-check me-2"></i> Purchase Management
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item ps-4 <?php echo $current_page == 'production_orders.php' ? 'active' : ''; ?>" 
+                        href="<?php echo getUrl('finished_products.php'); ?>">
+                            <i class="bi bi-box me-2"></i> Production Orders
+                        </a>
+                    </li>
+                </ul>
+            </div>
             <?php if (isAdmin()): ?>
             <div class="border-top my-3"></div>
             
@@ -91,12 +113,39 @@ require_once 'session_check.php';
                href="<?php echo getUrl('products.php'); ?>">
                 <i class="bi bi-box-seam me-2"></i> Products
             </a>
-
-            <a class="nav-link text-white <?php echo $current_page == 'email_analytics.php' ? 'active bg-primary' : ''; ?>" 
-               href="<?php echo getUrl('email_analytics.php'); ?>">
-                <i class="bi bi-graph-up me-2"></i> Email Analytics
+            
+            <a class="nav-link text-white <?php echo $current_page == 'warehouse.php' ? 'active bg-primary' : ''; ?>" 
+                href="<?php echo getUrl('warehouse.php'); ?>">
+                <i class="bi bi-building me-2"></i> Warehouse Management
             </a>
-
+            
+            <!-- Reports & Analytics Dropdown -->
+            <div class="nav-item dropdown">
+                <a class="nav-link text-white dropdown-toggle" href="#" id="reportsDropdown" role="button">
+                    <i class="bi bi-graph-up me-2"></i> Reports & Analytics
+                </a>
+                <ul class="dropdown-menu dropdown-menu-dark" style="position: relative; width: 100%; margin: 0; border-radius: 0;">
+                    <li>
+                        <a class="dropdown-item ps-4 <?php echo $current_page == 'inventory_reports.php' ? 'active' : ''; ?>" 
+                        href="<?php echo getUrl('inventory_reports.php'); ?>">
+                            <i class="bi bi-clipboard-data me-2"></i> Inventory Reports
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item ps-4 <?php echo $current_page == 'financial_reports.php' ? 'active' : ''; ?>" 
+                        href="<?php echo getUrl('financial_reports.php'); ?>">
+                            <i class="bi bi-cash-stack me-2"></i> Financial Reports
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item ps-4 <?php echo $current_page == 'email_analytics.php' ? 'active' : ''; ?>" 
+                        href="<?php echo getUrl('email_analytics.php'); ?>">
+                            <i class="bi bi-envelope-fill me-1"></i> Email Analytics
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
             <a class="nav-link text-white <?php echo $current_page == 'settings.php' ? 'active bg-primary' : ''; ?>" 
                href="<?php echo getUrl('settings.php'); ?>">
                 <i class="bi bi-gear me-2"></i> Settings
@@ -129,19 +178,72 @@ require_once 'session_check.php';
 <!-- Main Content Wrapper with Left Margin -->
 <div style="margin-left: 250px;">
     <div class="container-fluid py-4">
-        <!-- Your page content will go here -->
+        <!-- Page content will go here -->
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize all dropdowns
-    var dropdowns = document.querySelectorAll('.dropdown-toggle');
-    dropdowns.forEach(function(dropdown) {
-        new bootstrap.Dropdown(dropdown);
+    // Get all dropdown toggles
+    const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+    
+    dropdownToggles.forEach(toggle => {
+        // Remove bootstrap data attributes
+        toggle.removeAttribute('data-bs-toggle');
+        
+        // Add click handler
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Find the dropdown menu
+            const dropdownMenu = this.nextElementSibling;
+            
+            // Close all other dropdowns
+            dropdownToggles.forEach(otherToggle => {
+                if (otherToggle !== this) {
+                    otherToggle.classList.remove('show');
+                    otherToggle.setAttribute('aria-expanded', 'false');
+                    const otherMenu = otherToggle.nextElementSibling;
+                    if (otherMenu) {
+                        otherMenu.classList.remove('show');
+                    }
+                }
+            });
+            
+            // Toggle current dropdown
+            this.classList.toggle('show');
+            dropdownMenu.classList.toggle('show');
+            
+            // Update aria-expanded
+            const isExpanded = dropdownMenu.classList.contains('show');
+            this.setAttribute('aria-expanded', isExpanded);
+        });
+    });
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.dropdown')) {
+            dropdownToggles.forEach(toggle => {
+                toggle.classList.remove('show');
+                toggle.setAttribute('aria-expanded', 'false');
+                const menu = toggle.nextElementSibling;
+                if (menu) {
+                    menu.classList.remove('show');
+                }
+            });
+        }
     });
 });
 </script>
 
 <style>
+.dropdown-menu {
+    display: none;
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
 .sidebar .nav-link {
     padding: 0.5rem 1rem;
     transition: all 0.3s;
