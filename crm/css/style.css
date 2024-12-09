@@ -1,0 +1,94 @@
+/* Global styles */
+body {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+/* Sidebar styles */
+.sidebar {
+    background-color: #2c3e50;
+    width: 250px;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+/* Main content styles */
+.main-content {
+    margin-left: 250px;
+    min-height: 100vh;
+    padding: 20px;
+    background-color: #f8f9fa;
+}
+
+/* Dropdown menu styles */
+.dropdown-menu {
+    background-color: #2c3e50;
+    border: none;
+    margin-top: 0;
+    border-radius: 0 4px 4px 0;
+}
+
+.dropdown-item {
+    color: #fff;
+    padding: 0.5rem 1.5rem;
+}
+
+.dropdown-item:hover {
+    background-color: #34495e;
+    color: #fff;
+}
+
+.dropdown-item.active {
+    background-color: #3498db;
+    color: #fff;
+}
+
+/* Card styles */
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: none;
+    margin-bottom: 20px;
+}
+
+/* Navigation link styles */
+.nav-link {
+    color: #fff;
+    padding: 0.8rem 1rem;
+    transition: background-color 0.2s ease;
+}
+
+.nav-link:hover {
+    background-color: #34495e;
+    color: #fff;
+}
+
+.nav-link.active {
+    background-color: #3498db !important;
+    color: #fff;
+}
+
+/* User info section */
+.user-info {
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+    
+    .main-content {
+        margin-left: 0;
+        padding: 15px;
+    }
+}

@@ -1,191 +1,139 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
 require_once 'includes/config.php';
-require_once 'includes/functions.php';
-
-// Debug information
-error_log("Debug - Session Data: " . print_r($_SESSION, true));
-error_log("Debug - User Roles: " . print_r($_SESSION['roles'] ?? [], true));
+require_once 'session_check.php';
 
 $current_page = basename($_SERVER['PHP_SELF']);
-require_once 'session_check.php';
+$base_url = '/crm/';
 ?>
-<!-- Initialize Bootstrap components immediately -->
-<script>
-(function() {
-    function initDropdowns() {
-        var dropdowns = document.querySelectorAll('.dropdown-toggle');
-        dropdowns.forEach(function(dropdown) {
-            new bootstrap.Dropdown(dropdown);
-        });
-    }
 
-    // Try to initialize immediately if DOM is ready
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        initDropdowns();
-    }
-
-    // Also listen for DOMContentLoaded as a fallback
-    document.addEventListener('DOMContentLoaded', initDropdowns);
-})();
-</script>
-<div class="sidebar bg-dark text-white" style="width: 250px; height: 100vh; position: fixed; left: 0; top: 0; overflow-y: auto;">
+<nav class="sidebar">
     <div class="d-flex flex-column h-100">
-        <!-- Logo/Brand -->
+        <!-- Logo -->
         <div class="p-3 border-bottom">
-            <a class="text-decoration-none text-white fs-4" href="<?php echo getUrl('index.php'); ?>">
-                <img src="../images/favicon.png" alt="Angel Stones" style="width: 24px; height: 24px; margin-right: 8px;">
-                Angel Stones
+            <a class="d-flex align-items-center text-decoration-none text-white" href="<?php echo $base_url; ?>index.php">
+                <img src="../images/favicon.png" alt="Angel Stones" class="me-2" style="width: 30px; height: 30px;">
+                <span class="fs-4">Angel Stones</span>
             </a>
         </div>
 
-        <!-- Navigation Items -->
-        <div class="nav flex-column py-3">
-            <a class="nav-link text-white <?php echo $current_page == 'crm_dashboard.php' ? 'active bg-primary' : ''; ?>" 
-               href="<?php echo getUrl('crm_dashboard.php'); ?>">
-                <i class="bi bi-speedometer2 me-2"></i> Dashboard
-            </a>
+        <!-- Navigation -->
+        <ul class="nav flex-column py-3">
+            <!-- Dashboard -->
+            <li class="nav-item">
+                <a class="nav-link <?php echo $current_page == 'index.php' ? 'active' : ''; ?>" 
+                   href="<?php echo $base_url; ?>index.php">
+                    <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                </a>
+            </li>
 
-            <a class="nav-link text-white <?php echo $current_page == 'tasks.php' ? 'active bg-primary' : ''; ?>" 
-               href="<?php echo getUrl('tasks.php'); ?>">
-                <i class="bi bi-list-check me-2"></i> Tasks
-            </a>
+            <!-- Tasks -->
+            <li class="nav-item">
+                <a class="nav-link <?php echo $current_page == 'tasks.php' ? 'active' : ''; ?>" 
+                   href="<?php echo $base_url; ?>tasks.php">
+                    <i class="bi bi-list-check me-2"></i> Tasks
+                </a>
+            </li>
 
-            <!-- Contacts & Companies Dropdown -->
-            <div class="nav-item dropdown">
-                <a class="nav-link text-white dropdown-toggle" href="#" id="contactsDropdown" role="button" data-bs-toggle="dropdown">
+            <!-- Contacts & Companies -->
+            <li class="nav-item">
+                <a class="nav-link dropdown-toggle" href="#contactsSubmenu" data-bs-toggle="collapse" role="button">
                     <i class="bi bi-people me-2"></i> Contacts & Companies
                 </a>
-                <ul class="dropdown-menu dropdown-menu-dark" style="position: relative; width: 100%; margin: 0; border-radius: 0;">
-                    <li>
-                        <a class="dropdown-item ps-4 <?php echo $current_page == 'customers.php' ? 'active' : ''; ?>" 
-                           href="<?php echo getUrl('customers.php'); ?>">
-                            <i class="bi bi-person me-2"></i> Contacts
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item ps-4 <?php echo $current_page == 'companies.php' ? 'active' : ''; ?>" 
-                           href="<?php echo getUrl('companies.php'); ?>">
-                            <i class="bi bi-building me-2"></i> Companies
-                        </a>
-                    </li>
-                </ul>
-            </div>
+                <div class="collapse" id="contactsSubmenu">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo $current_page == 'customers.php' ? 'active' : ''; ?>" 
+                               href="<?php echo $base_url; ?>customers.php">
+                                <i class="bi bi-person me-2"></i> Contacts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo $current_page == 'companies.php' ? 'active' : ''; ?>" 
+                               href="<?php echo $base_url; ?>companies.php">
+                                <i class="bi bi-building me-2"></i> Companies
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
 
-            <a class="nav-link text-white <?php echo $current_page == 'quote.php' ? 'active bg-primary' : ''; ?>" 
-               href="<?php echo getUrl('quote.php'); ?>">
-                <i class="bi bi-file-earmark-text me-2"></i> New Quote
-            </a>
+            <!-- Warehouse Management -->
+            <li class="nav-item">
+                <a class="nav-link dropdown-toggle" href="#warehouseSubmenu" data-bs-toggle="collapse" role="button">
+                    <i class="bi bi-box-seam me-2"></i> Warehouse
+                </a>
+                <div class="collapse" id="warehouseSubmenu">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo $current_page == 'warehouses.php' ? 'active' : ''; ?>" 
+                               href="<?php echo $base_url; ?>warehouses.php">
+                                <i class="bi bi-building me-2"></i> Warehouses
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo $current_page == 'raw_materials.php' ? 'active' : ''; ?>" 
+                               href="<?php echo $base_url; ?>raw_materials.php">
+                                <i class="bi bi-box me-2"></i> Raw Materials
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
 
-            <a class="nav-link text-white <?php echo $current_page == 'quotes.php' ? 'active bg-primary' : ''; ?>" 
-               href="<?php echo getUrl('quotes.php'); ?>">
-                <i class="bi bi-files me-2"></i> All Quotes
-            </a>
-
-            <?php if (isAdmin()): ?>
-            <div class="border-top my-3"></div>
-            
-            <a class="nav-link text-white <?php echo $current_page == 'products.php' ? 'active bg-primary' : ''; ?>" 
-               href="<?php echo getUrl('products.php'); ?>">
-                <i class="bi bi-box-seam me-2"></i> Products
-            </a>
-
-            <a class="nav-link text-white <?php echo $current_page == 'email_analytics.php' ? 'active bg-primary' : ''; ?>" 
-               href="<?php echo getUrl('email_analytics.php'); ?>">
-                <i class="bi bi-graph-up me-2"></i> Email Analytics
-            </a>
-
-            <a class="nav-link text-white <?php echo $current_page == 'settings.php' ? 'active bg-primary' : ''; ?>" 
-               href="<?php echo getUrl('settings.php'); ?>">
-                <i class="bi bi-gear me-2"></i> Settings
-            </a>
-
-            <a class="nav-link text-white <?php echo $current_page == 'manage_users.php' ? 'active bg-primary' : ''; ?>" 
-               href="<?php echo getUrl('manage_users.php'); ?>">
-                <i class="bi bi-people-fill me-2"></i> Users
-            </a>
+            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+            <!-- Admin Section -->
+            <li class="nav-item">
+                <a class="nav-link dropdown-toggle" href="#adminSubmenu" data-bs-toggle="collapse" role="button">
+                    <i class="bi bi-gear me-2"></i> Admin
+                </a>
+                <div class="collapse" id="adminSubmenu">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo $current_page == 'users.php' ? 'active' : ''; ?>" 
+                               href="<?php echo $base_url; ?>users.php">
+                                <i class="bi bi-people me-2"></i> Users
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo $current_page == 'settings.php' ? 'active' : ''; ?>" 
+                               href="<?php echo $base_url; ?>settings.php">
+                                <i class="bi bi-sliders me-2"></i> Settings
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
             <?php endif; ?>
-        </div>
+        </ul>
 
-        <!-- User Info and Logout at Bottom -->
+        <!-- User Profile -->
         <div class="mt-auto p-3 border-top">
             <?php if (isset($_SESSION['first_name']) && isset($_SESSION['last_name'])): ?>
-            <div class="d-flex flex-column">
-                <span class="text-white mb-2">
-                    <i class="bi bi-person-circle me-2"></i>
-                    <?php echo htmlspecialchars($_SESSION['first_name'] . ' ' . $_SESSION['last_name']); ?>
-                </span>
-                <a class="nav-link text-white" href="<?php echo getUrl('logout.php'); ?>">
-                    <i class="bi bi-box-arrow-right me-2"></i> Logout
-                </a>
+            <div class="d-flex align-items-center mb-2 text-white">
+                <i class="bi bi-person-circle me-2"></i>
+                <span><?php echo htmlspecialchars($_SESSION['first_name'] . ' ' . $_SESSION['last_name']); ?></span>
             </div>
+            <a href="<?php echo $base_url; ?>logout.php" class="btn btn-outline-light btn-sm w-100">
+                <i class="bi bi-box-arrow-right me-2"></i> Logout
+            </a>
             <?php endif; ?>
         </div>
     </div>
-</div>
-
-<!-- Main Content Wrapper with Left Margin -->
-<div style="margin-left: 250px;">
-    <div class="container-fluid py-4">
-        <!-- Your page content will go here -->
+</nav>
 
 <script>
+// Auto-expand current section
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize all dropdowns
-    var dropdowns = document.querySelectorAll('.dropdown-toggle');
-    dropdowns.forEach(function(dropdown) {
-        new bootstrap.Dropdown(dropdown);
+    const currentPage = '<?php echo $current_page; ?>';
+    const links = document.querySelectorAll('.nav-link');
+    
+    links.forEach(link => {
+        if (link.getAttribute('href') && link.getAttribute('href').includes(currentPage)) {
+            const submenu = link.closest('.collapse');
+            if (submenu) {
+                submenu.classList.add('show');
+            }
+        }
     });
 });
 </script>
-
-<style>
-.sidebar .nav-link {
-    padding: 0.5rem 1rem;
-    transition: all 0.3s;
-    white-space: nowrap;
-}
-
-.sidebar .nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.sidebar .nav-link.active {
-    background-color: var(--bs-primary);
-}
-
-.sidebar .dropdown-menu {
-    background-color: #2c3034;
-    border: none;
-    padding: 0;
-    box-shadow: none;
-    margin-top: 0 !important;
-    position: static !important;
-    transform: none !important;
-    width: 100%;
-}
-
-.sidebar .dropdown-item {
-    padding: 0.5rem 1rem;
-    color: white;
-}
-
-.sidebar .dropdown-item:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.sidebar .dropdown-item.active {
-    background-color: var(--bs-primary);
-}
-
-.sidebar .dropdown-toggle::after {
-    float: right;
-    margin-top: 10px;
-}
-
-.sidebar .dropdown-toggle[aria-expanded="true"]::after {
-    transform: rotate(180deg);
-}
-</style>
