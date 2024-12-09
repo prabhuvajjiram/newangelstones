@@ -173,6 +173,13 @@ function generatePDFForEmail($quote_id, $output_path) {
     $pdf->Cell(array_sum(array_slice($col_widths, 0, 6)), 7, 'Total:', 1, 0, 'R');
     $pdf->Cell($col_widths[6], 7, '$' . number_format($grand_total, 2), 1, 1, 'R');
 
+    // Add Terms and Conditions
+    $pdf->Ln(5);
+    $pdf->SetFont('helvetica', '', 7);
+    $pdf->SetTextColor(51, 51, 51);
+    $terms = "1. This quote is valid for 30 days from the date of issue. 2. 50% advance payment is required to confirm the order. 3. Delivery time will be confirmed after order confirmation. 4. Prices are subject to change with prior notice. 5. All disputes are subject to local jurisdiction.";
+    $pdf->MultiCell(0, 4, $terms, 0, 'L');
+
     // Save PDF
     return $pdf->Output($output_path, 'F');
 }
