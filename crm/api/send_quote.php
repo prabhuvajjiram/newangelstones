@@ -38,7 +38,7 @@ function generatePDFForEmail($quote_id, $output_path) {
     }
 
     // Get quote items
-    $items_sql = "SELECT qi.*, scr.color_name,
+    $items_sql = "SELECT qi.*, qi.unit_price as base_price, scr.color_name,
                   CASE qi.product_type
                     WHEN 'sertop' THEN (SELECT model FROM sertop_products WHERE id = qi.model)
                     WHEN 'slant' THEN (SELECT model FROM slant_products WHERE id = qi.model)
@@ -53,6 +53,24 @@ function generatePDFForEmail($quote_id, $output_path) {
     $stmt->execute([$quote_id]);
     $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Calculate commission rate and distribute across items
+    $commission_rate = floatval($quote['commission_rate'] ?? 0) / 100;
+    $total_without_commission = 0;
+    foreach ($items as $item) {
+        $total_without_commission += floatval($item['total_price']);
+    }
+
+    // Calculate commission per dollar
+    $commission_per_dollar = $total_without_commission > 0 ? 
+        ($total_without_commission * $commission_rate) / $total_without_commission : 0;
+
+    // Apply commission to each item
+    foreach ($items as &$item) {
+        $item_commission = floatval($item['total_price']) * $commission_per_dollar;
+        $item['price_with_commission'] = floatval($item['base_price']) * (1 + $commission_per_dollar);
+        $item['total_with_commission'] = floatval($item['total_price']) * (1 + $commission_per_dollar);
+    }
+
     // Create new PDF instance
     $pdf = new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
     
@@ -64,7 +82,7 @@ function generatePDFForEmail($quote_id, $output_path) {
     // Set header and footer
     $pdf->setHeaderData('', 0, '', '');
     $pdf->setHeaderFont(Array('helvetica', '', 10));
-    $pdf->SetMargins(15, 55, 15);
+    $pdf->SetMargins(5, 55, 5);  
     $pdf->SetHeaderMargin(10);
     $pdf->SetFooterMargin(35);
     $pdf->SetAutoPageBreak(true, 35);
@@ -110,47 +128,50 @@ function generatePDFForEmail($quote_id, $output_path) {
     $pdf->SetFont('helvetica', 'B', 12);
     $pdf->Cell(0, 8, 'Items', 0, 1, 'L', true);
 
-    // Items table header
-    $pdf->Ln(5);
-    $pdf->SetFillColor(34, 40, 49);
-    $pdf->SetTextColor(255, 255, 255);
-    $pdf->SetFont('helvetica', 'B', 10);
+    // Table Header
+    $pdf->SetTextColor(51, 51, 51);
+    $pdf->SetFont('helvetica', 'B', 9);
+    $pdf->SetFillColor(240, 240, 240);
     
-    $pdf->Cell(60, 8, 'Description', 1, 0, 'L', true);
-    $pdf->Cell(30, 8, 'Dimensions', 1, 0, 'C', true);
-    $pdf->Cell(20, 8, 'Qty', 1, 0, 'C', true);
-    $pdf->Cell(35, 8, 'Unit Price', 1, 0, 'R', true);
-    $pdf->Cell(35, 8, 'Total', 1, 1, 'R', true);
-
+    $col_widths = array(60, 22, 37, 15, 12, 22, 22);  
+    $headers = array('Description', 'Color', 'Dimensions', 'Cu.ft', 'Qty', 'Price', 'Total');
+    
+    $pdf->Ln(5);
+    foreach ($headers as $i => $header) {
+        $pdf->Cell($col_widths[$i], 7, $header, 1, 0, 'C', true);
+    }
+    $pdf->Ln();
+    
     // Items rows
     $pdf->SetTextColor(51, 51, 51);
     $pdf->SetFont('helvetica', '', 9);
+    $pdf->SetFillColor(255, 255, 255);
     
-    $subtotal = 0;
+    $grand_total = 0;
     foreach ($items as $item) {
         $description = ucfirst($item['product_type']);
         if (!empty($item['model_name'])) {
             $description .= ' - ' . $item['model_name'];
         }
-        if (!empty($item['color_name'])) {
-            $description .= ' - ' . $item['color_name'];
-        }
         
-        $dimensions = $item['length'] . '" × ' . $item['breadth'] . '" × ' . $item['size'] . '"';
+        $dimensions = $item['length'] . '" x ' . $item['breadth'] . '" x ' . $item['size'] . '"';
         
-        $pdf->Cell(60, 7, $description, 1, 0, 'L');
-        $pdf->Cell(30, 7, $dimensions, 1, 0, 'C');
-        $pdf->Cell(20, 7, $item['quantity'], 1, 0, 'C');
-        $pdf->Cell(35, 7, '$' . number_format($item['unit_price'], 2), 1, 0, 'R');
-        $pdf->Cell(35, 7, '$' . number_format($item['total_price'], 2), 1, 1, 'R');
+        $pdf->Cell($col_widths[0], 7, $description, 1, 0, 'L');
+        $pdf->Cell($col_widths[1], 7, $item['color_name'], 1, 0, 'C');
+        $pdf->Cell($col_widths[2], 7, $dimensions, 1, 0, 'C');
+        $pdf->Cell($col_widths[3], 7, number_format($item['cubic_feet'], 2), 1, 0, 'C');
+        $pdf->Cell($col_widths[4], 7, $item['quantity'], 1, 0, 'C');
+        $pdf->Cell($col_widths[5], 7, '$' . number_format($item['price_with_commission'], 2), 1, 0, 'R');
+        $pdf->Cell($col_widths[6], 7, '$' . number_format($item['total_with_commission'], 2), 1, 0, 'R');
+        $pdf->Ln();
         
-        $subtotal += $item['total_price'];
+        $grand_total += $item['total_with_commission'];
     }
 
     // Totals
-    $pdf->SetFont('helvetica', 'B', 10);
-    $pdf->Cell(145, 8, 'Total:', 1, 0, 'R');
-    $pdf->Cell(35, 8, '$' . number_format($subtotal, 2), 1, 1, 'R');
+    $pdf->SetFont('helvetica', 'B', 9);
+    $pdf->Cell(array_sum(array_slice($col_widths, 0, 6)), 7, 'Total:', 1, 0, 'R');
+    $pdf->Cell($col_widths[6], 7, '$' . number_format($grand_total, 2), 1, 1, 'R');
 
     // Save PDF
     return $pdf->Output($output_path, 'F');

@@ -25,7 +25,17 @@ class ProductCalculations {
         // Calculate square feet
         const sqft = this.calculateSquareFeet(length, breadth);
 
-        // Calculate cubic feet
+        // Calculate base price per unit (before quantity)
+        const rawBasePrice = this.calculateBasePrice(base_price, sqft);
+
+        // Calculate markups per unit
+        const colorMarkupAmount = this.calculateMarkup(rawBasePrice, colorMarkup);
+        const monumentMarkupAmount = this.calculateMarkup(rawBasePrice, monumentMarkup);
+
+        // Calculate price per unit including markups
+        const pricePerUnit = rawBasePrice + colorMarkupAmount + monumentMarkupAmount;
+
+        // Calculate cubic feet (includes quantity)
         const cubicFeet = this.calculateCubicFeet(
             length, 
             breadth, 
@@ -35,15 +45,8 @@ class ProductCalculations {
             thickness_inches
         );
 
-        // Calculate base price
-        const rawBasePrice = this.calculateBasePrice(base_price, sqft);
-
-        // Calculate markups
-        const colorMarkupAmount = this.calculateMarkup(rawBasePrice, colorMarkup);
-        const monumentMarkupAmount = this.calculateMarkup(rawBasePrice, monumentMarkup);
-
-        // Calculate final price
-        const finalPrice = (rawBasePrice + colorMarkupAmount + monumentMarkupAmount) * quantity;
+        // Calculate final price (price per unit * quantity)
+        const finalPrice = pricePerUnit * quantity;
 
         return {
             sqft: sqft,

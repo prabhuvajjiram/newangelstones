@@ -238,20 +238,29 @@ class QuoteManager {
             return null;
         }
 
-        // Calculate measurements using ProductCalculations
-        const result = ProductCalculations.calculateTotalPrice(
-            this.currentMeasurements,
-            {
-                base_price: parseFloat(selectedModel.data('price')) || 0,
-                type: this.currentProduct.type,
-                size: this.currentProduct.size,
-                thickness_inches: parseFloat(selectedModel.data('thickness_inches')) || 4.00
-            },
-            this.getSelectedMarkup(this.stoneColorSelect),
-            this.getSelectedMarkup(this.specialMonumentSelect)
-        );
+        // Get base price from model
+        const basePrice = parseFloat(selectedModel.data('price')) || 0;
+        console.log('Base price from model:', basePrice);
 
-        console.log('Creating cart item with calculations:', result);
+        // Calculate square feet
+        const length = parseFloat(this.currentMeasurements.length) || 0;
+        const breadth = parseFloat(this.currentMeasurements.breadth) || 0;
+        const sqft = (length * breadth) / 144;
+        console.log('Square feet:', sqft);
+
+        // Calculate base price per unit
+        const basePricePerUnit = basePrice * sqft;
+        console.log('Base price per unit:', basePricePerUnit);
+
+        // Get markups
+        const colorMarkup = this.getSelectedMarkup(this.stoneColorSelect);
+        const monumentMarkup = this.getSelectedMarkup(this.specialMonumentSelect);
+        console.log('Markups:', { colorMarkup, monumentMarkup });
+
+        // Calculate total price
+        const quantity = parseInt(this.currentMeasurements.quantity) || 1;
+        const totalPrice = basePricePerUnit * quantity;
+        console.log('Total price:', totalPrice);
 
         const item = {
             type: this.currentProduct.type,
@@ -262,13 +271,15 @@ class QuoteManager {
             color_name: selectedColor.val() ? selectedColor.text() : null,
             special_monument_id: selectedMonument.val() || null,
             special_monument_name: selectedMonument.val() ? selectedMonument.text() : null,
-            length: parseFloat(this.currentMeasurements.length) || 0,
-            breadth: parseFloat(this.currentMeasurements.breadth) || 0,
-            quantity: parseInt(this.currentMeasurements.quantity) || 1,
-            sqft: result.sqft || 0,
-            cubic_feet: result.cubicFeet || 0,
-            base_price: result.basePrice || 0,
-            total_price: result.totalPrice || 0
+            color_markup: colorMarkup,
+            monument_markup: monumentMarkup,
+            length: length,
+            breadth: breadth,
+            quantity: quantity,
+            sqft: sqft,
+            cubic_feet: (length * breadth * parseFloat(this.currentProduct.size)) / 1728 * quantity,
+            base_price: basePricePerUnit,
+            total_price: totalPrice
         };
 
         console.log('Created cart item:', item);
@@ -571,22 +582,26 @@ class QuoteManager {
             return;
         }
 
+        let totalBasePrice = 0;
+        let grandTotal = 0;
+
         items.forEach((item, index) => {
             const sqft = parseFloat(item.sqft) || 0;
             const cubicFeet = parseFloat(item.cubic_feet) || 0;
             const basePrice = parseFloat(item.base_price) || 0;
-            const totalPrice = parseFloat(item.total_price) || 0;
-            const splMonument = item.type.toUpperCase() === 'SERTOP' ? 
-                (item.special_monument_name || 'None') : 'None';
+            const totalPrice = basePrice * item.quantity;
+
+            totalBasePrice += basePrice;
+            grandTotal += totalPrice;
 
             cartBody.append(`
                 <tr>
                     <td>${(item.type || '').toUpperCase()}</td>
-                    <td>${splMonument}</td>
+                    <td>${item.special_monument_name || 'None'}</td>
                     <td>${item.model_name || ''}</td>
                     <td>${item.color_name || '-'}</td>
                     <td>${item.length} x ${item.breadth} x ${item.size}</td>
-                    <td>${item.quantity || 1}</td>
+                    <td>${item.quantity}</td>
                     <td>${sqft.toFixed(2)}</td>
                     <td>${cubicFeet.toFixed(2)}</td>
                     <td class="text-end">$${basePrice.toFixed(2)}</td>
@@ -600,14 +615,16 @@ class QuoteManager {
             `);
         });
 
+        // Update totals
+        $('#cartBasePrice').text('$' + totalBasePrice.toFixed(2));
+        $('#cartTotal').text('$' + grandTotal.toFixed(2));
+        $('#generateQuoteBtn').prop('disabled', false);
+
         // Add click handler for delete buttons
         cartBody.find('.btn-danger').on('click', (e) => {
             const index = $(e.currentTarget).data('index');
             this.removeFromCart(index);
         });
-
-        this.updateTotals();
-        $('#generateQuoteBtn').prop('disabled', false);
     }
 
     updateTotals() {

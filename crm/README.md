@@ -45,3 +45,6 @@ The email system uses Gmail OAuth2 for secure email sending. Features include:
 - curl
 - openssl
 - json
+
+## Generaing PDF and sending emails
+send_quote.php and generatepdf.php to generate PDF and send emails.
