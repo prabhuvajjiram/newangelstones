@@ -95,7 +95,7 @@ require_once 'session_check.php';
             </div>
             <div class="nav-item dropdown">
                 <a class="nav-link text-white dropdown-toggle" href="#" id="orderProcessing" role="button">
-                    <i class="bi bi-box-seam me-2"></i> Order Processing
+                    <i class="bi bi-cart3 me-2"></i> Order Processing
                 </a>
                 <ul class="dropdown-menu dropdown-menu-dark" style="position: relative; width: 100%; margin: 0; border-radius: 0;">
                     <li>
@@ -107,7 +107,7 @@ require_once 'session_check.php';
                     <li>
                         <a class="dropdown-item ps-4 <?php echo $current_page == 'production_orders.php' ? 'active' : ''; ?>" 
                         href="<?php echo getUrl('finished_products.php'); ?>">
-                            <i class="bi bi-box me-2"></i> Production Orders
+                            <i class="bi bi-gear-wide-connected me-2"></i> Production Orders
                         </a>
                     </li>
                 </ul>
@@ -118,7 +118,7 @@ require_once 'session_check.php';
              <!-- Pricing -->
              <div class="nav-item dropdown">
                 <a class="nav-link text-white dropdown-toggle" href="#" id="pricingDropdown" role="button">
-                    <i class="bi bi-box-seam me-2"></i> Pricing
+                    <i class="bi bi-currency-dollar me-2"></i> Pricing
                 </a>
                 <ul class="dropdown-menu dropdown-menu-dark" style="position: relative; width: 100%; margin: 0; border-radius: 0;">
                     <li>
@@ -130,7 +130,7 @@ require_once 'session_check.php';
                     <li>
                         <a class="dropdown-item ps-4 <?php echo $current_page == 'inventory_pricing.php' ? 'active' : ''; ?>" 
                         href="<?php echo getUrl('inventory_pricing.php'); ?>">
-                            <i class="bi bi-cash-stack me-2"></i> Inventory Pricing
+                            <i class="bi bi-tags me-2"></i> Inventory Pricing
                         </a>
                     </li>
                 </ul>
@@ -144,7 +144,7 @@ require_once 'session_check.php';
             <!-- Reports & Analytics Dropdown -->
             <div class="nav-item dropdown">
                 <a class="nav-link text-white dropdown-toggle" href="#" id="reportsDropdown" role="button">
-                    <i class="bi bi-graph-up me-2"></i> Reports & Analytics
+                    <i class="bi bi-bar-chart-line me-2"></i> Reports & Analytics
                 </a>
                 <ul class="dropdown-menu dropdown-menu-dark" style="position: relative; width: 100%; margin: 0; border-radius: 0;">
                     <li>
