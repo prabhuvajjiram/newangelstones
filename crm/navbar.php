@@ -80,9 +80,9 @@ require_once 'session_check.php';
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item ps-4 <?php echo $current_page == 'product_movement.php' ? 'active' : ''; ?>" 
-                        href="<?php echo getUrl('product_movement.php'); ?>">
-                            <i class="bi bi-arrows-move me-2"></i> Product Movement
+                        <a class="dropdown-item ps-4 <?php echo $current_page == 'product_movements.php' ? 'active' : ''; ?>" 
+                        href="<?php echo getUrl('product_movements.php'); ?>">
+                            <i class="bi bi-arrows-move me-2"></i> Product Movements
                         </a>
                     </li>
                 </ul>

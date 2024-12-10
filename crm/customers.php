@@ -129,7 +129,7 @@ include 'header.php';
                                     <th>Company</th>
                                     <th>Contact</th>
                                     <th>Location</th>
-                                    <th class="text-center">Status</th>
+                                    <th class="text-center">View</th>
                                 </tr>
                             </thead>
                             <tbody>

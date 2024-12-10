@@ -1,34 +1,84 @@
 <?php
 require_once 'config.php';
 
+class Database {
+    private static $instance = null;
+    private $pdo;
+
+    private function __construct() {
+        global $db_host, $db_name, $db_user, $db_pass;
+        
+        try {
+            $dsn = "mysql:host={$db_host};dbname={$db_name};charset=utf8mb4";
+            $options = [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false,
+            ];
+            $this->pdo = new PDO($dsn, $db_user, $db_pass, $options);
+        } catch (PDOException $e) {
+            throw new Exception("Connection failed: " . $e->getMessage());
+        }
+    }
+
+    public static function getInstance() {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
+    public function getConnection() {
+        return $this->pdo;
+    }
+}
+
 /**
  * Get database connection using PDO
  */
 function getDbConnection() {
-    global $db_host, $db_name, $db_user, $db_pass;
-    
     try {
-        $dsn = "mysql:host={$db_host};dbname={$db_name};charset=utf8mb4";
-        $options = [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false,
-        ];
-        return new PDO($dsn, $db_user, $db_pass, $options);
-    } catch (PDOException $e) {
-        throw new Exception("Connection failed: " . $e->getMessage());
+        return Database::getInstance()->getConnection();
+    } catch (Exception $e) {
+        error_log("Database connection error: " . $e->getMessage());
+        if (isAjaxRequest()) {
+            sendJsonResponse(false, "Database connection error");
+            exit;
+        }
+        throw $e;
     }
 }
 
-$pdo = getDbConnection();
+/**
+ * Check if the current request is an AJAX request
+ */
+function isAjaxRequest() {
+    return !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+           strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+}
+
+/**
+ * Send JSON response for AJAX requests
+ */
+function sendJsonResponse($success, $message = '', $data = null) {
+    header('Content-Type: application/json');
+    $response = [
+        'success' => $success,
+        'message' => $message
+    ];
+    if ($data !== null) {
+        $response['data'] = $data;
+    }
+    echo json_encode($response);
+    exit;
+}
 
 /**
  * Generates a unique quote number
  * Format: AS-YYYY-XXXXX (e.g., AS-2023-00001)
  */
 function generateQuoteNumber() {
-    global $pdo;
-    
+    $pdo = getDbConnection();
     $year = date('Y');
     $prefix = "AS-{$year}-";
     
@@ -56,6 +106,9 @@ function generateQuoteNumber() {
         return $prefix . str_pad($number, 5, '0', STR_PAD_LEFT);
     } catch (PDOException $e) {
         error_log("Error generating quote number: " . $e->getMessage());
+        if (isAjaxRequest()) {
+            sendJsonResponse(false, "Failed to generate quote number");
+        }
         throw new Exception("Failed to generate quote number");
     }
 }
@@ -78,6 +131,9 @@ function formatDate($date) {
  * Sanitize input
  */
 function sanitizeInput($input) {
+    if (is_array($input)) {
+        return array_map('sanitizeInput', $input);
+    }
     return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
 }
 
@@ -86,4 +142,83 @@ function sanitizeInput($input) {
  */
 function generateRandomString($length = 10) {
     return bin2hex(random_bytes($length));
+}
+
+/**
+ * Handle DataTables server-side processing
+ */
+function handleDataTablesRequest($query, $columns, $searchColumns = [], $where = '1=1') {
+    $pdo = getDbConnection();
+    
+    // Get request parameters
+    $draw = isset($_POST['draw']) ? intval($_POST['draw']) : 1;
+    $start = isset($_POST['start']) ? intval($_POST['start']) : 0;
+    $length = isset($_POST['length']) ? intval($_POST['length']) : 10;
+    $search = isset($_POST['search']['value']) ? $_POST['search']['value'] : '';
+    
+    // Build search condition
+    $searchWhere = [];
+    if (!empty($search)) {
+        foreach ($searchColumns as $col) {
+            $searchWhere[] = "$col LIKE :search";
+        }
+    }
+    
+    // Combine WHERE conditions
+    if (!empty($searchWhere)) {
+        $where .= " AND (" . implode(" OR ", $searchWhere) . ")";
+    }
+    
+    try {
+        // Count total records
+        $stmt = $pdo->query("SELECT COUNT(*) FROM ($query) as counted WHERE $where");
+        $recordsTotal = $stmt->fetchColumn();
+        
+        // Prepare the main query
+        $sql = "$query WHERE $where";
+        
+        // Add ORDER BY if specified
+        if (isset($_POST['order']) && isset($_POST['order'][0]['column'])) {
+            $orderColumn = intval($_POST['order'][0]['column']);
+            $orderDir = strtoupper($_POST['order'][0]['dir']) === 'DESC' ? 'DESC' : 'ASC';
+            
+            if (isset($columns[$orderColumn])) {
+                $sql .= " ORDER BY " . $columns[$orderColumn] . " $orderDir";
+            }
+        }
+        
+        // Add LIMIT
+        $sql .= " LIMIT :start, :length";
+        
+        // Prepare and execute the query
+        $stmt = $pdo->prepare($sql);
+        
+        // Bind search parameter if needed
+        if (!empty($search)) {
+            $searchParam = "%$search%";
+            $stmt->bindParam(':search', $searchParam, PDO::PARAM_STR);
+        }
+        
+        $stmt->bindParam(':start', $start, PDO::PARAM_INT);
+        $stmt->bindParam(':length', $length, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        // Fetch results
+        $data = $stmt->fetchAll();
+        
+        // Return response
+        return [
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsTotal, // If using search, this would be different
+            'data' => $data
+        ];
+        
+    } catch (PDOException $e) {
+        error_log("DataTables error: " . $e->getMessage());
+        if (isAjaxRequest()) {
+            sendJsonResponse(false, "Error processing request");
+        }
+        throw $e;
+    }
 }

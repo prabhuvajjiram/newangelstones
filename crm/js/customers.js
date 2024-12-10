@@ -69,12 +69,14 @@ $(document).ready(function() {
                 }
             },
             {
-                data: 'status',
+                data: null,
                 className: 'text-center',
                 render: function(data, type, row) {
-                    const statusClass = data === 'active' ? 'success' : 'danger';
-                    const statusText = data === 'active' ? 'Active' : 'Inactive';
-                    return `<span class="badge bg-${statusClass}-subtle text-${statusClass}">${statusText}</span>`;
+                    return `
+                        <a href="view_customer.php?id=${row.id}" class="btn btn-outline-primary btn-sm" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    `;
                 }
             }
         ],

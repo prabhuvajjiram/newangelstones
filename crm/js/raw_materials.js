@@ -73,10 +73,10 @@ function loadWarehouses() {
         url: 'ajax/get_warehouses.php',
         method: 'GET',
         success: function(response) {
-            if (response.success) {
-                populateWarehouseDropdown(response.warehouses);
+            if (response.success && response.data) {
+                populateWarehouseDropdown(response.data);
             } else {
-                console.error('Failed to load warehouses:', response.message);
+                console.error('Failed to load warehouses:', response.message || 'Unknown error');
             }
         },
         error: function(xhr, status, error) {
