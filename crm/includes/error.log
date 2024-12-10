@@ -60987,3 +60987,796 @@ Stack trace:
 )
 
 [10-Dec-2024 03:54:17 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:08:43 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:08:43 UTC] Starting dashboard data fetch
+[10-Dec-2024 04:08:43 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:08:43 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:08:43 UTC] Is Admin: Yes
+[10-Dec-2024 04:08:43 UTC] User Role: admin
+[10-Dec-2024 04:08:43 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:08:43 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:08:43 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:08:43 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:08:43 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:08:43 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:08:43 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:08:43 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:10:25 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:10:25 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:10:25 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:10:25 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:10:25 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:10:25 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:10:25 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:10:25 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:10:25 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:21 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:13:21 UTC] Starting dashboard data fetch
+[10-Dec-2024 04:13:21 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:13:21 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:21 UTC] Is Admin: Yes
+[10-Dec-2024 04:13:21 UTC] User Role: admin
+[10-Dec-2024 04:13:21 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:21 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:21 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:21 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:21 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:21 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:21 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:21 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:29 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:13:29 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:13:29 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:13:29 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:13:29 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:29 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:29 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:29 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:29 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:41 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:13:41 UTC] Starting dashboard data fetch
+[10-Dec-2024 04:13:41 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:13:41 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:41 UTC] Is Admin: Yes
+[10-Dec-2024 04:13:41 UTC] User Role: admin
+[10-Dec-2024 04:13:41 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:41 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:41 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:41 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:41 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:41 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:41 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:13:41 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:15:13 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:15:13 UTC] Starting dashboard data fetch
+[10-Dec-2024 04:15:13 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:15:13 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:15:13 UTC] Is Admin: Yes
+[10-Dec-2024 04:15:13 UTC] User Role: admin
+[10-Dec-2024 04:15:13 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:15:13 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:15:13 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:15:13 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:15:13 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:15:13 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:15:13 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:15:13 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:15:19 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:15:19 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:15:19 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:15:19 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:15:19 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:15:19 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:15:19 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:15:19 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:15:19 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:01 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:17:01 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:17:01 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:17:01 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:17:01 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:01 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:01 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:01 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:01 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:04 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:17:04 UTC] Starting dashboard data fetch
+[10-Dec-2024 04:17:04 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:17:04 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:04 UTC] Is Admin: Yes
+[10-Dec-2024 04:17:04 UTC] User Role: admin
+[10-Dec-2024 04:17:04 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:04 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:04 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:04 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:04 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:04 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:04 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:04 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:09 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:17:09 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:17:09 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:17:09 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:17:09 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:09 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:09 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:09 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:09 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:30 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:17:30 UTC] Starting dashboard data fetch
+[10-Dec-2024 04:17:30 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:17:30 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:30 UTC] Is Admin: Yes
+[10-Dec-2024 04:17:30 UTC] User Role: admin
+[10-Dec-2024 04:17:30 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:30 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:30 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:30 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:30 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:30 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:30 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:30 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:32 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:17:32 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:17:32 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:17:32 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:17:32 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:17:32 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:17:32 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:17:32 UTC] Sample row: 
+[10-Dec-2024 04:17:32 UTC] Executing query: 
+        SELECT 
+            m.*,
+            w1.name as source_warehouse,
+            w2.name as destination_warehouse,
+            CASE m.item_type
+                WHEN 'finished_product' THEN CONCAT(COALESCE(fp.sku, ''), ' - ', COALESCE(fp.name, ''))
+                WHEN 'raw_material' THEN CONCAT(
+                    'Raw Material: ',
+                    COALESCE(scr.color_name, 'Unknown Color'),
+                    ' - ',
+                    COALESCE(rm.warehouse_name, ''),
+                    ' (',
+                    COALESCE(rm.length, 0), 'x',
+                    COALESCE(rm.width, 0), 'x',
+                    COALESCE(rm.height, 0),
+                    ' - Location: ',
+                    COALESCE(rm.location_details, 'Not specified'),
+                    ')'
+                )
+                ELSE 'Unknown Item'
+            END as item_name,
+            rm.quantity as current_stock,
+            rm.status as stock_status
+        FROM product_movements m
+        LEFT JOIN warehouses w1 ON m.source_warehouse_id = w1.id
+        LEFT JOIN warehouses w2 ON m.destination_warehouse_id = w2.id
+        LEFT JOIN finished_products fp ON m.item_type = 'finished_product' AND m.item_id = fp.id
+        LEFT JOIN raw_materials rm ON m.item_type = 'raw_material' AND m.item_id = rm.id
+        LEFT JOIN stone_color_rates scr ON rm.color_id = scr.id
+        ORDER BY m.created_at DESC
+        LIMIT 1000
+[10-Dec-2024 04:17:32 UTC] Found 0 movements
+[10-Dec-2024 04:17:32 UTC] Database connected successfully in get_categories.php
+[10-Dec-2024 04:17:32 UTC] Executing query: SELECT * FROM product_categories ORDER BY name ASC
+[10-Dec-2024 04:17:32 UTC] Found 10 categories
+[10-Dec-2024 04:17:32 UTC] Categories: Array
+(
+    [0] => Array
+        (
+            [id] => 4
+            [name] => base
+            [description] => Base for headstones
+            [created_at] => 2024-12-09 20:27:03
+            [updated_at] => 2024-12-09 20:27:03
+        )
+
+    [1] => Array
+        (
+            [id] => 9
+            [name] => base
+            [description] => Base for headstones
+            [created_at] => 2024-12-09 21:30:49
+            [updated_at] => 2024-12-09 21:30:49
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [name] => marker
+            [description] => Marker for headstones
+            [created_at] => 2024-12-09 20:27:03
+            [updated_at] => 2024-12-09 20:27:03
+        )
+
+    [3] => Array
+        (
+            [id] => 8
+            [name] => marker
+            [description] => Marker for headstones
+            [created_at] => 2024-12-09 21:30:49
+            [updated_at] => 2024-12-09 21:30:49
+        )
+
+    [4] => Array
+        (
+            [id] => 1
+            [name] => Sertop
+            [description] => sertop products
+            [created_at] => 2024-12-09 20:27:03
+            [updated_at] => 2024-12-09 20:27:03
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [name] => Sertop
+            [description] => sertop products
+            [created_at] => 2024-12-09 21:30:49
+            [updated_at] => 2024-12-09 21:30:49
+        )
+
+    [6] => Array
+        (
+            [id] => 2
+            [name] => Slabs
+            [description] => Large stone slabs
+            [created_at] => 2024-12-09 20:27:03
+            [updated_at] => 2024-12-09 20:27:03
+        )
+
+    [7] => Array
+        (
+            [id] => 7
+            [name] => Slabs
+            [description] => Large stone slabs
+            [created_at] => 2024-12-09 21:30:49
+            [updated_at] => 2024-12-09 21:30:49
+        )
+
+    [8] => Array
+        (
+            [id] => 5
+            [name] => Slant
+            [description] => Slant for headstones
+            [created_at] => 2024-12-09 20:27:03
+            [updated_at] => 2024-12-09 20:27:03
+        )
+
+    [9] => Array
+        (
+            [id] => 10
+            [name] => Slant
+            [description] => Slant for headstones
+            [created_at] => 2024-12-09 21:30:49
+            [updated_at] => 2024-12-09 21:30:49
+        )
+
+)
+
+[10-Dec-2024 04:17:32 UTC] Response sent: {"success":true,"categories":[{"id":4,"name":"base","description":"Base for headstones","created_at":"2024-12-09 20:27:03","updated_at":"2024-12-09 20:27:03"},{"id":9,"name":"base","description":"Base for headstones","created_at":"2024-12-09 21:30:49","updated_at":"2024-12-09 21:30:49"},{"id":3,"name":"marker","description":"Marker for headstones","created_at":"2024-12-09 20:27:03","updated_at":"2024-12-09 20:27:03"},{"id":8,"name":"marker","description":"Marker for headstones","created_at":"2024-12-09 21:30:49","updated_at":"2024-12-09 21:30:49"},{"id":1,"name":"Sertop","description":"sertop products","created_at":"2024-12-09 20:27:03","updated_at":"2024-12-09 20:27:03"},{"id":6,"name":"Sertop","description":"sertop products","created_at":"2024-12-09 21:30:49","updated_at":"2024-12-09 21:30:49"},{"id":2,"name":"Slabs","description":"Large stone slabs","created_at":"2024-12-09 20:27:03","updated_at":"2024-12-09 20:27:03"},{"id":7,"name":"Slabs","description":"Large stone slabs","created_at":"2024-12-09 21:30:49","updated_at":"2024-12-09 21:30:49"},{"id":5,"name":"Slant","description":"Slant for headstones","created_at":"2024-12-09 20:27:03","updated_at":"2024-12-09 20:27:03"},{"id":10,"name":"Slant","description":"Slant for headstones","created_at":"2024-12-09 21:30:49","updated_at":"2024-12-09 21:30:49"}]}
+[10-Dec-2024 04:17:32 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:17:32 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:17:32 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:17:32 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:17:32 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:17:32 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:19:39 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:19:39 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:19:39 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:19:39 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:19:39 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:19:39 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:19:39 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:19:39 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:19:39 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:19:39 UTC] Warehouses data: Array
+(
+    [0] => Array
+        (
+            [id] => 8
+            [name] => Elberton
+            [address] => 5540 Centerview Dr
+            [contact_person] => Deepa Anbalagan
+            [phone] => (323)455-9489
+            [email] => da@theangelstones.com
+            [notes] => 
+            [status] => active
+        )
+
+)
+
+[10-Dec-2024 04:21:26 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:21:26 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:21:26 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:21:26 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:21:26 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:21:26 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:21:26 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:21:26 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:21:26 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:21:27 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:21:27 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:21:27 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:21:27 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:21:27 UTC] Warehouses data: Array
+(
+    [0] => Array
+        (
+            [id] => 8
+            [name] => Elberton
+            [address] => 5540 Centerview Dr
+            [contact_person] => Deepa Anbalagan
+            [phone] => (323)455-9489
+            [email] => da@theangelstones.com
+            [notes] => 
+            [status] => active
+        )
+
+)
+
+[10-Dec-2024 04:25:42 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:25:42 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:25:42 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:25:42 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:25:42 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:25:42 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:25:42 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:25:42 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:25:42 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:25:42 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:25:42 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:25:42 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:25:42 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:25:42 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:25:42 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:25:42 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:33 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:27:33 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:27:33 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:33 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:33 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:27:33 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:27:33 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:27:33 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:27:33 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:27:33 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:27:33 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:27:33 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:33 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:33 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:27:33 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:27:33 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:33 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:27:33 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:27:33 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:33 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:33 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:27:33 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:27:33 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:33 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:33 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:27:33 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:27:33 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:33 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:48 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:27:48 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:27:48 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:48 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:53 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:27:53 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:27:53 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:53 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:53 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:27:53 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:27:53 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:27:53 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:27:53 UTC] Checking if admin - Role: admin
+[10-Dec-2024 04:27:53 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:27:53 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:27:53 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:53 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:53 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:27:53 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:27:53 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:53 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:27:53 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:27:53 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:53 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:53 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:27:53 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:27:53 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:53 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:53 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:27:53 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:27:53 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:53 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:56 UTC] Session check - Session ID: ppi9hvp1ishfppeqkpns2tvqc6
+[10-Dec-2024 04:27:56 UTC] Session data: Array
+(
+    [timeout_message] => Your session has expired. Please log in again.
+    [user_id] => 2
+    [email] => info@theangelstones.com
+    [username] => info@theangelstones.com
+    [first_name] => Angel
+    [last_name] => Stones
+    [role] => admin
+    [last_activity] => 1733803718
+)
+
+[10-Dec-2024 04:27:56 UTC] Checking if logged in - User ID: 2
+[10-Dec-2024 04:27:56 UTC] Checking if logged in - User ID: 2

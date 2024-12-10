@@ -85,6 +85,12 @@ require_once 'session_check.php';
                             <i class="bi bi-arrows-move me-2"></i> Product Movements
                         </a>
                     </li>
+                    <li>
+                        <a class="dropdown-item ps-4 <?php echo $current_page == 'batch_operations.php' ? 'active' : ''; ?>" 
+                        href="<?php echo getUrl('batch_operations.php'); ?>">
+                            <i class="bi bi-arrows-move me-2"></i> Batch Operations
+                        </a>
+                    </li>
                 </ul>
             </div>
             <div class="nav-item dropdown">
