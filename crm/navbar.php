@@ -109,10 +109,26 @@ require_once 'session_check.php';
             <?php if (isAdmin()): ?>
             <div class="border-top my-3"></div>
             
-            <a class="nav-link text-white <?php echo $current_page == 'products.php' ? 'active bg-primary' : ''; ?>" 
-               href="<?php echo getUrl('products.php'); ?>">
-                <i class="bi bi-box-seam me-2"></i> Products
-            </a>
+             <!-- Pricing -->
+             <div class="nav-item dropdown">
+                <a class="nav-link text-white dropdown-toggle" href="#" id="pricingDropdown" role="button">
+                    <i class="bi bi-box-seam me-2"></i> Pricing
+                </a>
+                <ul class="dropdown-menu dropdown-menu-dark" style="position: relative; width: 100%; margin: 0; border-radius: 0;">
+                    <li>
+                        <a class="dropdown-item ps-4 <?php echo $current_page == 'products.php' ? 'active' : ''; ?>" 
+                        href="<?php echo getUrl('products.php'); ?>">
+                            <i class="bi bi-clipboard-data me-2"></i> Product Pricing
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item ps-4 <?php echo $current_page == 'inventory_pricing.php' ? 'active' : ''; ?>" 
+                        href="<?php echo getUrl('inventory_pricing.php'); ?>">
+                            <i class="bi bi-cash-stack me-2"></i> Inventory Pricing
+                        </a>
+                    </li>
+                </ul>
+            </div>
             
             <a class="nav-link text-white <?php echo $current_page == 'warehouses.php' ? 'active bg-primary' : ''; ?>" 
                 href="<?php echo getUrl('warehouses.php'); ?>">

@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS raw_materials (
     length DECIMAL(10,2) NOT NULL,
     width DECIMAL(10,2) NOT NULL,
     height DECIMAL(10,2) NOT NULL,
+    unit_price DECIMAL(10,2) NOT NULL,
+    final_price DECIMAL(10,2) DEFAULT NULL,
     quantity INT NOT NULL DEFAULT 0,
     warehouse_id INT NOT NULL,
     warehouse_name VARCHAR(255) NOT NULL,
