@@ -2,6 +2,7 @@ $(document).ready(function() {
     // Load initial data
     loadMaterials();
     loadColors();
+    loadWarehouses();
 
     // Event listeners for filters
     $('#colorFilter, #statusFilter').change(function() {
@@ -12,10 +13,9 @@ $(document).ready(function() {
         loadMaterials();
     });
 
-    // Save material button click handler
-    $('#saveMaterialBtn').click(function(e) {
-        e.preventDefault();
-        saveMaterial();
+    // Handle save button click
+    $('#saveMaterialBtn').click(function() {
+        saveMaterial($('#addMaterialForm'));
     });
 });
 
@@ -52,71 +52,107 @@ function loadMaterials() {
 }
 
 function loadColors() {
-    // Show loading state in dropdowns
-    const loadingOption = '<option value="">Loading colors...</option>';
-    $('#colorFilter').html(loadingOption);
-    $('select[name="color_id"]').html(loadingOption);
-
     $.ajax({
         url: 'ajax/get_colors.php',
-        type: 'GET',
+        method: 'GET',
         success: function(response) {
-            console.log('Colors response:', response);
             if (response.success) {
                 populateColorDropdowns(response.colors);
             } else {
-                const errorOption = '<option value="">Error loading colors</option>';
-                $('#colorFilter').html(errorOption);
-                $('select[name="color_id"]').html(errorOption);
-                console.error('Error loading colors:', response.message);
+                console.error('Failed to load colors:', response.message);
             }
         },
         error: function(xhr, status, error) {
-            const errorOption = '<option value="">Error loading colors</option>';
-            $('#colorFilter').html(errorOption);
-            $('select[name="color_id"]').html(errorOption);
-            console.error('AJAX error:', {xhr, status, error});
+            console.error('Error loading colors:', error);
+        }
+    });
+}
+
+function loadWarehouses() {
+    $.ajax({
+        url: 'ajax/get_warehouses.php',
+        method: 'GET',
+        success: function(response) {
+            if (response.success) {
+                populateWarehouseDropdown(response.warehouses);
+            } else {
+                console.error('Failed to load warehouses:', response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading warehouses:', error);
         }
     });
 }
 
 function populateColorDropdowns(colors) {
-    const filterOptions = ['<option value="">All Colors</option>'];
-    const modalOptions = ['<option value="">Select Color</option>'];
-
-    colors.forEach(color => {
-        const option = `<option value="${color.id}">${color.color_name}</option>`;
-        filterOptions.push(option);
-        modalOptions.push(option);
+    // Filter dropdown (with All Colors option)
+    const filterSelect = $('#colorFilter');
+    filterSelect.empty();
+    filterSelect.append('<option value="">All Colors</option>');
+    
+    // Form dropdown (without All Colors option)
+    const formSelect = $('select[name="color_id"]');
+    formSelect.empty();
+    formSelect.append('<option value="">Select Color</option>');
+    
+    // Add color options to both dropdowns
+    colors.forEach(function(color) {
+        // Add to filter dropdown
+        filterSelect.append(
+            $('<option></option>')
+                .val(color.id)
+                .text(color.name)
+        );
+        
+        // Add to form dropdown
+        formSelect.append(
+            $('<option></option>')
+                .val(color.id)
+                .text(color.name)
+        );
     });
+}
 
-    $('#colorFilter').html(filterOptions.join(''));
-    $('select[name="color_id"]').html(modalOptions.join(''));
+function populateWarehouseDropdown(warehouses) {
+    const select = $('select[name="warehouse_id"]');
+    select.empty();
+    select.append('<option value="">Select Warehouse</option>');
+    
+    warehouses.forEach(function(warehouse) {
+        select.append(
+            $('<option></option>')
+                .val(warehouse.id)
+                .text(warehouse.name)
+                .attr('data-name', warehouse.name)
+        );
+    });
 }
 
 function displayMaterials(materials) {
     const tbody = $('#materialsTableBody');
     tbody.empty();
 
-    materials.forEach(material => {
-        const status = getStatusBadge(material.status);
+    if (materials.length === 0) {
+        tbody.html('<tr><td colspan="9" class="text-center">No materials found</td></tr>');
+        return;
+    }
+
+    materials.forEach(function(material) {
+        const dimensions = `${material.length} × ${material.width} × ${material.height}`;
         const row = `
             <tr>
                 <td>${material.id}</td>
                 <td>${material.color_name}</td>
-                <td>${material.length}" × ${material.width}" × ${material.height}"</td>
+                <td>${dimensions}</td>
                 <td>${material.quantity}</td>
-                <td>${material.location}</td>
+                <td>${material.warehouse_name}</td>
+                <td>${material.location_details || '-'}</td>
                 <td>${material.min_stock_level}</td>
-                <td>${status}</td>
-                <td>${material.last_updated}</td>
+                <td>${getStatusBadge(material.status)}</td>
                 <td>
-                    <button class="btn btn-sm btn-primary me-1" onclick="editMaterial(${material.id})">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteMaterial(${material.id})">
-                        <i class="bi bi-trash"></i>
-                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="editMaterial(${material.id})">Edit</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteMaterial(${material.id})">Delete</button>
                 </td>
             </tr>
         `;
@@ -126,25 +162,25 @@ function displayMaterials(materials) {
 
 function getStatusBadge(status) {
     const badges = {
-        in_stock: '<span class="badge bg-success">In Stock</span>',
-        low_stock: '<span class="badge bg-warning">Low Stock</span>',
-        out_of_stock: '<span class="badge bg-danger">Out of Stock</span>'
+        'in_stock': '<span class="badge bg-success">In Stock</span>',
+        'low_stock': '<span class="badge bg-warning">Low Stock</span>',
+        'out_of_stock': '<span class="badge bg-danger">Out of Stock</span>'
     };
     return badges[status] || status;
 }
 
-function saveMaterial() {
-    // Get form data
-    const form = $('#addMaterialForm');
+function saveMaterial(form) {
     const formData = new FormData(form[0]);
+    
+    // Add warehouse name to form data
+    const warehouseSelect = form.find('select[name="warehouse_id"]');
+    const selectedOption = warehouseSelect.find('option:selected');
+    formData.append('warehouse_name', selectedOption.attr('data-name') || '');
 
     // Show loading state
     const saveBtn = $('#saveMaterialBtn');
     const originalText = saveBtn.text();
     saveBtn.prop('disabled', true).text('Saving...');
-
-    // Log form data for debugging
-    console.log('Form data being sent:', Object.fromEntries(formData));
 
     $.ajax({
         url: 'ajax/save_raw_material.php',
@@ -152,65 +188,28 @@ function saveMaterial() {
         data: formData,
         processData: false,
         contentType: false,
-        dataType: 'json',
         success: function(response) {
-            console.log('Save response:', response);
-            if (response && response.success) {
-                // Reset form and close modal
-                form[0].reset();
+            if (response.success) {
+                // Close modal and reset form
                 $('#addMaterialModal').modal('hide');
+                form[0].reset();
                 
-                // Remove any existing material_id input
-                form.find('input[name="material_id"]').remove();
+                // Show success message
+                showAlert('success', 'Material saved successfully');
                 
                 // Reload materials table
                 loadMaterials();
-                
-                // Show success message
-                alert('Material saved successfully');
             } else {
-                // Show error message
-                alert('Error saving material: ' + (response && response.message ? response.message : 'Unknown error'));
+                showAlert('danger', 'Error: ' + response.message);
             }
         },
         error: function(xhr, status, error) {
             console.error('Save error:', {xhr, status, error});
-            let errorMessage = 'Error saving material';
-            
-            try {
-                // Try to parse the response as JSON
-                if (xhr.responseText) {
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        if (response.message) {
-                            errorMessage += ': ' + response.message;
-                        }
-                    } catch (e) {
-                        // If response is not JSON, try to extract error from HTML
-                        const htmlMatch = xhr.responseText.match(/<b>([^<]+)<\/b>/);
-                        if (htmlMatch) {
-                            errorMessage += ': ' + htmlMatch[1];
-                        } else {
-                            errorMessage += ': ' + error;
-                        }
-                    }
-                } else {
-                    errorMessage += ': ' + error;
-                }
-            } catch (e) {
-                errorMessage += ': ' + error;
-            }
-            
-            alert(errorMessage);
+            showAlert('danger', 'Error saving material');
         },
         complete: function() {
             // Reset button state
             saveBtn.prop('disabled', false).text(originalText);
-            
-            // Always reload materials after save attempt
-            // This ensures the table is updated even if there was an error
-            // but the save actually succeeded
-            loadMaterials();
         }
     });
 }
@@ -221,35 +220,31 @@ function editMaterial(id) {
         type: 'GET',
         data: { id: id },
         success: function(response) {
-            console.log('Edit material response:', response);
             if (response.success) {
                 populateEditForm(response.material);
                 $('#addMaterialModal').modal('show');
             } else {
-                alert('Error loading material: ' + response.message);
-                console.error('Error loading material:', response.message);
+                showAlert('danger', 'Error: ' + response.message);
             }
         },
         error: function(xhr, status, error) {
-            alert('Error communicating with the server');
-            console.error('AJAX error:', {xhr, status, error});
+            console.error('Edit error:', {xhr, status, error});
+            showAlert('danger', 'Error loading material details');
         }
     });
 }
 
 function populateEditForm(material) {
     const form = $('#addMaterialForm');
-    form.find('[name="color_id"]').val(material.color_id);
-    form.find('[name="length"]').val(material.length);
-    form.find('[name="width"]').val(material.width);
-    form.find('[name="height"]').val(material.height);
-    form.find('[name="quantity"]').val(material.quantity);
-    form.find('[name="location"]').val(material.location);
-    form.find('[name="min_stock_level"]').val(material.min_stock_level);
-    
-    // Add material ID for update
-    form.find('input[name="material_id"]').remove();
-    form.append(`<input type="hidden" name="material_id" value="${material.id}">`);
+    form.find('input[name="material_id"]').val(material.id);
+    form.find('select[name="color_id"]').val(material.color_id);
+    form.find('input[name="length"]').val(material.length);
+    form.find('input[name="width"]').val(material.width);
+    form.find('input[name="height"]').val(material.height);
+    form.find('input[name="quantity"]').val(material.quantity);
+    form.find('select[name="warehouse_id"]').val(material.warehouse_id);
+    form.find('input[name="location_details"]').val(material.location_details);
+    form.find('input[name="min_stock_level"]').val(material.min_stock_level);
 }
 
 function deleteMaterial(id) {
@@ -259,19 +254,34 @@ function deleteMaterial(id) {
             type: 'POST',
             data: { id: id },
             success: function(response) {
-                console.log('Delete material response:', response);
                 if (response.success) {
+                    showAlert('success', 'Material deleted successfully');
                     loadMaterials();
-                    alert('Material deleted successfully');
                 } else {
-                    alert('Error deleting material: ' + response.message);
-                    console.error('Error deleting material:', response.message);
+                    showAlert('danger', 'Error: ' + response.message);
                 }
             },
             error: function(xhr, status, error) {
-                alert('Error communicating with the server');
-                console.error('AJAX error:', {xhr, status, error});
+                console.error('Delete error:', {xhr, status, error});
+                showAlert('danger', 'Error deleting material');
             }
         });
     }
+}
+
+function showAlert(type, message) {
+    const alertDiv = $('<div></div>')
+        .addClass(`alert alert-${type} alert-dismissible fade show`)
+        .attr('role', 'alert')
+        .html(`
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `);
+    
+    $('#alertContainer').append(alertDiv);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(function() {
+        alertDiv.alert('close');
+    }, 5000);
 }

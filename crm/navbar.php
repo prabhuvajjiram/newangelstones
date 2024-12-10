@@ -114,8 +114,8 @@ require_once 'session_check.php';
                 <i class="bi bi-box-seam me-2"></i> Products
             </a>
             
-            <a class="nav-link text-white <?php echo $current_page == 'warehouse.php' ? 'active bg-primary' : ''; ?>" 
-                href="<?php echo getUrl('warehouse.php'); ?>">
+            <a class="nav-link text-white <?php echo $current_page == 'warehouses.php' ? 'active bg-primary' : ''; ?>" 
+                href="<?php echo getUrl('warehouses.php'); ?>">
                 <i class="bi bi-building me-2"></i> Warehouse Management
             </a>
             

@@ -5,7 +5,6 @@ require_once 'session_check.php';
 
 $pageTitle = "Raw Materials Inventory";
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,7 +17,6 @@ $pageTitle = "Raw Materials Inventory";
 </head>
 <body>
     <?php include 'navbar.php'; ?>
-
     <div class="container-fluid py-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3"><?php echo $pageTitle; ?></h1>
@@ -106,8 +104,14 @@ $pageTitle = "Raw Materials Inventory";
                             <input type="number" class="form-control" name="quantity" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Location</label>
-                            <input type="text" class="form-control" name="location" required>
+                            <label class="form-label">Warehouse Location</label>
+                            <select class="form-select" name="warehouse_id" required>
+                                <!-- Warehouses will be populated via AJAX -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Location Details</label>
+                            <input type="text" class="form-control" name="location_details" placeholder="Shelf/Bin number or specific location">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Minimum Stock Level</label>

@@ -1,47 +1,34 @@
 <?php
-// Prevent any output before headers
 ob_start();
-
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/../logs/php_errors.log');
 
-// Set content type to JSON
+// Ensure we're sending JSON
 header('Content-Type: application/json');
 
+// Include required files
 require_once '../includes/config.php';
-
-function logError($message, $data = []) {
-    error_log(date('Y-m-d H:i:s') . " - " . $message . " - Data: " . json_encode($data));
-}
-
-// Ensure we catch any errors that might happen after headers are sent
-register_shutdown_function(function() {
-    $error = error_get_last();
-    if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
-        $response = json_encode([
-            'success' => false,
-            'message' => 'A server error occurred: ' . $error['message']
-        ]);
-        if (!headers_sent()) {
-            header('Content-Type: application/json');
-        }
-        echo $response;
-        exit;
-    }
-});
+require_once '../includes/functions.php';
 
 try {
+    // Get database connection
+    $pdo = getDbConnection();
+    
     // Log incoming data
-    logError("Incoming POST data", $_POST);
-
-    // Validate required fields
-    $requiredFields = ['color_id', 'length', 'width', 'height', 'quantity', 'location'];
+    error_log("Incoming POST data: " . print_r($_POST, true));
+    
+    // Required fields validation
+    $requiredFields = ['color_id', 'length', 'width', 'height', 'quantity', 'warehouse_id', 'warehouse_name'];
+    $missingFields = [];
     foreach ($requiredFields as $field) {
-        if (!isset($_POST[$field]) || $_POST[$field] === '') {
-            throw new Exception("Missing required field: {$field}");
+        if (!isset($_POST[$field]) || trim($_POST[$field]) === '') {
+            $missingFields[] = $field;
         }
+    }
+    if (!empty($missingFields)) {
+        throw new Exception("Missing required fields: " . implode(', ', $missingFields));
     }
 
     // Sanitize and validate inputs
@@ -49,129 +36,108 @@ try {
     $length = filter_var($_POST['length'], FILTER_VALIDATE_FLOAT);
     $width = filter_var($_POST['width'], FILTER_VALIDATE_FLOAT);
     $height = filter_var($_POST['height'], FILTER_VALIDATE_FLOAT);
-    $quantity = filter_var($_POST['quantity'], FILTER_VALIDATE_FLOAT);
-    $location = filter_var($_POST['location'], FILTER_SANITIZE_STRING);
-    // min_stock_level is optional, defaults to 0
-    $minStockLevel = isset($_POST['min_stock_level']) && $_POST['min_stock_level'] !== '' 
+    $quantity = filter_var($_POST['quantity'], FILTER_VALIDATE_INT);
+    $warehouseId = filter_var($_POST['warehouse_id'], FILTER_VALIDATE_INT);
+    $warehouseName = trim(htmlspecialchars($_POST['warehouse_name']));
+    
+    // Optional fields
+    $locationDetails = isset($_POST['location_details']) && trim($_POST['location_details']) !== '' 
+        ? trim(htmlspecialchars($_POST['location_details'])) 
+        : null;
+    
+    $minStock = isset($_POST['min_stock_level']) && trim($_POST['min_stock_level']) !== '' 
         ? filter_var($_POST['min_stock_level'], FILTER_VALIDATE_INT) 
-        : 0;
-    $materialId = isset($_POST['material_id']) ? filter_var($_POST['material_id'], FILTER_VALIDATE_INT) : null;
+        : 1;
 
-    // Additional validation
-    if ($colorId === false || $colorId <= 0) {
-        throw new Exception("Invalid color selected");
-    }
-    if ($length === false || $length <= 0) {
-        throw new Exception("Length must be a positive number");
-    }
-    if ($width === false || $width <= 0) {
-        throw new Exception("Width must be a positive number");
-    }
-    if ($height === false || $height <= 0) {
-        throw new Exception("Height must be a positive number");
-    }
-    if ($quantity === false) {
-        throw new Exception("Quantity must be a valid number");
-    }
-    if (empty($location)) {
-        throw new Exception("Location cannot be empty");
-    }
-    if ($minStockLevel === false || $minStockLevel < 0) {
-        throw new Exception("Minimum stock level must be a non-negative number");
+    // Validate numeric inputs
+    if (!$colorId || !$length || !$width || !$height || !$quantity || !$warehouseId) {
+        throw new Exception("Invalid numeric values provided");
     }
 
-    // Calculate status based on quantity and min_stock_level
+    // Set status based on quantity
     $status = 'in_stock';
     if ($quantity <= 0) {
         $status = 'out_of_stock';
-    } elseif ($quantity <= $minStockLevel) {
+    } elseif ($quantity <= $minStock) {
         $status = 'low_stock';
     }
 
-    // Log sanitized data
-    logError("Sanitized data", [
-        'color_id' => $colorId,
-        'length' => $length,
-        'width' => $width,
-        'height' => $height,
-        'quantity' => $quantity,
-        'location' => $location,
-        'min_stock_level' => $minStockLevel,
-        'status' => $status,
-        'material_id' => $materialId
-    ]);
+    // Prepare data array for binding
+    $data = [
+        ':color_id' => $colorId,
+        ':length' => $length,
+        ':width' => $width,
+        ':height' => $height,
+        ':quantity' => $quantity,
+        ':warehouse_id' => $warehouseId,
+        ':warehouse_name' => $warehouseName,
+        ':location_details' => $locationDetails,
+        ':min_stock_level' => $minStock,
+        ':status' => $status
+    ];
 
-    // Verify database connection
-    if (!$pdo) {
-        throw new Exception("Database connection failed");
-    }
-
-    // Start transaction
-    $pdo->beginTransaction();
-
-    try {
-        if ($materialId) {
-            // Update existing material
-            $stmt = $pdo->prepare("
-                UPDATE raw_materials 
-                SET color_id = ?, length = ?, width = ?, height = ?,
-                    quantity = ?, location = ?, min_stock_level = ?,
-                    status = ?, last_updated = NOW()
-                WHERE id = ?
-            ");
-            $stmt->execute([
-                $colorId, $length, $width, $height,
-                $quantity, $location, $minStockLevel,
-                $status, $materialId
-            ]);
-        } else {
-            // Insert new material
-            $stmt = $pdo->prepare("
-                INSERT INTO raw_materials 
-                (color_id, length, width, height, quantity, location, 
-                min_stock_level, status, last_updated)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
-            ");
-            $stmt->execute([
-                $colorId, $length, $width, $height,
-                $quantity, $location, $minStockLevel,
-                $status
-            ]);
+    // Prepare query based on whether we're updating or inserting
+    if (isset($_POST['material_id']) && !empty($_POST['material_id'])) {
+        $materialId = filter_var($_POST['material_id'], FILTER_VALIDATE_INT);
+        if (!$materialId) {
+            throw new Exception("Invalid material ID");
         }
 
-        // Commit transaction
-        $pdo->commit();
-
-        // Clear any buffered output
-        ob_clean();
-
-        echo json_encode([
-            'success' => true,
-            'message' => 'Material saved successfully',
-            'material_id' => $materialId ?? $pdo->lastInsertId()
-        ]);
-
-    } catch (Exception $e) {
-        $pdo->rollBack();
-        throw $e;
+        $data[':material_id'] = $materialId;
+        
+        $stmt = $pdo->prepare("
+            UPDATE raw_materials 
+            SET color_id = :color_id, 
+                length = :length, 
+                width = :width, 
+                height = :height, 
+                quantity = :quantity, 
+                warehouse_id = :warehouse_id, 
+                warehouse_name = :warehouse_name, 
+                location_details = :location_details, 
+                min_stock_level = :min_stock_level, 
+                status = :status
+            WHERE id = :material_id
+        ");
+    } else {
+        $stmt = $pdo->prepare("
+            INSERT INTO raw_materials 
+            (color_id, length, width, height, quantity, warehouse_id, 
+            warehouse_name, location_details, min_stock_level, status) 
+            VALUES (:color_id, :length, :width, :height, :quantity, :warehouse_id,
+                    :warehouse_name, :location_details, :min_stock_level, :status)
+        ");
     }
 
-} catch (Exception $e) {
-    logError("Error in save_raw_material.php: " . $e->getMessage(), [
-        'file' => $e->getFile(),
-        'line' => $e->getLine(),
-        'trace' => $e->getTraceAsString()
+    // Execute the query
+    if (!$stmt->execute($data)) {
+        throw new Exception("Database error: " . implode(', ', $stmt->errorInfo()));
+    }
+
+    // Clear any buffered output before sending JSON
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+
+    // Send success response
+    echo json_encode([
+        'success' => true,
+        'message' => 'Material saved successfully',
+        'id' => isset($materialId) ? $materialId : $pdo->lastInsertId()
     ]);
 
-    // Clear any buffered output
-    ob_clean();
+} catch (Exception $e) {
+    // Clear any buffered output before sending error
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
 
+    error_log("Error in save_raw_material.php: " . $e->getMessage());
+    
+    // Send error response
     http_response_code(500);
     echo json_encode([
         'success' => false,
         'message' => $e->getMessage()
     ]);
 }
-
-// End output buffering
-ob_end_flush();

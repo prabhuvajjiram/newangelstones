@@ -1,6 +1,7 @@
 <?php
 require_once 'includes/config.php';
 require_once 'session_check.php';
+requireAdmin();
 
 // Handle AJAX requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -82,236 +83,149 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-// Get customers list
-global $pdo;
-$customers = [];
-$stmt = $pdo->query("
-    SELECT c.*, comp.name as company_name 
-    FROM customers c 
-    LEFT JOIN companies comp ON c.company_id = comp.id 
-    ORDER BY c.name ASC
-");
-$customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+include 'header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Management - Angel Stones</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-    <?php include 'navbar.php'; ?>
 
-    <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Customers</h2>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#customerModal">
-                <i class="bi bi-person-plus"></i> Add Customer
-            </button>
-        </div>
+<!-- Add DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+<link rel="stylesheet" type="text/css" href="css/datatables-custom.css">
 
-        <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Company</th>
-                        <th>Job Title</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($customers as $customer): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($customer['name']) ?></td>
-                        <td><?= $customer['company_name'] ? htmlspecialchars($customer['company_name']) : '-' ?></td>
-                        <td><?= $customer['job_title'] ? htmlspecialchars($customer['job_title']) : '-' ?></td>
-                        <td><?= htmlspecialchars($customer['email']) ?></td>
-                        <td><?= htmlspecialchars($customer['phone']) ?></td>
-                        <td>
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-outline-primary edit-customer" data-id="<?= $customer['id'] ?>">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <a href="view_customer.php?id=<?= $customer['id'] ?>" class="btn btn-sm btn-outline-info">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
+<!-- Add base URL for JavaScript -->
+<script>
+    const BASE_URL = '<?php echo ADMIN_BASE_URL; ?>';
+</script>
 
-    <!-- Customer Modal -->
-    <div class="modal fade" id="customerModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Customer Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<?php include 'navbar.php'; ?>
+
+<div class="container-fluid px-4 py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="content-card bg-white rounded-3 shadow-sm">
+                <div class="card-header border-0 bg-transparent py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-semibold">Customer Management</h5>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#customerModal">
+                            <i class="fas fa-plus me-2"></i>Add New Customer
+                        </button>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <form id="customerForm">
-                        <input type="hidden" name="id" id="customerId">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="name" class="form-label">Name *</label>
-                                <input type="text" class="form-control" id="name" name="name" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="company_id" class="form-label">Company</label>
-                                <select class="form-select" id="company_id" name="company_id">
-                                    <option value="">Select Company</option>
-                                    <?php
-                                    $companies = $pdo->query("SELECT id, name FROM companies ORDER BY name ASC");
-                                    while ($company = $companies->fetch(PDO::FETCH_ASSOC)) {
-                                        echo '<option value="' . $company['id'] . '">' . htmlspecialchars($company['name']) . '</option>';
-                                    }
-                                    ?>
-                                </select>
-                            </div>
+                <div class="card-body px-4">
+                    <?php if (isset($_SESSION['success_message'])): ?>
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            <?php echo htmlspecialchars($_SESSION['success_message']); ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="jobTitle" class="form-label">Job Title</label>
-                                <input type="text" class="form-control" id="jobTitle" name="jobTitle">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" name="email">
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="phone" class="form-label">Phone</label>
-                                <input type="tel" class="form-control" id="phone" name="phone">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="address" class="form-label">Address</label>
-                                <input type="text" class="form-control" id="address" name="address">
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="city" class="form-label">City</label>
-                                <input type="text" class="form-control" id="city" name="city">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="state" class="form-label">State</label>
-                                <input type="text" class="form-control" id="state" name="state">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="postalCode" class="form-label">Postal Code</label>
-                                <input type="text" class="form-control" id="postalCode" name="postalCode">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="notes" class="form-label">Notes</label>
-                            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" form="customerForm" class="btn btn-primary">Save</button>
+                        <?php unset($_SESSION['success_message']); ?>
+                    <?php endif; ?>
+
+                    <div class="table-responsive">
+                        <table id="customersTable" class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th class="text-center" style="width: 120px">ID/Actions</th>
+                                    <th>Customer</th>
+                                    <th>Company</th>
+                                    <th>Contact</th>
+                                    <th>Location</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            // Function to save customer data
-            function saveCustomer(e) {
-                e.preventDefault();
-                
-                const formData = {
-                    action: $('#customerId').val() ? 'update' : 'add',
-                    id: $('#customerId').val(),
-                    name: $('#name').val(),
-                    company_id: $('#company_id').val() || null,
-                    job_title: $('#jobTitle').val(),
-                    email: $('#email').val(),
-                    phone: $('#phone').val(),
-                    address: $('#address').val(),
-                    city: $('#city').val(),
-                    state: $('#state').val(),
-                    postal_code: $('#postalCode').val(),
-                    notes: $('#notes').val()
-                };
+<!-- Customer Modal -->
+<div class="modal fade" id="customerModal" tabindex="-1" aria-labelledby="customerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customerModalLabel">Add New Customer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="customerForm">
+                    <input type="hidden" id="id" name="id">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label">Name *</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="company_id" class="form-label">Company</label>
+                            <select class="form-select" id="company_id" name="company_id">
+                                <option value="">Select Company</option>
+                                <?php
+                                $companies = $pdo->query("SELECT id, name FROM companies ORDER BY name ASC");
+                                while ($company = $companies->fetch(PDO::FETCH_ASSOC)) {
+                                    echo '<option value="' . $company['id'] . '">' . htmlspecialchars($company['name']) . '</option>';
+                                }
+                                ?>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label">Phone</label>
+                            <input type="tel" class="form-control" id="phone" name="phone">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="address" class="form-label">Address</label>
+                            <input type="text" class="form-control" id="address" name="address">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="city" class="form-label">City</label>
+                            <input type="text" class="form-control" id="city" name="city">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="state" class="form-label">State</label>
+                            <input type="text" class="form-control" id="state" name="state">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="postal_code" class="form-label">Postal Code</label>
+                            <input type="text" class="form-control" id="postal_code" name="postal_code">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveCustomer">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-                $.ajax({
-                    url: 'ajax/save_customer.php',
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(formData),
-                    success: function(response) {
-                        if (response.success) {
-                            $('#customerModal').modal('hide');
-                            location.reload(); // Refresh to show updated data
-                        } else {
-                            alert('Error: ' + response.message);
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        alert('Error saving customer: ' + error);
-                        console.error('Error details:', xhr.responseText);
-                    }
-                });
-            }
+<?php include 'footer.php'; ?>
 
-            // Function to load customer data for editing
-            function loadCustomerData(id) {
-                $.ajax({
-                    url: 'ajax/get_customer.php',
-                    method: 'GET',
-                    data: { id: id },
-                    dataType: 'json',
-                    success: function(data) {
-                        if (data.error) {
-                            alert('Error: ' + data.error);
-                            return;
-                        }
-                        
-                        $('#customerId').val(data.id);
-                        $('#name').val(data.name);
-                        $('#company_id').val(data.company_id);
-                        $('#jobTitle').val(data.job_title);
-                        $('#email').val(data.email);
-                        $('#phone').val(data.phone);
-                        $('#address').val(data.address);
-                        $('#city').val(data.city);
-                        $('#state').val(data.state);
-                        $('#postalCode').val(data.postal_code);
-                        $('#notes').val(data.notes);
-                        
-                        $('#customerModal').modal('show');
-                    },
-                    error: function(xhr, status, error) {
-                        alert('Error loading customer data: ' + error);
-                    }
-                });
-            }
-
-            // Handle form submission
-            $('#customerForm').on('submit', saveCustomer);
-
-            // Edit customer button click
-            $('.edit-customer').click(function() {
-                const id = $(this).data('id');
-                loadCustomerData(id);
-            });
-        });
-    </script>
-</body>
-</html>
+<!-- Add DataTables JS -->
+<script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+<script src="js/customers.js"></script>

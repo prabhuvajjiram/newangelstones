@@ -2,6 +2,27 @@
 require_once 'config.php';
 
 /**
+ * Get database connection using PDO
+ */
+function getDbConnection() {
+    global $db_host, $db_name, $db_user, $db_pass;
+    
+    try {
+        $dsn = "mysql:host={$db_host};dbname={$db_name};charset=utf8mb4";
+        $options = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ];
+        return new PDO($dsn, $db_user, $db_pass, $options);
+    } catch (PDOException $e) {
+        throw new Exception("Connection failed: " . $e->getMessage());
+    }
+}
+
+$pdo = getDbConnection();
+
+/**
  * Generates a unique quote number
  * Format: AS-YYYY-XXXXX (e.g., AS-2023-00001)
  */
