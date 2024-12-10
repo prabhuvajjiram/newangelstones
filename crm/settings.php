@@ -100,7 +100,6 @@ try {
     $error_message = "Error fetching color rates: " . $e->getMessage();
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -113,7 +112,6 @@ try {
 </head>
 <body class="bg-light">
     <?php include 'navbar.php'; ?>
-
     <div class="container mt-4">
         <h2 class="mb-4">Settings</h2>
 
@@ -123,14 +121,14 @@ try {
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <?php endif; ?>
-
+        
         <?php if (isset($error_message)): ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <?php echo htmlspecialchars($error_message); ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <?php endif; ?>
-
+        
         <div class="row">
             <!-- Monument Rates Section -->
             <div class="col-md-6">
@@ -151,7 +149,7 @@ try {
                                     <input type="text" class="form-control" id="new_sp_name" name="sp_name" required>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="new_sp_value" class="form-label">Rate ($)</label>
+                                    <label for="new_sp_value" class="form-label">Rate (%)</label>
                                     <input type="number" step="0.01" class="form-control" id="new_sp_value" name="sp_value" required>
                                 </div>
                                 <div class="mb-3">
@@ -167,7 +165,7 @@ try {
                                     <tr>
                                         <th>ID</th>
                                         <th>Monument Type</th>
-                                        <th>Rate ($)</th>
+                                        <th>Rate (%)</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -176,7 +174,7 @@ try {
                                         <tr>
                                             <td><?php echo htmlspecialchars($rate['id']); ?></td>
                                             <td><?php echo htmlspecialchars($rate['sp_name']); ?></td>
-                                            <td>$<?php echo number_format($rate['sp_value'], 2); ?></td>
+                                            <td><?php echo number_format($rate['sp_value'], 2); ?>%</td>
                                             <td>
                                                 <button type="button" 
                                                         class="btn btn-primary btn-sm edit-monument-btn me-1"
@@ -212,7 +210,7 @@ try {
                                     <input type="text" class="form-control" id="sp_name" name="sp_name" required>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="sp_value" class="form-label">Rate ($)</label>
+                                    <label for="sp_value" class="form-label">Rate (%)</label>
                                     <input type="number" step="0.01" class="form-control" id="sp_value" name="sp_value" required>
                                 </div>
                                 <div class="mb-3">

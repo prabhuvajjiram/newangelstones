@@ -54,7 +54,6 @@ $stmt = $pdo->query("
     ORDER BY username
 ");
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 ?>
 
 <!DOCTYPE html>
@@ -83,7 +82,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <!-- Task Filters -->
         <div class="card mb-4">
             <div class="card-body">
-                <form id="taskFilters" class="row g-3">
+                <form id="taskFilters" class="row g-3 align-items-end">
                     <div class="col-md-3">
                         <label class="form-label">Status</label>
                         <select class="form-select" name="status">
@@ -104,11 +103,14 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Due Date Range</label>
-                        <input type="text" class="form-control" name="daterange">
+                        <div class="input-group">
+                            <input type="date" class="form-control" name="date_from">
+                            <span class="input-group-text">to</span>
+                            <input type="date" class="form-control" name="date_to">
+                        </div>
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label">&nbsp;</label>
-                        <button type="submit" class="btn btn-primary d-block w-100">
+                        <button type="submit" class="btn btn-primary w-100" style="position: relative; z-index: 1;">
                             <i class="bi bi-funnel"></i> Filter
                         </button>
                     </div>
@@ -258,12 +260,21 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.js"></script>
     <script src="js/tasks.js"></script>
-    
+
+    <style>
+    .sidebar {
+        z-index: 1030;
+    }
+    .card {
+        position: relative;
+        z-index: 1;
+    }
+    .btn-primary {
+        position: relative;
+        z-index: 1;
+    }
+    </style>
 </body>
 </html>
