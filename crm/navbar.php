@@ -109,14 +109,14 @@ require_once 'session_check.php';
                 </a>
                 <ul class="dropdown-menu dropdown-menu-dark" style="position: relative; width: 100%; margin: 0; border-radius: 0;">
                     <li>
-                        <a class="dropdown-item ps-4 <?php echo $current_page == 'purchase_management.php' ? 'active' : ''; ?>" 
-                        href="<?php echo getUrl('raw_material.php'); ?>">
+                        <a class="dropdown-item ps-4 <?php echo $current_page == 'orders.php' ? 'active' : ''; ?>" 
+                        href="<?php echo getUrl('orders.php'); ?>">
                             <i class="bi bi-cart-check me-2"></i> <span class="menu-text">Purchase Management</span>
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item ps-4 <?php echo $current_page == 'production_orders.php' ? 'active' : ''; ?>" 
-                        href="<?php echo getUrl('finished_products.php'); ?>">
+                        <a class="dropdown-item ps-4 <?php echo $current_page == 'orders.php' ? 'active' : ''; ?>" 
+                        href="<?php echo getUrl('orders.php'); ?>">
                             <i class="bi bi-gear-wide-connected me-2"></i> <span class="menu-text">Production Orders</span>
                         </a>
                     </li>
