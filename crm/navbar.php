@@ -115,8 +115,8 @@ require_once 'session_check.php';
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item ps-4 <?php echo $current_page == 'production_orders.php' ? 'active' : ''; ?>" 
-                        href="<?php echo getUrl('finished_products.php'); ?>">
+                        <a class="dropdown-item ps-4 <?php echo $current_page == 'orders.php' ? 'active' : ''; ?>" 
+                        href="<?php echo getUrl('orders.php'); ?>">
                             <i class="bi bi-gear-wide-connected me-2"></i> <span class="menu-text">Production Orders</span>
                         </a>
                     </li>
