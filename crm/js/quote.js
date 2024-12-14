@@ -229,61 +229,69 @@ class QuoteManager {
             return null;
         }
 
-        const selectedModel = this.productModelSelect.find('option:selected');
-        const selectedColor = this.stoneColorSelect.find('option:selected');
-        const selectedMonument = this.specialMonumentSelect.find('option:selected');
+        try {
+            const selectedModel = this.productModelSelect.find('option:selected');
+            const selectedColor = this.stoneColorSelect.find('option:selected');
+            const selectedMonument = this.specialMonumentSelect.find('option:selected');
 
-        if (!selectedModel.val()) {
-            console.error('No model selected');
+            if (!selectedModel.val()) {
+                console.error('No model selected');
+                return null;
+            }
+
+            // Get base price and measurements
+            const basePrice = parseFloat(selectedModel.data('price')) || 0;
+            const length = parseFloat(this.currentMeasurements.length) || 0;
+            const breadth = parseFloat(this.currentMeasurements.breadth) || 0;
+            const thickness = parseFloat(selectedModel.data('thickness')) || 4.00;
+            const quantity = parseInt(this.currentMeasurements.quantity) || 1;
+
+            // Calculate areas and volumes
+            const sqft = (length * breadth) / 144;
+            const cubicFeet = (length * breadth * thickness) / 1728;
+
+            // Get markups
+            const colorMarkup = this.getSelectedMarkup(this.stoneColorSelect);
+            const monumentMarkup = this.getSelectedMarkup(this.specialMonumentSelect);
+
+            // Calculate prices with markups
+            const basePricePerUnit = basePrice * sqft;
+            const markupAmount = basePricePerUnit * ((colorMarkup + monumentMarkup) / 100);
+            const totalPricePerUnit = basePricePerUnit + markupAmount;
+            const totalPrice = totalPricePerUnit * quantity;
+
+            console.log('Cart item calculations:', {
+                basePrice, length, breadth, thickness, quantity,
+                sqft, cubicFeet, colorMarkup, monumentMarkup,
+                basePricePerUnit, markupAmount, totalPricePerUnit, totalPrice
+            });
+
+            return {
+                type: this.currentProduct.type,
+                size: this.currentProduct.size,
+                model_id: selectedModel.val(),
+                model_name: selectedModel.text(),
+                color_id: selectedColor.val() || null,
+                color_name: selectedColor.val() ? selectedColor.text() : null,
+                special_monument_id: selectedMonument.val() || null,
+                special_monument_name: selectedMonument.val() ? selectedMonument.text() : null,
+                color_markup: colorMarkup,
+                monument_markup: monumentMarkup,
+                length: length,
+                breadth: breadth,
+                thickness: thickness,
+                quantity: quantity,
+                sqft: sqft,
+                cubic_feet: cubicFeet,
+                base_price: basePricePerUnit,
+                markup_amount: markupAmount,
+                price_per_unit: totalPricePerUnit,
+                total_price: totalPrice
+            };
+        } catch (error) {
+            console.error('Error creating cart item:', error);
             return null;
         }
-
-        // Get base price from model
-        const basePrice = parseFloat(selectedModel.data('price')) || 0;
-        console.log('Base price from model:', basePrice);
-
-        // Calculate square feet
-        const length = parseFloat(this.currentMeasurements.length) || 0;
-        const breadth = parseFloat(this.currentMeasurements.breadth) || 0;
-        const sqft = (length * breadth) / 144;
-        console.log('Square feet:', sqft);
-
-        // Calculate base price per unit
-        const basePricePerUnit = basePrice * sqft;
-        console.log('Base price per unit:', basePricePerUnit);
-
-        // Get markups
-        const colorMarkup = this.getSelectedMarkup(this.stoneColorSelect);
-        const monumentMarkup = this.getSelectedMarkup(this.specialMonumentSelect);
-        console.log('Markups:', { colorMarkup, monumentMarkup });
-
-        // Calculate total price
-        const quantity = parseInt(this.currentMeasurements.quantity) || 1;
-        const totalPrice = basePricePerUnit * quantity;
-        console.log('Total price:', totalPrice);
-
-        const item = {
-            type: this.currentProduct.type,
-            size: this.currentProduct.size,
-            model_id: selectedModel.val(),
-            model_name: selectedModel.text(),
-            color_id: selectedColor.val() || null,
-            color_name: selectedColor.val() ? selectedColor.text() : null,
-            special_monument_id: selectedMonument.val() || null,
-            special_monument_name: selectedMonument.val() ? selectedMonument.text() : null,
-            color_markup: colorMarkup,
-            monument_markup: monumentMarkup,
-            length: length,
-            breadth: breadth,
-            quantity: quantity,
-            sqft: sqft,
-            cubic_feet: (length * breadth * parseFloat(this.currentProduct.size)) / 1728 * quantity,
-            base_price: basePricePerUnit,
-            total_price: totalPrice
-        };
-
-        console.log('Created cart item:', item);
-        return item;
     }
 
     addToCart(item) {
@@ -413,17 +421,31 @@ class QuoteManager {
                 quantity: quantity
             };
 
-            const result = ProductCalculations.calculateTotalPrice(
-                this.currentMeasurements,
-                {
-                    base_price: this.currentProduct.base_price,
-                    type: this.currentProduct.type,
-                    size: this.currentProduct.size,
-                    thickness_inches: 4.00 // Default thickness for markers
-                },
-                this.getSelectedMarkup(this.stoneColorSelect),
-                this.getSelectedMarkup(this.specialMonumentSelect)
-            );
+            const selectedModel = this.productModelSelect.find('option:selected');
+            const thickness = parseFloat(selectedModel.data('thickness')) || 4.00;
+
+            const sqft = (length * breadth) / 144;
+            const cubicFeet = (length * breadth * thickness) / 1728;
+            const basePrice = this.currentProduct.base_price;
+            const baseAmount = sqft * basePrice;
+            const colorMarkup = this.getSelectedMarkup(this.stoneColorSelect);
+            const monumentMarkup = this.getSelectedMarkup(this.specialMonumentSelect);
+            const markupAmount = baseAmount * ((colorMarkup + monumentMarkup) / 100);
+            const totalPrice = (baseAmount + markupAmount) * quantity;
+
+            const result = {
+                sqft: sqft,
+                cubicFeet: cubicFeet,
+                basePrice: basePrice,
+                totalPrice: totalPrice
+            };
+
+            console.log('Measurement calculation:', {
+                measurements: this.currentMeasurements,
+                thickness,
+                result,
+                markups: { color: colorMarkup, monument: monumentMarkup }
+            });
 
             this.updateDisplays(result);
         } else {
@@ -444,27 +466,65 @@ class QuoteManager {
             return;
         }
 
-        const result = ProductCalculations.calculateTotalPrice(
-            this.currentMeasurements,
-            {
-                base_price: this.currentProduct.base_price,
-                type: this.currentProduct.type,
-                size: this.currentProduct.size,
-                thickness_inches: 4.00 // Default thickness for markers
-            },
-            this.getSelectedMarkup(this.stoneColorSelect),
-            this.getSelectedMarkup(this.specialMonumentSelect)
-        );
+        try {
+            const selectedModel = this.productModelSelect.find('option:selected');
+            const thickness = parseFloat(selectedModel.data('thickness')) || 4.00;
 
-        this.updateDisplays(result);
+            const sqft = (this.currentMeasurements.length * this.currentMeasurements.breadth) / 144;
+            const cubicFeet = (this.currentMeasurements.length * this.currentMeasurements.breadth * thickness) / 1728;
+            const basePrice = this.currentProduct.base_price;
+            const baseAmount = sqft * basePrice;
+            const colorMarkup = this.getSelectedMarkup(this.stoneColorSelect);
+            const monumentMarkup = this.getSelectedMarkup(this.specialMonumentSelect);
+            const markupAmount = baseAmount * ((colorMarkup + monumentMarkup) / 100);
+            const totalPrice = (baseAmount + markupAmount) * this.currentMeasurements.quantity;
+
+            const result = {
+                sqft: sqft,
+                cubicFeet: cubicFeet,
+                basePrice: basePrice,
+                totalPrice: totalPrice
+            };
+
+            console.log('Price calculation:', {
+                measurements: this.currentMeasurements,
+                thickness,
+                result,
+                markups: { color: colorMarkup, monument: monumentMarkup }
+            });
+
+            this.updateDisplays(result);
+        } catch (error) {
+            console.error('Error updating price:', error);
+            this.resetDisplays();
+        }
+        
         this.updateAddToCartState();
     }
 
     updateDisplays(result) {
-        this.squareFeetDisplay.text(result.sqft.toFixed(2));
-        this.cubicFeetDisplay.text(result.cubicFeet.toFixed(2));
-        this.basePriceDisplay.text(result.basePrice.toFixed(2));
-        this.totalPriceDisplay.text(result.totalPrice.toFixed(2));
+        if (!result) {
+            this.resetDisplays();
+            return;
+        }
+        
+        try {
+            // Format numbers and handle potential NaN values
+            const sqft = parseFloat(result.sqft) || 0;
+            const cubicFeet = parseFloat(result.cubicFeet) || 0;
+            const basePrice = parseFloat(result.basePrice) || 0;
+            const totalPrice = parseFloat(result.totalPrice) || 0;
+
+            this.squareFeetDisplay.text(sqft.toFixed(2));
+            this.cubicFeetDisplay.text(cubicFeet.toFixed(2));
+            this.basePriceDisplay.text(basePrice.toFixed(2));
+            this.totalPriceDisplay.text(totalPrice.toFixed(2));
+            
+            console.log('Updated displays with:', { sqft, cubicFeet, basePrice, totalPrice });
+        } catch (error) {
+            console.error('Error updating displays:', error);
+            this.resetDisplays();
+        }
     }
 
     resetDisplays() {
@@ -582,26 +642,22 @@ class QuoteManager {
             return;
         }
 
-        let totalBasePrice = 0;
-        let grandTotal = 0;
-
         items.forEach((item, index) => {
             const sqft = parseFloat(item.sqft) || 0;
             const cubicFeet = parseFloat(item.cubic_feet) || 0;
             const basePrice = parseFloat(item.base_price) || 0;
-            const totalPrice = basePrice * item.quantity;
-
-            totalBasePrice += basePrice;
-            grandTotal += totalPrice;
+            const totalPrice = parseFloat(item.total_price) || 0;
+            const splMonument = item.type.toUpperCase() === 'SERTOP' ? 
+                (item.special_monument_name || 'None') : 'None';
 
             cartBody.append(`
                 <tr>
                     <td>${(item.type || '').toUpperCase()}</td>
-                    <td>${item.special_monument_name || 'None'}</td>
+                    <td>${splMonument}</td>
                     <td>${item.model_name || ''}</td>
                     <td>${item.color_name || '-'}</td>
                     <td>${item.length} x ${item.breadth} x ${item.size}</td>
-                    <td>${item.quantity}</td>
+                    <td>${item.quantity || 1}</td>
                     <td>${sqft.toFixed(2)}</td>
                     <td>${cubicFeet.toFixed(2)}</td>
                     <td class="text-end">$${basePrice.toFixed(2)}</td>
@@ -615,16 +671,14 @@ class QuoteManager {
             `);
         });
 
-        // Update totals
-        $('#cartBasePrice').text('$' + totalBasePrice.toFixed(2));
-        $('#cartTotal').text('$' + grandTotal.toFixed(2));
-        $('#generateQuoteBtn').prop('disabled', false);
-
         // Add click handler for delete buttons
         cartBody.find('.btn-danger').on('click', (e) => {
             const index = $(e.currentTarget).data('index');
             this.removeFromCart(index);
         });
+
+        this.updateTotals();
+        $('#generateQuoteBtn').prop('disabled', false);
     }
 
     updateTotals() {
