@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Angel Stones CRM</title>
+    <title><?php echo isset($page_title) ? $page_title . ' - ' : ''; ?>Angel Stones CRM</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
@@ -11,11 +11,22 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <!-- Then add Bootstrap bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Custom Scripts -->
+<script src="js/tooltips.js"></script>
     <style>
         body { background-color: #f8f9fa; }
         .navbar { background-color: #2c3e50; }
         .navbar-brand, .navbar-nav .nav-link { color: white; }
         .card { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        /* Tooltip styles */
+        .tooltip {
+            font-size: 0.875rem;
+        }
+        .tooltip-inner {
+            max-width: 200px;
+            padding: 0.5rem;
+            background-color: #333;
+        }
     </style>
     <script>
         // Session check function

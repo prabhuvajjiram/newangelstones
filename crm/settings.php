@@ -135,7 +135,9 @@ try {
                 <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">Monument Rates</h5>
-                        <button type="button" class="btn btn-success btn-sm add-monument-btn">
+                        <button type="button" class="btn btn-success btn-sm add-monument-btn" 
+                                data-bs-toggle="tooltip" 
+                                title="Add a new monument type and its rate">
                             <i class="bi bi-plus-circle"></i> Add New
                         </button>
                     </div>
@@ -146,11 +148,15 @@ try {
                             <form method="post" id="monumentAddForm">
                                 <div class="mb-3">
                                     <label for="new_sp_name" class="form-label">Monument Name</label>
-                                    <input type="text" class="form-control" id="new_sp_name" name="sp_name" required>
+                                    <input type="text" class="form-control" id="new_sp_name" name="sp_name" required
+                                           data-bs-toggle="tooltip" 
+                                           title="Enter the name of the monument type">
                                 </div>
                                 <div class="mb-3">
                                     <label for="new_sp_value" class="form-label">Rate (%)</label>
-                                    <input type="number" step="0.01" class="form-control" id="new_sp_value" name="sp_value" required>
+                                    <input type="number" step="0.01" class="form-control" id="new_sp_value" name="sp_value" required
+                                           data-bs-toggle="tooltip" 
+                                           title="Enter the rate percentage for this monument type">
                                 </div>
                                 <div class="mb-3">
                                     <button type="submit" name="add_monument" class="btn btn-success">Add Monument</button>
@@ -178,6 +184,8 @@ try {
                                             <td>
                                                 <button type="button" 
                                                         class="btn btn-primary btn-sm edit-monument-btn me-1"
+                                                        data-bs-toggle="tooltip"
+                                                        title="Edit this monument type's details"
                                                         data-id="<?php echo $rate['id']; ?>"
                                                         data-name="<?php echo htmlspecialchars($rate['sp_name']); ?>"
                                                         data-value="<?php echo $rate['sp_value']; ?>">
@@ -185,6 +193,8 @@ try {
                                                 </button>
                                                 <button type="button" 
                                                         class="btn btn-danger btn-sm delete-monument-btn"
+                                                        data-bs-toggle="tooltip"
+                                                        title="Delete this monument type"
                                                         data-id="<?php echo $rate['id']; ?>"
                                                         data-name="<?php echo htmlspecialchars($rate['sp_name']); ?>">
                                                     <i class="bi bi-trash"></i> Delete
@@ -271,6 +281,8 @@ try {
                                             <td>
                                                 <button type="button" 
                                                         class="btn btn-primary btn-sm edit-color-btn me-1"
+                                                        data-bs-toggle="tooltip"
+                                                        title="Edit this color's details"
                                                         data-id="<?php echo $rate['id']; ?>"
                                                         data-name="<?php echo htmlspecialchars($rate['color_name']); ?>"
                                                         data-rate="<?php echo $rate['price_increase_percentage']; ?>">
@@ -278,6 +290,8 @@ try {
                                                 </button>
                                                 <button type="button" 
                                                         class="btn btn-danger btn-sm delete-color-btn"
+                                                        data-bs-toggle="tooltip"
+                                                        title="Delete this color"
                                                         data-id="<?php echo $rate['id']; ?>"
                                                         data-name="<?php echo htmlspecialchars($rate['color_name']); ?>">
                                                     <i class="bi bi-trash"></i> Delete
@@ -407,6 +421,12 @@ try {
             setTimeout(function() {
                 $('.alert').alert('close');
             }, 5000);
+            
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+              return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
         });
     </script>
 </body>

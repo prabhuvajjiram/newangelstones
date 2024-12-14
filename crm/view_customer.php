@@ -149,14 +149,17 @@ function safeEscape($value) {
         <!-- Quick Stats -->
         <div class="row mb-4">
             <div class="col-md-4">
-                <a href="quotes.php?customer_id=<?= $customer['id'] ?>" class="text-decoration-none">
+                <a href="quotes.php?customer_id=<?= $customer['id'] ?>" 
+                   class="text-decoration-none"
+                   data-bs-toggle="tooltip"
+                   title="View all quotes for this customer">
                     <div class="card stat-card quotes h-100">
                         <div class="card-body">
                             <h6 class="card-subtitle mb-2 text-muted">Active Quotes</h6>
                             <h2 class="card-title mb-0"><?= count($quotes) ?></h2>
-                            <div class="mt-2">
+                            <small class="text-muted">
                                 <i class="bi bi-arrow-right"></i> View all quotes
-                            </div>
+                            </small>
                         </div>
                     </div>
                 </a>
@@ -379,6 +382,15 @@ function safeEscape($value) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/customer-view.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+        });
+    </script>
 </body>
 </html>
 

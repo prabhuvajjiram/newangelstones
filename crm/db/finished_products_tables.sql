@@ -69,12 +69,6 @@ CREATE TABLE IF NOT EXISTS product_movements (
     FOREIGN KEY (destination_warehouse_id) REFERENCES warehouses(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-
--- Rename product_id to item_id and add item_type column
-ALTER TABLE product_movements
-CHANGE COLUMN product_id item_id INT NOT NULL,
-ADD COLUMN item_type ENUM('finished_product', 'raw_material') NOT NULL AFTER id;
-
 -- Finished Products Indexes
 CREATE INDEX idx_finished_products_sku ON finished_products(sku);
 CREATE INDEX idx_finished_products_category ON finished_products(category_id);

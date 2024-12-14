@@ -9,14 +9,17 @@ error_log("Session data: " . print_r($_SESSION, true));
 
 require_once 'includes/config.php';
 
+// Check if this is an AJAX request
+$isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
 // Define admin base URL if not already defined
 if (!defined('ADMIN_BASE_URL')) {
-    $server_name = $_SERVER['SERVER_NAME'];
+    $server_name = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'localhost';
     if ($server_name === 'www.theangelstones.com' || $server_name === 'theangelstones.com') {
         define('ADMIN_BASE_URL', '/crm/');
     } else {
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
-        $port = $_SERVER['SERVER_PORT'];
+        $port = isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT'] : '80';
         $port_suffix = ($port != '80' && $port != '443') ? ":$port" : '';
         define('ADMIN_BASE_URL', $protocol . $server_name . $port_suffix . '/crm/');
     }
@@ -46,45 +49,68 @@ function isStaff() {
 
 // Function to require login
 function requireLogin() {
+    global $isAjax;
+    
     if (!isLoggedIn()) {
-        // Store the current URL for redirect after login
-        $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
-        
-        // Fix double slash issue in redirect URL
-        $login_url = rtrim(ADMIN_BASE_URL, '/') . '/login.php';
-        if ($login_url[0] !== '/') {
-            $login_url = '/' . $login_url;
+        if ($isAjax) {
+            header('Content-Type: application/json');
+            http_response_code(401);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Please log in to continue',
+                'redirect' => ADMIN_BASE_URL . 'login.php'
+            ]);
+            exit;
+        } else {
+            // Store the current URL for redirect after login
+            $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
+            header('Location: ' . ADMIN_BASE_URL . 'login.php');
+            exit;
         }
-        header('Location: ' . $login_url);
-        exit();
     }
+    return true;
 }
 
 // Function to require admin role
 function requireAdmin() {
-    requireLogin();
-    if (!isAdmin() && !isSuperAdmin()) {
-        // Fix double slash issue in redirect URL
-        $unauthorized_url = rtrim(ADMIN_BASE_URL, '/') . '/unauthorized.php';
-        if ($unauthorized_url[0] !== '/') {
-            $unauthorized_url = '/' . $unauthorized_url;
+    global $isAjax;
+    
+    if (!isAdmin()) {
+        if ($isAjax) {
+            header('Content-Type: application/json');
+            http_response_code(403);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Admin access required'
+            ]);
+            exit;
+        } else {
+            header('Location: ' . ADMIN_BASE_URL . 'unauthorized.php');
+            exit;
         }
-        header('Location: ' . $unauthorized_url);
-        exit();
     }
+    return true;
 }
 
 // Function to require staff or admin role
 function requireStaffOrAdmin() {
-    if (!isLoggedIn()) {
-        $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
-        header('Location: ' . ADMIN_BASE_URL . 'login.php');
-        exit();
+    global $isAjax;
+    
+    if (!isStaff() && !isAdmin()) {
+        if ($isAjax) {
+            header('Content-Type: application/json');
+            http_response_code(403);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Staff or admin access required'
+            ]);
+            exit;
+        } else {
+            header('Location: ' . ADMIN_BASE_URL . 'unauthorized.php');
+            exit;
+        }
     }
-    if (!isAdmin() && !isStaff()) {
-        header('Location: ' . ADMIN_BASE_URL . 'index.php?error=unauthorized');
-        exit();
-    }
+    return true;
 }
 
 // Check session status if not explicitly skipped

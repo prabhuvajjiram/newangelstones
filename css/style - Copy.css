@@ -536,7 +536,7 @@ hr {
 }
 #as-aside #as-logo img {
     width: 180px;
-    height:176px;
+    height: 180px;
     margin-bottom: 10px;
     padding: 5px;
 }
@@ -683,7 +683,7 @@ hr {
 #as-aside .as-main-menu ul ul li > a:hover::after {color:var(--as-primary);}
 /* Sidebar Footer */
 #as-aside .as-footer {
-    position:relative;
+    position: absolute;
     right: 0;
     left: 0;
 	bottom:0;
@@ -944,11 +944,11 @@ body.offcanvason .as-nav-toggle {
 }
 /*AS Intro*/
 .as-intro {
-  padding: 30px;
-  width: 75%;
-  background-color: var(--as-bg-primary);
-  margin-top: 30px;
-  border-radius: 9px;
+    padding: 30px;
+    margin-left: -100px;
+    width: 90%;
+    background-color: #1f1f1f;
+    margin-top: 30px;
 }
 .as-intro h3 {
     color:var(--as-primary);
@@ -1041,7 +1041,7 @@ body.offcanvason .as-nav-toggle {
 }
 @media only screen and (max-width: 991px) {
 	.offer-box .content {width: calc(100% - 50px);padding:10px 18px 10px 18px; }
-	.offer-box .content h6 {font-size:16px;}
+	.offer-box .content h6 {font-size:24px;}
 }
 .offer-box .content .bg {
 	z-index: -1;
@@ -1483,12 +1483,5 @@ ul.social-network li {
 }
 .progress-wrap svg.progress-circle path {
     stroke:var(--as-primary);
-}
-
-/* Medium screen  */
-@media (min-width: 1200px) and (max-width: 1500px) {
-.offer-box .content h6 {
-  font-size:16px;
-}
 }
 

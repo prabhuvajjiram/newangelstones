@@ -32,10 +32,13 @@ try {
             DATE_FORMAT(q.created_at, '%Y-%m-%d') as quote_date,
             u.first_name as created_by_first_name,
             u.last_name as created_by_last_name,
-            u.email as user_email
+            u.email as user_email,
+            o.order_id as order_id,
+            o.order_number
         FROM quotes q
         LEFT JOIN customers c ON q.customer_id = c.id
         LEFT JOIN users u ON q.username = u.email
+        LEFT JOIN orders o ON q.id = o.quote_id
         WHERE q.id = :quote_id
     ";
 
@@ -165,24 +168,63 @@ try {
             </div>
             <div class="col-auto">
                 <div class="d-flex justify-content-end mb-4">
-                    <button type="button" class="btn btn-danger me-2" data-bs-toggle="modal" data-bs-target="#deleteQuoteModal">
-                        <i class="bi bi-trash"></i> Delete Quote
-                    </button>
-                    <a href="quotes.php" class="btn btn-secondary">
+                    <?php if ($quote['status'] === 'converted' && !empty($quote['order_id'])): ?>
+                        <a href="view_order.php?id=<?php echo htmlspecialchars($quote['order_id']); ?>" 
+                           class="btn btn-info me-2"
+                           data-bs-toggle="tooltip"
+                           title="View the order created from this quote">
+                            <i class="bi bi-box"></i> View Order #<?php echo htmlspecialchars($quote['order_number']); ?>
+                        </a>
+                    <?php elseif (in_array($quote['status'], ['accepted', 'sent'])): ?>
+                        <button type="button" 
+                                class="btn btn-success me-2" 
+                                onclick="convertToOrder(<?php echo $quote['id']; ?>)"
+                                data-bs-toggle="tooltip"
+                                title="Convert this quote to an order">
+                            <i class="bi bi-cart-plus"></i> Convert to Order
+                        </button>
+                    <?php endif; ?>
+
+                    <?php if ($quote['status'] !== 'converted'): ?>
+                        <button onclick="sendQuoteEmail(<?php echo $quote_id; ?>, event)" 
+                                class="btn btn-info me-2"
+                                data-bs-toggle="tooltip"
+                                title="Send quote via email">
+                            <i class="bi bi-envelope"></i> Email Quote
+                        </button>
+                        
+                        <?php if ($quote['status'] === 'draft'): ?>
+                            <a href="quote.php?edit=<?php echo $quote_id; ?>" 
+                               class="btn btn-warning me-2"
+                               data-bs-toggle="tooltip"
+                               title="Edit this quote">
+                                <i class="bi bi-pencil"></i> Edit Quote
+                            </a>
+                        <?php endif; ?>
+                        
+                        <button type="button" 
+                                class="btn btn-danger me-2" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#deleteQuoteModal">
+                            <i class="bi bi-trash"></i> Delete Quote
+                        </button>
+                    <?php endif; ?>
+                    
+                    <a href="generate_pdf.php?id=<?php echo $quote_id; ?>" 
+                       class="btn btn-secondary me-2" 
+                       target="_blank"
+                       data-bs-toggle="tooltip"
+                       title="Generate PDF version">
+                        <i class="bi bi-file-pdf"></i> Generate PDF
+                    </a>
+                    
+                    <a href="quotes.php" 
+                       class="btn btn-outline-secondary"
+                       data-bs-toggle="tooltip"
+                       title="Return to quotes list">
                         <i class="bi bi-arrow-left"></i> Back to Quotes
                     </a>
                 </div>
-                <?php if ($quote['status'] === 'pending' && ($quote['username'] === $_SESSION['email'] || isAdmin())): ?>
-                    <a href="quote.php?edit=<?php echo $quote_id; ?>" class="btn btn-primary">
-                        <i class="bi bi-pencil"></i> Edit Quote
-                    </a>
-                <?php endif; ?>
-                <a href="generate_pdf.php?id=<?php echo $quote_id; ?>" class="btn btn-success" target="_blank">
-                    <i class="bi bi-file-pdf"></i> Generate PDF
-                </a>
-                <button onclick="sendQuoteEmail(<?php echo $quote_id; ?>, event)" class="btn btn-info">
-                    <i class="bi bi-envelope"></i> Email Quote
-                </button>
             </div>
         </div>
 
@@ -309,6 +351,26 @@ try {
             </div>
         </div>
         <?php endif; ?>
+        
+        <div class="card-body">
+            <div class="d-flex justify-content-end mb-3">
+                <?php if ($quote['status'] !== 'Converted' && $quote['status'] !== 'Cancelled'): ?>
+                    <button class="btn btn-success me-2 convert-to-order" data-quote-id="<?php echo $quote['id']; ?>">
+                        <i class="bi bi-arrow-right-circle"></i> Convert to Order
+                    </button>
+                <?php endif; ?>
+                
+                <button class="btn btn-info me-2 generate-pdf" data-quote-id="<?php echo $quote['id']; ?>">
+                    <i class="bi bi-file-pdf"></i> Generate PDF
+                </button>
+
+                <?php if ($quote['order_id']): ?>
+                    <a href="view_order.php?id=<?php echo $quote['order_id']; ?>" class="btn btn-secondary">
+                        <i class="bi bi-box"></i> View Order
+                    </a>
+                <?php endif; ?>
+            </div>
+        </div>
     </div>
 
     <!-- Delete Quote Modal -->
@@ -334,97 +396,176 @@ try {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-    function sendQuoteEmail(quoteId, event) {
-        if (!quoteId) {
-            console.error('No quote ID provided');
-            alert('Error: Invalid quote ID');
-            return;
+        $(document).ready(function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+        });
+
+        function convertToOrder(quoteId) {
+            if (confirm('Are you sure you want to convert this quote to an order?')) {
+                const button = event.target.closest('button');
+                button.disabled = true;
+                button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Converting...';
+
+                fetch('ajax/convert_quote_to_order.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'quote_id=' + quoteId
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Quote successfully converted to order #' + data.order_number);
+                        window.location.href = 'view_order.php?id=' + data.order_id;
+                    } else {
+                        alert('Error: ' + data.message);
+                        button.disabled = false;
+                        button.innerHTML = '<i class="bi bi-cart-plus"></i> Convert to Order';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error converting quote to order. Please try again.');
+                    button.disabled = false;
+                    button.innerHTML = '<i class="bi bi-cart-plus"></i> Convert to Order';
+                });
+            }
         }
 
-        console.log('Sending quote ID:', quoteId);
+        function sendQuoteEmail(quoteId, event) {
+            if (!quoteId) {
+                console.error('No quote ID provided');
+                alert('Error: Invalid quote ID');
+                return;
+            }
 
-        if (!confirm('Are you sure you want to send this quote via email?')) {
-            return;
-        }
+            console.log('Sending quote ID:', quoteId);
 
-        // Show loading state
-        const button = event.target.closest('button');
-        const originalContent = button.innerHTML;
-        button.disabled = true;
-        button.innerHTML = '<i class="bi bi-hourglass-split"></i> Sending...';
+            if (!confirm('Are you sure you want to send this quote via email?')) {
+                return;
+            }
 
-        fetch('api/send_quote.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ 
-                quote_id: parseInt(quoteId, 10) 
+            // Show loading state
+            const button = event.target.closest('button');
+            const originalContent = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<i class="bi bi-hourglass-split"></i> Sending...';
+
+            fetch('api/send_quote.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    quote_id: parseInt(quoteId, 10) 
+                })
             })
-        })
-        .then(async response => {
-            const text = await response.text();
-            console.log('Raw response:', text);
-            
-            try {
-                const data = JSON.parse(text);
-                console.log('Parsed response:', data);
+            .then(async response => {
+                const text = await response.text();
+                console.log('Raw response:', text);
                 
-                if (response.status === 401 || data.needsAuth) {
-                    console.log('Gmail auth required, redirecting...');
-                    // Redirect to gmail_auth.php with quote_id and return URL
-                    const returnUrl = encodeURIComponent(window.location.href);
-                    window.location.href = `gmail_auth.php?quote_id=${quoteId}&return=${returnUrl}`;
-                    return null;
+                try {
+                    const data = JSON.parse(text);
+                    console.log('Parsed response:', data);
+                    
+                    if (response.status === 401 || data.needsAuth) {
+                        console.log('Gmail auth required, redirecting...');
+                        // Redirect to gmail_auth.php with quote_id and return URL
+                        const returnUrl = encodeURIComponent(window.location.href);
+                        window.location.href = `gmail_auth.php?quote_id=${quoteId}&return=${returnUrl}`;
+                        return null;
+                    }
+                    
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Server error');
+                    }
+                    
+                    return data;
+                } catch (e) {
+                    console.error('JSON Parse Error:', e);
+                    console.error('Response text:', text);
+                    throw new Error('Error processing response: ' + e.message);
                 }
+            })
+            .then(data => {
+                if (data === null) return; // Auth redirect in progress
                 
-                if (!response.ok) {
-                    throw new Error(data.message || 'Server error');
+                if (data.success) {
+                    alert('Quote sent successfully!');
+                } else {
+                    throw new Error(data.message || 'Unknown error occurred');
                 }
-                
-                return data;
-            } catch (e) {
-                console.error('JSON Parse Error:', e);
-                console.error('Response text:', text);
-                throw new Error('Error processing response: ' + e.message);
-            }
-        })
-        .then(data => {
-            if (data === null) return; // Auth redirect in progress
-            
-            if (data.success) {
-                alert('Quote sent successfully!');
-            } else {
-                throw new Error(data.message || 'Unknown error occurred');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error sending quote: ' + error.message);
-        })
-        .finally(() => {
-            if (!document.location.href.includes('gmail_auth.php')) {
-                button.disabled = false;
-                button.innerHTML = originalContent;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error sending quote: ' + error.message);
+            })
+            .finally(() => {
+                if (!document.location.href.includes('gmail_auth.php')) {
+                    button.disabled = false;
+                    button.innerHTML = originalContent;
+                }
+            });
+        }
+
+        // Check for resend parameter on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const resendQuoteId = urlParams.get('resend');
+            if (resendQuoteId) {
+                // Remove the parameter from URL
+                urlParams.delete('resend');
+                const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+                history.replaceState({}, '', newUrl);
+                // Try sending again
+                sendQuoteEmail(parseInt(resendQuoteId, 10));
             }
         });
-    }
+        
+        // Convert to Order functionality
+        $('.convert-to-order').click(function() {
+            const quoteId = $(this).data('quote-id');
+            const button = $(this);
+            
+            if (confirm('Are you sure you want to convert this quote to an order?')) {
+                button.prop('disabled', true)
+                    .html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Converting...');
+                
+                $.ajax({
+                    url: 'ajax/convert_quote_to_order.php',
+                    method: 'POST',
+                    data: { quote_id: quoteId },
+                    success: function(response) {
+                        if (response.success) {
+                            alert('Quote successfully converted to order!');
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                            button.prop('disabled', false)
+                                .html('<i class="bi bi-arrow-right-circle"></i> Convert to Order');
+                        }
+                    },
+                    error: function() {
+                        alert('Error converting quote to order');
+                        button.prop('disabled', false)
+                            .html('<i class="bi bi-arrow-right-circle"></i> Convert to Order');
+                    }
+                });
+            }
+        });
 
-    // Check for resend parameter on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const resendQuoteId = urlParams.get('resend');
-        if (resendQuoteId) {
-            // Remove the parameter from URL
-            urlParams.delete('resend');
-            const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
-            history.replaceState({}, '', newUrl);
-            // Try sending again
-            sendQuoteEmail(parseInt(resendQuoteId, 10));
-        }
-    });
+        // Generate PDF functionality
+        $('.generate-pdf').click(function() {
+            const quoteId = $(this).data('quote-id');
+            window.location.href = `generate_pdf.php?id=${quoteId}`;
+        });
     </script>
 </body>
 </html>

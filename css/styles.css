@@ -1,0 +1,103 @@
+/* Hamburger Menu Styles */
+.js-as-nav-toggle {
+    position: fixed;
+    right: 20px;
+    top: 20px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+.js-as-nav-toggle i {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: #000;
+    margin: 14px 0;
+}
+
+.js-as-nav-toggle i:before,
+.js-as-nav-toggle i:after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: #000;
+    transition: 0.3s;
+}
+
+.js-as-nav-toggle i:before {
+    top: -8px;
+}
+
+.js-as-nav-toggle i:after {
+    bottom: -8px;
+}
+
+.js-as-nav-toggle.active i {
+    background: transparent;
+}
+
+.js-as-nav-toggle.active i:before {
+    top: 0;
+    transform: rotate(45deg);
+}
+
+.js-as-nav-toggle.active i:after {
+    bottom: 0;
+    transform: rotate(-45deg);
+}
+
+#as-page {
+    position: relative;
+    overflow-x: hidden;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+body.offcanvason #as-page {
+    transform: translateX(-300px);
+}
+
+/* Navigation Menu */
+.as-nav {
+    position: fixed;
+    top: 0;
+    right: -300px;
+    width: 300px;
+    height: 100vh;
+    background: #fff;
+    padding: 80px 30px 30px;
+    transition: 0.3s;
+    z-index: 999;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+}
+
+body.offcanvason .as-nav {
+    right: 0;
+}
+
+.as-main-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.as-main-menu li {
+    margin: 20px 0;
+}
+
+.as-main-menu li a {
+    color: #333;
+    text-decoration: none;
+    font-size: 18px;
+    display: block;
+    transition: 0.3s;
+}
+
+.as-main-menu li a:hover {
+    color: #666;
+    padding-left: 10px;
+}

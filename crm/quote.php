@@ -251,7 +251,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_quote'])) {
         <?php endif; ?>
         
         <!-- Customer Selection Card -->
-        <form id="quoteForm" method="post" action="preview_quote.php">
+        <form id="quoteForm" method="post" action="preview_quote.php" data-bs-toggle="tooltip" data-bs-placement="top" title="Generate a new quote for your customer">
             <input type="hidden" id="customer_id" name="customer_id" value="<?php echo htmlspecialchars($customer_id); ?>">
             <input type="hidden" id="customer_email" name="customer_email" value="">
             <input type="hidden" id="commission_rate" name="commission_rate" value="">
@@ -299,8 +299,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_quote'])) {
                     <!-- Product Type and Options -->
                     <div class="row g-3 mb-4">
                         <div class="col-md-3">
-                            <label class="form-label">Product Type</label>
-                            <select class="form-select" id="productType">
+                            <label class="form-label" data-bs-toggle="tooltip" data-bs-placement="top" title="Select the type of product you want to quote">Product Type</label>
+                            <select class="form-select" id="productType" data-bs-toggle="tooltip" data-bs-placement="top" title="Choose the category of product you want to quote">
                                 <option value="">Select Type</option>
                                 <?php foreach ($processedProductData as $type => $data): ?>
                                     <option value="<?php echo htmlspecialchars($type); ?>"><?php echo ucfirst(htmlspecialchars($type)); ?></option>
@@ -365,20 +365,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_quote'])) {
                         <div class="col-md-4">
                             <div class="card bg-light">
                                 <div class="card-body">
-                                    <h6 class="card-title mb-3">Product Summary</h6>
+                                    <h6 class="card-title mb-3" data-bs-toggle="tooltip" data-bs-placement="top" title="Overview of selected products and total cost">Product Summary</h6>
                                     
                                     <!-- Measurements -->
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span class="text-muted">Square Feet</span>
-                                            <span id="sqft">0.00</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="text-muted">Cubic Feet</span>
-                                            <span id="cubicFeet">0.00</span>
-                                        </div>
+                                    <div class="mb-3" data-bs-toggle="tooltip" data-bs-placement="top" title="View the dimensions and measurements of selected items">
+                                        <small class="text-muted d-block">Measurements:</small>
+                                        <div id="measurementsSummary"></div>
                                     </div>
 
+                                    <!-- Quantity -->
+                                    <div class="mb-3" data-bs-toggle="tooltip" data-bs-placement="top" title="Total number of items in your quote">
+                                        <small class="text-muted d-block">Total Quantity:</small>
+                                        <div id="quantitySummary">0</div>
+                                    </div>
+
+                                    <!-- Total Price -->
+                                    <div class="mb-3" data-bs-toggle="tooltip" data-bs-placement="top" title="Total cost for all items in the quote">
+                                        <small class="text-muted d-block">Total Price:</small>
+                                        <div id="priceSummary">$0.00</div>
+                                    </div>
+                                    
                                     <!-- Price Breakdown -->
                                     <div class="price-breakdown border-top pt-3">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -405,7 +411,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_quote'])) {
                             <!-- Cart Table -->
                             <div class="card shadow-sm mb-4">
                                 <div class="card-header bg-white">
-                                    <h5 class="mb-0">Cart Items</h5>
+                                    <h5 class="mb-0" data-bs-toggle="tooltip" data-bs-placement="top" title="List of items added to the current quote">Cart Items</h5>
                                 </div>
                                 <div class="card-body p-0">
                                     <div class="table-responsive">
