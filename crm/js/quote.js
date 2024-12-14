@@ -92,12 +92,16 @@ class QuoteManager {
         this.productTypeSelect.on('change', () => {
             const type = this.productTypeSelect.val();
             this.handleProductTypeChange(type);
+            this.currentProduct = null; // Reset current product when type changes
+            this.updatePrice();
         });
 
         this.productSizeSelect.on('change', () => {
             const type = this.productTypeSelect.val();
             const size = this.productSizeSelect.val();
             this.handleSizeChange(type, size);
+            this.currentProduct = null; // Reset current product when size changes
+            this.updatePrice();
         });
 
         this.productModelSelect.on('change', () => {
@@ -109,12 +113,28 @@ class QuoteManager {
                     model: selectedModel.val(),
                     base_price: parseFloat(selectedModel.data('price')) || 0
                 };
+                console.log('Model changed, new current product:', this.currentProduct);
                 this.updatePrice();
             }
         });
 
-        // Price update handlers
-        $('#stoneColor, #specialMonument').on('change', () => this.updatePrice());
+        // Price update handlers for all dropdowns and inputs
+        const updatePriceElements = [
+            this.stoneColorSelect,
+            this.specialMonumentSelect,
+            this.lengthInput,
+            this.breadthInput,
+            this.quantityInput
+        ];
+
+        updatePriceElements.forEach(element => {
+            element.on('change input', () => {
+                console.log('Input/dropdown changed:', element.attr('id'));
+                if (this.currentProduct) {
+                    this.updateMeasurements();
+                }
+            });
+        });
 
         // Customer selection handler
         this.customerSelect.on('change', (e) => {
@@ -162,6 +182,11 @@ class QuoteManager {
         this.productSizeSelect.empty().append('<option value="">Select Size</option>');
         this.productModelSelect.empty().append('<option value="">Select Model</option>');
         
+        // Reset measurements and displays
+        this.resetDisplays();
+        this.currentProduct = null;
+        this.currentMeasurements = null;
+        
         // Only populate sizes if a valid product type is selected
         if (type && this.productData[type]) {
             const sizes = this.productData[type].sizes || [];
@@ -182,7 +207,6 @@ class QuoteManager {
         this.productModelSelect.prop('disabled', true);
         
         this.updateAddToCartState();
-        this.updatePrice();
     }
 
     handleSizeChange(type, size) {
@@ -190,6 +214,11 @@ class QuoteManager {
         
         // Clear and disable model dropdown by default
         this.productModelSelect.empty().append('<option value="">Select Model</option>').prop('disabled', true);
+        
+        // Reset measurements and displays
+        this.resetDisplays();
+        this.currentProduct = null;
+        this.currentMeasurements = null;
         
         if (!type || !size) {
             return;
@@ -216,8 +245,6 @@ class QuoteManager {
                 >${model.name}</option>
             `);
         });
-        
-        this.updateMeasurements();
     }
 
     createCartItem() {
@@ -246,23 +273,27 @@ class QuoteManager {
             const thickness = parseFloat(selectedModel.data('thickness')) || 4.00;
             const quantity = parseInt(this.currentMeasurements.quantity) || 1;
 
-            // Calculate areas and volumes
-            const sqft = (length * breadth) / 144;
-            const cubicFeet = (length * breadth * thickness) / 1728;
+            // Calculate per unit measurements
+            const sqft = (length * breadth) / 144;  // Square feet per unit
+            const cubicFeetPerUnit = (length * breadth * thickness) / 1728;  // Cubic feet per unit
+            
+            // Calculate total cubic feet
+            const totalCubicFeet = cubicFeetPerUnit * quantity;
 
             // Get markups
             const colorMarkup = this.getSelectedMarkup(this.stoneColorSelect);
             const monumentMarkup = this.getSelectedMarkup(this.specialMonumentSelect);
 
-            // Calculate prices with markups
-            const basePricePerUnit = basePrice * sqft;
+            // Calculate prices
+            const basePricePerUnit = basePrice * sqft;  // Base price per unit
             const markupAmount = basePricePerUnit * ((colorMarkup + monumentMarkup) / 100);
             const totalPricePerUnit = basePricePerUnit + markupAmount;
             const totalPrice = totalPricePerUnit * quantity;
 
             console.log('Cart item calculations:', {
                 basePrice, length, breadth, thickness, quantity,
-                sqft, cubicFeet, colorMarkup, monumentMarkup,
+                sqft, cubicFeetPerUnit, totalCubicFeet,
+                colorMarkup, monumentMarkup,
                 basePricePerUnit, markupAmount, totalPricePerUnit, totalPrice
             });
 
@@ -281,8 +312,8 @@ class QuoteManager {
                 breadth: breadth,
                 thickness: thickness,
                 quantity: quantity,
-                sqft: sqft,
-                cubic_feet: cubicFeet,
+                sqft: sqft,  // Square feet per unit
+                cubic_feet: totalCubicFeet,  // Total cubic feet for all units
                 base_price: basePricePerUnit,
                 markup_amount: markupAmount,
                 price_per_unit: totalPricePerUnit,
@@ -424,26 +455,32 @@ class QuoteManager {
             const selectedModel = this.productModelSelect.find('option:selected');
             const thickness = parseFloat(selectedModel.data('thickness')) || 4.00;
 
-            const sqft = (length * breadth) / 144;
-            const cubicFeet = (length * breadth * thickness) / 1728;
+            // Calculate per unit measurements
+            const sqft = (length * breadth) / 144;  // Square feet per unit
+            const cubicFeetPerUnit = (length * breadth * thickness) / 1728;  // Cubic feet per unit
+            
+            // Calculate total cubic feet
+            const totalCubicFeet = cubicFeetPerUnit * quantity;
+
+            // Calculate prices
             const basePrice = this.currentProduct.base_price;
-            const baseAmount = sqft * basePrice;
+            const baseAmount = sqft * basePrice;  // Base price per unit
             const colorMarkup = this.getSelectedMarkup(this.stoneColorSelect);
             const monumentMarkup = this.getSelectedMarkup(this.specialMonumentSelect);
             const markupAmount = baseAmount * ((colorMarkup + monumentMarkup) / 100);
             const totalPrice = (baseAmount + markupAmount) * quantity;
 
             const result = {
-                sqft: sqft,
-                cubicFeet: cubicFeet,
+                sqft: sqft,  // Per unit
+                cubicFeet: totalCubicFeet,  // Total for all units
                 basePrice: basePrice,
                 totalPrice: totalPrice
             };
 
             console.log('Measurement calculation:', {
-                measurements: this.currentMeasurements,
-                thickness,
-                result,
+                measurements: { length, breadth, thickness, quantity },
+                perUnit: { sqft, cubicFeetPerUnit },
+                total: { cubicFeet: totalCubicFeet, price: totalPrice },
                 markups: { color: colorMarkup, monument: monumentMarkup }
             });
 
@@ -469,27 +506,34 @@ class QuoteManager {
         try {
             const selectedModel = this.productModelSelect.find('option:selected');
             const thickness = parseFloat(selectedModel.data('thickness')) || 4.00;
+            const quantity = parseInt(this.currentMeasurements.quantity) || 1;
 
-            const sqft = (this.currentMeasurements.length * this.currentMeasurements.breadth) / 144;
-            const cubicFeet = (this.currentMeasurements.length * this.currentMeasurements.breadth * thickness) / 1728;
+            // Calculate per unit measurements
+            const sqft = (this.currentMeasurements.length * this.currentMeasurements.breadth) / 144;  // Square feet per unit
+            const cubicFeetPerUnit = (this.currentMeasurements.length * this.currentMeasurements.breadth * thickness) / 1728;  // Cubic feet per unit
+            
+            // Calculate total cubic feet
+            const totalCubicFeet = cubicFeetPerUnit * quantity;
+
+            // Calculate prices
             const basePrice = this.currentProduct.base_price;
-            const baseAmount = sqft * basePrice;
+            const baseAmount = sqft * basePrice;  // Base price per unit
             const colorMarkup = this.getSelectedMarkup(this.stoneColorSelect);
             const monumentMarkup = this.getSelectedMarkup(this.specialMonumentSelect);
             const markupAmount = baseAmount * ((colorMarkup + monumentMarkup) / 100);
-            const totalPrice = (baseAmount + markupAmount) * this.currentMeasurements.quantity;
+            const totalPrice = (baseAmount + markupAmount) * quantity;
 
             const result = {
-                sqft: sqft,
-                cubicFeet: cubicFeet,
+                sqft: sqft,  // Per unit
+                cubicFeet: totalCubicFeet,  // Total for all units
                 basePrice: basePrice,
                 totalPrice: totalPrice
             };
 
             console.log('Price calculation:', {
                 measurements: this.currentMeasurements,
-                thickness,
-                result,
+                perUnit: { sqft, cubicFeetPerUnit },
+                total: { cubicFeet: totalCubicFeet, price: totalPrice },
                 markups: { color: colorMarkup, monument: monumentMarkup }
             });
 
