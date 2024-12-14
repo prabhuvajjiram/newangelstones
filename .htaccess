@@ -6,28 +6,89 @@ RewriteEngine On
 RewriteCond %{HTTPS} off
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# Enable GZIP compression
-<IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css text/javascript application/javascript application/x-javascript application/xml application/json
-</IfModule>
+# Cloudflare IP Ranges
+SetEnvIf CF-IPCountry US COUNTRY_US
+SetEnvIf CF-IPCountry CA COUNTRY_NA
+Header set CDN-POP "%{CF-RAY}e" env=HTTPS
 
-# Enable browser caching
-<IfModule mod_expires.c>
-    ExpiresActive On
-    ExpiresByType image/jpg "access plus 1 year"
-    ExpiresByType image/jpeg "access plus 1 year"
-    ExpiresByType image/gif "access plus 1 year"
-    ExpiresByType image/png "access plus 1 year"
-    ExpiresByType text/css "access plus 1 month"
-    ExpiresByType application/pdf "access plus 1 month"
-    ExpiresByType text/x-javascript "access plus 1 month"
-    ExpiresDefault "access plus 2 days"
-</IfModule>
-
-# Set Keep-Alive Header
+# Enable Keep-Alive
 <IfModule mod_headers.c>
     Header set Connection keep-alive
+    
+    # Cloudflare-specific headers
+    Header set CF-Cache-Status "HIT"
+    Header set Accept-Ranges "bytes"
+    
+    # Vary header for better caching
+    Header append Vary: Accept-Encoding
+    Header append Vary: User-Agent
+    Header append Vary: CF-IPCountry
 </IfModule>
+
+# Browser caching with Cloudflare compatibility
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/html "access plus 0 seconds"
+    ExpiresByType text/xml "access plus 0 seconds"
+    ExpiresByType application/json "access plus 0 seconds"
+    ExpiresByType application/xml "access plus 0 seconds"
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType text/javascript "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType image/x-icon "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType video/mp4 "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType application/font-woff "access plus 1 year"
+    ExpiresByType application/font-woff2 "access plus 1 year"
+</IfModule>
+
+# GZIP with Cloudflare compatibility
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css text/javascript application/javascript application/x-javascript application/xml application/json
+    AddOutputFilterByType DEFLATE application/font-woff application/font-woff2 font/woff font/woff2
+    AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# Security headers compatible with Cloudflare
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    
+    # Cache-Control headers
+    <FilesMatch "\.(html|htm)$">
+        Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+    </FilesMatch>
+    <FilesMatch "\.(js|css|woff|woff2|svg|gif|png|jpg|jpeg|webp|mp4)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+</IfModule>
+
+# Enable HTTP/2 Server Push with Cloudflare
+<IfModule mod_headers.c>
+    <FilesMatch "index.html">
+        Header add Link "</css/bootstrap.min.css>; rel=preload; as=style"
+        Header add Link "</css/style.css>; rel=preload; as=style"
+        Header add Link "</images/video-poster.jpg>; rel=preload; as=image"
+    </FilesMatch>
+</IfModule>
+
+# Optimize TCP
+<IfModule mod_headers.c>
+    Header set TCP_NODELAY 1
+</IfModule>
+
+# Cloudflare Page Rules (implement these in Cloudflare dashboard)
+# 1. Cache Everything for static assets
+# 2. Rocket Loader for JavaScript
+# 3. Auto Minify for HTML, CSS, and JavaScript
 
 # EA PHP 8.1 Handler
 AddHandler application/x-httpd-ea-php81 .php
@@ -38,4 +99,15 @@ AddHandler application/x-httpd-ea-php81 .php
     php_value error_reporting E_ALL & ~E_DEPRECATED & ~E_STRICT
     php_value max_execution_time 30
     php_flag allow_url_fopen On
+</IfModule>
+
+# Enable mod_pagespeed if available
+<IfModule pagespeed_module>
+    ModPagespeed on
+    ModPagespeedEnableFilters extend_cache
+    ModPagespeedEnableFilters combine_css
+    ModPagespeedEnableFilters combine_javascript
+    ModPagespeedEnableFilters defer_javascript
+    ModPagespeedEnableFilters local_storage_cache
+    ModPagespeedEnableFilters prioritize_critical_css
 </IfModule>

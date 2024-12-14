@@ -135,428 +135,382 @@ if (isset($_SESSION['success_message'])) {
 
 // Fetch all products
 $sertop_products = [];
-$stmt = $pdo->query("SELECT *, CONCAT(model, ' - ', size_inches, ' inches') as product_code FROM sertop_products ORDER BY size_inches, model");
+$stmt = $pdo->query("SELECT *, size_inches as size FROM sertop_products ORDER BY id");
 $sertop_products = $stmt->fetchAll();
 
 $base_products = [];
-$stmt = $pdo->query("SELECT *, CONCAT(model, ' - ', size_inches, ' inches') as product_code FROM base_products ORDER BY size_inches, model");
+$stmt = $pdo->query("SELECT *, size_inches as size FROM base_products ORDER BY id");
 $base_products = $stmt->fetchAll();
 
 $marker_products = [];
-$stmt = $pdo->query("SELECT *, CONCAT(product_code, ' - ', square_feet, ' sq ft') as display_code FROM marker_products ORDER BY square_feet, product_code");
+$stmt = $pdo->query("SELECT *, square_feet as size FROM marker_products ORDER BY id");
 $marker_products = $stmt->fetchAll();
 
 $slant_products = [];
-$stmt = $pdo->query("SELECT *, CONCAT(product_code, ' - ', model) as display_code FROM slant_products ORDER BY product_code");
+$stmt = $pdo->query("SELECT *, size_inches as size FROM slant_products ORDER BY id");
 $slant_products = $stmt->fetchAll();
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Management - Angel Stones</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        .table > :not(caption) > * > * {
-            padding: 0.75rem;
-            background-color: #ffffff;
-        }
-        .table {
-            --bs-table-bg: #ffffff;
-            --bs-table-striped-bg: #ffffff;
-            --bs-table-hover-bg: #ffffff;
-        }
-        .table tbody tr {
-            background-color: #ffffff;
-        }
-        .input-group {
-            background-color: #fff;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        .input-group-text {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            color: #6c757d;
-        }
-        .form-control {
-            border: 1px solid #dee2e6;
-        }
-        .form-control:read-only {
-            background-color: #f8f9fa;
-        }
-        .btn-primary {
-            background-color: #0d6efd;
-            border: none;
-            padding: 0.375rem 0.75rem;
-        }
-        .card {
-            border: none;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        .card-header {
-            background-color: #fff;
-            border-bottom: 1px solid #dee2e6;
-            padding: 1.5rem;
-        }
-        .card-header h4 {
-            margin: 0;
-            color: #212529;
-            font-weight: 500;
-        }
-        .table thead th {
-            border-bottom: 2px solid #dee2e6;
-            font-weight: 500;
-            color: #212529;
-            background-color: #ffffff;
-        }
-        .table td {
-            border-bottom: 1px solid #dee2e6;
-        }
-    </style>
-</head>
-<body>
-    <?php include 'navbar.php'; ?>
 
-    <div class="container mt-4">
-        <?php if (isset($success_message)): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i>
-                <?php echo htmlspecialchars($success_message); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
+<?php include 'header.php'; ?>
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="mb-0">Product Management</h2>
-        </div>
+<!-- Add DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+<link rel="stylesheet" type="text/css" href="css/datatables-custom.css">
 
-        <!-- Global Markup Section -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4>Global Markup Settings</h4>
-            </div>
-            <div class="card-body">
-                <form method="post" id="globalMarkupForm" class="row g-3 align-items-end">
-                    <div class="col-md-3">
-                        <label class="form-label">Global Markup Percentage</label>
-                        <div class="input-group input-group-sm">
-                            <input type="number" name="global_markup" class="form-control" step="0.1" required>
-                            <span class="input-group-text"><i class="bi bi-percent"></i></span>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <button type="submit" name="apply_global_markup" class="btn btn-primary btn-sm">
-                            <i class="bi bi-check2-all me-1"></i>Apply Global Markup
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+<?php include 'navbar.php'; ?>
 
-        <!-- SERTOP Products -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4>SERTOP Products</h4>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Code</th>
-                                <th>Name</th>
-                                <th>Size</th>
-                                <th>Supplier Price</th>
-                                <th>Markup %</th>
-                                <th>Final Price</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($sertop_products as $product): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($product['product_code']); ?></td>
-                                    <td><?php echo htmlspecialchars($product['model']); ?></td>
-                                    <td><?php echo htmlspecialchars($product['size_inches']); ?> inch</td>
-                                    <td>
-                                        <form method="post" class="d-flex align-items-center">
-                                            <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                                            <div class="input-group input-group-sm">
-                                                <span class="input-group-text">$</span>
-                                                <input type="number" name="supplier_price" 
-                                                       value="<?php echo $product['supplier_price']; ?>" 
-                                                       class="form-control form-control-sm price-input" 
-                                                       step="0.01" required>
-                                            </div>
-                                    </td>
-                                    <td>
-                                        <div class="input-group input-group-sm">
-                                            <input type="number" name="markup_percentage" 
-                                                   value="<?php echo $product['markup_percentage']; ?>" 
-                                                   class="form-control form-control-sm markup-input"
-                                                   step="0.1" required>
-                                            <span class="input-group-text">%</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text">$</span>
-                                            <input type="text" class="form-control form-control-sm final-price" 
-                                                   value="<?php echo number_format($product['base_price'], 2); ?>" 
-                                                   readonly>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <button type="submit" name="update_sertop" class="btn btn-sm btn-primary">
-                                            <i class="bi bi-save"></i>
-                                        </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- BASE Products -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4>BASE Products</h4>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Code</th>
-                                <th>Name</th>
-                                <th>Size</th>
-                                <th>Supplier Price</th>
-                                <th>Markup %</th>
-                                <th>Final Price</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($base_products as $product): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($product['product_code']); ?></td>
-                                    <td><?php echo htmlspecialchars($product['model']); ?></td>
-                                    <td><?php echo htmlspecialchars($product['size_inches']); ?> inch</td>
-                                    <td>
-                                        <form method="post" class="d-flex align-items-center">
-                                            <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                                            <div class="input-group input-group-sm">
-                                                <span class="input-group-text">$</span>
-                                                <input type="number" name="supplier_price" 
-                                                       value="<?php echo $product['supplier_price']; ?>" 
-                                                       class="form-control form-control-sm price-input" 
-                                                       step="0.01" required>
-                                            </div>
-                                    </td>
-                                    <td>
-                                        <div class="input-group input-group-sm">
-                                            <input type="number" name="markup_percentage" 
-                                                   value="<?php echo $product['markup_percentage']; ?>" 
-                                                   class="form-control form-control-sm markup-input"
-                                                   step="0.1" required>
-                                            <span class="input-group-text">%</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text">$</span>
-                                            <input type="text" class="form-control form-control-sm final-price" 
-                                                   value="<?php echo number_format($product['base_price'], 2); ?>" 
-                                                   readonly>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <button type="submit" name="update_base" class="btn btn-sm btn-primary">
-                                            <i class="bi bi-save"></i>
-                                        </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- MARKER Products -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4>MARKER Products</h4>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Code</th>
-                                <th>Name</th>
-                                <th>Square Feet</th>
-                                <th>Supplier Price</th>
-                                <th>Markup %</th>
-                                <th>Final Price</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($marker_products as $product): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($product['display_code']); ?></td>
-                                    <td><?php echo htmlspecialchars($product['product_code']); ?></td>
-                                    <td><?php echo htmlspecialchars($product['square_feet']); ?> SQFT</td>
-                                    <td>
-                                        <form method="post" class="d-flex align-items-center">
-                                            <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                                            <div class="input-group input-group-sm">
-                                                <span class="input-group-text">$</span>
-                                                <input type="number" name="supplier_price" 
-                                                       value="<?php echo $product['supplier_price']; ?>" 
-                                                       class="form-control form-control-sm price-input" 
-                                                       step="0.01" required>
-                                            </div>
-                                    </td>
-                                    <td>
-                                        <div class="input-group input-group-sm">
-                                            <input type="number" name="markup_percentage" 
-                                                   value="<?php echo $product['markup_percentage']; ?>" 
-                                                   class="form-control form-control-sm markup-input"
-                                                   step="0.1" required>
-                                            <span class="input-group-text">%</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text">$</span>
-                                            <input type="text" class="form-control form-control-sm final-price" 
-                                                   value="<?php echo number_format($product['base_price'], 2); ?>" 
-                                                   readonly>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <button type="submit" name="update_marker" class="btn btn-sm btn-primary">
-                                            <i class="bi bi-save"></i>
-                                        </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- SLANT Products -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4>SLANT Products</h4>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Code</th>
-                                <th>Name</th>
-                                <th>Supplier Price</th>
-                                <th>Markup %</th>
-                                <th>Final Price</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($slant_products as $product): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($product['display_code']); ?></td>
-                                    <td><?php echo htmlspecialchars($product['model']); ?></td>
-                                    <td>
-                                        <form method="post" class="d-flex align-items-center">
-                                            <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                                            <div class="input-group input-group-sm">
-                                                <span class="input-group-text">$</span>
-                                                <input type="number" name="supplier_price" 
-                                                       value="<?php echo $product['supplier_price']; ?>" 
-                                                       class="form-control form-control-sm price-input" 
-                                                       step="0.01" required>
-                                            </div>
-                                    </td>
-                                    <td>
-                                        <div class="input-group input-group-sm">
-                                            <input type="number" name="markup_percentage" 
-                                                   value="<?php echo $product['markup_percentage']; ?>" 
-                                                   class="form-control form-control-sm markup-input"
-                                                   step="0.1" required>
-                                            <span class="input-group-text">%</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text">$</span>
-                                            <input type="text" class="form-control form-control-sm final-price" 
-                                                   value="<?php echo number_format($product['base_price'], 2); ?>" 
-                                                   readonly>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <button type="submit" name="update_slant" class="btn btn-sm btn-primary">
-                                            <i class="bi bi-save"></i>
-                                        </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+<div class="container-fluid px-4 py-4">
+    <!-- Global Markup Section -->
+    <div class="content-card bg-white rounded-3 shadow-sm mb-4">
+        <div class="card-header border-0 bg-transparent py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-semibold">Global Markup</h5>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#globalMarkupModal">
+                    <i class="fas fa-percentage me-2"></i>Update Global Markup
+                </button>
             </div>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function viewProduct(type, id) {
-            // Implement product view functionality
-            alert('View product: ' + type + ' ID: ' + id);
-        }
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add event listeners to all supplier price and markup inputs
-            document.querySelectorAll('.price-input, .markup-input').forEach(input => {
-                input.addEventListener('input', function() {
-                    try {
-                        const row = this.closest('tr');
-                        if (!row) return;
-                        
-                        const supplierPriceInput = row.querySelector('.price-input');
-                        const markupInput = row.querySelector('.markup-input');
-                        const finalPriceInput = row.querySelector('.final-price');
-                        
-                        if (!supplierPriceInput || !markupInput || !finalPriceInput) return;
+    <?php if (isset($success_message)): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <?php echo htmlspecialchars($success_message); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
 
-                        const supplierPrice = parseFloat(supplierPriceInput.value) || 0;
-                        const markupPercentage = parseFloat(markupInput.value) || 0;
-                        const finalPrice = supplierPrice * (1 + (markupPercentage / 100));
-                        
-                        finalPriceInput.value = finalPrice.toFixed(2);
-                    } catch (error) {
-                        console.error('Error calculating price:', error);
-                    }
-                });
-            });
-        });
-    </script>
-</body>
-</html>
+    <!-- Product Categories Tabs -->
+    <ul class="nav nav-tabs mb-4" id="productTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="sertop-tab" data-bs-toggle="tab" data-bs-target="#sertop" type="button" role="tab">
+                <i class="fas fa-monument me-2"></i>SERTOP Products
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="base-tab" data-bs-toggle="tab" data-bs-target="#base" type="button" role="tab">
+                <i class="fas fa-cube me-2"></i>BASE Products
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="marker-tab" data-bs-toggle="tab" data-bs-target="#marker" type="button" role="tab">
+                <i class="fas fa-map-marker-alt me-2"></i>MARKER Products
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="slant-tab" data-bs-toggle="tab" data-bs-target="#slant" type="button" role="tab">
+                <i class="fas fa-square me-2"></i>SLANT Products
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="productTabsContent">
+        <!-- SERTOP Products Tab -->
+        <div class="tab-pane fade show active" id="sertop" role="tabpanel">
+            <div class="content-card bg-white rounded-3 shadow-sm">
+                <div class="card-header border-0 bg-transparent py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-semibold">SERTOP Products</h5>
+                    </div>
+                </div>
+                <div class="card-body px-4">
+                    <div class="table-responsive">
+                        <table id="sertopTable" class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Model</th>
+                                    <th>Size</th>
+                                    <th>Supplier Price</th>
+                                    <th>Markup %</th>
+                                    <th>Base Price</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                foreach ($sertop_products as $product) {
+                                    $size = isset($product['size_inches']) ? floatval($product['size_inches']) : 0;
+                                    $model = $product['model'] ?? ($product['id'] . " - " . number_format($size, 2) . " inches");
+                                    echo "<tr>";
+                                    echo "<td>" . htmlspecialchars($product['id'] ?? '') . "</td>";
+                                    echo "<td>" . htmlspecialchars($model) . "</td>";
+                                    echo "<td>" . number_format($size, 2) . " inch</td>";
+                                    echo "<td>$" . number_format($product['supplier_price'] ?? 0, 2) . "</td>";
+                                    echo "<td>" . number_format($product['markup_percentage'] ?? 0, 2) . "%</td>";
+                                    echo "<td>$" . number_format($product['base_price'] ?? 0, 2) . "</td>";
+                                    echo "<td class='text-center'>
+                                            <button type='button' class='btn btn-primary btn-sm edit-product' 
+                                                    data-bs-toggle='modal' 
+                                                    data-bs-target='#editModal' 
+                                                    data-product-type='sertop'
+                                                    data-product-id='" . ($product['id'] ?? '') . "'
+                                                    data-supplier-price='" . ($product['supplier_price'] ?? 0) . "'
+                                                    data-markup='" . ($product['markup_percentage'] ?? 0) . "'>
+                                                <i class='fas fa-edit'></i>
+                                            </button>
+                                          </td>";
+                                    echo "</tr>";
+                                }
+                                ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BASE Products Tab -->
+        <div class="tab-pane fade" id="base" role="tabpanel">
+            <div class="content-card bg-white rounded-3 shadow-sm">
+                <div class="card-header border-0 bg-transparent py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-semibold">BASE Products</h5>
+                    </div>
+                </div>
+                <div class="card-body px-4">
+                    <div class="table-responsive">
+                        <table id="baseTable" class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Model</th>
+                                    <th>Size</th>
+                                    <th>Supplier Price</th>
+                                    <th>Markup %</th>
+                                    <th>Base Price</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                foreach ($base_products as $product) {
+                                    $size = isset($product['size_inches']) ? floatval($product['size_inches']) : 0;
+                                    $model = $product['model'] ?? ($product['id'] . " - " . number_format($size, 2) . " inches");
+                                    echo "<tr>";
+                                    echo "<td>" . htmlspecialchars($product['id'] ?? '') . "</td>";
+                                    echo "<td>" . htmlspecialchars($model) . "</td>";
+                                    echo "<td>" . number_format($size, 2) . " inch</td>";
+                                    echo "<td>$" . number_format($product['supplier_price'] ?? 0, 2) . "</td>";
+                                    echo "<td>" . number_format($product['markup_percentage'] ?? 0, 2) . "%</td>";
+                                    echo "<td>$" . number_format($product['base_price'] ?? 0, 2) . "</td>";
+                                    echo "<td class='text-center'>
+                                            <button type='button' class='btn btn-primary btn-sm edit-product' 
+                                                    data-bs-toggle='modal' 
+                                                    data-bs-target='#editModal' 
+                                                    data-product-type='base'
+                                                    data-product-id='" . ($product['id'] ?? '') . "'
+                                                    data-supplier-price='" . ($product['supplier_price'] ?? 0) . "'
+                                                    data-markup='" . ($product['markup_percentage'] ?? 0) . "'>
+                                                <i class='fas fa-edit'></i>
+                                            </button>
+                                          </td>";
+                                    echo "</tr>";
+                                }
+                                ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MARKER Products Tab -->
+        <div class="tab-pane fade" id="marker" role="tabpanel">
+            <div class="content-card bg-white rounded-3 shadow-sm">
+                <div class="card-header border-0 bg-transparent py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-semibold">MARKER Products</h5>
+                    </div>
+                </div>
+                <div class="card-body px-4">
+                    <div class="table-responsive">
+                        <table id="markerTable" class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Model</th>
+                                    <th>Size</th>
+                                    <th>Supplier Price</th>
+                                    <th>Markup %</th>
+                                    <th>Base Price</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                foreach ($marker_products as $product) {
+                                    $size = isset($product['square_feet']) ? floatval($product['square_feet']) : 0;
+                                    $model = $product['model'] ?? ($product['id'] . " - " . number_format($size, 2) . " sq ft");
+                                    echo "<tr>";
+                                    echo "<td>" . htmlspecialchars($product['id'] ?? '') . "</td>";
+                                    echo "<td>" . htmlspecialchars($model) . "</td>";
+                                    echo "<td>" . number_format($size, 2) . " sq ft</td>";
+                                    echo "<td>$" . number_format($product['supplier_price'] ?? 0, 2) . "</td>";
+                                    echo "<td>" . number_format($product['markup_percentage'] ?? 0, 2) . "%</td>";
+                                    echo "<td>$" . number_format($product['base_price'] ?? 0, 2) . "</td>";
+                                    echo "<td class='text-center'>
+                                            <button type='button' class='btn btn-primary btn-sm edit-product' 
+                                                    data-bs-toggle='modal' 
+                                                    data-bs-target='#editModal' 
+                                                    data-product-type='marker'
+                                                    data-product-id='" . ($product['id'] ?? '') . "'
+                                                    data-supplier-price='" . ($product['supplier_price'] ?? 0) . "'
+                                                    data-markup='" . ($product['markup_percentage'] ?? 0) . "'>
+                                                <i class='fas fa-edit'></i>
+                                            </button>
+                                          </td>";
+                                    echo "</tr>";
+                                }
+                                ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLANT Products Tab -->
+        <div class="tab-pane fade" id="slant" role="tabpanel">
+            <div class="content-card bg-white rounded-3 shadow-sm">
+                <div class="card-header border-0 bg-transparent py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-semibold">SLANT Products</h5>
+                    </div>
+                </div>
+                <div class="card-body px-4">
+                    <div class="table-responsive">
+                        <table id="slantTable" class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Model</th>
+                                    <th>Size</th>
+                                    <th>Supplier Price</th>
+                                    <th>Markup %</th>
+                                    <th>Base Price</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                foreach ($slant_products as $product) {
+                                    $size = isset($product['size_inches']) ? floatval($product['size_inches']) : 0;
+                                    $model = $product['model'] ?? ($product['id'] . " - " . number_format($size, 2) . " inches");
+                                    echo "<tr>";
+                                    echo "<td>" . htmlspecialchars($product['id'] ?? '') . "</td>";
+                                    echo "<td>" . htmlspecialchars($model) . "</td>";
+                                    echo "<td>" . number_format($size, 2) . " inch</td>";
+                                    echo "<td>$" . number_format($product['supplier_price'] ?? 0, 2) . "</td>";
+                                    echo "<td>" . number_format($product['markup_percentage'] ?? 0, 2) . "%</td>";
+                                    echo "<td>$" . number_format($product['base_price'] ?? 0, 2) . "</td>";
+                                    echo "<td class='text-center'>
+                                            <button type='button' class='btn btn-primary btn-sm edit-product' 
+                                                    data-bs-toggle='modal' 
+                                                    data-bs-target='#editModal' 
+                                                    data-product-type='slant'
+                                                    data-product-id='" . ($product['id'] ?? '') . "'
+                                                    data-supplier-price='" . ($product['supplier_price'] ?? 0) . "'
+                                                    data-markup='" . ($product['markup_percentage'] ?? 0) . "'>
+                                                <i class='fas fa-edit'></i>
+                                            </button>
+                                          </td>";
+                                    echo "</tr>";
+                                }
+                                ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm" method="POST">
+                    <input type="hidden" name="product_id" id="product_id">
+                    <div class="mb-3">
+                        <label for="supplier_price" class="form-label">Supplier Price ($)</label>
+                        <input type="number" step="0.01" class="form-control" id="supplier_price" name="supplier_price" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="markup_percentage" class="form-label">Markup Percentage (%)</label>
+                        <input type="number" step="0.01" class="form-control" id="markup_percentage" name="markup_percentage" required>
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="updateButton">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Global Markup Modal -->
+<div class="modal fade" id="globalMarkupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Global Markup</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="global_markup" class="form-label">Global Markup Percentage (%)</label>
+                        <input type="number" step="0.01" class="form-control" id="global_markup" name="global_markup" required>
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" name="apply_global_markup" class="btn btn-primary">Apply Global Markup</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Initialize DataTables
+    $('#sertopTable, #baseTable, #markerTable, #slantTable').DataTable({
+        responsive: true,
+        pageLength: 25,
+        order: [[0, 'asc']]
+    });
+
+    // Handle edit modal
+    $('.edit-product').click(function() {
+        const productId = $(this).data('product-id');
+        const supplierPrice = $(this).data('supplier-price');
+        const markup = $(this).data('markup');
+        const productType = $(this).data('product-type');
+
+        $('#product_id').val(productId);
+        $('#supplier_price').val(supplierPrice);
+        $('#markup_percentage').val(markup);
+        
+        // Set the form's submit button name based on product type
+        $('#updateButton').attr('name', 'update_' + productType);
+    });
+});
+</script>
