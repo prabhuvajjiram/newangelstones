@@ -139,11 +139,9 @@
     <!-- Critical CSS Files -->	
     <link rel="stylesheet" href="css/bootstrap.min.css">	
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/hamburger.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
     
     <!-- Non-Critical CSS Files -->
-    <link rel="stylesheet" href="css/animate.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/animate.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/all.min.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/magnific-popup.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/owl.carousel.min.css" media="print" onload="this.media='all'">
@@ -166,38 +164,48 @@
 </head>
 
 <body>
-    <div class="menu-overlay"></div>
     <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-56P7KZDV" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-56P7KZDV"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
-
-    <header id="as-header">
-        <button class="as-nav-toggle">
-            <i></i>
-        </button>
-    </header>
-
-    <nav id="as-nav" role="navigation">
-        <div class="nav-header">
-            <a href="/" class="as-logo">
-                <img src="images/logo02.png" width="200" height="80" alt="Angel Stones">
-            </a>
-        </div>
-        <ul class="nav-menu">
-            <li><a href="#home">Home</a></li>
-            <li><a href="#what-we-offer">What We Offer</a></li>
-            <li><a href="#our-product">Our Products</a></li>
-            <li><a href="#projects">Projects</a></li>
-            <li><a href="#why-choose-as">Why Choose Us</a></li>
-            <li><a href="#get-in-touch">Contact</a></li>
-        </ul>
+    <!-- Progress scroll totop -->
+    <div class="progress-wrap cursor-pointer">
+        <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+            <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" />
+        </svg>
+    </div>
+    <div id="as-page"> 
+      
+       <!-- Sidebar Section -->
+       <a href="#" class="js-as-nav-toggle as-nav-toggle" aria-label="Toggle Navigation Menu"><i aria-hidden="true"></i></a>
+        <aside id="as-aside">
+            <!-- Logo -->
+            <h1 id="as-logo">
+                <a href="https://www.theangelstones.com/">
+                    <picture>
+                        <source srcset="images/logo02.webp" type="image/webp">
+                        <img src="images/logo02.png" width="200" height="80" class="img-fluid" alt="Angel Stones">
+                    </picture>
+                </a>
+            </h1>
+            <!-- Menu -->
+            <nav class="as-main-menu">
+                <ul>
+                    <li><a href="https://www.theangelstones.com/">Home</a></li>
+                    <li><a href="#who-we-are">Who we Are</a></li>
+                    <li><a href="#what-we-offer">What we Offer</a></li>
+                    <li><a href="#our-product">Our Product</a></li>
+                    <li><a href="#projects">Projects</a></li>
+                    <li><a href="#why-choose-as">Why Choose Angel Stones</a></li>
+                    <li><a href="#get-in-touch">Get in Touch</a></li>
+                </ul>
+            </nav>
             <!-- Sidebar Footer -->
-        <div class="as-footer">
-            <p><small>&copy; 2025 <a href="https://www.theangelstones.com/">Angel Stones</a></small> All Rights Reserved</p>
-        </div>
-    </nav>
-
-    <div id="as-page">
+            <div class="as-footer">
+                <p><small>&copy; 2024 <a href="https://www.theangelstones.com/">Angel Stones</a></small> All Rights Reserved</p>
+            </div>
+        </aside>
+        <!-- Main Section -->
         <div id="as-main">
             <!-- Hero Section Start Here-->
             <section class="outter hero-video">
@@ -754,7 +762,7 @@
                             <div class="section-header">
                                 <div class="subtitle">
                                     <img src="images/title-star.svg" alt="Angel Stones">
-                                    Angel Stones
+                                        Angel Stones
                                     <img src="images/title-star.svg" alt="Angel Stones">
                                 </div>
                                 <div class="title">Provided with the variety of Granite's</div>
@@ -762,44 +770,42 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-12">
-                            <div class="owl-carousel owl-theme">
-                                <div class="variety-of-granites">
-                                    <img src="images/bluepearl.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Blue Pearl">
-                                    <div class="caption"><p>Blue Pearl</p></div>
-                                </div>
-                                <div class="variety-of-granites">
-                                    <img src="images/indian-black.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Indian Black">
-                                    <div class="caption"><p>Indian Black</p></div>
-                                </div>
-                                <div class="variety-of-granites">
-                                    <img src="images/vizag-blue.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Vizag Blue">
-                                    <div class="caption"><p>Vizag Blue</p></div>
-                                </div>
-                                <div class="variety-of-granites">
-                                    <img src="images/paradiso.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Paradiso">
-                                    <div class="caption"><p>Paradiso</p></div>
-                                </div>
-                                <div class="variety-of-granites">
-                                    <img src="images/galaxy.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Galaxy">
-                                    <div class="caption"><p>Galaxy</p></div>
-                                </div>
-                                <div class="variety-of-granites">
-                                    <img src="images/white-and-red.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="White and Red">
-                                    <div class="caption"><p>White and Red</p></div>
-                                </div>
-                                <div class="variety-of-granites">
-                                    <img src="images/himalayan-blue.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Himalayan Blue">
-                                    <div class="caption"><p>Himalayan Blue</p></div>
-                                </div>
-                                <div class="variety-of-granites">
-                                    <img src="images/green.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Green">
-                                    <div class="caption"><p>Green</p></div>
-                                </div>
-                                <div class="variety-of-granites">
-                                    <img src="images/aurora.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Aurora">
-                                    <div class="caption"><p>Aurora</p></div>
-                                </div>
+                        <div class="col-md-12 owl-carousel owl-theme">
+                            <div class="variety-of-granites">
+                                <img src="images/bluepearl.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Blue Pearl">
+                                <div class="caption"><p>Blue Pearl</p></div>
+                            </div>
+                            <div class="variety-of-granites">
+                                <img src="images/indian-black.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Indian Black">
+                                <div class="caption"><p>Indian Black</p></div>
+                            </div>
+                            <div class="variety-of-granites">
+                                <img src="images/vizag-blue.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Vizag Blue">
+                                <div class="caption"><p>Vizag Blue</p></div>
+                            </div>
+                            <div class="variety-of-granites">
+                                <img src="images/paradiso.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Paradiso">
+                                <div class="caption"><p>Paradiso</p></div>
+                            </div>
+                            <div class="variety-of-granites">
+                                <img src="images/galaxy.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Galaxy">
+                                <div class="caption"><p>Galaxy</p></div>
+                            </div>
+                            <div class="variety-of-granites">
+                                <img src="images/white-and-red.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="White and Red">
+                                <div class="caption"><p>White and Red</p></div>
+                            </div>
+                            <div class="variety-of-granites">
+                                <img src="images/himalayan-blue.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Himalayan Blue">
+                                <div class="caption"><p>Himalayan Blue</p></div>
+                            </div>
+                            <div class="variety-of-granites">
+                                <img src="images/green.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Green">
+                                <div class="caption"><p>Green</p></div>
+                            </div>
+                            <div class="variety-of-granites">
+                                <img src="images/aurora.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Aurora">
+                                <div class="caption"><p>Aurora</p></div>
                             </div>
                         </div>
                     </div>
@@ -827,25 +833,18 @@
             </div>
         </div>
     </div>
-
-    <!-- Back to Top Button -->
-    <a href="#" class="back-to-top d-flex align-items-center justify-content-center">
-        <i class="bi bi-chevron-up"></i>
-    </a>
-
     <!-- jQuery -->
-    <script src="js/jquery-3.7.1.min.js"></script>
-    <script src="js/navigation.js"></script>
-    <script src="js/modernizr-custom.js" defer></script>
-    <script src="js/jquery.easing.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="js/jquery.min.js" defer></script>
+    <script src="js/modernizr-2.6.2.min.js" defer></script>
+    <script src="js/jquery.easing.1.3.js" defer></script>
+    <script src="js/bootstrap.bundle.js" defer></script>
     <script src="js/jquery.waypoints.min.js" defer></script>
     <script src="js/sticky-kit.min.js" defer></script>
-    <script src="js/isotope.pkgd.min.js" defer></script>
+    <script src="js/isotope.js" defer></script>
     <script src="js/jquery.magnific-popup.min.js" defer></script>
     <script src="js/owl.carousel.min.js" defer></script>
-    <script src="https://unpkg.com/imagesloaded@5/imagesloaded.pkgd.min.js" defer></script>
-    <script src="js/custom.min.js" defer></script>
+    <script src="js/main.js" defer></script>
+    <script src="js/script.js" defer></script>
     <!-- Cookie Consent -->
     <script>
     window.addEventListener('load', function() {
