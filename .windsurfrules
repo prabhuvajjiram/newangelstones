@@ -1,0 +1,419 @@
+{
+    "project": {
+      "name": "Angel Stones CRM",
+      "type": "crm-system",
+      "description": "Comprehensive CRM system with inventory, order management, and quote system",
+      "localDevelopment": {
+        "database": {
+          "server": "c:\\xampp\\mysql",
+          "connection": {
+            "host": "127.0.0.1",
+            "name": "angelstones_quotes_new",
+            "user": "root",
+            "password": "",
+            "port": 3306
+          }
+        }
+      },
+      "emailSystem": {
+        "provider": "Gmail",
+        "features": [
+          "Email templates",
+          "Email tracking",
+          "Analytics",
+          "OAuth2 authentication"
+        ],
+        "templates": {
+          "location": "email_templates/",
+          "types": ["quote", "order", "notification"]
+        },
+        "security": {
+          "oauth2": {
+            "configLocation": "includes/auth_config.php",
+            "credentialsType": "environment_variables",
+            "tokensLocation": "secure_storage/"
+          }
+        }
+      },
+      "dependencies": {
+        "frontend": {
+          "css": [
+            "bootstrap@5.3.2",
+            "bootstrap-icons@1.11.1"
+          ],
+          "js": [
+            "jquery",
+            "bootstrap@5.3.2"
+          ]
+        },
+        "localLibraries": {
+          "pdf": {
+            "name": "TCPDF",
+            "type": "local-copy",
+            "path": "crm/tcpdf",
+            "description": "Local copy of TCPDF library for PDF generation"
+          },
+          "phpMailer": {
+            "type": "local-copy",
+            "path": "crm/includes/PHPMailer",
+            "description": "Local copy of PHPMailer for email handling"
+          },
+          "googleAPI": {
+            "type": "local-copy",
+            "path": "crm/includes/google-api-php-client",
+            "description": "Local copy of Google API Client"
+          }
+        },
+        "packageManagement": {
+          "type": "manual",
+          "description": "Dependencies are managed manually without Composer"
+        }
+      },
+      "development": {
+        "xampp": {
+          "path": "c:\\xampp",
+          "php": "8.0+",
+          "apache": {
+            "documentRoot": "/newangelstones"
+          }
+        },
+        "browserSupport": [
+          "Chrome",
+          "Firefox",
+          "Edge",
+          "Safari"
+        ]
+      },
+      "structure": {
+        "crm": {
+          "core": [
+            "settings.php",
+            "products.php",
+            "inventory_pricing.php",
+            "orders.php",
+            "quotes.php",
+            "tasks.php",
+            "warehouses.php"
+          ],
+          "ajax": "AJAX handlers for async operations",
+          "api": "API integrations including Gmail",
+          "includes": "Core functionality and configurations"
+        }
+      },
+      "businessLogic": {
+        "managers": {
+          "ActivityManager": "Handles user and system activities tracking",
+          "ContactManager": "Customer and company contact management",
+          "EmailManager": "Email templates and sending functionality"
+        },
+        "modules": {
+          "location": "crm/includes/modules",
+          "description": "Core business logic modules"
+        }
+      },
+      "database": {
+        "migrations": {
+          "location": "crm/db/migrations",
+          "description": "Database version control and updates"
+        },
+        "maintenance": {
+          "verification": ["check_tables.php", "verify_tables.sql"],
+          "utilities": ["setup_database.php", "check_all_tables.php"]
+        },
+        "tables": {
+          "description": "Tables are managed directly in MySQL database",
+          "mainDatabase": "angelstones_quotes_new",
+          "checkMethods": {
+            "type": "dynamic",
+            "description": "Tables are checked directly from MySQL instead of schema files",
+            "verificationScript": "check_tables.php"
+          }
+        }
+      },
+      "errorHandling": {
+        "logging": {
+          "file": "includes/error.log",
+          "handler": "error_handler.php"
+        }
+      },
+      "configuration": {
+        "templates": {
+          "config.template.php": "Base configuration template",
+          "db_config.php": "Database connection settings",
+          "email_config.php": "Email service settings",
+          "auth_config.php": "Authentication settings"
+        }
+      },
+      "customization": {
+        "pdf": {
+          "class": "mypdf.php",
+          "description": "Custom PDF generation class extending TCPDF"
+        }
+      },
+      "uiComponents": {
+        "modals": {
+          "location": "crm/modals",
+          "components": {
+            "communication": "Customer communication modal",
+            "document": "Document upload/view modal",
+            "customer": "Customer edit modal",
+            "task": "Task management modal"
+          }
+        }
+      },
+      "apiEndpoints": {
+        "location": "crm/api",
+        "groups": {
+          "email": {
+            "description": "Email handling endpoints",
+            "endpoints": [
+              "send_email.php",
+              "track_email.php",
+              "email_activity.php"
+            ]
+          },
+          "templates": {
+            "description": "Email template management",
+            "endpoints": [
+              "get_template.php",
+              "save_template.php",
+              "delete_template.php"
+            ]
+          },
+          "customer": {
+            "description": "Customer management API",
+            "endpoints": [
+              "customer.php",
+              "follow_up.php"
+            ]
+          }
+        }
+      },
+      "security": {
+        "authentication": {
+          "type": "role-based",
+          "roles": ["admin", "staff"],
+          "sessionHandling": "PHP Sessions"
+        },
+        "database": {
+          "connection": "PDO",
+          "preparedStatements": true
+        },
+        "inputValidation": {
+          "required": true,
+          "sanitization": true
+        },
+        "apiProtection": {
+          "type": "session-based",
+          "csrf": true,
+          "rateLimit": true
+        },
+        "fileUploads": {
+          "allowedTypes": ["pdf", "doc", "docx", "jpg", "png"],
+          "maxSize": "10MB",
+          "storage": "secure_uploads/"
+        }
+      },
+      "fileDependencies": {
+        "rules": [
+          {
+            "primaryFile": "generate_pdf.php",
+            "dependentFiles": ["send_quote.php"],
+            "description": "PDF generation changes affect quote sending functionality",
+            "updateAction": "sync_update"
+          },
+          {
+            "primaryFile": "preview_quote.php",
+            "dependentFiles": ["generate_pdf.php", "send_quote.php"],
+            "description": "Quote preview changes affect PDF generation and sending"
+          },
+          {
+            "primaryFile": "quote.php",
+            "dependentFiles": ["preview_quote.php", "generate_pdf.php", "send_quote.php"],
+            "description": "Quote changes affect preview, PDF generation and sending"
+          },
+          {
+            "primaryFile": "crm/js/quote.js",
+            "dependentFiles": ["crm/includes/modules/ProductCalculator.php"],
+            "description": "Product calculation logic must be synchronized between frontend and backend",
+            "updateAction": "sync_update",
+            "validationRules": {
+              "checkCalculations": true,
+              "syncFormulas": true
+            }
+          },
+          {
+            "primaryFile": "generate_pdf.php",
+            "dependentFiles": ["send_quote.php", "preview_quote.php"],
+            "description": "Commission calculations must be equal and synchronized before quote generation",
+            "updateAction": "sync_update",
+            "validationRules": {
+              "checkCommission": true,
+              "equalDistribution": true,
+              "previewAccess": true
+            }
+          },
+          {
+            "primaryFile": "windsurfrules_output.php",
+            "dependentFiles": ["generate_pdf.php", "send_quote.php", "preview_quote.php", "quote.js", "ProductCalculator.php"],
+            "description": "Output formatting for rule usage and recommendations",
+            "updateAction": "sync_update",
+            "validationRules": {
+              "showRuleUsed": true,
+              "trackDependencies": true,
+              "suggestNewRules": true
+            },
+            "outputFormat": {
+              "ruleUsage": {
+                "showTimestamp": true,
+                "showAffectedFiles": true,
+                "showValidationResults": true
+              },
+              "recommendations": {
+                "basedOn": ["fileChanges", "dependencies", "businessLogic"],
+                "format": "structured",
+                "priority": ["security", "sync", "optimization"]
+              }
+            }
+          },
+          {
+            "primaryFile": "login.php",
+            "dependentFiles": [
+              "check_session.php",
+              "session_check.php",
+              "auth_callback.php",
+              "logout.php"
+            ],
+            "description": "Authentication and session management",
+            "validationRules": {
+              "sessionValidity": true,
+              "authFlow": true,
+              "secureLogout": true
+            }
+          },
+          {
+            "primaryFile": "customers.php",
+            "dependentFiles": [
+              "view_customer.php",
+              "companies.php",
+              "view_company.php",
+              "crm/includes/modules/ContactManager.php"
+            ],
+            "description": "Customer and company relationship management",
+            "validationRules": {
+              "contactSync": true,
+              "companyRelations": true,
+              "activityTracking": true
+            }
+          },
+          {
+            "primaryFile": "financial_reports.php",
+            "dependentFiles": [
+              "manage_rates.php",
+              "inventory_pricing.php",
+              "batch_operations.php"
+            ],
+            "description": "Financial calculations and reporting",
+            "validationRules": {
+              "rateCalculations": true,
+              "batchProcessing": true,
+              "reportAccuracy": true
+            }
+          },
+          {
+            "primaryFile": "products.php",
+            "dependentFiles": [
+              "finished_products.php",
+              "raw_materials.php",
+              "product_movements.php",
+              "inventory_reports.php"
+            ],
+            "description": "Product and inventory management chain",
+            "validationRules": {
+              "stockSync": true,
+              "movementTracking": true,
+              "reportGeneration": true
+            }
+          },
+          {
+            "primaryFile": "email_settings.php",
+            "dependentFiles": [
+              "email_analytics.php",
+              "process_email_queue.php",
+              "email_templates/*",
+              "gmail_auth.php"
+            ],
+            "description": "Email system configuration and analytics",
+            "validationRules": {
+              "checkTemplates": true,
+              "validateAuth": true,
+              "trackAnalytics": true
+            }
+          },
+          {
+            "primaryFile": "create_order.php",
+            "dependentFiles": ["view_order.php", "orders.php", "inventory_pricing.php"],
+            "description": "Order creation and processing chain",
+            "updateAction": "sync_update",
+            "validationRules": {
+              "checkInventory": true,
+              "validatePricing": true,
+              "updateStock": true
+            }
+          },
+          {
+            "primaryFile": "tasks.php",
+            "dependentFiles": ["crm_dashboard.php", "view_customer.php"],
+            "description": "Task management and dashboard updates",
+            "validationRules": {
+              "taskSync": true,
+              "dashboardUpdate": true
+            }
+          },
+          {
+            "primaryFile": "warehouses.php",
+            "dependentFiles": ["inventory_pricing.php", "product_movements.php"],
+            "description": "Warehouse and inventory coordination",
+            "validationRules": {
+              "stockAccuracy": true,
+              "movementValidation": true
+            }
+          }
+        ],
+        "enforceRules": true,
+        "notification": "Dependent files must be updated when primary file changes"
+      },
+      "codingStandards": {
+        "javascript": {
+          "modules": {
+            "quoteCalculations": "Product quote calculations",
+            "sessionManager": "Session handling",
+            "tooltips": "UI tooltips",
+            "productMovements": "Inventory tracking"
+          },
+          "naming": {
+            "files": "snake_case.js",
+            "classes": "PascalCase",
+            "functions": "camelCase"
+          }
+        },
+        "php": {
+          "classes": {
+            "naming": "PascalCase",
+            "location": "includes/"
+          },
+          "functions": "camelCase",
+          "constants": "UPPER_SNAKE_CASE"
+        }
+      }
+    },
+    "ignore": [
+      "vendor",
+      ".git",
+      "*.log",
+      "config.local.php",
+      "pdf_quotes/*",
+      "exports/*",
+      "**/credentials.json"
+    ]
+  }
