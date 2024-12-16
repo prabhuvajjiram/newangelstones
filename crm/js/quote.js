@@ -453,7 +453,7 @@ class QuoteManager {
             };
 
             const selectedModel = this.productModelSelect.find('option:selected');
-            const thickness = parseFloat(selectedModel.data('thickness')) || 4.00;
+            const thickness = parseFloat(selectedModel.data('thickness')) || 6.00;
 
             // Calculate per unit measurements
             const sqft = (length * breadth) / 144;  // Square feet per unit

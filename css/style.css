@@ -806,9 +806,6 @@ body.offcanvason .as-nav-toggle {
     font-size: 27px;
     line-height: 1.5em;
 }
-.section-title span {
-    display: block;
-}
 .section-subtitle {
   font-size: 18px;
   margin-bottom:5px;
@@ -1492,3 +1489,54 @@ ul.social-network li {
 }
 }
 
+/* Navigation Menu Styles */
+#as-nav {
+    position: fixed;
+    top: 0;
+    right: -250px;
+    width: 250px;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 999;
+    padding: 80px 30px 30px;
+    transition: all 0.3s ease-in-out;
+}
+
+#as-nav.active {
+    right: 0;
+}
+
+#as-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#as-nav ul li {
+    margin-bottom: 15px;
+}
+
+#as-nav ul li a {
+    color: #fff;
+    font-size: 18px;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+#as-nav ul li a:hover {
+    color: #daa520;
+}
+
+#as-page {
+    transition: transform 0.3s ease-in-out;
+}
+
+#as-page.menu-open {
+    transform: translateX(-250px);
+}
+
+@media screen and (max-width: 768px) {
+    #as-nav {
+        display: block;
+    }
+}
