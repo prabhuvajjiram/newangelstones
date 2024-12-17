@@ -419,7 +419,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_quote'])) {
                                                     <th>Dimensions</th>
                                                     <th>Qty</th>
                                                     <th>SQFT</th>
-                                                    <th>Cu.Ft</th>
+                                                    <th class="text-end">Cu.Ft</th>
                                                     <th class="text-end">Base Price</th>
                                                     <th class="text-end">Total Price</th>
                                                     <th class="text-center">Action</th>
@@ -429,10 +429,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_quote'])) {
                                             </tbody>
                                             <tfoot>
                                                 <tr>
-                                                    <td colspan="8" class="text-end"><strong>Totals:</strong></td>
-                                                    <td class="text-end"><strong id="cartBasePrice">$0.00</strong></td>
+                                                    <td colspan="7" class="text-end"><strong>Totals:</strong></td>
+                                                    <td class="text-end" id="cartCubicFtTotal">0.00</td>
+                                                    <td></td>
                                                     <td class="text-end"><strong id="cartTotal">$0.00</strong></td>
                                                     <td></td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="11">
+                                                        <div id="containerWarning" class="alert alert-warning d-none mb-0">
+                                                            <i class="bi bi-exclamation-triangle"></i> 
+                                                            Warning: Current items are below 90% container capacity (205-210 cubic ft). 
+                                                            Consider adding more items to optimize shipping costs.
+                                                        </div>
+                                                    </td>
                                                 </tr>
                                             </tfoot>
                                         </table>

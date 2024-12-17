@@ -239,9 +239,10 @@ class QuoteManager {
             this.productModelSelect.append(`
                 <option value="${model.id}" 
                     data-price="${model.base_price}"
-                    data-length="${model.length || ''}"
-                    data-breadth="${model.breadth || ''}"
-                    data-thickness="${model.thickness_inches || ''}"
+                    data-length-inches="${model.length_inches || ''}"
+                    data-breadth-inches="${model.breadth_inches || ''}"
+                    data-thickness-inches="${model.thickness_inches || ''}"
+                    data-size="${size}"
                 >${model.name}</option>
             `);
         });
@@ -267,11 +268,30 @@ class QuoteManager {
             }
 
             // Get base price and measurements
-            const basePrice = parseFloat(selectedModel.data('price')) || 0;
-            const length = parseFloat(this.currentMeasurements.length) || 0;
-            const breadth = parseFloat(this.currentMeasurements.breadth) || 0;
-            const thickness = parseFloat(selectedModel.data('thickness')) || 4.00;
-            const quantity = parseInt(this.currentMeasurements.quantity) || 1;
+            const basePrice = parseFloat(selectedModel.data('price'));
+            const length = parseFloat(this.currentMeasurements.length);
+            const breadth = parseFloat(this.currentMeasurements.breadth);
+            const quantity = parseInt(this.currentMeasurements.quantity);
+            
+            // Get thickness based on product type
+            let thickness;
+            const type = this.currentProduct.type.toLowerCase();
+            if (type === 'marker') {
+                thickness = parseFloat(selectedModel.data('thickness-inches')); // Use thickness_inches for markers
+                console.log('Marker thickness:', thickness);
+                if (isNaN(thickness)) {
+                    console.error('Invalid marker thickness, using length-inches as fallback');
+                    thickness = parseFloat(selectedModel.data('length-inches')); // Fallback to length_inches
+                }
+            } else {
+                thickness = parseFloat(selectedModel.data('size')); // Use size_inches for other types
+            }
+
+            // Validate thickness
+            if (isNaN(thickness) || thickness <= 0) {
+                console.error('Invalid thickness value:', thickness);
+                throw new Error('Invalid thickness value');
+            }
 
             // Calculate per unit measurements
             const sqft = (length * breadth) / 144;  // Square feet per unit
@@ -441,9 +461,9 @@ class QuoteManager {
     }
 
     updateMeasurements() {
-        const length = parseFloat(this.lengthInput.val()) || 0;
-        const breadth = parseFloat(this.breadthInput.val()) || 0;
-        const quantity = parseInt(this.quantityInput.val()) || 1;
+        const length = parseFloat(this.lengthInput.val());
+        const breadth = parseFloat(this.breadthInput.val());
+        const quantity = parseInt(this.quantityInput.val());
 
         if (length && breadth && this.currentProduct) {
             this.currentMeasurements = {
@@ -453,7 +473,27 @@ class QuoteManager {
             };
 
             const selectedModel = this.productModelSelect.find('option:selected');
-            const thickness = parseFloat(selectedModel.data('thickness')) || 6.00;
+            
+            // Get thickness based on product type
+            let thickness;
+            const type = this.currentProduct.type.toLowerCase();
+            if (type === 'marker') {
+                thickness = parseFloat(selectedModel.data('thickness-inches')); // Use thickness_inches for markers
+                console.log('Marker thickness:', thickness);
+                if (isNaN(thickness)) {
+                    console.error('Invalid marker thickness, using length-inches as fallback');
+                    thickness = parseFloat(selectedModel.data('length-inches')); // Fallback to length_inches
+                }
+            } else {
+                thickness = parseFloat(selectedModel.data('size')); // Use size_inches for other types
+            }
+
+            // Validate thickness
+            if (isNaN(thickness) || thickness <= 0) {
+                console.error('Invalid thickness value:', thickness);
+                this.resetDisplays();
+                return;
+            }
 
             // Calculate per unit measurements
             const sqft = (length * breadth) / 144;  // Square feet per unit
@@ -463,7 +503,7 @@ class QuoteManager {
             const totalCubicFeet = cubicFeetPerUnit * quantity;
 
             // Calculate prices
-            const basePrice = this.currentProduct.base_price;
+            const basePrice = parseFloat(selectedModel.data('price'));
             const baseAmount = sqft * basePrice;  // Base price per unit
             const colorMarkup = this.getSelectedMarkup(this.stoneColorSelect);
             const monumentMarkup = this.getSelectedMarkup(this.specialMonumentSelect);
@@ -505,8 +545,8 @@ class QuoteManager {
 
         try {
             const selectedModel = this.productModelSelect.find('option:selected');
-            const thickness = parseFloat(selectedModel.data('thickness')) || 4.00;
-            const quantity = parseInt(this.currentMeasurements.quantity) || 1;
+            const thickness = parseFloat(selectedModel.data('size'));
+            const quantity = parseInt(this.currentMeasurements.quantity);
 
             // Calculate per unit measurements
             const sqft = (this.currentMeasurements.length * this.currentMeasurements.breadth) / 144;  // Square feet per unit
@@ -673,75 +713,84 @@ class QuoteManager {
     }
 
     updateCartDisplay() {
-        const cartBody = $('#cartTableBody');
-        cartBody.empty();
-
-        const items = this.getCartItems();
-        console.log('Updating cart display with items:', items);
-
-        if (!Array.isArray(items) || items.length === 0) {
-            $('#cartBasePrice').text('$0.00');
-            $('#cartTotal').text('$0.00');
-            $('#generateQuoteBtn').prop('disabled', true);
-            return;
+        const cartTableBody = document.getElementById('cartTableBody');
+        const cartTotal = document.getElementById('cartTotal');
+        const cartCubicFtTotal = document.getElementById('cartCubicFtTotal');
+        const containerWarning = document.getElementById('containerWarning');
+        
+        let totalPrice = 0;
+        let totalCubicFt = 0;
+        
+        cartTableBody.innerHTML = '';
+        
+        this.cartItems.forEach((item, index) => {
+            const row = document.createElement('tr');
+            
+            // Format dimensions, handling marker thickness
+            const thickness = item.product_type === 'marker' ? '4.00' : item.size;
+            const dimensions = `${item.length}" × ${item.breadth}" × ${thickness}"`;
+            
+            row.innerHTML = `
+                <td>${item.type}</td>
+                <td>${item.special_monument_name || ''}</td>
+                <td>${item.model_name}</td>
+                <td>${item.color_name || '-'}</td>
+                <td>${dimensions}</td>
+                <td>${item.quantity}</td>
+                <td>${item.sqft.toFixed(2)}</td>
+                <td class="text-end">${item.cubic_feet.toFixed(2)}</td>
+                <td class="text-end">$${item.base_price.toFixed(2)}</td>
+                <td class="text-end">$${item.total_price.toFixed(2)}</td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeFromCart(${index})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            `;
+            
+            cartTableBody.appendChild(row);
+            totalPrice += item.total_price;
+            totalCubicFt += item.cubic_feet;
+        });
+        
+        cartTotal.textContent = `$${totalPrice.toFixed(2)}`;
+        cartCubicFtTotal.textContent = totalCubicFt.toFixed(2);
+        
+        // Update container capacity warning
+        const containerCapacity = 205; // Standard container capacity
+        const capacityPercentage = (totalCubicFt / containerCapacity) * 100;
+        
+        if (totalCubicFt > 0 && capacityPercentage < 90) {
+            containerWarning.classList.remove('d-none');
+        } else {
+            containerWarning.classList.add('d-none');
         }
-
-        items.forEach((item, index) => {
-            const sqft = parseFloat(item.sqft) || 0;
-            const cubicFeet = parseFloat(item.cubic_feet) || 0;
-            const basePrice = parseFloat(item.base_price) || 0;
-            const totalPrice = parseFloat(item.total_price) || 0;
-            const splMonument = item.type.toUpperCase() === 'SERTOP' ? 
-                (item.special_monument_name || 'None') : 'None';
-
-            cartBody.append(`
-                <tr>
-                    <td>${(item.type || '').toUpperCase()}</td>
-                    <td>${splMonument}</td>
-                    <td>${item.model_name || ''}</td>
-                    <td>${item.color_name || '-'}</td>
-                    <td>${item.length} x ${item.breadth} x ${item.size}</td>
-                    <td>${item.quantity || 1}</td>
-                    <td>${sqft.toFixed(2)}</td>
-                    <td>${cubicFeet.toFixed(2)}</td>
-                    <td class="text-end">$${basePrice.toFixed(2)}</td>
-                    <td class="text-end">$${totalPrice.toFixed(2)}</td>
-                    <td class="text-center">
-                        <button type="button" class="btn btn-danger btn-sm" data-index="${index}">
-                            <i class="bi bi-trash-fill"></i>
-                        </button>
-                    </td>
-                </tr>
-            `);
-        });
-
-        // Add click handler for delete buttons
-        cartBody.find('.btn-danger').on('click', (e) => {
-            const index = $(e.currentTarget).data('index');
-            this.removeFromCart(index);
-        });
-
-        this.updateTotals();
-        $('#generateQuoteBtn').prop('disabled', false);
+        
+        // Enable/disable generate quote button
+        const generateQuoteBtn = document.getElementById('generateQuoteBtn');
+        generateQuoteBtn.disabled = this.cartItems.length === 0;
+        
+        // Update commission modal if it exists
+        this.updateModalTotals();
     }
 
     updateTotals() {
         const items = this.getCartItems();
         if (!Array.isArray(items) || items.length === 0) {
-            $('#cartBasePrice').text('$0.00');
+            $('#cartCubicFtTotal').text('0.00');
             $('#cartTotal').text('$0.00');
             return;
         }
 
-        let totalBasePrice = 0;
         let totalPrice = 0;
+        let totalCubicFt = 0;
 
         items.forEach(item => {
-            totalBasePrice += parseFloat(item.base_price) || 0;
-            totalPrice += parseFloat(item.total_price) || 0;
+            totalPrice += item.total_price;
+            totalCubicFt += item.cubic_feet;
         });
 
-        $('#cartBasePrice').text('$' + totalBasePrice.toFixed(2));
+        $('#cartCubicFtTotal').text(totalCubicFt.toFixed(2));
         $('#cartTotal').text('$' + totalPrice.toFixed(2));
     }
 
