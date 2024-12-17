@@ -282,8 +282,45 @@ try {
         throw new Exception('Failed to read email template');
     }
     
+    // Calculate shipping information
+    $total_cubic_feet = 0;
+    $items_sql = "SELECT qi.*, qi.unit_price as base_price, scr.color_name,
+                  CASE qi.product_type
+                    WHEN 'sertop' THEN (SELECT model FROM sertop_products WHERE id = qi.model)
+                    WHEN 'slant' THEN (SELECT model FROM slant_products WHERE id = qi.model)
+                    WHEN 'marker' THEN (SELECT model FROM marker_products WHERE id = qi.model)
+                    WHEN 'base' THEN (SELECT model FROM base_products WHERE id = qi.model)
+                  END as model_name
+                  FROM quote_items qi
+                  LEFT JOIN stone_color_rates scr ON qi.color_id = scr.id
+                  WHERE qi.quote_id = ?";
+    
+    $stmt = $pdo->prepare($items_sql);
+    $stmt->execute([$quote_id]);
+    $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($items as $item) {
+        $total_cubic_feet += floatval($item['cubic_feet']);
+    }
+    
+    $container_capacity = 205;
+    $capacity_percentage = ($total_cubic_feet / $container_capacity) * 100;
+    $containers_needed = ceil($total_cubic_feet / $container_capacity);
+    
+    if ($capacity_percentage < 90) {
+        $shipping_note = 'Warning: Orders below 90% container capacity (205-210 cubic ft) may experience longer delivery times and additional shipping costs. Please consider adding more items to optimize container space.';
+    } elseif ($capacity_percentage <= 95) {
+        $shipping_note = 'Your order is currently at ' . number_format($capacity_percentage, 1) . '% of container capacity (205-210 cubic ft). Adding a few more items will achieve optimal shipping efficiency.';
+    } elseif ($capacity_percentage <= 100) {
+        $shipping_note = 'Your order efficiently utilizes one container (205-210 cubic ft).';
+    } else {
+        $shipping_note = 'This order requires ' . $containers_needed . ' shipping containers (each container holds 205-210 cubic ft).';
+    }
+    
     $email_body = str_replace('{CUSTOMER_NAME}', htmlspecialchars($quote['customer_name']), $email_body);
     $email_body = str_replace('{QUOTE_ID}', htmlspecialchars($quote['quote_number']), $email_body);
+    $email_body = str_replace('{TOTAL_CUBIC_FEET}', number_format($total_cubic_feet, 2), $email_body);
+    $email_body = str_replace('{SHIPPING_NOTE}', $shipping_note, $email_body);
 
     // Send email
     $mailer = new GmailMailer($pdo);

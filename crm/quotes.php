@@ -3,12 +3,13 @@ require_once 'session_check.php';
 requireLogin();
 require_once 'includes/config.php';
 
-// Debug session
+// Debug session and role
 error_log("Debug: Session data in quotes.php");
 error_log("Session ID: " . session_id());
 error_log("User ID: " . ($_SESSION['user_id'] ?? 'Not set'));
 error_log("Role: " . ($_SESSION['role'] ?? 'Not set'));
 error_log("Email: " . ($_SESSION['email'] ?? 'Not set'));
+error_log("Is Admin: " . (isAdmin() ? 'Yes' : 'No'));
 
 // Verify database connection
 try {
@@ -20,84 +21,78 @@ try {
 }
 
 try {
-    // Enable error logging
-    error_log("Starting quotes fetch process");
-
-    // Base query with all necessary joins
-    $baseQuery = "
-        SELECT 
-            q.id,
-            q.quote_number,
-            q.customer_id,
-            q.created_at,
-            q.status,
-            q.username,
-            c.name as customer_name,
-            c.email as customer_email,
-            COUNT(DISTINCT qi.id) as item_count,
-            COALESCE(SUM(qi.total_price), 0) as total_amount,
-            u.first_name as created_by_first_name,
-            u.last_name as created_by_last_name,
-            DATE_FORMAT(q.created_at, '%Y-%m-%d') as formatted_date,
-            o.order_id as order_id,
-            o.order_number
-        FROM quotes q
-        LEFT JOIN customers c ON q.customer_id = c.id
-        LEFT JOIN quote_items qi ON q.id = qi.quote_id
-        LEFT JOIN users u ON q.username = u.email
-        LEFT JOIN orders o ON q.id = o.quote_id
-        WHERE 1=1
-    ";
-
-    error_log("Base query created");
-
-    // Staff can only see their own quotes
-    if (!isAdmin()) {
-        if (!isset($_SESSION['email'])) {
-            throw new Exception("User email not found in session");
-        }
-        $baseQuery .= " AND q.username = :username";
-        error_log("Added staff restriction for username: " . $_SESSION['email']);
-    }
-
-    // Complete the query with GROUP BY and ORDER BY
-    $baseQuery .= " GROUP BY q.id, q.quote_number, q.customer_id, q.created_at, q.status, q.username, 
-                    c.name, c.email, u.first_name, u.last_name, o.order_id, o.order_number 
-                    ORDER BY q.created_at DESC";
-
-    error_log("Preparing query: " . $baseQuery);
-
-    $stmt = $pdo->prepare($baseQuery);
-    if (!$stmt) {
-        error_log("Query preparation failed: " . print_r($pdo->errorInfo(), true));
-        throw new PDOException("Failed to prepare query");
-    }
-    
-    // Bind parameters if not admin
-    if (!isAdmin()) {
-        $userEmail = $_SESSION['email'];
-        error_log("Binding username parameter: " . $userEmail);
-        $stmt->bindValue(':username', $userEmail, PDO::PARAM_STR);
-    }
-
-    $success = $stmt->execute();
-    if (!$success) {
-        error_log("Query execution failed: " . print_r($stmt->errorInfo(), true));
-        throw new PDOException("Failed to execute query: " . implode(" ", $stmt->errorInfo()));
-    }
-
+    // Get all quotes first
+    $query = "SELECT * FROM quotes ORDER BY created_at DESC";
+    $stmt = $pdo->query($query);
     $quotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    error_log("Successfully fetched " . count($quotes) . " quotes");
+
+    // Now get related data for all quotes efficiently
+    $quoteIds = array_column($quotes, 'id');
+    $customerIds = array_unique(array_column($quotes, 'customer_id'));
+    $userEmails = array_unique(array_filter(array_column($quotes, 'username')));
+
+    // Get all customers in one query if we have customer IDs
+    $customersById = [];
+    if (!empty($customerIds)) {
+        $customerQuery = "SELECT id, name, email FROM customers WHERE id IN (" . implode(',', array_map('intval', $customerIds)) . ")";
+        $customerStmt = $pdo->query($customerQuery);
+        $customers = $customerStmt->fetchAll(PDO::FETCH_ASSOC);
+        $customersById = array_column($customers, null, 'id');
+    }
+
+    // Get all users in one query if we have user emails
+    $usersByEmail = [];
+    if (!empty($userEmails)) {
+        $userQuery = "SELECT email, first_name, last_name FROM users WHERE email IN (" . 
+            implode(',', array_map(function($email) use ($pdo) {
+                return $pdo->quote($email);
+            }, $userEmails)) . ")";
+        $userStmt = $pdo->query($userQuery);
+        $users = $userStmt->fetchAll(PDO::FETCH_ASSOC);
+        $usersByEmail = array_column($users, null, 'email');
+    }
+
+    // Get all quote items in one query if we have quote IDs
+    $itemsByQuoteId = [];
+    if (!empty($quoteIds)) {
+        $itemsQuery = "SELECT quote_id, 
+                              COUNT(*) as item_count,
+                              COALESCE(SUM(total_price), 0) as total_amount,
+                              COALESCE(SUM(cubic_feet), 0) as total_cubic_feet
+                       FROM quote_items 
+                       WHERE quote_id IN (" . implode(',', array_map('intval', $quoteIds)) . ")
+                       GROUP BY quote_id";
+        $itemsStmt = $pdo->query($itemsQuery);
+        $quoteItems = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
+        $itemsByQuoteId = array_column($quoteItems, null, 'quote_id');
+    }
+
+    // Get all orders in one query if we have quote IDs
+    $ordersByQuoteId = [];
+    if (!empty($quoteIds)) {
+        $ordersQuery = "SELECT quote_id, order_id, order_number FROM orders WHERE quote_id IN (" . implode(',', array_map('intval', $quoteIds)) . ")";
+        $ordersStmt = $pdo->query($ordersQuery);
+        $orders = $ordersStmt->fetchAll(PDO::FETCH_ASSOC);
+        $ordersByQuoteId = array_column($orders, null, 'quote_id');
+    }
+
+    // Enrich quotes with related data
+    foreach ($quotes as &$quote) {
+        $quote['customer'] = isset($quote['customer_id']) ? ($customersById[$quote['customer_id']] ?? null) : null;
+        $quote['user'] = isset($quote['username']) ? ($usersByEmail[$quote['username']] ?? null) : null;
+        $quote['items'] = $itemsByQuoteId[$quote['id']] ?? [
+            'item_count' => 0,
+            'total_amount' => 0,
+            'total_cubic_feet' => 0
+        ];
+        $quote['order'] = $ordersByQuoteId[$quote['id']] ?? null;
+    }
 
 } catch (PDOException $e) {
-    error_log("Database error in quotes.php: " . $e->getMessage());
-    error_log("Stack trace: " . $e->getTraceAsString());
-    $_SESSION['error'] = "Database error: " . $e->getMessage();
+    echo "<div class='alert alert-danger'>Database error: " . htmlspecialchars($e->getMessage()) . "</div>";
     $quotes = [];
 } catch (Exception $e) {
-    error_log("Unexpected error in quotes.php: " . $e->getMessage());
-    error_log("Stack trace: " . $e->getTraceAsString());
-    $_SESSION['error'] = "An unexpected error occurred: " . $e->getMessage();
+    echo "<div class='alert alert-danger'>Error: " . htmlspecialchars($e->getMessage()) . "</div>";
     $quotes = [];
 }
 ?>
@@ -149,74 +144,91 @@ try {
                             <tr>
                                 <th>Quote #</th>
                                 <th>Customer</th>
-                                <th>Project</th>
-                                <th>Items</th>
-                                <th>Total Amount</th>
-                                <th>Created</th>
-                                <?php if (isAdmin()): ?>
+                                <th class="text-center">Items</th>
+                                <th class="text-end">Total Amount</th>
+                                <th class="text-end">Cu.Ft</th>
                                 <th>Created By</th>
-                                <?php endif; ?>
+                                <th>Date</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if (empty($quotes)): ?>
+                        <?php if (empty($quotes)): ?>
+                            <tr>
+                                <td colspan="9" class="text-center">No quotes found</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($quotes as $quote): ?>
                                 <tr>
-                                    <td colspan="<?php echo isAdmin() ? '9' : '8'; ?>" class="text-center">No quotes found</td>
-                                </tr>
-                            <?php else: ?>
-                                <?php foreach ($quotes as $quote): ?>
-                                    <tr>
-                                        <td><?php echo htmlspecialchars($quote['id']); ?></td>
-                                        <td>
-                                            <strong><?php echo htmlspecialchars($quote['customer_name']); ?></strong><br>
-                                            <small class="text-muted"><?php echo htmlspecialchars($quote['customer_email']); ?></small>
-                                        </td>
-                                        <td><?php echo htmlspecialchars($quote['project_name'] ?? 'N/A'); ?></td>
-                                        <td><span class="badge bg-secondary"><?php echo $quote['item_count']; ?></span></td>
-                                        <td>$<?php echo number_format($quote['total_amount'], 2); ?></td>
-                                        <td><?php echo date('M d, Y', strtotime($quote['formatted_date'])); ?></td>
-                                        <?php if (isAdmin()): ?>
-                                        <td><?php echo htmlspecialchars($quote['created_by_first_name'] . ' ' . $quote['created_by_last_name']); ?></td>
+                                    <td>
+                                        <a href="preview_quote.php?id=<?php echo htmlspecialchars($quote['id']); ?>" 
+                                           class="text-decoration-none">
+                                            <?php echo htmlspecialchars($quote['quote_number']); ?>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <?php if ($quote['customer']): ?>
+                                            <?php echo htmlspecialchars($quote['customer']['name']); ?>
+                                            <?php if ($quote['customer']['email']): ?>
+                                                <br><small class="text-muted"><?php echo htmlspecialchars($quote['customer']['email']); ?></small>
+                                            <?php endif; ?>
+                                        <?php else: ?>
+                                            <span class="text-muted">No customer assigned</span>
                                         <?php endif; ?>
-                                        <td>
-                                            <span class="badge bg-<?php 
-                                                echo match($quote['status']) {
-                                                    'draft' => 'secondary',
-                                                    'sent' => 'primary',
-                                                    'accepted' => 'success',
-                                                    'rejected' => 'danger',
-                                                    'converted' => 'info',
-                                                    default => 'secondary'
-                                                };
-                                            ?>">
-                                                <?php echo ucfirst(htmlspecialchars($quote['status'])); ?>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div class="btn-group" role="group">
-                                                <a href="preview_quote.php?id=<?php echo $quote['id']; ?>" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="View Quote">
-                                                    <i class="bi bi-eye"></i>
+                                    </td>
+                                    <td class="text-center"><?php echo htmlspecialchars($quote['items']['item_count']); ?></td>
+                                    <td class="text-end">$<?php echo number_format($quote['items']['total_amount'], 2); ?></td>
+                                    <td class="text-end"><?php echo number_format($quote['items']['total_cubic_feet'], 2); ?></td>
+                                    <td>
+                                        <?php if ($quote['user']): ?>
+                                            <?php echo htmlspecialchars($quote['user']['first_name'] . ' ' . $quote['user']['last_name']); ?>
+                                        <?php else: ?>
+                                            <?php echo htmlspecialchars($quote['username']); ?>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><?php echo date('Y-m-d', strtotime($quote['created_at'])); ?></td>
+                                    <td>
+                                        <span class="badge bg-<?php 
+                                            echo match($quote['status']) {
+                                                'pending' => 'warning',
+                                                'sent' => 'info',
+                                                'accepted' => 'success',
+                                                'rejected' => 'danger',
+                                                'Converted' => 'primary',
+                                                default => 'secondary'
+                                            };
+                                        ?>">
+                                            <?php echo htmlspecialchars(ucfirst($quote['status'])); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="preview_quote.php?id=<?php echo htmlspecialchars($quote['id']); ?>" 
+                                               class="btn btn-sm btn-outline-primary" 
+                                               title="View Quote">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <?php if ($quote['order']): ?>
+                                                <a href="view_order.php?id=<?php echo htmlspecialchars($quote['order']['order_id']); ?>" 
+                                                   class="btn btn-sm btn-outline-success" 
+                                                   title="View Order #<?php echo htmlspecialchars($quote['order']['order_number']); ?>">
+                                                    <i class="bi bi-receipt"></i>
                                                 </a>
-                                                <?php if ($quote['status'] !== 'Converted' && $quote['status'] !== 'Cancelled'): ?>
-                                                    <button class="btn btn-sm btn-success convert-to-order" data-quote-id="<?php echo $quote['id']; ?>" data-bs-toggle="tooltip" title="Convert to Order">
-                                                        <i class="bi bi-arrow-right-circle"></i>
-                                                    </button>
-                                                <?php endif; ?>
-                                                <button class="btn btn-sm btn-info generate-pdf" data-quote-id="<?php echo $quote['id']; ?>" data-bs-toggle="tooltip" title="Generate PDF">
-                                                    <i class="bi bi-file-pdf"></i>
+                                            <?php endif; ?>
+                                            <?php if (isAdmin() || $_SESSION['email'] === $quote['username']): ?>
+                                                <button type="button" 
+                                                        class="btn btn-sm btn-outline-danger delete-quote" 
+                                                        data-quote-id="<?php echo htmlspecialchars($quote['id']); ?>"
+                                                        title="Delete Quote">
+                                                    <i class="bi bi-trash"></i>
                                                 </button>
-                                                <?php if ($quote['order_id']): ?>
-                                                    <a href="view_order.php?id=<?php echo $quote['order_id']; ?>" class="btn btn-sm btn-secondary" data-bs-toggle="tooltip" title="View Order">
-                                                        <i class="bi bi-box"></i>
-                                                    </a>
-                                                <?php endif; ?>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -226,49 +238,5 @@ try {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            // Initialize tooltips
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl)
-            });
-
-            // Convert to Order functionality
-            $('.convert-to-order').click(function() {
-                const quoteId = $(this).data('quote-id');
-                const button = $(this);
-                
-                if (confirm('Are you sure you want to convert this quote to an order?')) {
-                    button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>');
-                    
-                    $.ajax({
-                        url: 'ajax/convert_quote_to_order.php',
-                        method: 'POST',
-                        data: { quote_id: quoteId },
-                        success: function(response) {
-                            if (response.success) {
-                                alert('Quote successfully converted to order!');
-                                location.reload();
-                            } else {
-                                alert('Error: ' + response.message);
-                                button.prop('disabled', false).html('<i class="bi bi-arrow-right-circle"></i>');
-                            }
-                        },
-                        error: function() {
-                            alert('Error converting quote to order');
-                            button.prop('disabled', false).html('<i class="bi bi-arrow-right-circle"></i>');
-                        }
-                    });
-                }
-            });
-
-            // Generate PDF functionality
-            $('.generate-pdf').click(function() {
-                const quoteId = $(this).data('quote-id');
-                window.location.href = `generate_pdf.php?id=${quoteId}`;
-            });
-        });
-    </script>
 </body>
 </html>

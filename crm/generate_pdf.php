@@ -71,6 +71,26 @@ try {
         $item['total_with_commission'] = floatval($item['total_price']) * (1 + $commission_per_dollar);
     }
 
+    // Calculate totals and shipping information
+    $total_cubic_feet = 0;
+    foreach ($items as $item) {
+        $total_cubic_feet += floatval($item['cubic_feet']);
+    }
+    
+    $container_capacity = 205; // Standard 20x20 container capacity
+    $capacity_percentage = ($total_cubic_feet / $container_capacity) * 100;
+    $containers_needed = ceil($total_cubic_feet / $container_capacity);
+    
+    if ($capacity_percentage < 90) {
+        $shipping_note = 'Warning: Orders below 90% container capacity (205-210 cubic ft) may experience longer delivery times and additional shipping costs. Please consider adding more items to optimize container space.';
+    } elseif ($capacity_percentage <= 95) {
+        $shipping_note = 'Your order is currently at ' . number_format($capacity_percentage, 1) . '% of container capacity (205-210 cubic ft). Adding a few more items will achieve optimal shipping efficiency.';
+    } elseif ($capacity_percentage <= 100) {
+        $shipping_note = 'Your order efficiently utilizes one container (205-210 cubic ft).';
+    } else {
+        $shipping_note = 'This order requires ' . $containers_needed . ' shipping containers (each container holds 205-210 cubic ft).';
+    }
+
     // Create PDF
     $pdf = new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 
@@ -169,6 +189,15 @@ try {
     $pdf->SetFont('helvetica', 'B', 9);
     $pdf->Cell(array_sum(array_slice($col_widths, 0, 6)), 7, 'Total:', 1, 0, 'R');
     $pdf->Cell($col_widths[6], 7, '$' . number_format($grand_total, 2), 1, 1, 'R');
+
+    // Add shipping information to PDF
+    $pdf->Ln(5);
+    $pdf->SetFont('helvetica', 'B', 10);
+    $pdf->Cell(0, 10, 'Shipping Information:', 0, 1, 'L');
+    $pdf->SetFont('helvetica', '', 10);
+    $pdf->MultiCell(0, 10, 'Total Cubic Feet: ' . number_format($total_cubic_feet, 2) . ' cu.ft', 0, 'L');
+    $pdf->MultiCell(0, 10, $shipping_note, 0, 'L');
+    $pdf->Ln(5);
 
     // Add Terms and Conditions
     $pdf->Ln(5);

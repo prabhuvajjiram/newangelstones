@@ -7,6 +7,12 @@
         .header { background: #f8f9fa; padding: 20px; }
         .content { padding: 20px; }
         .footer { text-align: center; padding: 20px; color: #6c757d; }
+        .shipping-info { 
+            background: #e9ecef; 
+            padding: 15px; 
+            margin: 15px 0; 
+            border-radius: 5px; 
+        }
     </style>
 </head>
 <body>
@@ -17,7 +23,14 @@
         <div class="content">
             <p>Dear {CUSTOMER_NAME},</p>
             <p>Thank you for your interest in Angel Stones. Please find attached your quote #{QUOTE_ID}.</p>
-            <p>If you have any questions, please don't hesitate to contact us.</p>
+            
+            <div class="shipping-info">
+                <h3>Shipping Information</h3>
+                <p>Total Cubic Feet: {TOTAL_CUBIC_FEET} cu.ft</p>
+                <p>{SHIPPING_NOTE}</p>
+            </div>
+            
+            <p>If you have any questions about the quote or shipping details, please don't hesitate to contact us.</p>
             <p>Best regards,<br>Angel Stones Team</p>
         </div>
         <div class="footer">
@@ -25,4 +38,4 @@
         </div>
     </div>
 </body>
-</html> 
+</html>

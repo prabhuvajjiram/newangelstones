@@ -112,9 +112,9 @@ class ProductRepository {
                 'id' => (int)$product['id'],
                 'model' => $product['model'],
                 'base_price' => (float)$product['base_price'],
-                'length' => isset($product['length_inches']) ? (float)$product['length_inches'] : 0,
-                'breadth' => isset($product['breadth_inches']) ? (float)$product['breadth_inches'] : 0,
-                'thickness' => isset($product['thickness_inches']) ? (float)$product['thickness_inches'] : 0
+                'length_inches' => isset($product['length_inches']) ? (float)$product['length_inches'] : 0,
+                'breadth_inches' => isset($product['breadth_inches']) ? (float)$product['breadth_inches'] : 0,
+                'thickness_inches' => isset($product['thickness_inches']) ? (float)$product['thickness_inches'] : 0
             ];
         }
         return $organized;

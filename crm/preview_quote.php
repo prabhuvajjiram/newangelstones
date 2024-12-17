@@ -184,7 +184,6 @@ try {
                             <i class="bi bi-cart-plus"></i> Convert to Order
                         </button>
                     <?php endif; ?>
-
                     <?php if ($quote['status'] !== 'converted'): ?>
                         <button onclick="sendQuoteEmail(<?php echo $quote_id; ?>, event)" 
                                 class="btn btn-info me-2"
@@ -278,14 +277,14 @@ try {
                     <table class="table table-hover mb-0">
                         <thead>
                             <tr>
-                                <th>Type</th>
-                                <th>Model</th>
-                                <th>Color</th>
-                                <th>Dimensions</th>
-                                <th>Cu.ft</th>
-                                <th>Qty</th>
-                                <th class="text-end">Base Price</th>
-                                <th class="text-end">Total</th>
+                                <th style="width: 10%">Type</th>
+                                <th style="width: 10%">Model</th>
+                                <th style="width: 15%">Color</th>
+                                <th style="width: 20%">Dimensions</th>
+                                <th style="width: 8%">Cu.ft</th>
+                                <th style="width: 7%">Qty</th>
+                                <th style="width: 15%" class="text-end">Base Price</th>
+                                <th style="width: 15%" class="text-end">Total</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -294,7 +293,12 @@ try {
                                     <td colspan="8" class="text-center">No items found in this quote.</td>
                                 </tr>
                             <?php else: ?>
-                                <?php foreach ($quote_items as $item): ?>
+                                <?php 
+                                $total_cubic_feet = 0;
+                                foreach ($quote_items as $item): 
+                                    $cubic_feet = !empty($item['cubic_feet']) ? floatval($item['cubic_feet']) : 0;
+                                    $total_cubic_feet += $cubic_feet;
+                                ?>
                                 <tr>
                                     <td><?php echo htmlspecialchars($item['product_type']); ?></td>
                                     <td><?php echo htmlspecialchars($item['model_name'] ?? $item['model']); ?></td>
@@ -303,14 +307,14 @@ try {
                                         <?php 
                                         $length = isset($item['length']) ? htmlspecialchars($item['length']) : '0';
                                         $breadth = isset($item['breadth']) ? htmlspecialchars($item['breadth']) : '0';
-                                        $size = isset($item['size']) ? htmlspecialchars($item['size']) : '0';
-                                        echo "{$length}\" × {$breadth}\" × {$size}\"";
+                                        $thickness = $item['product_type'] === 'marker' ? '4.00' : (isset($item['size']) ? htmlspecialchars($item['size']) : '0');
+                                        echo "{$length}\" × {$breadth}\" × {$thickness}\"";
                                         if (!empty($item['special_monument_details'])) {
                                             echo "<br><small class='text-muted'>Special: " . htmlspecialchars($item['special_monument_details']) . "</small>";
                                         }
                                         ?>
                                     </td>
-                                    <td><?php echo !empty($item['cubic_feet']) ? number_format($item['cubic_feet'], 2) : '0.00'; ?></td>
+                                    <td><?php echo number_format($cubic_feet, 2); ?></td>
                                     <td><?php echo htmlspecialchars($item['quantity']); ?></td>
                                     <td class="text-end">$<?php echo number_format($item['unit_price'], 2); ?></td>
                                     <td class="text-end">$<?php echo number_format($item['total_price'], 2); ?></td>
@@ -319,6 +323,33 @@ try {
                             <?php endif; ?>
                         </tbody>
                         <tfoot class="table-light">
+                            <tr>
+                                <td colspan="4" class="text-end"><strong>Total Cu.ft:</strong></td>
+                                <td style="white-space: nowrap;"><?php echo number_format($total_cubic_feet, 2); ?></td>
+                                <td colspan="3">
+                                    <?php 
+                                    $container_capacity = 205;
+                                    $capacity_percentage = ($total_cubic_feet / $container_capacity) * 100;
+                                    $containers_needed = ceil($total_cubic_feet / $container_capacity);
+                                    
+                                    if ($capacity_percentage < 90) {
+                                        echo '<div class="text-danger"><i class="bi bi-exclamation-triangle"></i> Warning: Orders below 90% container capacity (205-210 cubic ft) may experience longer delivery times and additional shipping costs. Please consider adding more items to optimize container space.</div>';
+                                    }
+                                    ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="8">
+                                    <div class="alert <?php echo $capacity_percentage < 90 ? 'alert-danger' : 'alert-success'; ?> mb-0 mt-2">
+                                        <i class="bi bi-info-circle"></i> <strong>Shipping Information:</strong> 
+                                        <?php if ($capacity_percentage < 90): ?>
+                                            Warning: Orders below 90% container capacity (205-210 cubic ft) may experience longer delivery times and additional shipping costs. Please consider adding more items to optimize container space.
+                                        <?php else: ?>
+                                            Your order efficiently utilizes one container (205-210 cubic ft).
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                            </tr>
                             <tr>
                                 <td colspan="7" class="text-end"><strong>Subtotal:</strong></td>
                                 <td class="text-end">$<?php echo number_format($subtotal, 2); ?></td>
@@ -360,10 +391,6 @@ try {
                     </button>
                 <?php endif; ?>
                 
-                <button class="btn btn-info me-2 generate-pdf" data-quote-id="<?php echo $quote['id']; ?>">
-                    <i class="bi bi-file-pdf"></i> Generate PDF
-                </button>
-
                 <?php if ($quote['order_id']): ?>
                     <a href="view_order.php?id=<?php echo $quote['order_id']; ?>" class="btn btn-secondary">
                         <i class="bi bi-box"></i> View Order

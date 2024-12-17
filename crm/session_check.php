@@ -30,23 +30,27 @@ if (!defined('ADMIN_BASE_URL')) {
 // Function to check if user is logged in
 function isLoggedIn() {
     error_log("Checking if logged in - User ID: " . (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'not set'));
+    error_log("Session data: " . print_r($_SESSION, true));
     return isset($_SESSION['user_id']);
 }
 
 // Function to check if user is admin
 function isAdmin() {
     error_log("Checking if admin - Role: " . (isset($_SESSION['role']) ? $_SESSION['role'] : 'not set'));
-    return isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+    error_log("Full session in isAdmin: " . print_r($_SESSION, true));
+    $isAdmin = isset($_SESSION['role']) && (strtolower($_SESSION['role']) === 'admin' || strtolower($_SESSION['role']) === 'super_admin');
+    error_log("isAdmin result: " . ($isAdmin ? 'true' : 'false'));
+    return $isAdmin;
 }
 
 // Function to check if user is super admin
 function isSuperAdmin() {
-    return isset($_SESSION['role']) && $_SESSION['role'] === 'super_admin';
+    return isset($_SESSION['role']) && strtolower($_SESSION['role']) === 'super_admin';
 }
 
 // Function to check if user is staff
 function isStaff() {
-    return isset($_SESSION['role']) && $_SESSION['role'] === 'staff';
+    return isset($_SESSION['role']) && strtolower($_SESSION['role']) === 'staff';
 }
 
 // Function to require login
