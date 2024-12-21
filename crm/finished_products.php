@@ -17,6 +17,7 @@ $pageTitle = "Finished Products Inventory";
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" rel="stylesheet">
     <link href="css/styles.css" rel="stylesheet">
 </head>
 <body>
@@ -24,26 +25,26 @@ $pageTitle = "Finished Products Inventory";
     <div class="container-fluid py-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3"><?php echo $pageTitle; ?></h1>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+            <button type="button" class="btn btn-primary" id="addProductBtn">
                 <i class="bi bi-plus-lg"></i> Add New Product
             </button>
         </div>
 
         <!-- Filters Row -->
         <div class="row mb-4">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <select class="form-select" id="categoryFilter">
                     <option value="">All Categories</option>
                     <!-- Categories will be populated via AJAX -->
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <select class="form-select" id="colorFilter">
                     <option value="">All Colors</option>
                     <!-- Colors will be populated via AJAX -->
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <select class="form-select" id="statusFilter">
                     <option value="">All Status</option>
                     <option value="in_stock">In Stock</option>
@@ -51,7 +52,13 @@ $pageTitle = "Finished Products Inventory";
                     <option value="out_of_stock">Out of Stock</option>
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
+                <select class="form-select" id="supplierFilter">
+                    <option value="">All Suppliers</option>
+                    <!-- Suppliers will be populated via AJAX -->
+                </select>
+            </div>
+            <div class="col-md-4">
                 <input type="text" class="form-control" id="searchInput" placeholder="Search products...">
             </div>
         </div>
@@ -101,14 +108,14 @@ $pageTitle = "Finished Products Inventory";
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="category" class="form-label">Category</label>
-                                <select class="form-select" id="category" name="category" required>
+                                <label for="category_id" class="form-label">Category</label>
+                                <select class="form-select" id="category_id" name="category_id" required>
                                     <!-- Categories will be loaded dynamically -->
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label for="color" class="form-label">Color</label>
-                                <select class="form-select" id="color" name="color" required>
+                                <label for="color_id" class="form-label">Color</label>
+                                <select class="form-select" id="color_id" name="color_id" required>
                                     <!-- Colors will be loaded dynamically -->
                                 </select>
                             </div>
@@ -133,8 +140,8 @@ $pageTitle = "Finished Products Inventory";
                                 <input type="number" class="form-control" id="quantity" name="quantity" required>
                             </div>
                             <div class="col-md-6">
-                                <label for="warehouse" class="form-label">Location</label>
-                                <select class="form-select" id="warehouse" name="warehouse" required>
+                                <label for="location_id" class="form-label">Location</label>
+                                <select class="form-select" id="location_id" name="location_id" required>
                                     <option value="">Select Location</option>
                                     <!-- Warehouses will be populated via AJAX -->
                                 </select>
@@ -153,6 +160,40 @@ $pageTitle = "Finished Products Inventory";
                         <div class="mb-3">
                             <label for="description" class="form-label">Description</label>
                             <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="unitConversions">Unit Conversions</label>
+                            <button type="button" class="btn btn-sm btn-primary" id="addUnitRow">Add Unit Conversion</button>
+                            <table id="unitConversionsTable" class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Unit Type</th>
+                                        <th>Base Unit</th>
+                                        <th>Conversion Ratio</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Unit conversions will be loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mb-3">
+                            <label for="supplierProducts">Supplier Products</label>
+                            <button type="button" class="btn btn-sm btn-primary" id="addSupplierRow">Add Supplier Product</button>
+                            <table id="supplierProductsTable" class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Supplier</th>
+                                        <th>Product Code</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Supplier products will be loaded dynamically -->
+                                </tbody>
+                            </table>
                         </div>
                     </form>
                 </div>
@@ -208,13 +249,20 @@ $pageTitle = "Finished Products Inventory";
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <!-- JavaScript -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
     <script src="js/finished_products.js"></script>
 </body>
 </html>

@@ -15,13 +15,21 @@ try {
     $pdo->beginTransaction();
     
     try {
-        // First delete inventory records
-        $stmt = $pdo->prepare("DELETE FROM finished_products_inventory WHERE product_id = :id");
+        // Delete unit conversions first
+        $stmt = $pdo->prepare("DELETE FROM product_unit_conversions WHERE product_id = :id");
         $stmt->execute(['id' => $_POST['id']]);
         
         // Then delete the product
-        $stmt = $pdo->prepare("DELETE FROM finished_products WHERE id = :id");
-        $stmt->execute(['id' => $_POST['id']]);
+        $stmt = $pdo->prepare("DELETE FROM products WHERE id = :id");
+        $result = $stmt->execute(['id' => $_POST['id']]);
+        
+        if (!$result) {
+            throw new Exception('Failed to delete product');
+        }
+        
+        if ($stmt->rowCount() === 0) {
+            throw new Exception('Product not found');
+        }
         
         // Commit transaction
         $pdo->commit();

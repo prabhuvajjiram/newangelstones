@@ -3,16 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isset($page_title) ? $page_title . ' - ' : ''; ?>Angel Stones CRM</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
-<!-- Add jQuery first -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- Then add Bootstrap bundle -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Custom Scripts -->
-<script src="js/tooltips.js"></script>
+    <title><?php echo isset($pageTitle) ? $pageTitle . ' - ' : ''; ?>Angel Stones CRM</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <!-- Add jQuery first -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Then add Bootstrap bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom Scripts -->
+    <?php
+    // Base paths
+    $jsBasePath = dirname($_SERVER['PHP_SELF']);
+    if (basename($jsBasePath) === 'supplier') {
+        $jsBasePath = dirname($jsBasePath);
+    }
+    ?>
+    <script src="<?php echo $jsBasePath; ?>/js/tooltips.js"></script>
+    <script src="<?php echo $jsBasePath; ?>/js/session-manager.js"></script>
+    
+    <?php if (isset($additionalScripts) && is_array($additionalScripts)): ?>
+        <?php foreach ($additionalScripts as $script): ?>
+            <script src="<?php echo $script; ?>"></script>
+        <?php endforeach; ?>
+    <?php endif; ?>
+
     <style>
         body { background-color: #f8f9fa; }
         .navbar { background-color: #2c3e50; }
@@ -29,16 +45,56 @@
         }
     </style>
     <script>
+        // Set base path for AJAX calls
+        const basePath = '<?php echo $jsBasePath; ?>';
+        
         // Session check function
         function checkSession() {
-            fetch('check_session.php')
-                .then(response => response.json())
+            fetch(basePath + '/check_session.php')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (!data.valid) {
-                        window.location.href = 'login.php';
+                        if (data.message === 'Session expired') {
+                            // Show warning modal before redirect
+                            $('#sessionWarningModal').modal('show');
+                        } else {
+                            window.location.href = basePath + '/login.php';
+                        }
                     }
                 })
-                .catch(error => console.error('Session check error:', error));
+                .catch(error => {
+                    console.error('Session check error:', error);
+                });
+        }
+
+        // Function to extend session
+        function extendSession() {
+            fetch(basePath + '/check_session.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'extend_session'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    $('#sessionWarningModal').modal('hide');
+                } else {
+                    window.location.href = basePath + '/login.php';
+                }
+            })
+            .catch(error => {
+                console.error('Error extending session:', error);
+                window.location.href = basePath + '/login.php';
+            });
         }
 
         // Check session every minute
@@ -60,7 +116,6 @@
         // Initial setup
         resetActivityTimer();
     </script>
-    <script src="js/session-manager.js"></script>
 </head>
 <body>
     <!-- Session Warning Modal -->
