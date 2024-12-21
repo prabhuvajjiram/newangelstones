@@ -8,7 +8,6 @@ require_once 'includes/functions.php';
 $current_page = basename($_SERVER['PHP_SELF']);
 require_once 'session_check.php';
 ?>
-
 <!-- Mobile Toggle Button -->
 <button class="btn btn-dark mobile-toggle">
     <i class="bi bi-list"></i>
@@ -20,7 +19,7 @@ require_once 'session_check.php';
         <div class="p-3 border-bottom">
             <div class="d-flex justify-content-between align-items-center">
                 <a class="text-decoration-none text-white fs-4" href="<?php echo getUrl('index.php'); ?>">
-                    <img src="../images/favicon.png" alt="Angel Stones" style="width: 24px; height: 24px; margin-right: 8px;">
+                    <img src="<?php echo getUrl('../images/favicon.png'); ?>" alt="Angel Stones" style="width: 24px; height: 24px; margin-right: 8px;">
                     <span class="menu-text">Angel Stones</span>
                 </a>
                 <button class="btn btn-link text-white p-0 d-none d-md-block" id="sidebarToggle">
@@ -183,10 +182,31 @@ require_once 'session_check.php';
                 <i class="bi bi-gear me-2"></i> <span class="menu-text">Settings</span>
             </a>
 
-            <a class="nav-link text-white <?php echo $current_page == 'manage_users.php' ? 'active bg-primary' : ''; ?>" 
-               href="<?php echo getUrl('manage_users.php'); ?>">
-                <i class="bi bi-people-fill me-2"></i> <span class="menu-text">Users</span>
-            </a>
+            <div class="nav-item dropdown">
+                <a class="nav-link text-white dropdown-toggle" href="#" id="adminDropdown" role="button">
+                    <i class="bi bi-gear me-2"></i> <span class="menu-text">Admin</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-dark" style="position: relative; width: 100%; margin: 0; border-radius: 0;">
+                    <li>
+                        <a class="dropdown-item ps-4 <?php echo $current_page == 'supplier_management.php' ? 'active' : ''; ?>" 
+                           href="<?php echo getUrl('supplier/supplier_management.php'); ?>">
+                            <i class="bi bi-building-add me-2"></i> <span class="menu-text">Manage Suppliers</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item ps-4 <?php echo $current_page == 'supplier_invoice.php' ? 'active' : ''; ?>" 
+                           href="<?php echo getUrl('supplier/supplier_invoice.php'); ?>">
+                            <i class="bi bi-receipt me-2"></i> <span class="menu-text">Supplier Invoices</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item ps-4 <?php echo $current_page == 'manage_users.php' ? 'active' : ''; ?>" 
+                           href="<?php echo getUrl('manage_users.php'); ?>">
+                            <i class="bi bi-people-fill me-2"></i> <span class="menu-text">Users</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
             <?php endif; ?>
         </div>
 

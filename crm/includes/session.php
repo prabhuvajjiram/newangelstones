@@ -38,8 +38,8 @@ function checkSessionTimeout() {
         clearLoginSession();
         // Use JavaScript to redirect to ensure all resources are properly unloaded
         echo "<script>window.location.href = '" . ADMIN_BASE_URL . "login.php?timeout=1';</script>";
-        exit;
-    }
+            exit;
+        }
     $_SESSION['last_activity'] = time();
 }
 

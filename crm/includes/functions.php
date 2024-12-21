@@ -50,14 +50,6 @@ function getDbConnection() {
 }
 
 /**
- * Check if the current request is an AJAX request
- */
-function isAjaxRequest() {
-    return !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
-           strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
-}
-
-/**
  * Send JSON response for AJAX requests
  */
 function sendJsonResponse($success, $message = '', $data = null) {

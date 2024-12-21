@@ -8,41 +8,25 @@ require_once '../includes/functions.php';
 // Clear any output that might have occurred during includes
 ob_clean();
 
-header('Content-Type: application/json');
-
 try {
     $pdo = getDbConnection();
     
-    $stmt = $pdo->query("
-        SELECT 
-            id,
-            name,
-            address,
-            contact_person,
-            phone,
-            email,
-            notes,
-            status
-        FROM warehouses 
-        ORDER BY name ASC
-    ");
-    
+    $query = "SELECT id, name FROM warehouses WHERE status = 'active' ORDER BY name ASC";
+    $stmt = $pdo->query($query);
     $warehouses = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Debug output
-    error_log('Warehouses data: ' . print_r($warehouses, true));
-    
+    header('Content-Type: application/json');
     echo json_encode([
         'success' => true,
-        'data' => $warehouses
+        'warehouses' => $warehouses
     ]);
     
 } catch (Exception $e) {
-    error_log('Error in get_warehouses.php: ' . $e->getMessage());
-    http_response_code(500);
+    error_log("Error in get_warehouses.php: " . $e->getMessage());
+    header('Content-Type: application/json');
     echo json_encode([
         'success' => false,
-        'message' => $e->getMessage()
+        'message' => "Error loading warehouses: " . $e->getMessage()
     ]);
 }
 
