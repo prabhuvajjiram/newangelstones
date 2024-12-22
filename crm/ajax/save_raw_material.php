@@ -62,69 +62,83 @@ try {
         $status = 'low_stock';
     }
 
-    // Prepare data array for binding
-    $data = [
-        ':color_id' => $colorId,
-        ':length' => $length,
-        ':width' => $width,
-        ':height' => $height,
-        ':quantity' => $quantity,
-        ':warehouse_id' => $warehouseId,
-        ':warehouse_name' => $warehouseName,
-        ':location_details' => $locationDetails,
-        ':min_stock_level' => $minStock,
-        ':status' => $status
-    ];
+    // Begin transaction
+    $pdo->beginTransaction();
 
-    // Prepare query based on whether we're updating or inserting
-    if (isset($_POST['material_id']) && !empty($_POST['material_id'])) {
-        $materialId = filter_var($_POST['material_id'], FILTER_VALIDATE_INT);
-        if (!$materialId) {
-            throw new Exception("Invalid material ID");
+    try {
+        // Prepare data array for binding
+        $data = [
+            ':color_id' => $colorId,
+            ':length' => $length,
+            ':width' => $width,
+            ':height' => $height,
+            ':quantity' => $quantity,
+            ':warehouse_id' => $warehouseId,
+            ':warehouse_name' => $warehouseName,
+            ':location_details' => $locationDetails,
+            ':min_stock_level' => $minStock,
+            ':status' => $status
+        ];
+
+        // Check if we're updating or inserting
+        if (isset($_POST['material_id']) && !empty($_POST['material_id'])) {
+            $materialId = filter_var($_POST['material_id'], FILTER_VALIDATE_INT);
+            if (!$materialId) {
+                throw new Exception("Invalid material ID");
+            }
+
+            $data[':material_id'] = $materialId;
+            
+            $stmt = $pdo->prepare("
+                UPDATE raw_materials 
+                SET color_id = :color_id, 
+                    length = :length, 
+                    width = :width, 
+                    height = :height, 
+                    quantity = :quantity, 
+                    warehouse_id = :warehouse_id, 
+                    warehouse_name = :warehouse_name, 
+                    location_details = :location_details, 
+                    min_stock_level = :min_stock_level, 
+                    status = :status,
+                    last_updated = CURRENT_TIMESTAMP
+                WHERE id = :material_id
+            ");
+        } else {
+            $stmt = $pdo->prepare("
+                INSERT INTO raw_materials 
+                (color_id, length, width, height, quantity, warehouse_id, 
+                warehouse_name, location_details, min_stock_level, status, last_updated) 
+                VALUES (:color_id, :length, :width, :height, :quantity, :warehouse_id,
+                        :warehouse_name, :location_details, :min_stock_level, :status, CURRENT_TIMESTAMP)
+            ");
         }
 
-        $data[':material_id'] = $materialId;
-        
-        $stmt = $pdo->prepare("
-            UPDATE raw_materials 
-            SET color_id = :color_id, 
-                length = :length, 
-                width = :width, 
-                height = :height, 
-                quantity = :quantity, 
-                warehouse_id = :warehouse_id, 
-                warehouse_name = :warehouse_name, 
-                location_details = :location_details, 
-                min_stock_level = :min_stock_level, 
-                status = :status
-            WHERE id = :material_id
-        ");
-    } else {
-        $stmt = $pdo->prepare("
-            INSERT INTO raw_materials 
-            (color_id, length, width, height, quantity, warehouse_id, 
-            warehouse_name, location_details, min_stock_level, status) 
-            VALUES (:color_id, :length, :width, :height, :quantity, :warehouse_id,
-                    :warehouse_name, :location_details, :min_stock_level, :status)
-        ");
-    }
+        // Execute the query
+        if (!$stmt->execute($data)) {
+            throw new Exception("Database error: " . implode(', ', $stmt->errorInfo()));
+        }
 
-    // Execute the query
-    if (!$stmt->execute($data)) {
-        throw new Exception("Database error: " . implode(', ', $stmt->errorInfo()));
-    }
+        // Commit transaction
+        $pdo->commit();
 
-    // Clear any buffered output before sending JSON
-    while (ob_get_level()) {
-        ob_end_clean();
-    }
+        // Clear any buffered output before sending JSON
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
 
-    // Send success response
-    echo json_encode([
-        'success' => true,
-        'message' => 'Material saved successfully',
-        'id' => isset($materialId) ? $materialId : $pdo->lastInsertId()
-    ]);
+        // Send success response
+        echo json_encode([
+            'success' => true,
+            'message' => 'Material saved successfully',
+            'id' => isset($materialId) ? $materialId : $pdo->lastInsertId()
+        ]);
+
+    } catch (Exception $e) {
+        // Rollback transaction on error
+        $pdo->rollBack();
+        throw $e;
+    }
 
 } catch (Exception $e) {
     // Clear any buffered output before sending error

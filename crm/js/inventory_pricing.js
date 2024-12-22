@@ -3,12 +3,16 @@ $(document).ready(function() {
     const finishedProductsTable = $('#finishedProductsTable').DataTable({
         processing: true,
         serverSide: true,
-        responsive: true,
+        responsive: {
+            details: true
+        },
         ajax: {
             url: 'ajax/get_inventory_pricing.php',
             type: 'POST',
             data: function(d) {
                 d.type = 'finished_product';
+                // Add cache buster
+                d.timestamp = new Date().getTime();
             }
         },
         columns: [
@@ -16,7 +20,11 @@ $(document).ready(function() {
             { 
                 data: 'name',
                 render: function(data, type, row) {
-                    return `<div class="fw-medium">${data}</div>`;
+                    let html = `<div class="fw-medium">${data}</div>`;
+                    if (row.description) {
+                        html += `<small class="text-muted">${row.description}</small>`;
+                    }
+                    return html;
                 }
             },
             { data: 'category_name' },
@@ -24,7 +32,7 @@ $(document).ready(function() {
             {
                 data: null,
                 render: function(data, type, row) {
-                    return `${row.length}x${row.width}x${row.height}`;
+                    return `${row.length}×${row.width}×${row.height}`;
                 }
             },
             {
@@ -41,30 +49,44 @@ $(document).ready(function() {
             },
             {
                 data: null,
-                className: 'text-center',
+                className: 'text-center dt-nowrap',
+                orderable: false,
                 render: function(data, type, row) {
                     return `
-                        <button type="button" class="btn btn-outline-primary btn-sm update-price"
-                                data-id="${row.id}" data-type="finished_product">
-                            <i class="fas fa-dollar-sign"></i>
-                        </button>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-outline-primary btn-sm update-price"
+                                    data-id="${row.id}" data-type="finished_product">
+                                <i class="bi bi-currency-dollar"></i>
+                            </button>
+                        </div>
                     `;
                 }
             }
         ],
         order: [[1, 'asc']],
-        pageLength: 25
+        pageLength: 25,
+        stateSave: false,
+        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+             '<"row"<"col-sm-12"tr>>' +
+             '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+        language: {
+            processing: '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>'
+        }
     });
 
     const rawMaterialsTable = $('#rawMaterialsTable').DataTable({
         processing: true,
         serverSide: true,
-        responsive: true,
+        responsive: {
+            details: true
+        },
         ajax: {
             url: 'ajax/get_inventory_pricing.php',
             type: 'POST',
             data: function(d) {
                 d.type = 'raw_material';
+                // Add cache buster
+                d.timestamp = new Date().getTime();
             }
         },
         columns: [
@@ -73,7 +95,7 @@ $(document).ready(function() {
             {
                 data: null,
                 render: function(data, type, row) {
-                    return `${row.length}x${row.width}x${row.height}`;
+                    return `${row.length}×${row.width}×${row.height}`;
                 }
             },
             {
@@ -82,10 +104,7 @@ $(document).ready(function() {
                     return `${row.warehouse_name}${row.location_details ? ' - ' + row.location_details : ''}`;
                 }
             },
-            { 
-                data: 'quantity',
-                className: 'text-center'
-            },
+            { data: 'quantity' },
             {
                 data: 'unit_price',
                 render: function(data, type, row) {
@@ -100,77 +119,109 @@ $(document).ready(function() {
             },
             {
                 data: null,
-                className: 'text-center',
+                className: 'text-center dt-nowrap',
+                orderable: false,
                 render: function(data, type, row) {
                     return `
-                        <button type="button" class="btn btn-outline-primary btn-sm update-price"
-                                data-id="${row.id}" data-type="raw_material">
-                            <i class="fas fa-dollar-sign"></i>
-                        </button>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-outline-primary btn-sm update-price"
+                                    data-id="${row.id}" data-type="raw_material">
+                                <i class="bi bi-currency-dollar"></i>
+                            </button>
+                        </div>
                     `;
                 }
             }
         ],
         order: [[1, 'asc']],
-        pageLength: 25
+        pageLength: 25,
+        stateSave: false,
+        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+             '<"row"<"col-sm-12"tr>>' +
+             '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+        language: {
+            processing: '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>'
+        }
     });
 
     // Handle price update button click
-    $('.table').on('click', '.update-price', function() {
+    $(document).on('click', '.update-price', function() {
         const id = $(this).data('id');
         const type = $(this).data('type');
         const table = type === 'finished_product' ? finishedProductsTable : rawMaterialsTable;
-        const row = table.row($(this).closest('tr')).data();
+        
+        // Get the row data properly
+        const tr = $(this).closest('tr');
+        let rowData = table.row(tr).data();
+        
+        if (!rowData) {
+            // If row data not found in parent tr, try getting from child row (responsive view)
+            const parentTr = $(this).closest('tr').prev();
+            if (parentTr.length) {
+                rowData = table.row(parentTr).data();
+            }
+        }
+        
+        if (!rowData) {
+            console.error('Could not find row data');
+            return;
+        }
 
         $('#itemId').val(id);
         $('#itemType').val(type);
-        $('#unitPrice').val(row.unit_price);
-        $('#finalPrice').val(row.final_price || '');
-        $('#markup').val('');
+        $('#unitPrice').val(rowData.unit_price || '');
+        $('#finalPrice').val(rowData.final_price || '');
+        $('#markup').val(rowData.markup_percentage || '');
 
         const modal = new bootstrap.Modal($('#priceUpdateModal'));
         modal.show();
     });
 
     // Calculate final price based on unit price and markup
-    $('#markup').on('input', function() {
+    $('#markup, #unitPrice').on('input', function() {
         const unitPrice = parseFloat($('#unitPrice').val()) || 0;
-        const markup = parseFloat($(this).val()) || 0;
+        const markup = parseFloat($('#markup').val()) || 0;
         const finalPrice = unitPrice * (1 + markup / 100);
         $('#finalPrice').val(finalPrice.toFixed(2));
     });
 
-    // Calculate markup based on unit price and final price
-    $('#finalPrice').on('input', function() {
-        const unitPrice = parseFloat($('#unitPrice').val()) || 0;
-        const finalPrice = parseFloat($(this).val()) || 0;
+    // Function to show alerts
+    function showAlert(type, message) {
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        const alertHtml = `
+            <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
         
-        if (unitPrice > 0 && finalPrice > 0) {
-            const markup = ((finalPrice / unitPrice) - 1) * 100;
-            $('#markup').val(markup.toFixed(1));
+        // Create alert container if it doesn't exist
+        if ($('#alertContainer').length === 0) {
+            $('body').prepend('<div id="alertContainer" class="position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 1050;"></div>');
         }
-    });
+        
+        // Remove existing alerts
+        $('#alertContainer').empty();
+        
+        // Add new alert
+        $('#alertContainer').html(alertHtml);
+        
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+            $('.alert').fadeOut('slow', function() {
+                $(this).remove();
+            });
+        }, 3000);
+    }
 
-    // Handle save button click
+    // Handle save price button click
     $('#savePriceBtn').click(function() {
-        const unitPrice = parseFloat($('#unitPrice').val());
-        const finalPrice = parseFloat($('#finalPrice').val()) || null;
-        
-        if (isNaN(unitPrice) || unitPrice < 0) {
-            showAlert('danger', 'Please enter a valid unit price');
-            return;
-        }
-        
-        if (finalPrice !== null && (isNaN(finalPrice) || finalPrice < 0)) {
-            showAlert('danger', 'Please enter a valid final price');
-            return;
-        }
-
         const data = {
-            id: $('#itemId').val(),
+            id: parseInt($('#itemId').val()),
             type: $('#itemType').val(),
-            unit_price: unitPrice,
-            final_price: finalPrice
+            unit_price: parseFloat($('#unitPrice').val()),
+            markup_percentage: parseFloat($('#markup').val()),
+            final_price: parseFloat($('#finalPrice').val())
         };
 
         $.ajax({
@@ -178,110 +229,59 @@ $(document).ready(function() {
             type: 'POST',
             data: JSON.stringify(data),
             contentType: 'application/json',
-            dataType: 'json',
             success: function(response) {
                 if (response.success) {
-                    showAlert('success', response.message || 'Price updated successfully');
                     $('#priceUpdateModal').modal('hide');
-                    
-                    // Refresh the appropriate table
-                    if (data.type === 'finished_product') {
-                        finishedProductsTable.ajax.reload(null, false);
-                    } else {
-                        rawMaterialsTable.ajax.reload(null, false);
-                    }
+                    showAlert('success', 'Price updated successfully');
+                    finishedProductsTable.ajax.reload();
+                    rawMaterialsTable.ajax.reload();
                 } else {
-                    showAlert('danger', response.error || 'Failed to update price');
+                    showAlert('error', response.message || response.error || 'Failed to update price');
                 }
             },
             error: function(xhr) {
-                let errorMessage = 'An error occurred while updating the price';
+                let errorMsg = 'Error updating price';
                 try {
                     const response = JSON.parse(xhr.responseText);
-                    if (response.error) {
-                        errorMessage = response.error;
-                    }
-                } catch (e) {
-                    console.error('Error parsing error response:', e);
-                }
-                showAlert('danger', errorMessage);
+                    errorMsg = response.error || response.message || errorMsg;
+                } catch (e) {}
+                showAlert('error', errorMsg);
+                console.error('Update error:', xhr.responseText);
             }
         });
     });
 
     // Handle global markup modal show
-    $('#globalMarkupModal').on('show.bs.modal', function(event) {
-        const button = $(event.relatedTarget);
+    $('#globalMarkupModal').on('show.bs.modal', function(e) {
+        const button = $(e.relatedTarget);
         const type = button.data('type');
         $('#globalItemType').val(type);
-        $('#globalMarkup').val('');
     });
 
-    // Handle global markup save
+    // Handle save global markup button click
     $('#saveGlobalMarkupBtn').click(function() {
-        const markup = parseFloat($('#globalMarkup').val());
-        const type = $('#globalItemType').val();
-        
-        if (isNaN(markup) || markup < 0) {
-            showAlert('danger', 'Please enter a valid markup percentage');
-            return;
-        }
-
-        // Show confirmation dialog
-        if (!confirm(`Are you sure you want to apply ${markup}% markup to all ${type.replace('_', ' ')}s? This action cannot be undone.`)) {
-            return;
-        }
-
         const data = {
-            type: type,
-            markup: markup
+            type: $('#globalItemType').val(),
+            markup_percentage: $('#globalMarkup').val()
         };
 
         $.ajax({
             url: 'ajax/update_global_markup.php',
             type: 'POST',
-            data: JSON.stringify(data),
-            contentType: 'application/json',
-            dataType: 'json',
+            data: data,
             success: function(response) {
                 if (response.success) {
-                    showAlert('success', response.message);
                     $('#globalMarkupModal').modal('hide');
-                    
-                    // Refresh the appropriate table
-                    if (type === 'finished_product') {
-                        finishedProductsTable.ajax.reload(null, false);
-                    } else {
-                        rawMaterialsTable.ajax.reload(null, false);
-                    }
+                    showAlert('success', 'Global markup updated successfully');
+                    finishedProductsTable.ajax.reload();
+                    rawMaterialsTable.ajax.reload();
                 } else {
-                    showAlert('danger', response.error || 'Failed to update global markup');
+                    showAlert('error', response.message || 'Failed to update global markup');
                 }
             },
             error: function(xhr) {
-                let errorMessage = 'An error occurred while updating global markup';
-                try {
-                    const response = JSON.parse(xhr.responseText);
-                    if (response.error) {
-                        errorMessage = response.error;
-                    }
-                } catch (e) {
-                    console.error('Error parsing error response:', e);
-                }
-                showAlert('danger', errorMessage);
+                showAlert('error', 'Error updating global markup');
             }
         });
     });
-
-    // Helper function to show alerts
-    function showAlert(type, message) {
-        const alertDiv = $(`
-            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        `);
-        $('.container-fluid').prepend(alertDiv);
-        setTimeout(() => alertDiv.alert('close'), 5000);
-    }
 });

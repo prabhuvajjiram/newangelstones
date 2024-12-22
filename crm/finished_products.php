@@ -19,10 +19,36 @@ $pageTitle = "Finished Products Inventory";
     <link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" rel="stylesheet">
     <link href="css/styles.css" rel="stylesheet">
+    
+    <style>
+        .dt-buttons {
+            margin-bottom: 1rem;
+        }
+        .dt-button {
+            margin-right: 0.5rem;
+        }
+        .table td.dt-nowrap {
+            white-space: nowrap;
+        }
+        .dtr-details {
+            width: 100%;
+        }
+        @media (max-width: 767.98px) {
+            .table td.dt-nowrap {
+                white-space: normal;
+            }
+            .btn-group {
+                display: flex;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
     <?php include 'navbar.php'; ?>
     <div class="container-fluid py-4">
+        <!-- Alert container for notifications -->
+        <div class="alert-container position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 1050;"></div>
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3"><?php echo $pageTitle; ?></h1>
             <button type="button" class="btn btn-primary" id="addProductBtn">
@@ -249,20 +275,13 @@ $pageTitle = "Finished Products Inventory";
         </div>
     </div>
 
-        <!-- JavaScript -->
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
     <script src="js/finished_products.js"></script>
 </body>
 </html>

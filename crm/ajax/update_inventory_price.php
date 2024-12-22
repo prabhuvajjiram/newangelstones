@@ -3,6 +3,10 @@ require_once '../includes/config.php';
 require_once '../includes/functions.php';
 require_once '../session_check.php';
 
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 header('Content-Type: application/json');
 
 try {
@@ -12,7 +16,7 @@ try {
     $input = file_get_contents('php://input');
     $data = json_decode($input, true);
     
-    // Log the received data
+    // Log the received data for debugging
     error_log("Received data: " . print_r($data, true));
     
     if (!$data) {
@@ -20,102 +24,110 @@ try {
     }
     
     // Validate required fields
-    if (empty($data['id']) || empty($data['type']) || !isset($data['unit_price'])) {
-        throw new Exception('Missing required fields');
+    if (empty($data['id'])) {
+        throw new Exception('Missing product ID');
+    }
+    
+    if (!isset($data['unit_price'])) {
+        throw new Exception('Missing unit price');
     }
     
     // Convert prices to float and validate
     $unitPrice = floatval($data['unit_price']);
-    $finalPrice = !empty($data['final_price']) ? floatval($data['final_price']) : null;
+    $markupPercentage = isset($data['markup_percentage']) ? floatval($data['markup_percentage']) : 80.0;
+    $productId = intval($data['id']);
+    $type = $data['type'];
     
     if ($unitPrice < 0) {
         throw new Exception('Unit price cannot be negative');
     }
     
-    if ($finalPrice !== null && $finalPrice < 0) {
-        throw new Exception('Final price cannot be negative');
+    if ($markupPercentage < 0) {
+        throw new Exception('Markup percentage cannot be negative');
     }
+    
+    // Calculate final price using the provided markup percentage
+    $finalPrice = round($unitPrice * (1 + $markupPercentage / 100), 2);
     
     // Begin transaction
     $db->beginTransaction();
     
     try {
-        // Get current prices before update
-        if ($data['type'] === 'finished_product') {
-            $stmt = $db->prepare("SELECT unit_price, final_price FROM finished_products WHERE id = ?");
-        } else {
-            $stmt = $db->prepare("SELECT unit_price, final_price FROM raw_materials WHERE id = ?");
-        }
-        $stmt->execute([$data['id']]);
-        $oldPrices = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        // Calculate markup percentage if both prices are provided
-        $markupPercentage = null;
-        if ($unitPrice > 0 && $finalPrice > 0) {
-            $markupPercentage = (($finalPrice / $unitPrice) - 1) * 100;
-        }
-        
-        // Update prices
-        if ($data['type'] === 'finished_product') {
-            $stmt = $db->prepare("
-                UPDATE finished_products 
-                SET unit_price = :unit_price,
-                    final_price = :final_price,
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE id = :id
-            ");
-        } else {
+        if ($type === 'raw_material') {
+            // Update raw materials table directly
             $stmt = $db->prepare("
                 UPDATE raw_materials 
-                SET unit_price = :unit_price,
-                    final_price = :final_price,
-                    last_updated = CURRENT_TIMESTAMP
-                WHERE id = :id
+                SET unit_price = ?,
+                    final_price = ?
+                WHERE id = ?
             ");
+            $stmt->bindValue(1, $unitPrice, PDO::PARAM_STR);
+            $stmt->bindValue(2, $finalPrice, PDO::PARAM_STR);
+            $stmt->bindValue(3, $productId, PDO::PARAM_INT);
+            $stmt->execute();
+        } else {
+            // First get or create supplier_product record
+            $stmt = $db->prepare("
+                SELECT id FROM supplier_products 
+                WHERE product_id = ?
+            ");
+            $stmt->bindValue(1, $productId, PDO::PARAM_INT);
+            $stmt->execute();
+            $supplierProductId = $stmt->fetchColumn();
+            
+            if (!$supplierProductId) {
+                // Create new supplier_product record if it doesn't exist
+                $stmt = $db->prepare("
+                    INSERT INTO supplier_products (product_id, supplier_id)
+                    VALUES (?, 1)
+                ");
+                $stmt->bindValue(1, $productId, PDO::PARAM_INT);
+                $stmt->execute();
+                $supplierProductId = $db->lastInsertId();
+            }
+            
+            // Update end_date of current active price record
+            $stmt = $db->prepare("
+                UPDATE supplier_product_prices 
+                SET end_date = DATE_SUB(CURRENT_DATE, INTERVAL 1 DAY)
+                WHERE supplier_product_id = ? 
+                AND (end_date IS NULL OR end_date > CURRENT_DATE)
+            ");
+            $stmt->bindValue(1, $supplierProductId, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            // Insert new price record
+            $stmt = $db->prepare("
+                INSERT INTO supplier_product_prices (
+                    supplier_product_id, 
+                    unit_price, 
+                    markup_percentage,
+                    currency,
+                    effective_date,
+                    end_date
+                ) VALUES (?, ?, ?, 'USD', CURRENT_DATE, NULL)
+            ");
+            $stmt->bindValue(1, $supplierProductId, PDO::PARAM_INT);
+            $stmt->bindValue(2, $unitPrice, PDO::PARAM_STR);
+            $stmt->bindValue(3, $markupPercentage, PDO::PARAM_STR);
+            $stmt->execute();
         }
-        
-        $stmt->execute([
-            'id' => $data['id'],
-            'unit_price' => $unitPrice,
-            'final_price' => $finalPrice
-        ]);
-        
-        // Log price change in history
-        $stmt = $db->prepare("
-            INSERT INTO price_change_history (
-                item_type, item_id, old_unit_price, new_unit_price,
-                old_final_price, new_final_price, change_type,
-                markup_percentage, changed_by, reason
-            ) VALUES (
-                :item_type, :item_id, :old_unit_price, :new_unit_price,
-                :old_final_price, :new_final_price, :change_type,
-                :markup_percentage, :changed_by, :reason
-            )
-        ");
-        
-        $stmt->execute([
-            'item_type' => $data['type'],
-            'item_id' => $data['id'],
-            'old_unit_price' => $oldPrices['unit_price'],
-            'new_unit_price' => $unitPrice,
-            'old_final_price' => $oldPrices['final_price'],
-            'new_final_price' => $finalPrice,
-            'change_type' => 'individual',
-            'markup_percentage' => $markupPercentage,
-            'changed_by' => $_SESSION['user_id'],
-            'reason' => $data['reason'] ?? 'Price update'
-        ]);
         
         // Commit transaction
         $db->commit();
         
         echo json_encode([
             'success' => true,
-            'message' => 'Price updated successfully'
+            'message' => 'Price updated successfully',
+            'data' => [
+                'product_id' => $productId,
+                'unit_price' => $unitPrice,
+                'markup_percentage' => $markupPercentage,
+                'final_price' => $finalPrice
+            ]
         ]);
         
     } catch (Exception $e) {
-        // Rollback transaction on error
         $db->rollBack();
         throw $e;
     }
@@ -125,6 +137,11 @@ try {
     http_response_code(400);
     echo json_encode([
         'success' => false,
-        'error' => $e->getMessage()
+        'error' => $e->getMessage(),
+        'debug' => [
+            'received_data' => $data ?? null,
+            'error_details' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]
     ]);
 }
