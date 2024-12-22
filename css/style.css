@@ -1540,3 +1540,224 @@ ul.social-network li {
         display: block;
     }
 }
+
+/* Featured Products Section */
+.featured-products-section {
+    background-color: #1a1a1a;
+    padding: 60px 0;
+    color: #fff;
+}
+
+.featured-products-section .section-title {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.featured-products-section .section-description {
+    text-align: center;
+    margin-bottom: 40px;
+    color: #ccc;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.product-card {
+    background: #333;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+.product-image {
+    position: relative;
+    width: 100%;
+    padding-bottom: 100%;
+    background: #2a2a2a;
+    overflow: hidden;
+}
+
+.product-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 20px;
+    cursor: pointer;
+}
+
+.carousel-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    background: rgba(0, 0, 0, 0.8);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.carousel-prev { left: 20px; }
+.carousel-next { right: 20px; }
+
+.product-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 15px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.product-card:hover .product-overlay {
+    opacity: 1;
+}
+
+.product-title {
+    color: white;
+    margin: 0;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.product-description {
+    color: #aaa;
+    margin: 0;
+    line-height: 1.5;
+}
+
+@media (max-width: 992px) {
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .products-grid {
+        grid-template-columns: 1fr;
+        padding: 15px;
+    }
+}
+
+/* Modal Styles */
+.product-modal .modal-dialog {
+    max-width: 90vw;
+    margin: 20px auto;
+}
+
+.product-modal .modal-content {
+    background: #1a1a1a;
+    border: none;
+    border-radius: 10px;
+}
+
+.modal-image-container {
+    position: relative;
+    width: 100%;
+    height: 90vh;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-image {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+}
+
+.modal-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 60px;
+    height: 60px;
+    background: rgba(0, 0, 0, 0.8);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.modal-nav:hover {
+    background: rgba(0, 0, 0, 0.95);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.modal-prev { left: 20px; }
+.modal-next { right: 20px; }
+
+.modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 0, 0, 0.8);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.load-more-container {
+    text-align: center;
+    margin: 40px 0;
+    width: 100%;
+}
+
+.load-more-btn {
+    display: none; /* Hide by default */
+    padding: 12px 30px;
+    background-color: #C8B568;
+    color: #1a1a1a;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 16px;
+}
+
+.load-more-btn:hover {
+    background-color: #d4c27e;
+    transform: translateY(-2px);
+}
+
+.load-more-btn:active {
+    transform: translateY(0);
+}
+
+.load-more-btn[style*="display: inline-block"] {
+    display: inline-block;
+}
