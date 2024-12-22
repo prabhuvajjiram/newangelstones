@@ -13,14 +13,18 @@ try {
     $pdo = getDbConnection();
     $productId = $_POST['productId'] ?? null;
     
+    error_log("Product ID: " . $productId);
+    
     if (!$productId) {
         throw new Exception('Product ID is required');
     }
     
     // Check if product exists
-    $stmt = $pdo->prepare("SELECT name FROM products WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT id, name FROM products WHERE id = ?");
     $stmt->execute([$productId]);
     $product = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    error_log("Found product: " . print_r($product, true));
     
     if (!$product) {
         throw new Exception('Product not found');
@@ -117,7 +121,7 @@ try {
                 
                 error_log("Original dimensions: {$width}x{$height}");
                 
-                // Calculate new dimensions (max 1200px)
+                // Calculate dimensions for full size (max 1200px)
                 $maxWidth = 1200;
                 $maxHeight = 1200;
                 $ratio = $width / $height;
@@ -135,62 +139,146 @@ try {
                     $newHeight = $height;
                 }
                 
-                error_log("New dimensions: {$newWidth}x{$newHeight}");
+                error_log("New dimensions for full size: {$newWidth}x{$newHeight}");
                 
-                // Create new image with new dimensions
-                $newImage = imagecreatetruecolor($newWidth, $newHeight);
+                // Create full size image
+                $fullSizeImage = imagecreatetruecolor($newWidth, $newHeight);
                 
                 // Handle transparency for PNG
                 if ($mimeType === 'image/png') {
-                    imagealphablending($newImage, false);
-                    imagesavealpha($newImage, true);
-                    $transparent = imagecolorallocatealpha($newImage, 255, 255, 255, 127);
-                    imagefilledrectangle($newImage, 0, 0, $newWidth, $newHeight, $transparent);
+                    imagealphablending($fullSizeImage, false);
+                    imagesavealpha($fullSizeImage, true);
+                    $transparent = imagecolorallocatealpha($fullSizeImage, 255, 255, 255, 127);
+                    imagefilledrectangle($fullSizeImage, 0, 0, $newWidth, $newHeight, $transparent);
                 }
                 
-                // Resize image
-                imagecopyresampled($newImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+                // Resize full size image
+                imagecopyresampled(
+                    $fullSizeImage,
+                    $image,
+                    0, 0, 0, 0,
+                    $newWidth,
+                    $newHeight,
+                    $width,
+                    $height
+                );
                 
-                // Save optimized image
-                $saveResult = false;
+                // Calculate dimensions for thumbnail (300x200)
+                $thumbWidth = 300;
+                $thumbHeight = 200;
+                
+                // Create thumbnail image
+                $thumbnailImage = imagecreatetruecolor($thumbWidth, $thumbHeight);
+                
+                // Handle transparency for PNG thumbnails
+                if ($mimeType === 'image/png') {
+                    imagealphablending($thumbnailImage, false);
+                    imagesavealpha($thumbnailImage, true);
+                    $transparent = imagecolorallocatealpha($thumbnailImage, 255, 255, 255, 127);
+                    imagefilledrectangle($thumbnailImage, 0, 0, $thumbWidth, $thumbHeight, $transparent);
+                }
+                
+                // Calculate thumbnail dimensions to maintain aspect ratio
+                $srcX = 0;
+                $srcY = 0;
+                $srcWidth = $width;
+                $srcHeight = $height;
+                
+                // Crop to 3:2 aspect ratio if needed
+                if ($width / $height > 1.5) { // Image is wider than 3:2
+                    $srcWidth = $height * 1.5;
+                    $srcX = ($width - $srcWidth) / 2;
+                } elseif ($width / $height < 1.5) { // Image is taller than 3:2
+                    $srcHeight = $width / 1.5;
+                    $srcY = ($height - $srcHeight) / 2;
+                }
+                
+                // Create thumbnail
+                imagecopyresampled(
+                    $thumbnailImage,
+                    $image,
+                    0, 0, $srcX, $srcY,
+                    $thumbWidth,
+                    $thumbHeight,
+                    $srcWidth,
+                    $srcHeight
+                );
+                
+                // Save both versions
+                $thumbFilename = 'thumb_' . $filename;
+                $thumbPath = $baseUploadPath . DIRECTORY_SEPARATOR . $thumbFilename;
+                
+                error_log("Saving thumbnail to: " . $thumbPath);
+                error_log("Saving full size to: " . $fullPath);
+                
+                // Save images based on type
                 switch ($mimeType) {
                     case 'image/jpeg':
-                        $saveResult = imagejpeg($newImage, $fullPath, 85);
+                        $saveResult = imagejpeg($fullSizeImage, $fullPath, 85) && 
+                                    imagejpeg($thumbnailImage, $thumbPath, 85);
                         break;
                     case 'image/png':
-                        $saveResult = imagepng($newImage, $fullPath, 8);
+                        $saveResult = imagepng($fullSizeImage, $fullPath, 8) &&
+                                    imagepng($thumbnailImage, $thumbPath, 8);
                         break;
                     case 'image/gif':
-                        $saveResult = imagegif($newImage, $fullPath);
+                        $saveResult = imagegif($fullSizeImage, $fullPath) &&
+                                    imagegif($thumbnailImage, $thumbPath);
                         break;
                 }
                 
                 error_log("Save result: " . ($saveResult ? "success" : "failed"));
                 
                 if (!$saveResult) {
-                    throw new Exception('Failed to save optimized image');
+                    throw new Exception('Failed to save optimized images');
                 }
                 
                 // Free up memory
                 imagedestroy($image);
-                imagedestroy($newImage);
+                imagedestroy($fullSizeImage);
+                imagedestroy($thumbnailImage);
                 
-                // Save image record to database
-                $stmt = $pdo->prepare("INSERT INTO product_images (product_id, image_path, created_at) VALUES (?, ?, NOW())");
+                // Save image record to database with correct paths
+                $stmt = $pdo->prepare("INSERT INTO product_images (product_id, image_path, thumb_path, created_at) VALUES (?, ?, ?, NOW())");
+                
+                // Use correct paths for database storage
                 $imagePath = 'images/products/' . $filename;
-                $result = $stmt->execute([$productId, $imagePath]);
+                $thumbPath = 'images/products/thumb_' . $filename;
                 
-                error_log("Database insert result: " . ($result ? "success" : "failed"));
+                error_log("Attempting database insert - Product ID: " . $productId);
+                error_log("Image path: " . $imagePath);
+                error_log("Thumb path: " . $thumbPath);
                 
-                if (!$result) {
-                    throw new Exception('Failed to save image record to database');
+                try {
+                    $result = $stmt->execute([$productId, $imagePath, $thumbPath]);
+                    error_log("Database insert result: " . ($result ? "success" : "failed"));
+                    
+                    if (!$result) {
+                        $error = $stmt->errorInfo();
+                        error_log("Database error details: " . print_r($error, true));
+                        throw new Exception('Failed to save image record to database: ' . $error[2]);
+                    }
+                    
+                    $newId = $pdo->lastInsertId();
+                    error_log("New image record ID: " . $newId);
+                    
+                    // Verify the insert
+                    $verifyStmt = $pdo->prepare("SELECT * FROM product_images WHERE id = ?");
+                    $verifyStmt->execute([$newId]);
+                    $verifyResult = $verifyStmt->fetch(PDO::FETCH_ASSOC);
+                    error_log("Verify insert result: " . print_r($verifyResult, true));
+                    
+                    $uploadedImages[] = [
+                        'id' => $newId,
+                        'path' => $imagePath,
+                        'thumb_path' => $thumbPath,
+                        'name' => $file['name']
+                    ];
+                } catch (PDOException $e) {
+                    error_log("PDO Exception: " . $e->getMessage());
+                    error_log("Error code: " . $e->getCode());
+                    throw new Exception('Database error: ' . $e->getMessage());
                 }
-                
-                $uploadedImages[] = [
-                    'id' => $pdo->lastInsertId(),
-                    'path' => $imagePath,
-                    'name' => $file['name']
-                ];
                 
                 error_log("Successfully processed image: " . $file['name']);
                 
