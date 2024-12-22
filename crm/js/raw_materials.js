@@ -73,8 +73,8 @@ function loadWarehouses() {
         url: 'ajax/get_warehouses.php',
         method: 'GET',
         success: function(response) {
-            if (response.success && response.data) {
-                populateWarehouseDropdown(response.data);
+            if (response.success && response.warehouses) {
+                populateWarehouseDropdown(response.warehouses);
             } else {
                 console.error('Failed to load warehouses:', response.message || 'Unknown error');
             }
@@ -124,7 +124,6 @@ function populateWarehouseDropdown(warehouses) {
             $('<option></option>')
                 .val(warehouse.id)
                 .text(warehouse.name)
-                .attr('data-name', warehouse.name)
         );
     });
 }
@@ -172,10 +171,16 @@ function getStatusBadge(status) {
 function saveMaterial(form) {
     const formData = new FormData(form[0]);
     
-    // Add warehouse name to form data
+    // Debug: Log form data
+    console.log('Form data before send:');
+    for (let [key, value] of formData.entries()) {
+        console.log(key + ': ' + value);
+    }
+    
+    // Add warehouse name from selected option
     const warehouseSelect = form.find('select[name="warehouse_id"]');
-    const selectedOption = warehouseSelect.find('option:selected');
-    formData.append('warehouse_name', selectedOption.attr('data-name') || '');
+    const selectedWarehouse = warehouseSelect.find('option:selected');
+    formData.append('warehouse_name', selectedWarehouse.text());
 
     // Show loading state
     const saveBtn = $('#saveMaterialBtn');
@@ -189,10 +194,17 @@ function saveMaterial(form) {
         processData: false,
         contentType: false,
         success: function(response) {
+            console.log('Save response:', response);
             if (response.success) {
                 // Close modal and reset form
                 $('#addMaterialModal').modal('hide');
                 form[0].reset();
+                
+                // Remove any existing material_id field
+                form.find('input[name="material_id"]').remove();
+                
+                // Reset modal title
+                $('#addMaterialModal .modal-title').text('Add New Material');
                 
                 // Show success message
                 showAlert('success', 'Material saved successfully');
@@ -200,12 +212,12 @@ function saveMaterial(form) {
                 // Reload materials table
                 loadMaterials();
             } else {
-                showAlert('danger', 'Error: ' + response.message);
+                showAlert('error', response.message || 'Failed to save material');
             }
         },
         error: function(xhr, status, error) {
+            showAlert('error', 'Error saving material');
             console.error('Save error:', {xhr, status, error});
-            showAlert('danger', 'Error saving material');
         },
         complete: function() {
             // Reset button state
@@ -216,10 +228,11 @@ function saveMaterial(form) {
 
 function editMaterial(id) {
     $.ajax({
-        url: 'ajax/get_raw_material.php',
+        url: 'ajax/get_raw_materials.php',
         type: 'GET',
         data: { id: id },
         success: function(response) {
+            console.log('Edit response:', response);
             if (response.success) {
                 populateEditForm(response.material);
                 $('#addMaterialModal').modal('show');
@@ -235,8 +248,27 @@ function editMaterial(id) {
 }
 
 function populateEditForm(material) {
+    console.log('Populating form with:', material);
     const form = $('#addMaterialForm');
-    form.find('input[name="material_id"]').val(material.id);
+    
+    // Reset form first
+    form[0].reset();
+    
+    // Set form title
+    $('#addMaterialModal .modal-title').text('Edit Material');
+    
+    // Remove any existing material_id field
+    form.find('input[name="material_id"]').remove();
+    
+    // Add material ID to form for update
+    const materialIdField = $('<input>').attr({
+        type: 'hidden',
+        name: 'material_id',
+        value: material.id
+    });
+    form.prepend(materialIdField);
+    
+    // Populate form fields
     form.find('select[name="color_id"]').val(material.color_id);
     form.find('input[name="length"]').val(material.length);
     form.find('input[name="width"]').val(material.width);
@@ -245,6 +277,13 @@ function populateEditForm(material) {
     form.find('select[name="warehouse_id"]').val(material.warehouse_id);
     form.find('input[name="location_details"]').val(material.location_details);
     form.find('input[name="min_stock_level"]').val(material.min_stock_level);
+    
+    // Debug: Log form data after population
+    const formData = new FormData(form[0]);
+    console.log('Form data after population:');
+    for (let [key, value] of formData.entries()) {
+        console.log(key + ': ' + value);
+    }
 }
 
 function deleteMaterial(id) {

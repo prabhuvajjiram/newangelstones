@@ -36,22 +36,52 @@ try {
     try {
         // Prepare and execute query based on type
         if ($data['type'] === 'finished_product') {
+            // First, update end_date for current active prices
             $stmt = $db->prepare("
-                UPDATE finished_products 
-                SET final_price = ROUND(unit_price * (1 + :markup/100), 2),
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE status = 'active'
+                UPDATE supplier_product_prices 
+                SET end_date = DATE_SUB(CURRENT_DATE, INTERVAL 1 DAY)
+                WHERE end_date IS NULL OR end_date > CURRENT_DATE
             ");
+            $stmt->execute();
+            
+            // Then, insert new price records with updated markup
+            $stmt = $db->prepare("
+                INSERT INTO supplier_product_prices (
+                    supplier_product_id,
+                    unit_price,
+                    markup_percentage,
+                    currency,
+                    effective_date,
+                    end_date
+                )
+                SELECT 
+                    sp.id,
+                    COALESCE(
+                        (SELECT unit_price 
+                         FROM supplier_product_prices spp2 
+                         WHERE spp2.supplier_product_id = sp.id 
+                         ORDER BY effective_date DESC 
+                         LIMIT 1),
+                        0
+                    ) as unit_price,
+                    :markup as markup_percentage,
+                    'USD',
+                    CURRENT_DATE,
+                    NULL
+                FROM supplier_products sp
+            ");
+            $stmt->execute(['markup' => $markup]);
+            
         } else {
+            // For raw materials, directly update the final_price
             $stmt = $db->prepare("
                 UPDATE raw_materials 
                 SET final_price = ROUND(unit_price * (1 + :markup/100), 2),
                     last_updated = CURRENT_TIMESTAMP
                 WHERE status != 'out_of_stock'
             ");
+            $stmt->execute(['markup' => $markup]);
         }
-        
-        $stmt->execute(['markup' => $markup]);
         
         // Get number of updated rows
         $updatedRows = $stmt->rowCount();
@@ -61,7 +91,7 @@ try {
         
         echo json_encode([
             'success' => true,
-            'message' => "Successfully updated {$updatedRows} items with {$markup}% markup",
+            'message' => "Successfully updated markup to {$markup}%",
             'updatedRows' => $updatedRows
         ]);
         

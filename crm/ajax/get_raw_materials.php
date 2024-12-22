@@ -14,6 +14,33 @@ try {
         throw new Exception("Database connection not available");
     }
 
+    // Check if requesting a single material
+    $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+    if ($id > 0) {
+        // Get single material
+        $stmt = $pdo->prepare("
+            SELECT 
+                rm.*,
+                scr.color_name
+            FROM raw_materials rm
+            LEFT JOIN stone_color_rates scr ON rm.color_id = scr.id
+            WHERE rm.id = ?
+        ");
+        $stmt->execute([$id]);
+        $material = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$material) {
+            throw new Exception("Material not found");
+        }
+        
+        echo json_encode([
+            'success' => true,
+            'material' => $material
+        ]);
+        exit;
+    }
+
+    // Otherwise, get filtered list
     $color = $_GET['color'] ?? '';
     $status = $_GET['status'] ?? '';
     $search = $_GET['search'] ?? '';
@@ -51,7 +78,7 @@ try {
     }
 
     if (!empty($search)) {
-        $query .= " AND (scr.color_name LIKE ? OR rm.location LIKE ?)";
+        $query .= " AND (scr.color_name LIKE ? OR rm.location_details LIKE ?)";
         $params[] = "%$search%";
         $params[] = "%$search%";
     }
