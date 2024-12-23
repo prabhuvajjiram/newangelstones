@@ -21,9 +21,21 @@ try {
 }
 
 try {
-    // Get all quotes first
-    $query = "SELECT * FROM quotes ORDER BY created_at DESC";
-    $stmt = $pdo->query($query);
+    // Base query with role-based filtering
+    $query = "SELECT * FROM quotes WHERE 1=1";
+    $params = array();
+    
+    // If not admin, only show user's own quotes
+    if (!isAdmin()) {
+        $query .= " AND username = :username";
+        $params[':username'] = $_SESSION['email'];
+    }
+    
+    $query .= " ORDER BY created_at DESC";
+    
+    // Prepare and execute the query with parameters
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($params);
     $quotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Now get related data for all quotes efficiently
