@@ -37,6 +37,12 @@ try {
 
     $params = array();
 
+    // If not admin, only show user's own orders
+    if (!isAdmin()) {
+        $query .= " AND o.created_by = :user_email";
+        $params[':user_email'] = $_SESSION['email'];
+    }
+
     // Add filters
     if (!empty($status)) {
         $query .= " AND o.status = :status";

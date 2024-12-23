@@ -11,14 +11,14 @@ ob_clean();
 try {
     $pdo = getDbConnection();
     
-    $query = "SELECT id, name FROM warehouses WHERE status = 'active' ORDER BY name ASC";
+    $query = "SELECT id, name, address, contact_person, phone, email, status FROM warehouses ORDER BY name ASC";
     $stmt = $pdo->query($query);
     $warehouses = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     header('Content-Type: application/json');
     echo json_encode([
         'success' => true,
-        'warehouses' => $warehouses
+        'data' => $warehouses
     ]);
     
 } catch (Exception $e) {
