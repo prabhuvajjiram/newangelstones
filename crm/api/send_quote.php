@@ -67,7 +67,7 @@ function generatePDFForEmail($quote_id, $output_path) {
     // Apply commission to each item
     foreach ($items as &$item) {
         $item_commission = floatval($item['total_price']) * $commission_per_dollar;
-        $item['price_with_commission'] = floatval($item['base_price']) * (1 + $commission_per_dollar);
+        #$item['price_with_commission'] = floatval($item['base_price']) * (1 + $commission_per_dollar);
         $item['total_with_commission'] = floatval($item['total_price']) * (1 + $commission_per_dollar);
     }
 
@@ -133,8 +133,10 @@ function generatePDFForEmail($quote_id, $output_path) {
     $pdf->SetFont('helvetica', 'B', 9);
     $pdf->SetFillColor(240, 240, 240);
     
-    $col_widths = array(60, 22, 37, 15, 12, 22, 22);  
-    $headers = array('Description', 'Color', 'Dimensions', 'Cu.ft', 'Qty', 'Price', 'Total');
+    #$col_widths = array(60, 22, 37, 15, 12, 22, 22);  
+    #$headers = array('Description', 'Color', 'Dimensions', 'Cu.ft', 'Qty', 'Price', 'Total');
+    $col_widths = array(60, 22, 37, 15, 12, 22);  
+    $headers = array('Description', 'Color', 'Dimensions', 'Cu.ft', 'Qty', 'Price');
     
     $pdf->Ln(5);
     foreach ($headers as $i => $header) {
@@ -161,8 +163,8 @@ function generatePDFForEmail($quote_id, $output_path) {
         $pdf->Cell($col_widths[2], 7, $dimensions, 1, 0, 'C');
         $pdf->Cell($col_widths[3], 7, number_format($item['cubic_feet'], 2), 1, 0, 'C');
         $pdf->Cell($col_widths[4], 7, $item['quantity'], 1, 0, 'C');
-        $pdf->Cell($col_widths[5], 7, '$' . number_format($item['price_with_commission'], 2), 1, 0, 'R');
-        $pdf->Cell($col_widths[6], 7, '$' . number_format($item['total_with_commission'], 2), 1, 0, 'R');
+        #$pdf->Cell($col_widths[5], 7, '$' . number_format($item['price_with_commission'], 2), 1, 0, 'R');
+        $pdf->Cell($col_widths[5], 7, '$' . number_format($item['total_with_commission'], 2), 1, 0, 'R');
         $pdf->Ln();
         
         $grand_total += $item['total_with_commission'];
@@ -170,8 +172,8 @@ function generatePDFForEmail($quote_id, $output_path) {
 
     // Totals
     $pdf->SetFont('helvetica', 'B', 9);
-    $pdf->Cell(array_sum(array_slice($col_widths, 0, 6)), 7, 'Total:', 1, 0, 'R');
-    $pdf->Cell($col_widths[6], 7, '$' . number_format($grand_total, 2), 1, 1, 'R');
+    $pdf->Cell(array_sum(array_slice($col_widths, 0, 5)), 7, 'Total Price:', 1, 0, 'R');
+    $pdf->Cell($col_widths[5], 7, '$' . number_format($grand_total, 2), 1, 1, 'R');
 
     // Add Terms and Conditions
     $pdf->Ln(5);

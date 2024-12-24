@@ -104,6 +104,19 @@ class QuoteManager {
             this.updatePrice();
         });
 
+        $(document).on('click', '.remove-cart-item', (e) => {
+            const row = $(e.target).closest('tr');
+            const itemId = row.data('item-id'); // Add data-item-id to each row
+            
+            if (typeof itemId !== 'undefined') {
+                this.removeFromCart(itemId);
+            } else {
+                // Fallback to index-based removal
+                const index = row.index();
+                this.removeFromCart(index);
+            }
+        });
+
         this.productModelSelect.on('change', () => {
             const selectedModel = this.productModelSelect.find('option:selected');
             if (selectedModel.val()) {
@@ -693,16 +706,21 @@ class QuoteManager {
         this.updateCartDisplay();
     }
 
-    removeFromCart(index) {
-        if (!Array.isArray(this.cartItems) || index < 0 || index >= this.cartItems.length) {
-            console.error('Invalid cart operation:', { index, cartItems: this.cartItems });
-            return;
+    removeFromCart(identifier) {
+        let index;
+        if (typeof identifier === 'number') {
+            index = identifier;
+        } else {
+            // Find item by ID if using item IDs
+            index = this.cartItems.findIndex(item => item.id === identifier);
         }
-
-        console.log('Removing item at index:', index);
-        this.cartItems.splice(index, 1);
-        this.saveCartState();
-        this.updateCartDisplay();
+    
+        if (index > -1 && index < this.cartItems.length) {
+            this.cartItems.splice(index, 1);
+            this.saveCartState();
+            this.updateCartDisplay();
+            this.updateTotals();
+        }
     }
 
     getCartItems() {
@@ -742,7 +760,7 @@ class QuoteManager {
                 <td class="text-end">$${item.base_price.toFixed(2)}</td>
                 <td class="text-end">$${item.total_price.toFixed(2)}</td>
                 <td class="text-center">
-                    <button type="button" class="btn btn-danger btn-sm" onclick="removeFromCart(${index})">
+                    <button type="button" class="btn btn-danger btn-sm remove-cart-item">
                         <i class="bi bi-trash"></i>
                     </button>
                 </td>
