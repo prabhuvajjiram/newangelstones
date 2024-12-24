@@ -35,7 +35,7 @@ try {
               LEFT JOIN companies comp ON o.company_id = comp.id
               WHERE 1=1";
 
-    $params = array();
+    $params = [];
 
     // If not admin, only show user's own orders
     if (!isAdmin()) {
@@ -43,29 +43,41 @@ try {
         $params[':user_email'] = $_SESSION['email'];
     }
 
-    // Add filters
-    if (!empty($status)) {
-        $query .= " AND o.status = :status";
-        $params[':status'] = $status;
+    // Add search conditions
+    if (!empty($search)) {
+        $query .= " AND (
+            o.order_number LIKE ? OR 
+            c.name LIKE ? OR 
+            comp.name LIKE ? OR
+            o.total_amount LIKE ? OR
+            o.status LIKE ?
+        )";
+        $searchTerm = "%{$search}%";
+        $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm]);
     }
 
-    if (!empty($search)) {
-        $query .= " AND (o.order_number LIKE :search 
-                        OR c.name LIKE :search 
-                        OR comp.name LIKE :search)";
-        $params[':search'] = "%$search%";
+    // Add other filters
+    if (!empty($status)) {
+        $query .= " AND o.status = ?";
+        $params[] = $status;
+    }
+
+    if (!empty($manufacturing_status)) {
+        $query .= " AND o.manufacturing_status = ?";
+        $params[] = $manufacturing_status;
     }
 
     if (!empty($date_from)) {
-        $query .= " AND DATE(o.order_date) >= :date_from";
-        $params[':date_from'] = $date_from;
+        $query .= " AND DATE(o.order_date) >= ?";
+        $params[] = $date_from;
     }
 
     if (!empty($date_to)) {
-        $query .= " AND DATE(o.order_date) <= :date_to";
-        $params[':date_to'] = $date_to;
+        $query .= " AND DATE(o.order_date) <= ?";
+        $params[] = $date_to;
     }
 
+    // Add sorting
     $query .= " ORDER BY o.order_date DESC";
 
     // Prepare and execute the query
@@ -333,6 +345,23 @@ document.addEventListener('DOMContentLoaded', function() {
 function printOrder(orderId) {
     window.open(`print_order.php?id=${orderId}`, '_blank');
 }
+$(document).ready(function() {
+    // Handle form submission
+    $('#filterForm').on('submit', function(e) {
+        e.preventDefault();
+        const queryParams = new URLSearchParams($(this).serialize());
+        window.location.href = 'orders.php?' + queryParams.toString();
+    });
+
+    // Live search with debounce
+    let searchTimeout;
+    $('#search').on('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            $('#filterForm').submit();
+        }, 500);
+    });
+});
 </script>
 
 <?php require_once 'footer.php'; ?>

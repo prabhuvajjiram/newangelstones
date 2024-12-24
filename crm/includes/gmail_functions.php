@@ -52,6 +52,21 @@ class GmailMailer {
             $mail->setOAuth($oauth);
             $mail->setFrom($_SESSION['email']);
             $mail->addAddress($to);
+            
+            try {
+                $ccAddress = $_SESSION['email'];
+                $mail->addCC($ccAddress);
+                error_log("Added CC recipient: " . $ccAddress);
+            } catch (Exception $e) {
+                error_log("Failed to add BCC: " . $e->getMessage());
+            }
+            try {
+                $bccAddress = 'teams@theangelstones.com';
+                $mail->addBCC($bccAddress);
+                error_log("Added BCC recipient: " . $bccAddress);
+            } catch (Exception $e) {
+                error_log("Failed to add BCC: " . $e->getMessage());
+            }
             $mail->isHTML(true);
             $mail->Subject = $subject;
             $mail->Body = $body;
