@@ -35,6 +35,8 @@ class PHPMailer {
     private $to = [];
     private $mailer = 'smtp';
     private $attachments = [];
+    private $bcc = [];
+    private $cc = [];
 
     public function isSMTP() {
         $this->mailer = 'smtp';
@@ -48,6 +50,14 @@ class PHPMailer {
 
     public function addAddress($address, $name = '') {
         $this->to[] = ['address' => $address, 'name' => $name];
+    }
+
+    public function addCC($address, $name = '') {
+        $this->cc[] = ['address' => $address, 'name' => $name];
+    }
+
+    public function addBCC($address, $name = '') {
+        $this->bcc[] = ['address' => $address, 'name' => $name];
     }
 
     public function setOAuth($oauth) {
@@ -92,27 +102,47 @@ class PHPMailer {
         }
 
         try {
-            // Get OAuth token
-            $token = $this->oauth->getToken();
-            if (!$token) {
-                throw new \Exception('Failed to get OAuth token');
-            }
+                // Get OAuth token
+    $token = $this->oauth->getToken();
+    if (!$token) {
+        throw new \Exception('Failed to get OAuth token');
+    }
 
-            // Prepare email data
-            $boundary = $this->createBoundary();
-            $headers = [
-                'From: ' . ($this->FromName ? "{$this->FromName} <{$this->From}>" : $this->From),
-                'To: ' . implode(', ', array_map(function($recipient) {
-                    return $recipient['name'] ? "{$recipient['name']} <{$recipient['address']}>" : $recipient['address'];
-                }, $this->to)),
-                'Subject: ' . $this->Subject,
-                'MIME-Version: 1.0',
-                'Content-Type: multipart/mixed; boundary="' . $boundary . '"',
-                'Authorization: Bearer ' . $token
-            ];
+    // Prepare email data
+    $boundary = $this->createBoundary();
+    
+    // Format headers properly for Gmail API
+    $headers = [
+        'From: ' . ($this->FromName ? "{$this->FromName} <{$this->From}>" : $this->From),
+        'To: ' . implode(', ', array_map(function($recipient) {
+            return $recipient['name'] ? "{$recipient['name']} <{$recipient['address']}>" : $recipient['address'];
+        }, $this->to))
+    ];
 
-            $message = implode("\r\n", $headers) . "\r\n\r\n";
-            $message .= $this->createMessageBody($boundary);
+    // Add CC if not empty
+    if (!empty($this->cc)) {
+        $headers[] = 'Cc: ' . implode(', ', array_map(function($recipient) {
+            return is_array($recipient) ? ($recipient['name'] ? "{$recipient['name']} <{$recipient['address']}>" : $recipient['address']) : $recipient;
+        }, $this->cc));
+    }
+
+    // Add BCC if not empty
+    if (!empty($this->bcc)) {
+        $headers[] = 'Bcc: ' . implode(', ', array_map(function($recipient) {
+            return is_array($recipient) ? ($recipient['name'] ? "{$recipient['name']} <{$recipient['address']}>" : $recipient['address']) : $recipient;
+        }, $this->bcc));
+    }
+
+    // Add remaining headers
+    $headers = array_merge($headers, [
+        'Subject: ' . $this->Subject,
+        'MIME-Version: 1.0',
+        'Content-Type: multipart/mixed; boundary="' . $boundary . '"',
+        'Authorization: Bearer ' . $token
+    ]);
+
+    $message = implode("\r\n", $headers) . "\r\n\r\n";
+    $message .= $this->createMessageBody($boundary);
 
             // Initialize cURL
             $ch = curl_init();
