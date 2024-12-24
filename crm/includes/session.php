@@ -5,12 +5,12 @@ session_start();
 if (!defined('ADMIN_BASE_URL')) {
     $server_name = $_SERVER['SERVER_NAME'];
     if ($server_name === 'www.theangelstones.com' || $server_name === 'theangelstones.com') {
-        define('ADMIN_BASE_URL', '/admin/');
+        define('ADMIN_BASE_URL', '/crm/');
     } else {
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
         $port = $_SERVER['SERVER_PORT'];
         $port_suffix = ($port != '80' && $port != '443') ? ":$port" : '';
-        define('ADMIN_BASE_URL', $protocol . $server_name . $port_suffix . '/admin/');
+        define('ADMIN_BASE_URL', $protocol . $server_name . $port_suffix . '/crm/');
     }
 }
 

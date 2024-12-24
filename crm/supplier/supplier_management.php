@@ -1,14 +1,17 @@
 <?php
+session_start();
 $baseDir = dirname(dirname(__FILE__));
-require_once $baseDir . '/includes/session.php';
+require_once '../session_check.php';
 require_once $baseDir . '/includes/config.php';
 require_once $baseDir . '/includes/functions.php';
 
-// Check if user is logged in and is admin
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: ' . ADMIN_BASE_URL . 'login.php');
+// Check for admin access
+if (!isAdmin()) {
+    $_SESSION['error'] = 'Access denied. Admin privileges required.';
+    header('Location: ../index.php');
     exit;
 }
+
 
 $pageTitle = "Supplier Management";
 include $baseDir . '/header.php';

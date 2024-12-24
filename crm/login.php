@@ -126,18 +126,46 @@ $google_login_url = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build
         </div>
     </div>
 
+    <!-- Add Modal after login container -->
+    <div class="modal fade" id="manualLoginWarning" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-warning">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Manual Login Notice
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Please note that manual login is not recommended. Some CRM features may be limited or unavailable without SSO authentication.</p>
+                    <p class="mb-0">For full functionality, we recommend:</p>
+                    <ul>
+                        <li>Using an @theangelstones.com email address</li>
+                        <li>Signing in with Google SSO</li>
+                    </ul>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-warning" id="proceedManualLogin">Proceed Anyway</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        document.getElementById('toggleLogin').addEventListener('click', function() {
+        document.getElementById('toggleLogin').addEventListener('click', function(e) {
+            e.preventDefault();
+            const modal = new bootstrap.Modal(document.getElementById('manualLoginWarning'));
+            modal.show();
+        });
+
+        document.getElementById('proceedManualLogin').addEventListener('click', function() {
             const manualLogin = document.querySelector('.manual-login');
             const toggleBtn = document.getElementById('toggleLogin');
             
-            if (manualLogin.style.display === 'none' || !manualLogin.style.display) {
-                manualLogin.style.display = 'block';
-                toggleBtn.textContent = 'Back to Google Login';
-            } else {
-                manualLogin.style.display = 'none';
-                toggleBtn.textContent = 'Login Manually';
-            }
+            manualLogin.style.display = 'block';
+            toggleBtn.textContent = 'Back to Google Login';
+            bootstrap.Modal.getInstance(document.getElementById('manualLoginWarning')).hide();
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>

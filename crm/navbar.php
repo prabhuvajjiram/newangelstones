@@ -184,7 +184,7 @@ require_once 'session_check.php';
 
             <div class="nav-item dropdown">
                 <a class="nav-link text-white dropdown-toggle" href="#" id="adminDropdown" role="button">
-                    <i class="bi bi-gear me-2"></i> <span class="menu-text">Admin</span>
+                    <i class="bi bi-gear me-2"></i> <span class="menu-text">Sup Invoice</span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-dark" style="position: relative; width: 100%; margin: 0; border-radius: 0;">
                     <li>
@@ -222,7 +222,13 @@ require_once 'session_check.php';
                     <i class="bi bi-box-arrow-right me-2"></i> Logout
                 </a>
             </div>
-            <?php endif; ?>
+            <?php else: ?>
+    <li class="nav-item">
+        <a class="nav-link" href="logout.php">
+            <i class="bi bi-box-arrow-right me-2"></i> Logout
+        </a>
+    </li>
+<?php endif; ?>
         </div>
     </div>
 </div>
