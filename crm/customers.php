@@ -1,7 +1,15 @@
 <?php
-require_once 'includes/config.php';
 require_once 'session_check.php';
-requireAdmin();
+requireStaffOrAdmin(); // Allow both staff and admin users to access customers
+require_once 'includes/config.php';
+require_once 'includes/functions.php';
+
+// Debug session info
+error_log("Debug: Session data in customers.php");
+error_log("Session ID: " . session_id());
+error_log("User ID: " . ($_SESSION['user_id'] ?? 'Not set'));
+error_log("Role: " . ($_SESSION['role'] ?? 'Not set'));
+error_log("Email: " . ($_SESSION['email'] ?? 'Not set'));
 
 // Handle AJAX requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
