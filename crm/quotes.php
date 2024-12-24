@@ -127,6 +127,37 @@ try {
                 <i class="bi bi-plus"></i> New Quote
             </a>
         </div>
+        <!-- Search Form -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form id="searchForm" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Customer Name</label>
+                        <input type="text" class="form-control" id="customerName" name="customerName" placeholder="Search by customer name">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Quote Number</label>
+                        <input type="text" class="form-control" id="quoteNumber" name="quoteNumber" placeholder="Search by quote number">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Date Range</label>
+                        <div class="input-group">
+                            <input type="date" class="form-control" id="dateFrom" name="dateFrom">
+                            <span class="input-group-text">to</span>
+                            <input type="date" class="form-control" id="dateTo" name="dateTo">
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                        <button type="reset" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Clear
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <?php if (isset($_SESSION['success'])): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -247,8 +278,9 @@ try {
             </div>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="js/utilities.js"></script>
+    <script src="js/quotes.js"></script>
 </body>
 </html>

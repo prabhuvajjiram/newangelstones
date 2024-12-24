@@ -152,7 +152,7 @@ try {
     $pdf->SetFillColor(240, 240, 240);
     
     $col_widths = array(60, 22, 37, 15, 12, 22, 22);  
-    $headers = array('Description', 'Color', 'Dimensions', 'Cu.ft', 'Qty', 'Price', 'Total');
+    $headers = array('Description', 'Color', 'Dimensions', 'Cu.ft', 'Qty', 'Total Price');
     
     $pdf->Ln(5);
     foreach ($headers as $i => $header) {
@@ -178,7 +178,7 @@ try {
         $pdf->Cell($col_widths[2], 7, $dimensions, 1, 0, 'C');
         $pdf->Cell($col_widths[3], 7, number_format($item['cubic_feet'], 2), 1, 0, 'C');
         $pdf->Cell($col_widths[4], 7, $item['quantity'], 1, 0, 'C');
-        $pdf->Cell($col_widths[5], 7, '$' . number_format($item['price_with_commission'], 2), 1, 0, 'R');
+        #$pdf->Cell($col_widths[5], 7, '$' . number_format($item['price_with_commission'], 2), 1, 0, 'R');
         $pdf->Cell($col_widths[6], 7, '$' . number_format($item['total_with_commission'], 2), 1, 0, 'R');
         $pdf->Ln();
         
@@ -187,8 +187,8 @@ try {
     
     // Total
     $pdf->SetFont('helvetica', 'B', 9);
-    $pdf->Cell(array_sum(array_slice($col_widths, 0, 6)), 7, 'Total:', 1, 0, 'R');
-    $pdf->Cell($col_widths[6], 7, '$' . number_format($grand_total, 2), 1, 1, 'R');
+    $pdf->Cell(array_sum(array_slice($col_widths, 0, 5)), 7, 'Total Price:', 1, 0, 'R');
+    $pdf->Cell($col_widths[5], 7, '$' . number_format($grand_total, 2), 1, 1, 'R');
 
     // Add shipping information to PDF
     $pdf->Ln(5);
