@@ -44,9 +44,37 @@ $activityTimeline = $contactManager->getActivityTimeline($customerId);
 $leadScore = $contactManager->calculateLeadScore($customerId);
 
 // Get customer's quotes
-$stmt = $pdo->prepare("SELECT * FROM quotes WHERE customer_id = ? ORDER BY created_at DESC LIMIT 5");
-$stmt->execute([$customerId]);
+//$stmt = $pdo->prepare("SELECT * FROM quotes WHERE customer_id = ? ORDER BY created_at DESC LIMIT 5");
+//$stmt->execute([$customerId]);
+//$quotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Get customer's quotes with role-based filtering
+$quoteQuery = "SELECT * FROM quotes WHERE customer_id = ?";
+$queryParams = [$customerId];
+
+// Add user filtering for staff role
+if ($_SESSION['role'] === 'staff') {
+    $quoteQuery .= " AND username = ?";
+    $queryParams[] = $_SESSION['username']; // Using email/username from session
+}
+
+$quoteQuery .= " ORDER BY created_at DESC LIMIT 5";
+$stmt = $pdo->prepare($quoteQuery);
+$stmt->execute($queryParams);
 $quotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Get total quotes count
+$countQuery = "SELECT COUNT(*) FROM quotes WHERE customer_id = ?";
+$countParams = [$customerId];
+
+if ($_SESSION['role'] === 'staff') {
+    $countQuery .= " AND username = ?";
+    $countParams[] = $_SESSION['username'];
+}
+
+$stmtCount = $pdo->prepare($countQuery);
+$stmtCount->execute($countParams);
+$totalQuotes = $stmtCount->fetchColumn();
 
 // Get customer's tasks
 $stmt = $pdo->prepare("
@@ -84,7 +112,7 @@ $stmt->execute([$customerId]);
 $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Calculate customer statistics
-$totalQuotes = count($quotes);
+//$totalQuotes = count($quotes);
 $totalTasks = count($tasks);
 $totalCommunications = count($communications);
 
@@ -155,7 +183,7 @@ function safeEscape($value) {
                    title="View all quotes for this customer">
                     <div class="card stat-card quotes h-100">
                         <div class="card-body">
-                            <h6 class="card-subtitle mb-2 text-muted">Active Quotes</h6>
+                            <h6 class="card-subtitle mb-2 text-muted">Active Quotes by you</h6>
                             <h2 class="card-title mb-0"><?= count($quotes) ?></h2>
                             <small class="text-muted">
                                 <i class="bi bi-arrow-right"></i> View all quotes
@@ -244,6 +272,14 @@ function safeEscape($value) {
                             </div>
                         </div>
                         <?php endif; ?>
+                        <div class="form-group">
+                            <select class="form-select" name="status" id="status">
+                                <option value="">Select Status</option>
+                                <option value="active" <?= ($customer['status'] === 'active') ? 'selected' : '' ?>>Active</option>
+                                <option value="inactive" <?= ($customer['status'] === 'inactive') ? 'selected' : '' ?>>Inactive</option>
+                                <option value="lead" <?= ($customer['status'] === 'lead') ? 'selected' : '' ?>>Lead</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -380,6 +416,70 @@ function safeEscape($value) {
     }
     ?>
 
+    <!-- Status Update Modal -->
+    <div class="modal fade" id="updateStatusModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Update Status</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="updateStatusForm">
+                        <div class="form-group">
+                            <label for="status">Status</label>
+                            <select class="form-select" name="status" id="status">
+                                <option value="">Select Status</option>
+                                <option value="new">New</option>
+                                <option value="contacted">Contacted</option>
+                                <option value="qualified">Qualified</option>
+                                <option value="proposal">Proposal</option>
+                                <option value="negotiation">Negotiation</option>
+                                <option value="closed_won">Closed Won</option>
+                                <option value="closed_lost">Closed Lost</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveStatus">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div class="modal fade" id="addTaskModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Task</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addTaskForm">
+                        <div class="form-group mb-3">
+                            <label for="taskType">Task Type</label>
+                            <select class="form-select" name="taskType" id="taskType">
+                                <option value="">Select Type</option>
+                                <option value="call">Call</option>
+                                <option value="meeting">Meeting</option>
+                                <option value="email">Email</option>
+                                <option value="follow_up">Follow Up</option>
+                            </select>
+                        </div>
+                        <!-- Other form fields -->
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveTask">Save Task</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/customer-view.js"></script>
     <script>
@@ -388,6 +488,30 @@ function safeEscape($value) {
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
             var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+        });
+    </script>
+    <style>
+        .form-select {
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #212529;
+            background-color: #fff;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+        }
+
+        .form-select option {
+            padding: 0.5rem;
+            font-weight: normal;
+        }
+    </style>
+    <script>
+        $(document).ready(function() {
+            $('.form-select').on('change', function() {
+                // Handle select change events
             });
         });
     </script>
