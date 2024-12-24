@@ -72,7 +72,7 @@ try {
     $_SESSION['access_token'] = $tokens['access_token'];
 
     // Redirect back
-    $redirect_url = $_SESSION['auth_redirect'] ?? 'dashboard.php';
+    $redirect_url = $_SESSION['auth_redirect'] ?? 'index.php';
     unset($_SESSION['auth_redirect'], $_SESSION['oauth_state']);
     header('Location: ' . $redirect_url);
     exit();

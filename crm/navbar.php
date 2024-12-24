@@ -179,7 +179,7 @@ require_once 'session_check.php';
             
             <a class="nav-link text-white <?php echo $current_page == 'settings.php' ? 'active bg-primary' : ''; ?>" 
                href="<?php echo getUrl('settings.php'); ?>">
-                <i class="bi bi-gear me-2"></i> <span class="menu-text">Settings</span>
+                <i class="bi bi-gear me-2"></i> <span class="menu-text">MNMT/Color Rates %</span>
             </a>
 
             <div class="nav-item dropdown">
