@@ -11,11 +11,36 @@ requireAdmin();
 
 // Get all users with their roles
 $stmt = $pdo->prepare("
-    SELECT u.*, r.name as role_name, r.id as role_id
-    FROM users u
-    JOIN user_roles ur ON u.id = ur.user_id
-    JOIN roles r ON ur.role_id = r.id
-    ORDER BY u.email
+    SELECT 
+    u.id, 
+    u.email, 
+    u.first_name, 
+    u.last_name, 
+    r.name AS role_name, 
+    r.id AS role_id
+FROM 
+    users u
+JOIN 
+    user_roles ur ON u.id = ur.user_id
+JOIN 
+    roles r ON ur.role_id = r.id
+
+UNION ALL
+
+SELECT 
+    u.id, 
+    u.email, 
+    u.first_name, 
+    u.last_name, 
+    NULL AS role_name, 
+    NULL AS role_id
+FROM 
+    users u
+WHERE 
+    NOT EXISTS (SELECT 1 FROM user_roles ur WHERE ur.user_id = u.id)
+
+ORDER BY 
+    email
 ");
 $stmt->execute();
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -31,7 +56,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case 'update_role':
                 $user_id = $_POST['user_id'];
                 $role_id = $_POST['role_id'];
-                
+              
+                // First get role name
+                $roleStmt = $pdo->prepare("SELECT name FROM roles WHERE id = ?");
+                $roleStmt->execute([$role_id]);
+                $roleData = $roleStmt->fetch(PDO::FETCH_ASSOC);
+
                 // Update user's role
                 $stmt = $pdo->prepare("
                     UPDATE user_roles 
@@ -39,7 +69,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     WHERE user_id = ?
                 ");
                 $stmt->execute([$role_id, $user_id]);
-                
+                $stmt = $pdo->prepare("
+                    UPDATE users 
+                    SET role = ? 
+                    WHERE id = ?
+                ");
+                $stmt->execute([$roleData['name'], $user_id]);
+
                 $success_message = "User role updated successfully!";
                 break;
                 
