@@ -16,6 +16,7 @@ $stmt = $pdo->prepare("
     u.email, 
     u.first_name, 
     u.last_name, 
+    u.last_login,
     r.name AS role_name, 
     r.id AS role_id
 FROM 
@@ -33,7 +34,8 @@ SELECT
     u.first_name, 
     u.last_name, 
     NULL AS role_name, 
-    NULL AS role_id
+    NULL AS role_id,
+    u.last_login
 FROM 
     users u
 WHERE 
@@ -129,6 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <tr>
                                 <th>Email</th>
                                 <th>Name</th>
+                                <th>Last Login</th>
                                 <th>Current Role</th>
                                 <th>Actions</th>
                             </tr>
@@ -137,7 +140,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <?php foreach ($users as $user): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($user['email']); ?></td>
-                                <td><?php echo htmlspecialchars($user['name'] ?? ''); ?></td>
+                                <td><?php echo htmlspecialchars($user['first_name'] ?? ''); ?></td>
+                                <td><?php echo htmlspecialchars($user['last_login']); ?></td>
                                 <td><?php echo htmlspecialchars($user['role_name']); ?></td>
                                 <td>
                                     <form method="post" class="d-inline">
