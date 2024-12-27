@@ -141,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <tr>
                                 <td><?php echo htmlspecialchars($user['email']); ?></td>
                                 <td><?php echo htmlspecialchars($user['first_name'] ?? ''); ?></td>
-                                <td><?php echo htmlspecialchars($user['last_login']); ?></td>
+                                <td><?php echo htmlspecialchars($user['last_login'] ?? ''); ?></td>
                                 <td><?php echo htmlspecialchars($user['role_name']); ?></td>
                                 <td>
                                     <form method="post" class="d-inline">
