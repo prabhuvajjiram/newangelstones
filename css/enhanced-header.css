@@ -1,0 +1,85 @@
+/* Enhanced Header Styles */
+.enhanced-header {
+    position: fixed;
+    top: -100px;
+    left: 0;
+    right: 0;
+    background: rgba(38, 38, 38, 0.95);
+    z-index: 1000;
+    transition: top 0.3s ease-in-out;
+    padding: 10px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.enhanced-header.visible {
+    top: 0;
+}
+
+.enhanced-header .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.enhanced-header .logo img {
+    height: 50px;
+    width: auto;
+}
+
+.enhanced-header .quick-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.enhanced-header .contact-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.enhanced-header .phone-link {
+    color: #fff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.enhanced-header .phone-link i {
+    color: #007bff;
+}
+
+.enhanced-header .quote-button {
+    background: #007bff;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.enhanced-header .quote-button:hover {
+    background: #0056b3;
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+    .enhanced-header .contact-info span {
+        display: none;
+    }
+    
+    .enhanced-header .quick-actions {
+        gap: 10px;
+    }
+}
+
+/* Smooth Scroll Behavior */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Existing nav menu enhancements */
+#as-nav {
+    transition: transform 0.3s ease-in-out;
+}

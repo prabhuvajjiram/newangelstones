@@ -32,14 +32,94 @@
 
     <!-- Osano for optional cookies -->
     <script src="https://cmp.osano.com/16BlGRUNRhRsy6cS2/951c545c-64c9-4a8f-886a-b22b0ff1528d/osano.js"></script>
-    <title>Angel Stones - Premium Granite Monuments & Custom Headstones | Direct from Manufacturer</title>
-    <meta name="description" content="Leading granite monument manufacturer offering custom headstones, memorial stones, and cemetery monuments nationwide. Quality craftsmanship, wholesale prices, and direct shipping. 60+ Granite colors. Request a quote today.">
-    <meta name="Keywords" content="granite monument manufacturer, custom headstones, memorial stones near me, cemetery monuments, granite headstones prices, custom cemetery memorials, grave markers, affordable monuments, granite manufacturers direct"> 
+    <title>Angel Stones - Premium Granite Monuments & Memorials</title>
+    <meta name="description" content="Angel Stones offers premium granite monuments and memorials. Explore our wide selection of high-quality granite products with our interactive stone visualizer.">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Angel Stones",
+        "url": "https://www.angelstones.com",
+        "logo": "images/logo02.png",
+        "description": "Premium granite monuments and memorials manufacturer",
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Your Street Address",
+            "addressLocality": "Your City",
+            "addressRegion": "Your State",
+            "postalCode": "Your Zip",
+            "addressCountry": "US"
+        },
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+1-919-535-7574",
+            "contactType": "customer service"
+        },
+        "sameAs": [
+            "https://www.facebook.com/angelstones",
+            "https://www.instagram.com/angelstones"
+        ]
+    }
+    </script>
+
+    <!-- Product Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "itemListElement": [
+            {
+                "@type": "Product",
+                "name": "Blue Pearl Granite",
+                "description": "Elegant blue-grey granite with pearl-like luster",
+                "image": "images/bluepearl.jpg",
+                "offers": {
+                    "@type": "Offer",
+                    "price": "1299",
+                    "priceCurrency": "USD"
+                }
+            },
+            {
+                "@type": "Product",
+                "name": "Indian Black Granite",
+                "description": "Premium black granite with fine grain",
+                "image": "images/indian-black.jpg",
+                "offers": {
+                    "@type": "Offer",
+                    "price": "1499",
+                    "priceCurrency": "USD"
+                }
+            }
+        ]
+    }
+    </script>
+    
+    <!-- Breadcrumbs Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [{
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://www.angelstones.com"
+        },{
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Products",
+            "item": "https://www.angelstones.com#product-catalog"
+        }]
+    }
+    </script>
     
     <!-- Preload Critical Resources -->
     <link rel="preload" as="image" href="images/video-poster.jpg" fetchpriority="high">
     <link rel="preload" href="css/bootstrap.min.css" as="style">
     <link rel="preload" href="css/style.css" as="style">
+    <link rel="preload" href="css/enhanced-header.css" as="style">
     <link rel="preload" href="images/as-welcome-300.webp" as="image" type="image/webp" fetchpriority="high">
     <link rel="preconnect" href="https://www.googletagmanager.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -218,6 +298,9 @@
     <link rel="stylesheet" href="css/bootstrap.min.css">	
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/hamburger.css">
+    <link rel="stylesheet" href="css/enhanced-header.css">
+    <link rel="stylesheet" href="css/product-catalog.css">
+    <link rel="stylesheet" href="css/visualizer.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
     
     <!-- Non-Critical CSS Files -->
@@ -685,6 +768,53 @@
             </section>
             <!--Projects Section End Here-->
             <div class="divider1"></div>
+            
+            <!-- Product Catalog Section -->
+            <section id="product-catalog" class="section-padding animate-box" data-animate-effect="fadeInUp">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="section-header">
+                                <div class="subtitle">
+                                    <img src="images/title-star.svg" alt="Angel Stones">
+                                    Explore Our Products
+                                    <img src="images/title-star.svg" alt="Angel Stones">
+                                </div>
+                                <div class="title">Product Catalog</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <div class="filter-sidebar">
+                                <div id="product-filters">
+                                    <!-- Filters will be dynamically inserted here -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-9">
+                            <div id="product-grid" class="product-grid">
+                                <!-- Products will be dynamically inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Comparison Modal -->
+            <div class="modal fade" id="comparison-modal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Product Comparison</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Comparison content will be dynamically inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
             <!--Why Choose Section Start Here-->
             <section id="why-choose-as" class="section-padding animate-box why-choose-as" data-animate-effect="fadeInUp">
                 <div class="container">
@@ -972,6 +1102,9 @@
     <script src="js/owl.carousel.min.js" defer></script>
     <script src="https://unpkg.com/imagesloaded@5/imagesloaded.pkgd.min.js" defer></script>
     <script src="js/featured-products.js"></script>
+    <script src="js/enhanced-header.js" defer></script>
+    <script src="js/product-catalog.js" defer></script>
+    <script src="js/stone-visualizer.js" defer></script>
     <script src="js/custom.min.js" defer></script>
 
     <!-- Product Modal -->
@@ -1017,5 +1150,13 @@
         });
     </script>
     <script src="js/promotion-banner.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing product catalog...');
+            // Check if elements exist
+            console.log('Product filters container:', document.getElementById('product-filters'));
+            console.log('Product grid container:', document.getElementById('product-grid'));
+        });
+    </script>
 </body>
 </html>
