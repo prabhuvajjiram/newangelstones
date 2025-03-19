@@ -23,11 +23,34 @@
   --as-border-dark:#212529;
   --as-border-light:#eaeaea;
 }
+.tagline {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: #ffffff;
+    margin-top: 1rem;
+    font-style: italic;
+}
+
+.mission-statement {
+    font-family: var(--as-font);
+    font-size: 1.2rem;
+    line-height: 1.8;
+    color: var(--as-text-body);
+    max-width: 800px;
+    margin: 1.5rem auto;
+    text-align: center;
+}
+
+.footer-tagline {
+    display: block;
+    font-style: italic;
+    margin-top: 0.5rem;
+    color: #999;
+}
 /*Default*/
-html,
-body {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px; /* Account for fixed header */
 }
 body {
     font-family:var(--as-font);
@@ -867,12 +890,8 @@ body.offcanvason .as-nav-toggle {
 }
 /*Section*/
 .section-padding {
-    padding-top: 30px;
-    padding-bottom: 30px;
-    clear: both;
-    width: 100%;
-    display: block;
-    background:var(--as-bg-secondary);
+    padding: 80px 0;
+    position: relative;
     padding-left: 30px !important;
     margin: 0 !important;
 }
@@ -1098,67 +1117,76 @@ body.offcanvason .as-nav-toggle {
 }
 /*What We Offer Start Here*/
 .what-we-offer {
+    position: relative;
     overflow: hidden;
+    padding: 20px 0;
 }
+
 .offer-box {
-  position: relative;
-  margin-bottom: 30px;
-}
-.offer-box .image img {
-    width: 100%;
-    margin-bottom:43px;
-    border-radius:12px;
-}
-.offer-box .content {
-    z-index: 1;
-    position: absolute;
-	right: 25px;
-    bottom: -1px;
+    background: var(--as-bg-dark-deep);
+    position: relative;
+    margin-bottom: 30px;
+    text-align: center;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    border-radius: 2px;
     overflow: hidden;
-    -webkit-transition: 0.5s;
-    -o-transition: 0.5s;
-    transition: 0.5s;
-    background: var(--as-bg-dark-light); 
-    -webkit-box-shadow:0px 10px 60px rgba(72, 73, 77, 0.37);
-    box-shadow:0px 10px 60px rgba(72, 73, 77, 0.37);
-    -webkit-clip-path: none;
-    clip-path: none;
-    border-radius: 12px;
-    width: calc(100% - 50px);
-    padding:20px 30px;
-    padding-left: 30px;
 }
-@media only screen and (max-width: 991px) {
-	.offer-box .content {width: calc(100% - 50px);padding:10px 18px 10px 18px; }
-	.offer-box .content h6 {font-size:16px;}
-}
-.offer-box .content .bg {
-	z-index: -1;
+
+.offer-box::before {
+    content: '';
     position: absolute;
-      right: -20px;
-      bottom: -20px;
-      max-width: 50%;
-      -webkit-transition: 0.5s;
-      -o-transition: 0.5s;
-      transition: 0.5s; 
+    inset: 0;
+    background: linear-gradient(0deg,
+        rgba(214, 183, 114, 0.02) 0%,
+        transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
-.offer-box:hover .content {
-    background: var(--as-primary);
-    -webkit-clip-path: polygon(0 0, 100% 0%, 100% 100%, 0 100%, 0 50%);
-    clip-path: polygon(0 0, 100% 0%, 100% 100%, 0 100%, 0 50%); 
+
+.offer-box:hover::before {
+    opacity: 1;
 }
-@media only screen and (min-width: 376px) {
- .offer-box:hover .content {padding-top:20px;padding-bottom:20px; } 
+
+.offer-box .image {
+    width: 100%;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: var(--as-bg-dark-deep);
+    padding: 45px;
 }
-.offer-box .content h6 {
-  letter-spacing: -0.32px;
-  font-size:24px;
-  color: var(--as-primary); 
-  margin-bottom:0;	
-  padding-left: 30px;
+
+.offer-box .image img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    transition: transform 0.4s ease;
+    filter: brightness(1.02);
 }
-.offer-box:hover .content h6 {color: var(--as-bg-dark-2); }
-/*What We Offer End Here*/
+
+.offer-box:hover .image img {
+    transform: scale(1.02);
+    filter: brightness(1.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+    .offer-box .image {
+        padding: 40px;
+    }
+}
+
+@media (max-width: 768px) {
+    .offer-box .image {
+        padding: 35px;
+    }
+}
 /*Our Product Start Her*/
 .our-product .section-header .title{color:var(--as-white);font-size:36px;line-height:45px;}
 .our-product .title {
