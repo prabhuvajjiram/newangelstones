@@ -33,7 +33,7 @@
     <!-- Osano for optional cookies -->
     <script src="https://cmp.osano.com/16BlGRUNRhRsy6cS2/951c545c-64c9-4a8f-886a-b22b0ff1528d/osano.js"></script>
     <title>Angel Granites - A Venture of Angel Stones | Premium Granite Monuments & Custom Headstones</title>
-    <meta name="description" content="Angel Granites, established by Angel Stones, is a leading granite monument manufacturer offering custom headstones, memorial stones, and cemetery monuments nationwide. Quality craftsmanship, wholesale prices, and direct shipping. 60+ Granite colors. Request a quote today.">
+    <meta name="description" content="Angel Granites, established by Angel Stones, is a leading granite monument manufacturer offering custom headstones, memorial stones, and cemetery monuments nationwide. Quality craftsmanship, wholesale prices, and direct shipping. 100+ Granite colors. Request a quote today.">
     <meta name="Keywords" content="granite monument manufacturer, custom headstones, memorial stones near me, cemetery monuments, granite headstones prices, custom cemetery memorials, grave markers, affordable monuments, granite manufacturers direct"> 
     
     <!-- Preload Critical Resources -->
@@ -204,14 +204,14 @@
     <meta property="og:image:height" content="675">
     <meta property="og:locale" content="en">  
     <meta property="og:url" content="https://www.theangelstones.com/">                                                            
-    <meta property="og:description" content="Angel Granites, established by Angel Stones, is a leading granite monument manufacturer offering custom headstones, memorial stones, and cemetery monuments nationwide. Quality craftsmanship, wholesale prices, and direct shipping. 60+ Granite colors. Request a quote today.">
+    <meta property="og:description" content="Angel Granites, established by Angel Stones, is a leading granite monument manufacturer offering custom headstones, memorial stones, and cemetery monuments nationwide. Quality craftsmanship, wholesale prices, and direct shipping. 100+ Granite colors. Request a quote today.">
     <meta property="og:site_name" content="Angel Granites - A Venture of Angel Stones">
     
     <!--  Twitter Opengrapph -->
     <meta name="twitter:card" content="summary">                                                                                
     <meta name="twitter:site" content="@thesngelstones">                                                            
     <meta name="twitter:title" content="Angel Granites - A Venture of Angel Stones">
-    <meta name="twitter:description" content="Angel Granites, established by Angel Stones, is a leading granite monument manufacturer offering custom headstones, memorial stones, and cemetery monuments nationwide. Quality craftsmanship, wholesale prices, and direct shipping. 60+ Granite colors. Request a quote today.">
+    <meta name="twitter:description" content="Angel Granites, established by Angel Stones, is a leading granite monument manufacturer offering custom headstones, memorial stones, and cemetery monuments nationwide. Quality craftsmanship, wholesale prices, and direct shipping. 100+ Granite colors. Request a quote today.">
     <meta name="twitter:image" content="https://www.theangelstones.com/angel-granite-stones.jpg">
     
     <!-- Critical CSS Files -->	
@@ -229,7 +229,7 @@
     
     <style>
         .hero-image {
-            background: #f5f5f5 url('data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJSAyVC08MTAxMTIwPVNBRj5JQEV3Yj5MYXFkd3R6eXyBfYGBgYH/2wBDARUXFx4aHh4gIB4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICH/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAn/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=') no-repeat center center;
+            background: #f5f5f5 url('images/hero-placeholder.jpg') no-repeat center center;
             background-size: cover;
             min-height: 405px;
         }
@@ -240,7 +240,34 @@
         .hero-image.loaded img {
             opacity: 1;
         }
+        
+        /* Loading placeholder styles */
+        .loading-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            width: 100%;
+            color: #fff;
+            text-align: center;
+        }
+
+        .loading-placeholder .spinner {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .loading-placeholder .spin {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
+
 </head>
 
 <body>
@@ -326,27 +353,14 @@
                 <div class="container">
                     <div class="row justify-content-between align-items-center">
                         <div class="col-md-6">
-                            <div class="hero-image">
-                                <picture>
-                                    <source
-                                        srcset="images/as-welcome-300.webp 300w,
-                                                images/as-welcome-540.webp 540w,
-                                                images/as-welcome-768.webp 768w"
-                                        sizes="(max-width: 540px) 100vw,
-                                               (max-width: 768px) 540px,
-                                               540px"
-                                        type="image/webp">
-                                    <img 
-                                        src="images/as-welcome-300.webp"
-                                        width="540" 
-                                        height="405" 
-                                        fetchpriority="high"
-                                        loading="eager" 
-                                        decoding="async"
-                                        class="img-fluid mb-4" 
-                                        alt="Angel Stones"
-                                        onload="this.parentElement.parentElement.classList.add('loaded')">
-                                </picture>
+                            <div class="quarry-image-container">
+                                <img 
+                                    src="images/quarry-cropped-540.jpg"
+                                    alt="Angel Stones Quarry"
+                                    class="quarry-image" 
+                                    fetchpriority="high"
+                                    loading="eager" 
+                                    decoding="async">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -373,7 +387,6 @@
                     </div>
                 </div>
             </section>
-            <div class="divider-line"></div>
             <!-- Angel Stone Intro End Here -->
             
             <div class="divider-line"></div>
@@ -396,7 +409,7 @@
                         <div class="col-md-7">
                             <div class="title">Granite Monuments:</div>
                             <ul class="icon-list mt-40 mb-45">
-                                <li><i class="far fa-check"></i> Choose from over 60 monument colors, each representing a unique tribute to a loved one.</li>
+                                <li><i class="far fa-check"></i> Choose from over 100+ monument colors, each representing a unique tribute to a loved one.</li>
                                 <li><i class="far fa-check"></i> Our monuments are meticulously crafted, reflecting both elegance and durability.</li>
                                 <li><i class="far fa-check"></i> Whether it's a memorial for an individual or a community, we create lasting impressions.</li>
                             </ul>
@@ -449,19 +462,55 @@
                             <div class="section-header">
                                 <div class="subtitle">
                                     <img src="images/title-star.svg" alt="Angel Stones">
-                                        Angel Granites
+                                    Featured Products
                                     <img src="images/title-star.svg" alt="Angel Stones">
                                 </div>
-                                <div class="title">Featured Products</div>
-                                <p>Explore our newest and most sought-after granite monuments and custom headstones</p>
+                                <div class="title">Browse By Category</div>
                             </div>
                         </div>
                     </div>
-                    <div class="products-grid">
-                        <!-- Products will be dynamically loaded here -->
-                    </div>
-                    <div class="text-center mt-4">
-                        <button class="btn btn-outline-light load-more-btn" style="display: none;">Load More Products</button>
+
+                    <!-- Category Grid with hardcoded fallbacks -->
+                    <div class="category-grid-container">
+                        <div class="category-grid" id="category-grid">
+                            <!-- Hardcoded fallback categories -->
+                            <div class="category-item">
+                                <a href="#benches-collection" class="category-link">
+                                    <div class="category-image">
+                                        <img src="images/products/Benches/Founain2.png" alt="Benches" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                    </div>
+                                    <h4>Benches</h4>
+                                    <span class="category-count">3 Designs</span>
+                                </a>
+                            </div>
+                            <div class="category-item">
+                                <a href="#mbna_2025-collection" class="category-link">
+                                    <div class="category-image">
+                                        <img src="images/products/MBNA_2025/thumbnails/AG-116.png" alt="MBNA 2025" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                    </div>
+                                    <h4>MBNA 2025</h4>
+                                    <span class="category-count">26 Designs</span>
+                                </a>
+                            </div>
+                            <div class="category-item">
+                                <a href="#monuments-collection" class="category-link">
+                                    <div class="category-image">
+                                        <img src="images/products/Monuments/granite-monuments-project02.png" alt="Monuments" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                    </div>
+                                    <h4>Monuments</h4>
+                                    <span class="category-count">3 Designs</span>
+                                </a>
+                            </div>
+                            <div class="category-item">
+                                <a href="#columbarium-collection" class="category-link">
+                                    <div class="category-image">
+                                        <img src="images/products/columbarium/customized-designs-project03.png" alt="Columbarium" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                    </div>
+                                    <h4>Columbarium</h4>
+                                    <span class="category-count">1 Design</span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -875,6 +924,7 @@
     <script src="js/jquery.magnific-popup.min.js" defer></script>
     <script src="js/owl.carousel.min.js" defer></script>
     <script src="https://unpkg.com/imagesloaded@5/imagesloaded.pkgd.min.js" defer></script>
+    <script src="js/product-categories.js"></script>
     <script src="js/featured-products.js"></script>
     <script src="js/custom.min.js" defer></script>
     
@@ -964,5 +1014,22 @@
         });
     </script>
     <script src="js/promotion-banner.js"></script>
+    <script src="js/featured-products.js"></script>
+    <!-- Full Collection Modal -->
+    <div class="collection-modal" id="collectionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>MBNA 2025 Collection</h2>
+                <button class="close-modal">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="collection-grid">
+                    <!-- Will be populated dynamically via JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
