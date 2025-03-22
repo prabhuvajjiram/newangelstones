@@ -40,7 +40,7 @@
     <link rel="preload" as="image" href="images/video-poster.jpg" fetchpriority="high">
     <link rel="preload" href="css/bootstrap.min.css" as="style">
     <link rel="preload" href="css/style.css" as="style">
-    <link rel="preload" href="images/as-welcome-300.webp" as="image" type="image/webp" fetchpriority="high">
+    <link rel="preload" href="images/quarry-cropped-300.jpg" as="image" type="image/webp" fetchpriority="high">
     <link rel="preconnect" href="https://www.googletagmanager.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -268,6 +268,8 @@
         }
     </style>
 
+    <link rel="stylesheet" href="css/carousel.css">
+
 </head>
 
 <body>
@@ -473,42 +475,59 @@
                     <!-- Category Grid with hardcoded fallbacks -->
                     <div class="category-grid-container">
                         <div class="category-grid" id="category-grid">
-                            <!-- Hardcoded fallback categories -->
-                            <div class="category-item">
-                                <a href="#benches-collection" class="category-link">
-                                    <div class="category-image">
-                                        <img src="images/products/Benches/Founain2.png" alt="Benches" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
-                                    </div>
-                                    <h4>Benches</h4>
-                                    <span class="category-count">3 Designs</span>
-                                </a>
-                            </div>
-                            <div class="category-item">
-                                <a href="#mbna_2025-collection" class="category-link">
-                                    <div class="category-image">
-                                        <img src="images/products/MBNA_2025/thumbnails/AG-116.png" alt="MBNA 2025" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
-                                    </div>
-                                    <h4>MBNA 2025</h4>
-                                    <span class="category-count">26 Designs</span>
-                                </a>
-                            </div>
-                            <div class="category-item">
-                                <a href="#monuments-collection" class="category-link">
-                                    <div class="category-image">
-                                        <img src="images/products/Monuments/granite-monuments-project02.png" alt="Monuments" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
-                                    </div>
-                                    <h4>Monuments</h4>
-                                    <span class="category-count">3 Designs</span>
-                                </a>
-                            </div>
-                            <div class="category-item">
-                                <a href="#columbarium-collection" class="category-link">
-                                    <div class="category-image">
-                                        <img src="images/products/columbarium/customized-designs-project03.png" alt="Columbarium" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
-                                    </div>
-                                    <h4>Columbarium</h4>
-                                    <span class="category-count">1 Design</span>
-                                </a>
+                            <button class="carousel-nav carousel-prev">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                            <button class="carousel-nav carousel-next">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                            <div class="category-carousel">
+                                <!-- Hardcoded fallback categories -->
+                                <div class="category-item">
+                                    <a href="#mbna_2025-collection" class="category-link">
+                                        <div class="category-image">
+                                            <img src="images/products/MBNA_2025/AG-116.png" alt="MBNA 2025" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                        </div>
+                                        <h4>MBNA 2025</h4>
+                                        <span class="category-count">26 Designs</span>
+                                    </a>
+                                </div>
+                                <div class="category-item">
+                                    <a href="#monuments-collection" class="category-link">
+                                        <div class="category-image">
+                                            <img src="images/products/Monuments/granite-monuments-project02.png" alt="Monuments" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                        </div>
+                                        <h4>Monuments</h4>
+                                        <span class="category-count">3 Designs</span>
+                                    </a>
+                                </div>
+                                <div class="category-item">
+                                    <a href="#columbarium-collection" class="category-link">
+                                        <div class="category-image">
+                                            <img src="images/products/columbarium/customized-designs-project03.png" alt="Columbarium" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                        </div>
+                                        <h4>Columbarium</h4>
+                                        <span class="category-count">1 Design</span>
+                                    </a>
+                                </div>
+                                <div class="category-item">
+                                    <a href="#Designs-collection" class="category-link">
+                                        <div class="category-image">
+                                            <img src="images/products/Designs/chess.jpg" alt="Designs" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                        </div>
+                                        <h4>Designs</h4>
+                                        <span class="category-count">1 Designs</span>
+                                    </a>
+                                </div>
+                                <div class="category-item">
+                                    <a href="#benches-collection" class="category-link">
+                                        <div class="category-image">
+                                            <img src="images/products/Benches/Founain2.png" alt="Benches" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                        </div>
+                                        <h4>Benches</h4>
+                                        <span class="category-count">3 Designs</span>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1005,7 +1024,7 @@
         window.addEventListener('load', function() {
             // Delay loading of larger images to prioritize LCP
             setTimeout(() => {
-                const images = ['images/as-welcome-540.webp', 'images/as-welcome-768.webp'];
+                const images = ['images/quarry-cropped-540.jpg', 'images/quarry-cropped-768.jpg'];
                 images.forEach(src => {
                     const img = new Image();
                     img.src = src;
@@ -1031,5 +1050,6 @@
             </div>
         </div>
     </div>
+    <script src="js/category-carousel.js"></script>
 </body>
 </html>
