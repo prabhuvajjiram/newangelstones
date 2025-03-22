@@ -1,5 +1,12 @@
 <?php
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET');
+header('Access-Control-Allow-Headers: Content-Type');
+
+// Error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 /**
  * Get all files from a directory
@@ -11,38 +18,67 @@ header('Content-Type: application/json');
 function getDirectoryFiles($directory, $extension = null) {
     $files = [];
     
-    if (!is_dir($directory)) {
-        return $files;
+    // Clean the directory path and remove 'images/' from the beginning if present
+    $directory = trim(str_replace('..', '', $directory), '/');
+    if (strpos($directory, 'images/') === 0) {
+        $directory = substr($directory, 7); // Remove 'images/' prefix
     }
     
-    $items = scandir($directory);
+    // Get the absolute path to the images directory
+    $baseDir = __DIR__;
+    $fullPath = $baseDir . DIRECTORY_SEPARATOR . $directory;
     
-    foreach ($items as $item) {
-        // Skip . and .. directories
-        if ($item === '.' || $item === '..') {
-            continue;
+    // Log the paths for debugging
+    error_log("Base Directory: " . $baseDir);
+    error_log("Requested Directory: " . $directory);
+    error_log("Full Path: " . $fullPath);
+    
+    if (!is_dir($fullPath)) {
+        error_log("Directory not found: " . $fullPath);
+        // Try alternate path
+        $altPath = __DIR__ . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . $directory;
+        error_log("Trying alternate path: " . $altPath);
+        if (is_dir($altPath)) {
+            $fullPath = $altPath;
+            error_log("Using alternate path");
+        } else {
+            return $files;
         }
+    }
+    
+    try {
+        $items = scandir($fullPath);
         
-        $fullPath = $directory . '/' . $item;
-        
-        // Only include files, not directories
-        if (is_file($fullPath)) {
-            // Filter by extension if provided
-            if ($extension !== null) {
-                $fileExt = pathinfo($item, PATHINFO_EXTENSION);
-                if (strtolower($fileExt) !== strtolower($extension)) {
-                    continue;
-                }
+        foreach ($items as $item) {
+            // Skip . and .. directories
+            if ($item === '.' || $item === '..') {
+                continue;
             }
             
-            $files[] = $item;
+            $itemPath = $fullPath . DIRECTORY_SEPARATOR . $item;
+            
+            // Only include files, not directories
+            if (is_file($itemPath)) {
+                // Filter by extension if provided
+                if ($extension !== null) {
+                    $fileExt = pathinfo($item, PATHINFO_EXTENSION);
+                    if (strtolower($fileExt) !== strtolower($extension)) {
+                        continue;
+                    }
+                }
+                
+                $files[] = $item;
+            }
         }
+        
+        // Sort files naturally
+        natcasesort($files);
+        
+        return array_values($files);
+    } catch (Exception $e) {
+        error_log("Error in getDirectoryFiles: " . $e->getMessage());
+        return [];
     }
-    
-    // Sort files naturally
-    natcasesort($files);
-    
-    return array_values($files);
 }
 
 /**
@@ -153,30 +189,33 @@ try {
         }
     } else {
         // Get directory from request
-        $directory = isset($_GET['directory']) ? $_GET['directory'] : null;
+        $directory = isset($_GET['directory']) ? $_GET['directory'] : '';
         $extension = isset($_GET['extension']) ? $_GET['extension'] : null;
         
-        if ($directory === null) {
-            throw new Exception("Directory parameter is required");
+        if (empty($directory)) {
+            $response = [
+                'success' => false,
+                'error' => 'Directory parameter is required',
+                'files' => []
+            ];
+        } else {
+            // Get files
+            $files = getDirectoryFiles($directory, $extension);
+            
+            // Return response
+            $response = [
+                'success' => true,
+                'directory' => $directory,
+                'files' => $files,
+                'count' => count($files),
+                'debug' => [
+                    'requestedDir' => $directory,
+                    'fullPath' => __DIR__ . DIRECTORY_SEPARATOR . $directory,
+                    'altPath' => __DIR__ . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . $directory,
+                    'baseDir' => __DIR__
+                ]
+            ];
         }
-        
-        // Convert relative path to server path for security
-        $basePath = __DIR__;
-        $fullPath = realpath($basePath . '/' . $directory);
-        
-        // Security check to ensure the path is within the allowed directory
-        if ($fullPath === false || strpos($fullPath, $basePath) !== 0) {
-            throw new Exception("Invalid directory path");
-        }
-        
-        $files = getDirectoryFiles($fullPath, $extension);
-        
-        $response = [
-            'success' => true,
-            'files' => $files,
-            'directory' => $directory,
-            'count' => count($files)
-        ];
     }
 } catch (Exception $e) {
     $response = [
