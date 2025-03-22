@@ -266,6 +266,12 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        .established-by {
+            font-size: 18px;
+            color: #e0c072;
+            margin: -5px 0 15px 0;
+        }
     </style>
 
     <link rel="stylesheet" href="css/carousel.css">
@@ -321,7 +327,7 @@
         </ul>
             <!-- Sidebar Footer -->
         <div class="as-footer">
-            <p><small>&copy; 2025 <a href="https://www.theangelstones.com/">Angel Stones</a></small> All Rights Reserved</p>
+            <p><small>&copy; 2024 <a href="https://www.theangelstones.com/">Angel Stones</a></small> All Rights Reserved</p>
         </div>
     </nav>
 
@@ -330,24 +336,41 @@
             <!-- Hero Section Start Here-->
             <section class="outter hero-video" id="home">
                 <section class="video-container">
+                    <!-- Initial static image -->
+                    <img 
+                        src="images/video-poster.jpg" 
+                        alt="Angel Stones Background"
+                        class="hero-poster"
+                        width="1920"
+                        height="1080"
+                        loading="eager"
+                        decoding="async"
+                        fetchpriority="high">
+                    
+                    <!-- Video loads after initial content -->
                     <video 
-                        fetchpriority="high"
+                        id="hero-video"
+                        class="lazy-video"
                         poster="images/video-poster.jpg"
-                        style="background-image: url('images/video-poster.jpg'); background-size: cover;"
                         playsinline 
                         muted
-                        autoplay
-                        loop>
-                        <source src="images/as.mp4" type="video/mp4">
+                        loop
+                        preload="none"
+                        width="1920"
+                        height="1080">
+                        <source 
+                            data-src="images/as.mp4" 
+                            type="video/mp4">
                     </video>
-                  <div class="callout">
-    <h1>ANGEL GRANITES</h1>
-    <div style="font-size: 18px; color: #e0c072; margin: -5px 0 15px 0;">Established by Angel Stones</div>
-    <div class="tagline">Elevating granite, preserving memories</div>
-    <div class="desc">Exquisite Granite Monuments and others</div>
-                    <a class="button" href="#our-product">VIEW ALL PRODUCTS</a>
-                  </div>
                 </section>
+                
+                <div class="callout">
+                    <h1>ANGEL GRANITES</h1>
+                    <div class="established-by">Established by Angel Stones</div>
+                    <div class="tagline">Elevating granite, preserving memories</div>
+                    <div class="desc">Exquisite Granite Monuments and others</div>
+                    <a class="button" href="#our-product">VIEW ALL PRODUCTS</a>
+                </div>
             </section>
             <!-- Hero Section End Here-->
             <!-- Angel Stone Intro Start Here  -->
@@ -988,6 +1011,27 @@
                 }
             });
         });
+    </script>
+
+    <!-- Debugging Script -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded');
+        if (typeof jQuery !== 'undefined') {
+            console.log('jQuery loaded');
+        } else {
+            console.log('jQuery NOT loaded');
+        }
+        
+        // Check if grid container exists
+        const grid = document.querySelector('.products-grid');
+        if (grid) {
+            console.log('Grid container found');
+            console.log('Grid children:', grid.children.length);
+        } else {
+            console.log('Grid container NOT found');
+        }
+    });
     </script>
 
     <!-- Product Modal -->
