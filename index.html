@@ -40,7 +40,9 @@
     <link rel="preload" as="image" href="images/video-poster.jpg" fetchpriority="high">
     <link rel="preload" href="css/bootstrap.min.css" as="style">
     <link rel="preload" href="css/style.css" as="style">
-    <link rel="preload" href="images/quarry-cropped-300.jpg" as="image" type="image/webp" fetchpriority="high">
+    <link rel="preload" href="images/Factory-768.webp" as="image" type="image/webp" fetchpriority="high">
+    <link rel="preload" href="images/Factory-1280.webp" as="image" type="image/webp">
+    <link rel="preload" href="images/Factory-1920.webp" as="image" type="image/webp">
     <link rel="preconnect" href="https://www.googletagmanager.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -364,6 +366,18 @@
                     </video>
                 </section>
                 
+                <div class="factory-image loading">
+                    <picture>
+                        <source srcset="images/Factory-768.webp 768w,
+                                    images/Factory-1280.webp 1280w,
+                                    images/Factory-1920.webp 1920w"
+                                sizes="(max-width: 768px) 768px,
+                                       (max-width: 1280px) 1280px,
+                                       1920px"
+                                type="image/webp">
+                        <img src="images/Factory-1280.webp" alt="Angel Stones Factory" loading="lazy" class="factory-image">
+                    </picture>
+                </div>
                 <div class="callout">
                     <h1>ANGEL GRANITES</h1>
                     <div class="established-by">Established by Angel Stones</div>
@@ -378,14 +392,18 @@
                 <div class="container">
                     <div class="row justify-content-between align-items-center">
                         <div class="col-md-6">
-                            <div class="quarry-image-container">
+                            <div class="factory-image-container">
                                 <img 
-                                    src="images/quarry-cropped-540.jpg"
-                                    alt="Angel Stones Quarry"
-                                    class="quarry-image" 
-                                    fetchpriority="high"
-                                    loading="eager" 
-                                    decoding="async">
+                                    src="images/Factory-768.webp"
+                                    srcset="images/Factory-768.webp 768w,
+                                            images/Factory-1280.webp 1280w,
+                                            images/Factory-1920.webp 1920w"
+                                    sizes="(max-width: 768px) 100vw, 50vw"
+                                    alt="Angel Stones Factory"
+                                    class="factory-image" 
+                                    width="768" 
+                                    height="512"
+                                    loading="lazy">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -483,14 +501,20 @@
             <section id="featured-products" class="featured-products section-padding animate-box" data-animate-effect="fadeInUp">
                 <div class="container">
                     <div class="row">
-                        <div class="col-md-12">
-                            <div class="section-header">
+                        <div class="col-md-12"> 
+                            <div class="section-header browse-category">
                                 <div class="subtitle">
                                     <img src="images/title-star.svg" alt="Angel Stones">
                                     Featured Products
                                     <img src="images/title-star.svg" alt="Angel Stones">
                                 </div>
-                                <div class="title">Browse By Category</div>
+                                <h2>Browse By Category</h2>
+                                <div class="search-wrapper">
+                                    <div class="search-input">
+                                        <i class="bi bi-search search-icon"></i>
+                                        <input type="text" id="product-search" placeholder="Search by product code..." autocomplete="off">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -498,59 +522,52 @@
                     <!-- Category Grid with hardcoded fallbacks -->
                     <div class="category-grid-container">
                         <div class="category-grid" id="category-grid">
-                            <button class="carousel-nav carousel-prev">
-                                <i class="bi bi-chevron-left"></i>
-                            </button>
-                            <button class="carousel-nav carousel-next">
-                                <i class="bi bi-chevron-right"></i>
-                            </button>
-                            <div class="category-carousel">
-                                <!-- Hardcoded fallback categories -->
-                                <div class="category-item">
-                                    <a href="#mbna_2025-collection" class="category-link">
-                                        <div class="category-image">
-                                            <img src="images/products/MBNA_2025/AG-116.png" alt="MBNA 2025" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
-                                        </div>
-                                        <h4>MBNA 2025</h4>
-                                        <span class="category-count">26 Designs</span>
-                                    </a>
-                                </div>
-                                <div class="category-item">
-                                    <a href="#monuments-collection" class="category-link">
-                                        <div class="category-image">
-                                            <img src="images/products/Monuments/granite-monuments-project02.png" alt="Monuments" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
-                                        </div>
-                                        <h4>Monuments</h4>
-                                        <span class="category-count">3 Designs</span>
-                                    </a>
-                                </div>
-                                <div class="category-item">
-                                    <a href="#columbarium-collection" class="category-link">
-                                        <div class="category-image">
-                                            <img src="images/products/columbarium/customized-designs-project03.png" alt="Columbarium" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
-                                        </div>
-                                        <h4>Columbarium</h4>
-                                        <span class="category-count">1 Design</span>
-                                    </a>
-                                </div>
-                                <div class="category-item">
-                                    <a href="#Designs-collection" class="category-link">
-                                        <div class="category-image">
-                                            <img src="images/products/Designs/chess.jpg" alt="Designs" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
-                                        </div>
-                                        <h4>Designs</h4>
-                                        <span class="category-count">1 Designs</span>
-                                    </a>
-                                </div>
-                                <div class="category-item">
-                                    <a href="#benches-collection" class="category-link">
-                                        <div class="category-image">
-                                            <img src="images/products/Benches/Founain2.png" alt="Benches" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
-                                        </div>
-                                        <h4>Benches</h4>
-                                        <span class="category-count">3 Designs</span>
-                                    </a>
-                                </div>
+                            <!-- Remove the carousel structure causing the display issues -->
+                            <!-- Hardcoded fallback categories -->
+                            <div class="category-item">
+                                <a href="#mbna_2025-collection" class="category-link">
+                                    <div class="category-image">
+                                        <img src="images/products/MBNA_2025/AG-116.png" alt="MBNA 2025" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                    </div>
+                                    <h4>MBNA 2025</h4>
+                                    <span class="category-count">26 Designs</span>
+                                </a>
+                            </div>
+                            <div class="category-item">
+                                <a href="#monuments-collection" class="category-link">
+                                    <div class="category-image">
+                                        <img src="images/products/Monuments/granite-monuments-project02.png" alt="Monuments" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                    </div>
+                                    <h4>Monuments</h4>
+                                    <span class="category-count">28 Designs</span>
+                                </a>
+                            </div>
+                            <div class="category-item">
+                                <a href="#columbarium-collection" class="category-link">
+                                    <div class="category-image">
+                                        <img src="images/products/columbarium/customized-designs-project03.png" alt="Columbarium" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                    </div>
+                                    <h4>Columbarium</h4>
+                                    <span class="category-count">1 Design</span>
+                                </a>
+                            </div>
+                            <div class="category-item">
+                                <a href="#Designs-collection" class="category-link">
+                                    <div class="category-image">
+                                        <img src="images/products/Designs/chess.jpg" alt="Designs" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                    </div>
+                                    <h4>Designs</h4>
+                                    <span class="category-count">1 Designs</span>
+                                </a>
+                            </div>
+                            <div class="category-item">
+                                <a href="#benches-collection" class="category-link">
+                                    <div class="category-image">
+                                        <img src="images/products/Benches/Founain2.png" alt="Benches" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                    </div>
+                                    <h4>Benches</h4>
+                                    <span class="category-count">3 Designs</span>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -966,8 +983,9 @@
     <script src="js/jquery.magnific-popup.min.js" defer></script>
     <script src="js/owl.carousel.min.js" defer></script>
     <script src="https://unpkg.com/imagesloaded@5/imagesloaded.pkgd.min.js" defer></script>
-    <script src="js/product-categories.js"></script>
-    <script src="js/featured-products.js"></script>
+    <script src="js/product-categories.js?v=20250329"></script>
+    <script src="js/featured-products.js?v=20250329"></script>
+    <script src="js/main.js"></script>
     <script src="js/custom.min.js" defer></script>
     
     <!-- Protection Script -->
@@ -1068,7 +1086,7 @@
         window.addEventListener('load', function() {
             // Delay loading of larger images to prioritize LCP
             setTimeout(() => {
-                const images = ['images/quarry-cropped-540.jpg', 'images/quarry-cropped-768.jpg'];
+                const images = ['images/Factory-768.webp', 'images/Factory-1280.webp', 'images/Factory-1920.webp'];
                 images.forEach(src => {
                     const img = new Image();
                     img.src = src;
@@ -1095,5 +1113,8 @@
         </div>
     </div>
     <script src="js/category-carousel.js"></script>
+    <div style="display: none;">
+        <img id="default-thumbnail" src="images/default-thumbnail.jpg" alt="Default Thumbnail">
+    </div>
 </body>
 </html>

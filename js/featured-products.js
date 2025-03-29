@@ -275,6 +275,27 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         createModal() {
+            // Completely replace the modal DOM structure
+            this.modal = document.createElement('div');
+            this.modal.className = 'collection-modal';
+            this.modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Product Collection</h2>
+                        <button class="close-modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="thumbnails-container" style="height: 100%;"></div>
+                        <div class="main-carousel-container" style="display: none;">
+                            <button class="nav-button prev"><i class="bi bi-chevron-left"></i></button>
+                            <button class="nav-button next"><i class="bi bi-chevron-right"></i></button>
+                            <div class="main-carousel-slides"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(this.modal);
+
             // Add modal styles
             const modalStyles = document.createElement('style');
             modalStyles.textContent = `
@@ -373,8 +394,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     transform: translateY(-50%);
                     width: 50px;
                     height: 50px;
-                    background: rgba(0, 0, 0, 0.6);
-                    border: none;
+                    background: rgba(0, 0, 0, 0.8);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
                     border-radius: 50%;
                     color: white;
                     font-size: 24px;
@@ -383,11 +404,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     align-items: center;
                     cursor: pointer;
                     z-index: 10;
-                    transition: background 0.3s;
+                    transition: all 0.3s;
                 }
                 
                 .nav-button:hover {
-                    background: rgba(0, 0, 0, 0.8);
+                    background: #000;
+                    border-color: rgba(255, 255, 255, 0.4);
+                    transform: scale(1.1) translateY(-50%);
                 }
                 
                 .nav-button.prev {
@@ -404,7 +427,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     flex-wrap: wrap;
                     gap: 10px;
                     overflow-y: auto;
-                    height: 35%;
                     padding: 10px;
                     background-color: #1a1a1a;
                     border-radius: 4px;
@@ -468,8 +490,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     position: absolute;
                     top: 20px;
                     right: 20px;
-                    background: rgba(0, 0, 0, 0.6);
-                    border: none;
+                    background: rgba(0, 0, 0, 0.8);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
                     color: white;
                     font-size: 24px;
                     width: 40px;
@@ -479,75 +501,126 @@ document.addEventListener('DOMContentLoaded', function() {
                     justify-content: center;
                     align-items: center;
                     cursor: pointer;
+                    transition: all 0.2s ease;
+                    z-index: 10007;
+                }
+                
+                .fullscreen-close:hover {
+                    background: #000;
+                    border-color: rgba(255, 255, 255, 0.4);
+                    transform: scale(1.1);
                 }
                 
                 .fullscreen-nav {
-                    background: #fff;
-                    border: none;
-                    padding: 10px;
+                    position: absolute;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    background: rgba(0, 0, 0, 0.8);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    color: #fff;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    font-size: 24px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
                     cursor: pointer;
+                    z-index: 10007;
+                    transition: all 0.2s ease;
+                }
+                
+                .fullscreen-nav:hover {
+                    background: #000;
+                    border-color: rgba(255, 255, 255, 0.4);
+                    transform: scale(1.1) translateY(-50%);
                 }
                 
                 .fullscreen-prev {
-                    left: 10px;
+                    left: 20px;
                 }
                 
                 .fullscreen-next {
-                    right: 10px;
-                }
-                
-                /* Mobile Responsive */
-                @media (max-width: 768px) {
-                    .main-carousel-container {
-                        height: 55%;
-                    }
-                    
-                    .thumbnails-container {
-                        height: 45%;
-                    }
-                    
-                    .thumbnail {
-                        width: 100px;
-                        height: 100px;
-                    }
-                    
-                    .nav-button {
-                        width: 40px;
-                        height: 40px;
-                        font-size: 20px;
-                    }
+                    right: 20px;
                 }
             `;
             document.head.appendChild(modalStyles);
 
-            this.modal = document.createElement('div');
-            this.modal.className = 'collection-modal';
-            this.modal.innerHTML = `
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2>Product Collection</h2>
-                        <button class="close-modal">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="main-carousel-container">
-                            <button class="nav-button prev"><i class="bi bi-chevron-left"></i></button>
-                            <button class="nav-button next"><i class="bi bi-chevron-right"></i></button>
-                            <div class="main-carousel-slides"></div>
-                        </div>
-                        <div class="thumbnails-container"></div>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(this.modal);
-
             // Cache elements
             this.closeBtn = this.modal.querySelector('.close-modal');
             this.carouselContainer = this.modal.querySelector('.main-carousel-slides');
+            this.mainCarouselContainer = this.modal.querySelector('.main-carousel-container');
             this.thumbnailsContainer = this.modal.querySelector('.thumbnails-container');
             this.prevButton = this.modal.querySelector('.nav-button.prev');
             this.nextButton = this.modal.querySelector('.nav-button.next');
+            
+            // Log to the console that the modal was created
+            console.log('Modal created with thumbnails first layout');
         },
-
+        
+        loadImages() {
+            console.log('Loading images in thumbnail format first');
+            
+            // Clear containers first
+            this.carouselContainer.innerHTML = '';
+            this.thumbnailsContainer.innerHTML = '';
+            
+            this.images.forEach((imageName, index) => {
+                // Create main carousel slide
+                const slide = document.createElement('div');
+                slide.className = `main-carousel-slide ${index === 0 ? 'active' : ''}`;
+                
+                const slideImg = document.createElement('img');
+                slideImg.src = `${this.directory}/${imageName}`;
+                slideImg.alt = `${this.categoryName.replace(/_/g, ' ')} ${imageName.replace('.png', '')}`;
+                slideImg.loading = 'lazy';
+                
+                slideImg.addEventListener('click', () => this.openFullscreen(index));
+                
+                slide.appendChild(slideImg);
+                this.carouselContainer.appendChild(slide);
+                
+                // Create thumbnail
+                const thumbnail = document.createElement('div');
+                thumbnail.className = `thumbnail ${index === 0 ? 'active' : ''}`;
+                thumbnail.dataset.index = index;
+                
+                const thumbImg = document.createElement('img');
+                const thumbnailSrc = `${this.directory}/thumbnails/${imageName}`;
+                
+                // Set a default thumbnail then try to load the actual thumbnail
+                thumbImg.src = `${this.directory}/${imageName}`;
+                
+                // Check if file exists by fetching the header
+                fetch(thumbnailSrc, { method: 'HEAD' })
+                    .then(response => {
+                        if (response.ok) {
+                            thumbImg.src = thumbnailSrc;
+                        }
+                    }).catch(() => {
+                        // Error is handled by keeping the default src
+                    });
+                
+                thumbImg.alt = `Thumbnail ${imageName.replace('.png', '')}`;
+                thumbImg.loading = 'lazy';
+                
+                thumbnail.appendChild(thumbImg);
+                this.thumbnailsContainer.appendChild(thumbnail);
+                
+                // Add click event to thumbnail
+                thumbnail.addEventListener('click', () => {
+                    console.log('Thumbnail clicked, showing main carousel');
+                    this.mainCarouselContainer.style.display = 'block';
+                    this.thumbnailsContainer.style.height = '35%';
+                    this.modal.querySelector('.modal-body').style.flexDirection = 'column-reverse';
+                    this.showSlide(index);
+                });
+            });
+            
+            // Reset to first slide
+            this.currentIndex = 0;
+        },
+        
         setupEventListeners() {
             // Find all category links
             const categoryLinks = document.querySelectorAll('.category-link');
@@ -607,153 +680,48 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         openCategory(category) {
+            console.log(`Opening category: ${category}`);
             this.categoryName = category;
-            this.directory = `images/products/${category}`;
             
-            this.modal.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-            
-            // Show loading state
-            const loadingIndicator = document.createElement('div');
-            loadingIndicator.className = 'loading-indicator';
-            loadingIndicator.innerHTML = `
-                <div class="spinner">
-                    <i class="bi bi-arrow-repeat spin"></i>
-                </div>
-                <p>Loading images...</p>
-            `;
-            
-            // Add loading styles
-            const loadingStyles = document.createElement('style');
-            loadingStyles.textContent = `
-                .loading-indicator {
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    text-align: center;
-                    color: #fff;
-                }
-                
-                .spinner {
-                    font-size: 3rem;
-                    margin-bottom: 1rem;
-                }
-                
-                .spin {
-                    animation: spin 1s linear infinite;
-                }
-                
-                @keyframes spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                }
-            `;
-            document.head.appendChild(loadingStyles);
-            
-            this.modal.querySelector('.modal-body').appendChild(loadingIndicator);
-            
-            // Update modal title
-            const displayName = this.categoryName.replace(/_/g, ' ');
+            // Set modal title
             const modalTitle = this.modal.querySelector('.modal-header h2');
-            modalTitle.textContent = `${displayName} Collection`;
+            modalTitle.textContent = category.replace(/_/g, ' ');
+            
+            // Show modal
+            this.modal.style.display = 'block';
+            this.directory = `images/products/${category}`;
+
+            // Ensure thumbnails are shown first and main carousel is hidden
+            this.mainCarouselContainer.style.display = 'none';
+            this.thumbnailsContainer.style.height = '100%';
+            this.modal.querySelector('.modal-body').style.flexDirection = 'column';
             
             // Fetch images from the directory
-            fetch(`get_directory_files.php?directory=${encodeURIComponent(this.directory)}&extension=png`)
+            this.fetchImages(category)
+                .then(() => {
+                    this.loadImages();
+                })
+                .catch(error => {
+                    console.error('Error loading images:', error);
+                    this.thumbnailsContainer.innerHTML = '<p class="error-message">Error loading images. Please try again later.</p>';
+                });
+        },
+        
+        fetchImages(category) {
+            return fetch(`get_directory_files.php?directory=${encodeURIComponent(this.directory)}&extension=png`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.files.length > 0) {
                         this.images = data.files;
                         
                         // Update modal title with image count
-                        modalTitle.textContent = `${displayName} Collection (${this.images.length} Designs)`;
-                        
-                        this.loadImages();
+                        const modalTitle = this.modal.querySelector('.modal-header h2');
+                        modalTitle.textContent = `${category.replace(/_/g, ' ')} Collection (${this.images.length} Designs)`;
                     } else {
                         console.error('Error loading images:', data.error || 'No images found');
-                        // Display error message
-                        loadingIndicator.innerHTML = `
-                            <div class="error-icon">
-                                <i class="bi bi-exclamation-triangle"></i>
-                            </div>
-                            <p>Error loading images. Please try again later.</p>
-                        `;
+                        throw new Error('Error loading images');
                     }
-                })
-                .catch(error => {
-                    console.error('Error fetching directory files:', error);
-                    // Display error message
-                    loadingIndicator.innerHTML = `
-                        <div class="error-icon">
-                            <i class="bi bi-exclamation-triangle"></i>
-                        </div>
-                        <p>Error loading images. Please try again later.</p>
-                    `;
-                })
-                .finally(() => {
-                    // Remove loading indicator after images are loaded
-                    setTimeout(() => {
-                        if (loadingIndicator.parentNode) {
-                            loadingIndicator.remove();
-                        }
-                    }, 500);
                 });
-        },
-
-        loadImages() {
-            // Clear containers first
-            this.carouselContainer.innerHTML = '';
-            this.thumbnailsContainer.innerHTML = '';
-            
-            this.images.forEach((imageName, index) => {
-                // Create main carousel slide
-                const slide = document.createElement('div');
-                slide.className = `main-carousel-slide ${index === 0 ? 'active' : ''}`;
-                
-                const slideImg = document.createElement('img');
-                slideImg.src = `${this.directory}/${imageName}`;
-                slideImg.alt = `${this.categoryName.replace(/_/g, ' ')} ${imageName.replace('.png', '')}`;
-                slideImg.loading = 'lazy';
-                
-                slide.appendChild(slideImg);
-                this.carouselContainer.appendChild(slide);
-                
-                // Create thumbnail
-                const thumbnail = document.createElement('div');
-                thumbnail.className = `thumbnail ${index === 0 ? 'active' : ''}`;
-                thumbnail.dataset.index = index;
-                
-                const thumbImg = document.createElement('img');
-                const thumbnailSrc = `${this.directory}/thumbnails/${imageName}`;
-                
-                // Check if file exists by fetching the header
-                fetch(thumbnailSrc, { method: 'HEAD' })
-                    .then(response => {
-                        if (response.ok) {
-                            thumbImg.src = thumbnailSrc;
-                        } else {
-                            // If thumbnail doesn't exist, use the full-size image
-                            thumbImg.src = `${this.directory}/${imageName}`;
-                        }
-                    })
-                    .catch(() => {
-                        // If there's an error, fallback to the full-size image
-                        thumbImg.src = `${this.directory}/${imageName}`;
-                    });
-                
-                thumbImg.alt = `Thumbnail ${imageName.replace('.png', '')}`;
-                thumbImg.loading = 'lazy';
-                
-                thumbnail.appendChild(thumbImg);
-                this.thumbnailsContainer.appendChild(thumbnail);
-                
-                // Add click events
-                slideImg.addEventListener('click', () => this.openFullscreen(index));
-                thumbnail.addEventListener('click', () => this.showSlide(index));
-            });
-            
-            // Reset to first slide
-            this.currentIndex = 0;
         },
 
         showSlide(index) {
@@ -811,11 +779,11 @@ document.addEventListener('DOMContentLoaded', function() {
             closeButton.innerHTML = '&times;';
             
             const prevButton = document.createElement('button');
-            prevButton.className = 'fullscreen-nav fullscreen-prev';
+            prevButton.className = 'nav-button fullscreen-nav fullscreen-prev';
             prevButton.innerHTML = '<i class="bi bi-chevron-left"></i>';
             
             const nextButton = document.createElement('button');
-            nextButton.className = 'fullscreen-nav fullscreen-next';
+            nextButton.className = 'nav-button fullscreen-nav fullscreen-next';
             nextButton.innerHTML = '<i class="bi bi-chevron-right"></i>';
             
             imageContainer.appendChild(fullscreenImg);
@@ -883,7 +851,110 @@ document.addEventListener('DOMContentLoaded', function() {
             if (fullscreenView) {
                 fullscreenView.remove();
             }
-        }
+        },
+        
+        handleSearch(query) {
+            const searchResults = this.filterImagesByQuery(query);
+            
+            if (searchResults.length > 0) {
+                // Display search results in thumbnail format first
+                this.displaySearchResults(searchResults);
+            } else {
+                // Show no results message
+                this.displayNoResults();
+            }
+        },
+        
+        filterImagesByQuery(query) {
+            // Filter images based on search query
+            return this.images.filter(imageName => 
+                imageName.toLowerCase().includes(query.toLowerCase())
+            );
+        },
+        
+        displaySearchResults(results) {
+            console.log('Displaying search results in thumbnail format:', results);
+            
+            // Clear containers
+            this.carouselContainer.innerHTML = '';
+            this.thumbnailsContainer.innerHTML = '';
+            
+            // Hide the main carousel initially and show only thumbnails
+            this.mainCarouselContainer.style.display = 'none';
+            this.thumbnailsContainer.style.height = '100%';
+            this.modal.querySelector('.modal-body').style.flexDirection = 'column';
+            
+            if (results.length === 0) {
+                this.thumbnailsContainer.innerHTML = '<p class="no-results">No results found. Try a different search term.</p>';
+                return;
+            }
+            
+            // Create thumbnails for search results
+            results.forEach((imageName, index) => {
+                // Create main carousel slide
+                const slide = document.createElement('div');
+                slide.className = `main-carousel-slide ${index === 0 ? 'active' : ''}`;
+                
+                const slideImg = document.createElement('img');
+                slideImg.src = `${this.directory}/${imageName}`;
+                slideImg.alt = `${this.categoryName.replace(/_/g, ' ')} ${imageName.replace('.png', '')}`;
+                slideImg.loading = 'lazy';
+                
+                slideImg.addEventListener('click', () => this.openFullscreen(index));
+                
+                slide.appendChild(slideImg);
+                this.carouselContainer.appendChild(slide);
+                
+                // Create thumbnail
+                const thumbnail = document.createElement('div');
+                thumbnail.className = 'thumbnail';
+                thumbnail.dataset.index = index;
+                
+                const thumbImg = document.createElement('img');
+                const thumbnailSrc = `${this.directory}/thumbnails/${imageName}`;
+                
+                // Set a default thumbnail then try to load the actual thumbnail
+                thumbImg.src = `${this.directory}/${imageName}`;
+                
+                // Check if thumbnail exists
+                fetch(thumbnailSrc, { method: 'HEAD' })
+                    .then(response => {
+                        if (response.ok) {
+                            thumbImg.src = thumbnailSrc;
+                        }
+                    }).catch(() => {
+                        // Keep using the full-size image if thumbnail not available
+                    });
+                
+                thumbImg.alt = `Thumbnail ${imageName.replace('.png', '')}`;
+                thumbImg.loading = 'lazy';
+                
+                thumbnail.appendChild(thumbImg);
+                this.thumbnailsContainer.appendChild(thumbnail);
+                
+                // Add click event for thumbnail
+                thumbnail.addEventListener('click', () => {
+                    console.log('Search result thumbnail clicked');
+                    // Show the main carousel when a thumbnail is clicked
+                    this.mainCarouselContainer.style.display = 'block';
+                    this.thumbnailsContainer.style.height = '35%';
+                    this.modal.querySelector('.modal-body').style.flexDirection = 'column-reverse';
+                    this.showSlide(index);
+                });
+            });
+            
+            this.images = results;
+            this.currentIndex = 0;
+        },
+        
+        displayNoResults() {
+            this.thumbnailsContainer.innerHTML = `
+                <div class="no-results">
+                    <p>No matching products found.</p>
+                </div>
+            `;
+            this.carouselContainer.innerHTML = '';
+        },
     };
 
     // Initialize components
@@ -898,4 +969,41 @@ document.addEventListener('DOMContentLoaded', function() {
             categoryCarousel.init();
         }, 250);
     });
+
+    // Initialize search functionality
+    const searchInput = document.getElementById('product-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            
+            // Find all category items
+            const categoryItems = document.querySelectorAll('.category-item');
+            
+            if (query.length > 0) {
+                // If there's an open modal, filter within that
+                if (productModal.modal && productModal.modal.style.display === 'block') {
+                    productModal.handleSearch(query);
+                } else {
+                    // Filter category items by name
+                    categoryItems.forEach(item => {
+                        const name = item.querySelector('h4').textContent.toLowerCase();
+                        if (name.includes(query.toLowerCase())) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                }
+            } else {
+                // Reset display when search is cleared
+                if (productModal.modal && productModal.modal.style.display === 'block') {
+                    productModal.loadImages();
+                } else {
+                    categoryItems.forEach(item => {
+                        item.style.display = 'block';
+                    });
+                }
+            }
+        });
+    }
 });
