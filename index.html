@@ -338,53 +338,41 @@
             <!-- Hero Section Start Here-->
             <section class="outter hero-video" id="home">
                 <section class="video-container">
-                    <!-- Initial static image -->
-                    <img 
-                        src="images/video-poster.jpg" 
-                        alt="Angel Stones Background"
-                        class="hero-poster"
-                        width="1920"
-                        height="1080"
-                        loading="eager"
-                        decoding="async"
-                        fetchpriority="high">
-                    
-                    <!-- Video loads after initial content -->
                     <video 
                         id="hero-video"
-                        class="lazy-video"
                         poster="images/video-poster.jpg"
                         playsinline 
                         muted
                         loop
-                        preload="none"
+                        autoplay
                         width="1920"
                         height="1080">
                         <source 
-                            data-src="images/as.mp4" 
+                            src="images/as.mp4" 
                             type="video/mp4">
+                        Your browser does not support the video tag.
                     </video>
+                    
+                    <div class="factory-image loading">
+                        <picture>
+                            <source srcset="images/Factory-768.webp 768w,
+                                        images/Factory-1280.webp 1280w,
+                                        images/Factory-1920.webp 1920w"
+                                    sizes="(max-width: 768px) 768px,
+                                           (max-width: 1280px) 1280px,
+                                           1920px"
+                                    type="image/webp">
+                            <img src="images/Factory-1280.webp" alt="Angel Stones Factory" loading="lazy" class="factory-image">
+                        </picture>
+                    </div>
+                    <div class="callout">
+                        <h1>ANGEL GRANITES</h1>
+                        <div class="established-by">Established by Angel Stones</div>
+                        <div class="tagline">Elevating granite, preserving memories</div>
+                        <div class="desc">Exquisite Granite Monuments and others</div>
+                        <a class="button" href="#our-product">VIEW ALL PRODUCTS</a>
+                    </div>
                 </section>
-                
-                <div class="factory-image loading">
-                    <picture>
-                        <source srcset="images/Factory-768.webp 768w,
-                                    images/Factory-1280.webp 1280w,
-                                    images/Factory-1920.webp 1920w"
-                                sizes="(max-width: 768px) 768px,
-                                       (max-width: 1280px) 1280px,
-                                       1920px"
-                                type="image/webp">
-                        <img src="images/Factory-1280.webp" alt="Angel Stones Factory" loading="lazy" class="factory-image">
-                    </picture>
-                </div>
-                <div class="callout">
-                    <h1>ANGEL GRANITES</h1>
-                    <div class="established-by">Established by Angel Stones</div>
-                    <div class="tagline">Elevating granite, preserving memories</div>
-                    <div class="desc">Exquisite Granite Monuments and others</div>
-                    <a class="button" href="#our-product">VIEW ALL PRODUCTS</a>
-                </div>
             </section>
             <!-- Hero Section End Here-->
             <!-- Angel Stone Intro Start Here  -->

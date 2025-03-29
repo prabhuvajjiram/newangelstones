@@ -232,8 +232,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Update on window resize
             window.addEventListener('resize', () => this.updateDimensions());
-
-            console.log('Category carousel initialized');
         },
 
         updateDimensions() {
@@ -271,7 +269,6 @@ document.addEventListener('DOMContentLoaded', function() {
         init() {
             this.createModal();
             this.setupEventListeners();
-            console.log('Product modal initialized');
         },
 
         createModal() {
@@ -553,14 +550,9 @@ document.addEventListener('DOMContentLoaded', function() {
             this.thumbnailsContainer = this.modal.querySelector('.thumbnails-container');
             this.prevButton = this.modal.querySelector('.nav-button.prev');
             this.nextButton = this.modal.querySelector('.nav-button.next');
-            
-            // Log to the console that the modal was created
-            console.log('Modal created with thumbnails first layout');
         },
         
         loadImages() {
-            console.log('Loading images in thumbnail format first');
-            
             // Clear containers first
             this.carouselContainer.innerHTML = '';
             this.thumbnailsContainer.innerHTML = '';
@@ -609,7 +601,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Add click event to thumbnail
                 thumbnail.addEventListener('click', () => {
-                    console.log('Thumbnail clicked, showing main carousel');
                     this.mainCarouselContainer.style.display = 'block';
                     this.thumbnailsContainer.style.height = '35%';
                     this.modal.querySelector('.modal-body').style.flexDirection = 'column-reverse';
@@ -630,7 +621,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
                     const category = link.getAttribute('data-category');
-                    console.log('Category clicked:', category);
                     if (category) {
                         this.openCategory(category);
                     }
@@ -644,7 +634,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (categoryLink) {
                     e.preventDefault();
                     const category = categoryLink.getAttribute('data-category');
-                    console.log('Category clicked (delegated):', category);
                     if (category) {
                         this.openCategory(category);
                     }
@@ -680,7 +669,6 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         openCategory(category) {
-            console.log(`Opening category: ${category}`);
             this.categoryName = category;
             
             // Set modal title
@@ -873,8 +861,6 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         
         displaySearchResults(results) {
-            console.log('Displaying search results in thumbnail format:', results);
-            
             // Clear containers
             this.carouselContainer.innerHTML = '';
             this.thumbnailsContainer.innerHTML = '';
@@ -934,7 +920,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Add click event for thumbnail
                 thumbnail.addEventListener('click', () => {
-                    console.log('Search result thumbnail clicked');
                     // Show the main carousel when a thumbnail is clicked
                     this.mainCarouselContainer.style.display = 'block';
                     this.thumbnailsContainer.style.height = '35%';

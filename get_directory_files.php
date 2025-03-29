@@ -263,61 +263,142 @@ function getAllImages($directory = 'images/products') {
     return $images;
 }
 
-// Main entry point - handle parameters
+// Get parameters
 $directory = isset($_GET['directory']) ? $_GET['directory'] : '';
-$extension = isset($_GET['extension']) ? $_GET['extension'] : null;
-$search = isset($_GET['search']) ? $_GET['search'] : null;
+$action = isset($_GET['action']) ? $_GET['action'] : '';
+$term = isset($_GET['term']) ? $_GET['term'] : '';
 
-// Default response structure
-$response = [
-    'success' => false,
-    'error' => '',
-    'files' => []
-];
+// Set headers for JSON response
+header('Content-Type: application/json');
 
-// Validate directory parameter
-if (empty($directory)) {
-    $response = [
-        'success' => false,
-        'error' => 'Directory parameter is required',
-        'files' => []
-    ];
+// Handle different actions
+if ($action === 'findFile') {
+    // Direct file search functionality
+    $response = searchFiles($term);
 } else {
-    try {
-        // Get files from directory
-        $files = getDirectoryFiles($directory, $extension);
-        
-        // Filter by search term if provided
-        if (!empty($search) && is_array($files)) {
-            $filteredFiles = [];
-            foreach ($files as $file) {
-                if (is_array($file) && isset($file['name'])) {
-                    if (stripos($file['name'], $search) !== false) {
-                        $filteredFiles[] = $file;
-                    }
-                } else if (is_string($file)) {
-                    if (stripos($file, $search) !== false) {
-                        $filteredFiles[] = $file;
-                    }
-                }
-            }
-            $files = $filteredFiles;
-        }
-        
-        // Set success response
-        $response = [
-            'success' => true,
-            'files' => $files
-        ];
-    } catch (Exception $e) {
-        // Set error response
+    // Default directory listing functionality
+    if (empty($directory)) {
         $response = [
             'success' => false,
-            'error' => $e->getMessage(),
+            'error' => 'Directory parameter is required',
             'files' => []
+        ];
+    } else {
+        // Get files from the directory
+        $files = getDirectoryFiles($directory);
+        $response = [
+            'success' => true,
+            'directory' => $directory,
+            'files' => $files
         ];
     }
 }
 
-// Output JSON response
+// Return the response as JSON
 echo json_encode($response);
+exit;
+
+/**
+ * Search for files in all product categories containing the given term
+ * @param string $term Search term
+ * @return array Response with search results
+ */
+function searchFiles($term) {
+    if (empty($term)) {
+        return [
+            'success' => false,
+            'error' => 'Search term is required',
+            'files' => []
+        ];
+    }
+    
+    // Base product directory
+    $baseDir = __DIR__ . '/images/products';
+    $baseWebPath = 'images/products';
+    $allFiles = [];
+    
+    // Log the search
+    error_log("Searching for files containing '$term'");
+    
+    // Check if the products directory exists
+    if (!is_dir($baseDir)) {
+        error_log("Products directory not found: $baseDir");
+        return [
+            'success' => false,
+            'error' => 'Products directory not found',
+            'files' => []
+        ];
+    }
+    
+    // Get all product categories
+    $categories = [];
+    try {
+        $categories = scandir($baseDir);
+    } catch (Exception $e) {
+        error_log("Error scanning products directory: " . $e->getMessage());
+    }
+    
+    // Search through each category
+    foreach ($categories as $category) {
+        // Skip . and .. directories
+        if ($category === '.' || $category === '..') {
+            continue;
+        }
+        
+        $categoryPath = $baseDir . '/' . $category;
+        
+        // Only search directories
+        if (!is_dir($categoryPath)) {
+            continue;
+        }
+        
+        error_log("Searching in category: $category");
+        
+        // Scan all files in this category
+        $files = [];
+        try {
+            $files = scandir($categoryPath);
+        } catch (Exception $e) {
+            error_log("Error scanning category $category: " . $e->getMessage());
+            continue;
+        }
+        
+        // Check each file
+        foreach ($files as $file) {
+            // Skip . and .. 
+            if ($file === '.' || $file === '..') {
+                continue;
+            }
+            
+            $filePath = $categoryPath . '/' . $file;
+            
+            // Skip directories
+            if (is_dir($filePath)) {
+                continue;
+            }
+            
+            // Check if the filename contains the search term (case-insensitive)
+            if (stripos($file, $term) !== false) {
+                error_log("  Found match: $file");
+                
+                // Add to results
+                $allFiles[] = [
+                    'name' => pathinfo($file, PATHINFO_FILENAME),
+                    'path' => $baseWebPath . '/' . $category . '/' . $file,
+                    'category' => $category,
+                    'size' => filesize($filePath),
+                    'type' => mime_content_type($filePath)
+                ];
+            }
+        }
+    }
+    
+    error_log("Search complete. Found " . count($allFiles) . " results");
+    
+    return [
+        'success' => true,
+        'term' => $term,
+        'count' => count($allFiles),
+        'files' => $allFiles
+    ];
+}
