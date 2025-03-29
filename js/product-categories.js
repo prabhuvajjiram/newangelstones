@@ -1,13 +1,10 @@
 // Product Categories JavaScript
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - New implementation');
-    
     // Get DOM elements
     const categoryGrid = document.getElementById('category-grid');
     const searchInput = document.getElementById('product-search');
     
     if (!categoryGrid) {
-        console.error('Category grid element not found');
         return;
     }
 
@@ -17,6 +14,72 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentImageIndex = 0;
     let currentModal = null;
     
+    // Function to reset the UI state and show all categories
+    function resetUIState() {
+        // Clear the search input
+        if (searchInput) {
+            searchInput.value = '';
+        }
+        
+        // Make sure category grid is visible
+        if (categoryGrid) {
+            categoryGrid.style.display = 'grid';
+        }
+    }
+    
+    // Function to load and display categories
+    function loadAndDisplayCategories() {
+        // Clear any existing content
+        if (categoryGrid) {
+            categoryGrid.innerHTML = '<div class="loading">Loading categories...</div>';
+        }
+        
+        // Fetch all categories
+        fetch('get_directory_files.php?directory=images/products')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    if (categoryGrid) {
+                        categoryGrid.innerHTML = '<div class="error">Failed to load categories. Please try again later.</div>';
+                    }
+                    return;
+                }
+                
+                if (!Array.isArray(data.files) || data.files.length === 0) {
+                    if (categoryGrid) {
+                        categoryGrid.innerHTML = '<div class="no-results">No product categories found.</div>';
+                    }
+                    return;
+                }
+                
+                // Clear grid and add categories
+                if (categoryGrid) {
+                    categoryGrid.innerHTML = '';
+                    
+                    // Filter only directories (categories)
+                    const categories = data.files.filter(file => file.type === 'directory');
+                    
+                    // Add each category
+                    categories.forEach(category => {
+                        // Create category card
+                        const card = createCategoryCard(category.name, category.path);
+                        categoryGrid.appendChild(card);
+                    });
+                    
+                    // Update category counts
+                    updateCategoryCounts();
+                }
+            })
+            .catch(error => {
+                if (categoryGrid) {
+                    categoryGrid.innerHTML = '<div class="error">Failed to load categories. Please try again later.</div>';
+                }
+            });
+    }
+    
+    // Initialize the page 
+    // Removed: loadAndDisplayCategories();
+    
     // Update category counts when the page loads
     updateCategoryCounts();
     
@@ -24,7 +87,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateCategoryCounts() {
         // Get all category items
         const categoryItems = document.querySelectorAll('.category-item');
-        console.log(`Updating counts for ${categoryItems.length} categories`);
         
         // Process each category item
         categoryItems.forEach(item => {
@@ -36,8 +98,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const href = link.getAttribute('href');
                 const categoryName = href.substring(1).replace(/-collection/g, '');
                 
-                console.log(`Fetching count for category: ${categoryName}`);
-                
                 // Call API to get image count
                 fetch(`get_directory_files.php?directory=images/products/${encodeURIComponent(categoryName)}`)
                     .then(response => {
@@ -47,13 +107,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         return response.json();
                     })
                     .then(data => {
-                        console.log(`Category ${categoryName} response:`, data);
-                        
                         if (data && data.success && Array.isArray(data.files)) {
                             // Update the count display
                             const count = data.files.length;
                             countSpan.textContent = `${count} ${count === 1 ? 'Design' : 'Designs'}`;
-                            console.log(`Updated ${categoryName} count to ${count}`);
                             
                             // Also update any hardcoded counts in the HTML to match real values
                             const categoryCounts = document.querySelectorAll(`.category-item a[href="#${categoryName}-collection"] .category-count`);
@@ -64,13 +121,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             // If this is the Monuments category and we have exactly 28 files, force a reload
                             // This is a special fix to ensure the 28 monument images display correctly
                             if (categoryName.toLowerCase() === 'monuments' && count === 28) {
-                                console.log('Special case: Monuments category with 28 images detected');
-                                
                                 // Store the files in localStorage for faster access
                                 localStorage.setItem('monuments_files', JSON.stringify(data.files));
                             }
                         } else {
-                            console.error(`Invalid data format for ${categoryName}:`, data);
                             // Set a "?" if we couldn't get the count but don't show zero
                             if (countSpan.textContent.includes('0')) {
                                 countSpan.textContent = '? Designs';
@@ -78,7 +132,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     })
                     .catch(error => {
-                        console.error(`Error getting count for ${categoryName}:`, error);
                         // Don't show zero if there's an error
                         if (countSpan.textContent.includes('0')) {
                             countSpan.textContent = '? Designs';
@@ -320,11 +373,8 @@ document.addEventListener('DOMContentLoaded', function() {
         currentCategory = categoryId;
         const categoryName = categoryId.replace(/-collection/g, '');
         
-        console.log(`Showing category: ${categoryName}`);
-        
         // Create modal if it doesn't exist
         if (!document.getElementById('category-modal')) {
-            console.log('Creating new category modal');
             const modal = document.createElement('div');
             modal.className = 'category-modal';
             modal.id = 'category-modal';
@@ -399,11 +449,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const categoryName = variations[index];
-        console.log(`Trying category variation ${index+1}/${variations.length}: ${categoryName}`);
         
         // Fetch images for this category
         const apiUrl = `get_directory_files.php?directory=images/products/${encodeURIComponent(categoryName)}`;
-        console.log(`Fetching images from: ${apiUrl}`);
         
         fetch(apiUrl)
             .then(response => {
@@ -413,11 +461,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.json();
             })
             .then(data => {
-                console.log('API Response:', data);
-                
                 // Process the response
                 if (!data.success || !data.files || data.files.length === 0) {
-                    console.log(`No images found with variation ${categoryName}, trying next variation`);
                     // Try the next variation
                     tryLoadCategory(variations, index + 1, container);
                     return;
@@ -436,7 +481,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 setupModalCloseListeners();
             })
             .catch(error => {
-                console.error('Error fetching images:', error);
                 // Try the next variation
                 tryLoadCategory(variations, index + 1, container);
             });
@@ -456,7 +500,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Add the new listener
             newCloseButton.addEventListener('click', function() {
-                console.log('Close button clicked');
                 closeModals();
             });
         }
@@ -464,7 +507,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Close when clicking outside the content
         modal.addEventListener('click', function(e) {
             if (e.target === modal) {
-                console.log('Clicked outside modal content');
                 closeModals();
             }
         });
@@ -472,7 +514,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Close on ESC key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                console.log('ESC key pressed');
                 closeModals();
             }
         });
@@ -495,8 +536,6 @@ document.addEventListener('DOMContentLoaded', function() {
             currentImages = [];
         }
         
-        console.log(`Found ${currentImages.length} images for category ${categoryName}:`, currentImages);
-        
         if (currentImages.length === 0) {
             container.innerHTML = '<div class="no-results">No images found in this category.</div>';
             return;
@@ -514,8 +553,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const imageName = typeof image === 'string' ? image.replace(/\.[^/.]+$/, "") : 
                              (image.name || imagePath.split('/').pop().replace(/\.[^/.]+$/, ""));
             
-            console.log(`Opening thumbnail image ${index}: ${imageName} at path ${imagePath}`);
-            
             // Create the image element
             const img = document.createElement('img');
             img.src = imagePath;
@@ -524,25 +561,20 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Add onerror handler to use default thumbnail if image fails to load
             img.onerror = function() {
-                console.error(`Failed to load image: ${imagePath}`);
-                
                 // Try alternative path formats before using default image
                 if (imagePath.includes('images/products/')) {
                     // Try with just removing the prefix and keeping the subfolder
                     const pathParts = imagePath.split('images/products/');
                     if (pathParts.length > 1) {
                         const simplifiedPath = 'images/' + pathParts[1];
-                        console.log(`Trying alternative path: ${simplifiedPath}`);
                         this.src = simplifiedPath;
                         this.onerror = function() {
                             // If that also fails, try direct path in images folder
                             const filename = imagePath.split('/').pop();
                             const directPath = 'images/' + filename;
-                            console.log(`Trying direct path: ${directPath}`);
                             this.src = directPath;
                             this.onerror = function() {
                                 // Finally fall back to default image if all attempts fail
-                                console.log('All path attempts failed, using default image');
                                 this.src = 'images/default-thumbnail.jpg';
                                 this.onerror = null;
                             };
@@ -592,8 +624,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const imageName = typeof currentImage === 'string' ? currentImage.replace(/\.[^/.]+$/, "") : 
                          (currentImage.name || imagePath.split('/').pop().replace(/\.[^/.]+$/, ""));
-        
-        console.log(`Opening fullscreen image ${index}: ${imageName} at path ${imagePath}`);
         
         // Create fullscreen view
         const fullscreenView = document.createElement('div');
@@ -665,19 +695,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to close all modals
     function closeModals() {
-        console.log('Closing all modals');
-        
         // Remove category modal directly from DOM
         const categoryModal = document.getElementById('category-modal');
         if (categoryModal) {
-            console.log('Found category modal, removing it');
             document.body.removeChild(categoryModal);
         }
         
         // Remove fullscreen modal directly from DOM
         const fullscreenContainer = document.getElementById('fullscreen-container');
         if (fullscreenContainer) {
-            console.log('Found fullscreen container, removing it');
             document.body.removeChild(fullscreenContainer);
         }
         
@@ -696,82 +722,101 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // When closing search modal, handle category grid display
+    function closeSearchModal(modal) {
+        // Remove the modal
+        if (modal && document.body.contains(modal)) {
+            document.body.removeChild(modal);
+        }
+        
+        // Clear the search input
+        if (searchInput) {
+            searchInput.value = '';
+        }
+        
+        // IMPORTANT: Force reload the page to ensure categories are displayed
+        // This is the most reliable way to reset the UI state
+        window.location.reload();
+    }
+    
     // Add event listeners to all category links
-    console.log('Setting up category link event listeners');
     document.querySelectorAll('.category-link').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             const href = this.getAttribute('href');
             // Extract category name from href
             const categoryName = href.substring(1); // Remove the '#' character
-            console.log(`Category link clicked: ${categoryName}`);
+            
             showCategory(categoryName);
         });
     });
     
-    // Search functionality
-    if (searchInput) {
-        let searchTimeout;
+    // Function to handle search
+    function searchImages(searchTerm) {
+        if (!searchTerm || searchTerm.trim() === '') {
+            alert('Please enter a search term');
+            return;
+        }
         
-        searchInput.addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            
-            searchTimeout = setTimeout(() => {
-                const searchTerm = this.value.trim();
-                
-                if (searchTerm.length > 2) {
-                    performSearch(searchTerm);
-                } else if (currentModal) {
-                    closeModals();
-                }
-            }, 300);
-        });
-        
-        function performSearch(searchTerm) {
-            console.log(`Searching for: ${searchTerm}`);
-            
-            // Close any open modals
-            closeModals();
-            
-            // Create search results modal
-            const modal = document.createElement('div');
+        // Create or reuse search modal
+        let modal = document.getElementById('search-modal');
+        if (!modal) {
+            modal = document.createElement('div');
             modal.className = 'category-modal';
+            modal.id = 'search-modal';
+            
             modal.innerHTML = `
-                <div class="category-modal-content">
-                    <button class="modal-close">&times;</button>
-                    <h2 class="category-modal-title">Search Results for "${searchTerm}"</h2>
-                    <div class="thumbnail-grid">
-                        <div style="text-align: center; padding: 20px;">
-                            <i class="bi bi-arrow-repeat spin"></i> Searching...
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="category-modal-title">Search Results for "${searchTerm}"</h2>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="thumbnail-grid">
+                            <div style="text-align: center; padding: 20px;">
+                                <i class="bi bi-arrow-repeat spin"></i> Searching...
+                            </div>
                         </div>
                     </div>
                 </div>
             `;
             document.body.appendChild(modal);
-            currentModal = modal;
-            
-            // Prevent body scrolling
-            document.body.style.overflow = 'hidden';
             
             // Add event listener to close button
             const closeButton = modal.querySelector('.modal-close');
-            closeButton.addEventListener('click', closeModals);
+            closeButton.addEventListener('click', function() {
+                closeSearchModal(modal);
+            });
             
             // Close when clicking outside the content
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
-                    closeModals();
+                    closeSearchModal(modal);
                 }
             });
+        } else {
+            // Update the title
+            const modalTitle = modal.querySelector('.category-modal-title');
+            modalTitle.textContent = `Search Results for "${searchTerm}"`;
             
-            // Add escape key handler
-            document.addEventListener('keydown', handleKeyDown);
-            
-            // Get the grid container
+            // Clear the results
             const thumbnailGrid = modal.querySelector('.thumbnail-grid');
-            
-            // Perform search
-            fetch(`get_directory_files.php?action=search&term=${encodeURIComponent(searchTerm)}`)
+            thumbnailGrid.innerHTML = '<div style="text-align: center; padding: 20px;"><i class="bi bi-arrow-repeat spin"></i> Searching...</div>';
+        }
+        
+        // Get the thumbnail grid
+        const thumbnailGrid = modal.querySelector('.thumbnail-grid');
+        
+        // We'll search across all product categories
+        const categories = ['Monuments', 'monuments', 'MONUMENTS', 'Benches', 'Ceramic', 'Accessories'];
+        
+        // Initialize results container
+        let allResults = [];
+        let searchPromises = [];
+        
+        // Search in each category
+        for (const category of categories) {
+            const searchPromise = fetch(`get_directory_files.php?directory=images/products/${encodeURIComponent(category)}`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -779,88 +824,355 @@ document.addEventListener('DOMContentLoaded', function() {
                     return response.json();
                 })
                 .then(data => {
-                    console.log('API response:', data); // Debug log
-                    
                     // Extract files from the API response
-                    let imageFiles = [];
+                    let categoryFiles = [];
                     if (data && typeof data === 'object') {
                         if (data.success === true && Array.isArray(data.files)) {
                             // Successfully got files array from the response
-                            imageFiles = data.files;
+                            categoryFiles = data.files;
                         } else if (data.success === false) {
-                            // API returned an error
-                            throw new Error(data.error || 'Unknown API error');
+                            // API returned an error but we'll continue with other categories
+                            return [];
                         }
                     } else if (Array.isArray(data)) {
                         // Direct array response
-                        imageFiles = data;
+                        categoryFiles = data;
                     }
                     
-                    // Store the processed images
-                    currentImages = imageFiles.map(file => {
-                        // Check if file is already a complete object
-                        if (typeof file === 'object' && file.path) {
-                            return file;
+                    // Filter the files based on search term
+                    const termLower = searchTerm.toLowerCase();
+                    const matchingFiles = categoryFiles.filter(file => {
+                        // For objects (with name and path)
+                        if (typeof file === 'object') {
+                            // Check name, path and original filename
+                            const fileName = file.name ? file.name.toLowerCase() : '';
+                            const filePath = file.path ? file.path.toLowerCase() : '';
+                            // Get the original filename without path
+                            const originalName = filePath.split('/').pop() || '';
+                            
+                            const matches = fileName.includes(termLower) || 
+                                           filePath.includes(termLower) || 
+                                           originalName.includes(termLower);
+                            
+                            return matches;
+                        } 
+                        // For strings (just filenames)
+                        else if (typeof file === 'string') {
+                            const fileName = file.toLowerCase();
+                            // Remove extension for more flexible matching
+                            const fileNameNoExt = fileName.replace(/\.[^/.]+$/, "");
+                            
+                            const matches = fileName.includes(termLower) || fileNameNoExt.includes(termLower);
+                            
+                            return matches;
                         }
                         
-                        // Convert simple filename to object with path
-                        const path = `images/products/${file}`;
-                        return {
-                            name: file.replace(/\.[^/.]+$/, ""), // Remove extension for display name
-                            path: path
-                        };
+                        return false;
                     });
                     
-                    // Clear the grid
-                    thumbnailGrid.innerHTML = '';
-                    
-                    // Update title with result count
-                    const modalTitle = modal.querySelector('.category-modal-title');
-                    modalTitle.textContent = `Search Results for "${searchTerm}" (${currentImages.length} found)`;
-                    
-                    if (!currentImages.length) {
-                        thumbnailGrid.innerHTML = '<div class="no-results">No results found. Try a different search term.</div>';
-                        return;
-                    }
-                    
-                    // Add each result as a thumbnail
-                    currentImages.forEach((image, index) => {
-                        const thumbnail = document.createElement('div');
-                        thumbnail.className = 'thumbnail-item';
+                    // Add category info to each file
+                    return matchingFiles.map(file => {
+                        // If file is already an object
+                        if (typeof file === 'object') {
+                            return {
+                                ...file,
+                                category
+                            };
+                        }
                         
-                        // Just use the original image for thumbnails
-                        const img = document.createElement('img');
-                        img.src = image.path;
-                        img.alt = image.name;
-                        img.loading = 'lazy';
-                        
-                        // Add onerror handler to use default thumbnail if image fails to load
-                        img.onerror = function() {
-                            console.log(`Failed to load image: ${image.path}`);
-                            this.src = 'images/default-thumbnail.jpg';
+                        // Convert string to object
+                        return {
+                            name: file.replace(/\.[^/.]+$/, ""),
+                            path: `images/products/${category}/${file}`,
+                            category
                         };
-                        
-                        const nameDiv = document.createElement('div');
-                        nameDiv.className = 'thumbnail-name';
-                        nameDiv.textContent = image.name;
-                        
-                        thumbnail.appendChild(img);
-                        thumbnail.appendChild(nameDiv);
-                        
-                        // Add click event to show fullscreen view
-                        thumbnail.addEventListener('click', () => {
-                            showFullscreenImage(index);
-                        });
-                        
-                        thumbnailGrid.appendChild(thumbnail);
                     });
                 })
                 .catch(error => {
-                    console.error('Error searching:', error);
-                    thumbnailGrid.innerHTML = '<div class="no-results">Error performing search. Please try again later.</div>';
+                    console.warn(`Error searching ${category}:`, error);
+                    return []; // Return empty array to continue with other categories
                 });
+            
+            searchPromises.push(searchPromise);
         }
+        
+        // Also do a direct file search using a new function in get_directory_files.php
+        const directSearchPromise = fetch(`get_directory_files.php?action=findFile&term=${encodeURIComponent(searchTerm)}`)
+            .then(response => {
+                if (!response.ok) {
+                    // This might return 404 if the endpoint doesn't exist yet, but that's ok
+                    return { success: false, files: [] };
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.success && Array.isArray(data.files)) {
+                    return data.files.map(file => ({
+                        ...file,
+                        category: 'Search Results'
+                    }));
+                }
+                return [];
+            })
+            .catch(error => {
+                return [];
+            });
+        
+        searchPromises.push(directSearchPromise);
+        
+        // Wait for all searches to complete
+        Promise.all(searchPromises)
+            .then(resultsArrays => {
+                // Combine all results
+                allResults = resultsArrays.flat();
+                
+                // Store as current images
+                currentImages = allResults;
+                
+                // Clear the grid
+                thumbnailGrid.innerHTML = '';
+                
+                // Update title with result count
+                const modalTitle = modal.querySelector('.category-modal-title');
+                modalTitle.textContent = `Search Results for "${searchTerm}" (${currentImages.length} found)`;
+                
+                if (!currentImages.length) {
+                    thumbnailGrid.innerHTML = '<div class="no-results">No results found. Try a different search term.</div>';
+                    return;
+                }
+                
+                // Add each result as a thumbnail
+                currentImages.forEach((image, index) => {
+                    const thumbnail = document.createElement('div');
+                    thumbnail.className = 'thumbnail-item';
+                    
+                    // Normalize the image path
+                    let imagePath = image.path;
+                    // Fix duplicate paths
+                    imagePath = imagePath.replace(/(images\/products\/)+/g, 'images/products/');
+                    
+                    // Create the image element
+                    const img = document.createElement('img');
+                    img.src = imagePath;
+                    img.alt = image.name;
+                    img.loading = 'lazy';
+                    
+                    // Add onerror handler with fallback attempts
+                    img.onerror = function() {
+                        // Try alternative path formats
+                        if (imagePath.includes('images/products/')) {
+                            // Try simplified path
+                            const pathParts = imagePath.split('images/products/');
+                            if (pathParts.length > 1) {
+                                const simplifiedPath = 'images/' + pathParts[1];
+                                this.src = simplifiedPath;
+                                this.onerror = function() {
+                                    // Try direct path as last resort
+                                    const filename = imagePath.split('/').pop();
+                                    const directPath = 'images/' + filename;
+                                    this.src = directPath;
+                                    this.onerror = function() {
+                                        // Finally fall back to default
+                                        this.src = 'images/default-thumbnail.jpg';
+                                        this.onerror = null;
+                                    };
+                                };
+                            } else {
+                                this.src = 'images/default-thumbnail.jpg';
+                                this.onerror = null;
+                            }
+                        } else {
+                            this.src = 'images/default-thumbnail.jpg';
+                            this.onerror = null;
+                        }
+                    };
+                    
+                    // Create name label with category
+                    const nameDiv = document.createElement('div');
+                    nameDiv.className = 'thumbnail-name';
+                    nameDiv.textContent = image.name + (image.category ? ` (${image.category})` : '');
+                    
+                    thumbnail.appendChild(img);
+                    thumbnail.appendChild(nameDiv);
+                    
+                    // Add click event to show fullscreen view
+                    thumbnail.addEventListener('click', () => {
+                        showFullscreenImage(index);
+                    });
+                    
+                    thumbnailGrid.appendChild(thumbnail);
+                });
+            })
+            .catch(error => {
+                thumbnailGrid.innerHTML = '<div class="no-results">Error performing search. Please try again later.</div>';
+            });
     }
     
-    console.log('Product Categories initialization complete');
+    // Set up search functionality for main search input
+    if (searchInput) {
+        // Debounce function to limit search rate
+        let searchTimeout;
+        
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            
+            // Set a short timeout to avoid searching on every keystroke
+            searchTimeout = setTimeout(() => {
+                const searchTerm = this.value.trim();
+                
+                if (searchTerm.length >= 1) {
+                    mainProductSearch(searchTerm);
+                } else if (categoryGrid) {
+                    // If search is cleared, make sure categories are visible
+                    categoryGrid.style.display = 'grid';
+                }
+            }, 300);
+        });
+    }
+    
+    // Function to handle main product search
+    function mainProductSearch(searchTerm) {
+        // Create or reuse search modal
+        let modal = document.getElementById('search-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.className = 'category-modal';
+            modal.id = 'search-modal';
+            
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="category-modal-title">Search Results for "${searchTerm}"</h2>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="thumbnail-grid">
+                            <div style="text-align: center; padding: 20px;">
+                                <i class="bi bi-arrow-repeat spin"></i> Searching...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // Add event listener to close button
+            const closeButton = modal.querySelector('.modal-close');
+            closeButton.addEventListener('click', function() {
+                closeSearchModal(modal);
+            });
+            
+            // Close when clicking outside the content
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeSearchModal(modal);
+                }
+            });
+        } else {
+            // Update the title
+            const modalTitle = modal.querySelector('.category-modal-title');
+            modalTitle.textContent = `Search Results for "${searchTerm}"`;
+            
+            // Clear the results
+            const thumbnailGrid = modal.querySelector('.thumbnail-grid');
+            thumbnailGrid.innerHTML = '<div style="text-align: center; padding: 20px;"><i class="bi bi-arrow-repeat spin"></i> Searching...</div>';
+        }
+        
+        // Get the thumbnail grid
+        const thumbnailGrid = modal.querySelector('.thumbnail-grid');
+        
+        // Direct server-side search using findFile action
+        fetch(`get_directory_files.php?action=findFile&term=${encodeURIComponent(searchTerm)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Store as current images
+                if (data.success && Array.isArray(data.files)) {
+                    currentImages = data.files;
+                } else {
+                    currentImages = [];
+                }
+                
+                // Clear the grid
+                thumbnailGrid.innerHTML = '';
+                
+                // Update title with result count
+                const modalTitle = modal.querySelector('.category-modal-title');
+                modalTitle.textContent = `Search Results for "${searchTerm}" (${currentImages.length} found)`;
+                
+                if (!currentImages.length) {
+                    thumbnailGrid.innerHTML = '<div class="no-results">No results found. Try a different search term.</div>';
+                    return;
+                }
+                
+                // Add each result as a thumbnail - maintaining thumbnails first approach
+                currentImages.forEach((image, index) => {
+                    const thumbnail = document.createElement('div');
+                    thumbnail.className = 'thumbnail-item';
+                    
+                    // Normalize the image path
+                    let imagePath = image.path;
+                    // Fix duplicate paths
+                    imagePath = imagePath.replace(/(images\/products\/)+/g, 'images/products/');
+                    
+                    // Create the image element
+                    const img = document.createElement('img');
+                    img.src = imagePath;
+                    img.alt = image.name;
+                    img.loading = 'lazy';
+                    
+                    // Add onerror handler with fallback attempts
+                    img.onerror = function() {
+                        // Try alternative path formats
+                        if (imagePath.includes('images/products/')) {
+                            // Try simplified path
+                            const pathParts = imagePath.split('images/products/');
+                            if (pathParts.length > 1) {
+                                const simplifiedPath = 'images/' + pathParts[1];
+                                this.src = simplifiedPath;
+                                this.onerror = function() {
+                                    // Try direct path as last resort
+                                    const filename = imagePath.split('/').pop();
+                                    const directPath = 'images/' + filename;
+                                    this.src = directPath;
+                                    this.onerror = function() {
+                                        // Finally fall back to default
+                                        this.src = 'images/default-thumbnail.jpg';
+                                        this.onerror = null;
+                                    };
+                                };
+                            } else {
+                                this.src = 'images/default-thumbnail.jpg';
+                                this.onerror = null;
+                            }
+                        } else {
+                            this.src = 'images/default-thumbnail.jpg';
+                            this.onerror = null;
+                        }
+                    };
+                    
+                    // Create name label with category
+                    const nameDiv = document.createElement('div');
+                    nameDiv.className = 'thumbnail-name';
+                    nameDiv.textContent = image.name + (image.category ? ` (${image.category})` : '');
+                    
+                    thumbnail.appendChild(img);
+                    thumbnail.appendChild(nameDiv);
+                    
+                    // Add click event to show fullscreen view - following thumbnails first approach
+                    thumbnail.addEventListener('click', () => {
+                        showFullscreenImage(index);
+                    });
+                    
+                    thumbnailGrid.appendChild(thumbnail);
+                });
+            })
+            .catch(error => {
+                thumbnailGrid.innerHTML = '<div class="no-results">Error performing search. Please try again later.</div>';
+            });
+    }
 });
