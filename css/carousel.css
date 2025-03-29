@@ -7,10 +7,11 @@
 }
 
 .category-carousel {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* Show 3 items by default */
+    display: flex;
+    flex-wrap: nowrap;
     gap: 20px;
     transition: all 0.5s ease;
+    width: 100%;
 }
 
 .category-item {
@@ -103,12 +104,12 @@
 /* Responsive adjustments */
 @media (max-width: 992px) {
     .category-carousel {
-        grid-template-columns: repeat(2, 1fr);
+        flex-wrap: wrap;
     }
 }
 
 @media (max-width: 576px) {
     .category-carousel {
-        grid-template-columns: 1fr;
+        flex-wrap: wrap;
     }
 } 

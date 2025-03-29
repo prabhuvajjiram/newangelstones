@@ -17,37 +17,108 @@ ini_set('display_errors', 1);
  */
 function getDirectoryFiles($directory, $extension = null) {
     $files = [];
+    $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg']; // Common image extensions
     
-    // Clean the directory path and remove 'images/' from the beginning if present
-    $directory = trim(str_replace('..', '', $directory), '/');
-    if (strpos($directory, 'images/') === 0) {
-        $directory = substr($directory, 7); // Remove 'images/' prefix
-    }
+    // Debug info
+    error_log("getDirectoryFiles called for directory: $directory");
     
-    // Get the absolute path to the images directory
+    // Clean the directory path and remove dangerous characters
+    $directory = trim(str_replace('..', '', $directory), '/\\');
+    
+    // Normalize slashes for consistency
+    $directory = str_replace('\\', '/', $directory);
+    
+    // IMPORTANT: Normalize directory name to lowercase for case-insensitive matching
+    $directoryLower = strtolower($directory);
+    
+    // Prepare absolute paths - try multiple possibilities
     $baseDir = __DIR__;
-    $fullPath = $baseDir . DIRECTORY_SEPARATOR . $directory;
+    $possiblePaths = [
+        // Original case
+        $baseDir . DIRECTORY_SEPARATOR . $directory,
+        $baseDir . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . $directory,
+        $baseDir . DIRECTORY_SEPARATOR . 'images/products' . DIRECTORY_SEPARATOR . $directory,
+        $baseDir . '/' . $directory,
+        $baseDir . '/images/' . $directory,
+        $baseDir . '/images/products/' . $directory,
+        
+        // Lowercase everything - helps with case sensitivity issues
+        $baseDir . DIRECTORY_SEPARATOR . $directoryLower,
+        $baseDir . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . $directoryLower,
+        $baseDir . DIRECTORY_SEPARATOR . 'images/products' . DIRECTORY_SEPARATOR . $directoryLower,
+        $baseDir . '/' . $directoryLower,
+        $baseDir . '/images/' . $directoryLower,
+        $baseDir . '/images/products/' . $directoryLower,
+        
+        // Try with first letter capitalized (common convention)
+        $baseDir . DIRECTORY_SEPARATOR . ucfirst($directoryLower),
+        $baseDir . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . ucfirst($directoryLower),
+        $baseDir . DIRECTORY_SEPARATOR . 'images/products' . DIRECTORY_SEPARATOR . ucfirst($directoryLower),
+        $baseDir . '/' . ucfirst($directoryLower),
+        $baseDir . '/images/' . ucfirst($directoryLower),
+        $baseDir . '/images/products/' . ucfirst($directoryLower),
+        
+        // Try with all capitals (another possibility)
+        $baseDir . DIRECTORY_SEPARATOR . strtoupper($directoryLower),
+        $baseDir . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . strtoupper($directoryLower),
+        $baseDir . DIRECTORY_SEPARATOR . 'images/products' . DIRECTORY_SEPARATOR . strtoupper($directoryLower),
+        $baseDir . '/' . strtoupper($directoryLower),
+        $baseDir . '/images/' . strtoupper($directoryLower),
+        $baseDir . '/images/products/' . strtoupper($directoryLower)
+    ];
     
-    // Log the paths for debugging
-    error_log("Base Directory: " . $baseDir);
+    // Log paths for debugging
     error_log("Requested Directory: " . $directory);
-    error_log("Full Path: " . $fullPath);
     
-    if (!is_dir($fullPath)) {
-        error_log("Directory not found: " . $fullPath);
-        // Try alternate path
-        $altPath = __DIR__ . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . $directory;
-        error_log("Trying alternate path: " . $altPath);
-        if (is_dir($altPath)) {
-            $fullPath = $altPath;
-            error_log("Using alternate path");
-        } else {
-            return $files;
+    $fullPath = null;
+    $foundDir = '';
+    
+    // Try each possible path
+    foreach ($possiblePaths as $path) {
+        $normalizedPath = str_replace('\\', '/', $path); // Normalize slashes
+        error_log("Trying path: " . $normalizedPath);
+        if (is_dir($normalizedPath)) {
+            $fullPath = $normalizedPath;
+            
+            // Extract the actual directory name we found to use in web paths
+            $pathParts = explode('/', $normalizedPath);
+            $foundDir = end($pathParts);
+            
+            error_log("Found valid path: " . $fullPath . " with directory name: " . $foundDir);
+            break;
         }
     }
     
+    // If no valid path found, try a direct scan of the products directory to find a case-insensitive match
+    if ($fullPath === null) {
+        error_log("No direct path match, trying to scan products directory for a match");
+        $productsPath = $baseDir . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . 'products';
+        
+        if (is_dir($productsPath)) {
+            $productDirs = scandir($productsPath);
+            foreach ($productDirs as $dir) {
+                if ($dir === '.' || $dir === '..') continue;
+                
+                if (strtolower($dir) === strtolower(basename($directory))) {
+                    $fullPath = $productsPath . DIRECTORY_SEPARATOR . $dir;
+                    $foundDir = $dir;
+                    error_log("Found case-insensitive match: " . $fullPath);
+                    break;
+                }
+            }
+        }
+    }
+    
+    // If still no valid path found, return empty array
+    if ($fullPath === null) {
+        error_log("No valid directory found for: " . $directory);
+        return [];
+    }
+    
     try {
+        error_log("Scanning directory: " . $fullPath);
         $items = scandir($fullPath);
+        error_log("Found " . count($items) . " items in directory");
         
         foreach ($items as $item) {
             // Skip . and .. directories
@@ -56,27 +127,68 @@ function getDirectoryFiles($directory, $extension = null) {
             }
             
             $itemPath = $fullPath . DIRECTORY_SEPARATOR . $item;
+            $normalizedItemPath = str_replace('\\', '/', $itemPath);
             
             // Only include files, not directories
-            if (is_file($itemPath)) {
+            if (is_file($normalizedItemPath)) {
                 // Filter by extension if provided
                 if ($extension !== null) {
                     $fileExt = pathinfo($item, PATHINFO_EXTENSION);
                     if (strtolower($fileExt) !== strtolower($extension)) {
                         continue;
                     }
+                } else {
+                    // If no extension filter provided, only include image files
+                    $fileExt = pathinfo($item, PATHINFO_EXTENSION);
+                    if (!in_array(strtolower($fileExt), $imageExtensions)) {
+                        continue;
+                    }
                 }
                 
-                $files[] = $item;
+                // Construct the web path using the actual directory name we found
+                // This ensures correct case in the path for web requests
+                $dirParts = explode('/', $directory);
+                $dirParts[count($dirParts) - 1] = $foundDir; // Replace last part with the actual directory name found
+                
+                // Clean path construction - prevent duplication
+                // Check if the directory already contains 'images/products'
+                if (strpos(strtolower($directory), 'images/products') !== false) {
+                    // Already has the prefix, just use it
+                    $webPath = implode('/', $dirParts) . '/' . $item;
+                } else {
+                    // Add the prefix
+                    $webPath = 'images/products/' . implode('/', $dirParts) . '/' . $item;
+                }
+                
+                // Make sure the web path starts with images/ for proper web access
+                if (strpos($webPath, 'images/') !== 0) {
+                    $webPath = 'images/' . $webPath;
+                }
+                
+                // Fix any double slashes or duplicate paths
+                $webPath = str_replace('//', '/', $webPath);
+                
+                // Prevent duplicate 'images/products' in the path
+                $webPath = preg_replace('#(images/products/)+#i', 'images/products/', $webPath);
+                
+                error_log("Adding file: " . $item . " with web path: " . $webPath);
+                
+                // Add to files array as an object with name and path
+                $files[] = [
+                    'name' => pathinfo($item, PATHINFO_FILENAME),
+                    'path' => $webPath,
+                    'size' => filesize($normalizedItemPath),
+                    'type' => mime_content_type($normalizedItemPath)
+                ];
             }
         }
         
-        // Sort files naturally
-        natcasesort($files);
+        // Log the result
+        error_log("Returning " . count($files) . " files");
         
-        return array_values($files);
+        return $files;
     } catch (Exception $e) {
-        error_log("Error in getDirectoryFiles: " . $e->getMessage());
+        error_log("Error scanning directory: " . $e->getMessage());
         return [];
     }
 }
@@ -135,93 +247,77 @@ function getProductCategories($baseDir) {
     return $categories;
 }
 
-// Default response
+function getAllImages($directory = 'images/products') {
+    $images = array();
+    $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
+    
+    foreach ($iterator as $file) {
+        if ($file->isFile()) {
+            $extension = strtolower(pathinfo($file->getFilename(), PATHINFO_EXTENSION));
+            if (in_array($extension, array('jpg', 'jpeg', 'png', 'gif'))) {
+                $images[] = str_replace('\\', '/', $file->getPathname());
+            }
+        }
+    }
+    
+    return $images;
+}
+
+// Main entry point - handle parameters
+$directory = isset($_GET['directory']) ? $_GET['directory'] : '';
+$extension = isset($_GET['extension']) ? $_GET['extension'] : null;
+$search = isset($_GET['search']) ? $_GET['search'] : null;
+
+// Default response structure
 $response = [
     'success' => false,
-    'files' => [],
-    'error' => null
+    'error' => '',
+    'files' => []
 ];
 
-// Determine action from GET or command line
-$action = null;
-if (isset($_GET['action'])) {
-    $action = $_GET['action'];
-} elseif (isset($argv) && count($argv) > 1) {
-    // Check if called from command line with parameters
-    foreach ($argv as $arg) {
-        if (strpos($arg, 'action=') === 0) {
-            $action = substr($arg, strlen('action='));
-        }
-    }
-}
-
-try {
-    // Check if we're requesting categories
-    if ($action === 'get_categories') {
-        $productsDir = __DIR__ . '/images/products';
-        
-        // Make sure the directory exists
-        if (!is_dir($productsDir)) {
-            $response = [
-                'success' => false,
-                'error' => 'Products directory not found',
-                'path' => $productsDir
-            ];
-        } else {
-            $categories = getProductCategories($productsDir);
-            
-            // Make sure we have at least one category
-            if (empty($categories)) {
-                // Add fallback category if none found
-                $categories[] = [
-                    'name' => 'MBNA_2025',
-                    'display_name' => 'MBNA 2025',
-                    'image_count' => 25,
-                    'thumbnail' => 'images/products/MBNA_2025/thumbnails/AG-952.png'
-                ];
-            }
-            
-            $response = [
-                'success' => true,
-                'categories' => $categories,
-                'count' => count($categories)
-            ];
-        }
-    } else {
-        // Get directory from request
-        $directory = isset($_GET['directory']) ? $_GET['directory'] : '';
-        $extension = isset($_GET['extension']) ? $_GET['extension'] : null;
-        
-        if (empty($directory)) {
-            $response = [
-                'success' => false,
-                'error' => 'Directory parameter is required',
-                'files' => []
-            ];
-        } else {
-            // Get files
-            $files = getDirectoryFiles($directory, $extension);
-            
-            // Return response
-            $response = [
-                'success' => true,
-                'directory' => $directory,
-                'files' => $files,
-                'count' => count($files),
-                'debug' => [
-                    'requestedDir' => $directory,
-                    'fullPath' => __DIR__ . DIRECTORY_SEPARATOR . $directory,
-                    'altPath' => __DIR__ . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . $directory,
-                    'baseDir' => __DIR__
-                ]
-            ];
-        }
-    }
-} catch (Exception $e) {
+// Validate directory parameter
+if (empty($directory)) {
     $response = [
         'success' => false,
-        'error' => $e->getMessage()
+        'error' => 'Directory parameter is required',
+        'files' => []
     ];
+} else {
+    try {
+        // Get files from directory
+        $files = getDirectoryFiles($directory, $extension);
+        
+        // Filter by search term if provided
+        if (!empty($search) && is_array($files)) {
+            $filteredFiles = [];
+            foreach ($files as $file) {
+                if (is_array($file) && isset($file['name'])) {
+                    if (stripos($file['name'], $search) !== false) {
+                        $filteredFiles[] = $file;
+                    }
+                } else if (is_string($file)) {
+                    if (stripos($file, $search) !== false) {
+                        $filteredFiles[] = $file;
+                    }
+                }
+            }
+            $files = $filteredFiles;
+        }
+        
+        // Set success response
+        $response = [
+            'success' => true,
+            'files' => $files
+        ];
+    } catch (Exception $e) {
+        // Set error response
+        $response = [
+            'success' => false,
+            'error' => $e->getMessage(),
+            'files' => []
+        ];
+    }
 }
 
+// Output JSON response
 echo json_encode($response);
