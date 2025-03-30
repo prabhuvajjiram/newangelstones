@@ -151,25 +151,25 @@ document.addEventListener('DOMContentLoaded', function() {
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.9);
-            z-index: 10005;
+            z-index: 10000;
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow-y: auto;
             padding: 20px;
+            box-sizing: border-box;
         }
 
         .category-modal-content {
-            position: relative;
-            background: rgba(0, 0, 0, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 20px;
             width: 90%;
             max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 20px;
             max-height: 90vh;
             overflow-y: auto;
-            border-radius: 8px;
-            color: #fff;
+            box-sizing: border-box;
         }
 
         .modal-close {
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         .thumbnail-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
             gap: 15px;
             padding: 15px;
             max-height: 70vh;
@@ -223,6 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
             transition: transform 0.3s, box-shadow 0.3s;
             aspect-ratio: 1;
             border: 2px solid transparent;
+            max-width: 100%;
         }
 
         .thumbnail-item:hover {
@@ -235,6 +236,37 @@ document.addEventListener('DOMContentLoaded', function() {
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        /* Responsive thumbnail adjustments */
+        @media (max-width: 768px) {
+            .thumbnail-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+                padding: 10px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .thumbnail-grid {
+                grid-template-columns: repeat(1, 1fr);
+                gap: 8px;
+                padding: 8px;
+            }
+            
+            .thumbnail-item {
+                max-width: 100%;
+                margin: 0 auto;
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 375px) {
+            .thumbnail-grid {
+                grid-template-columns: repeat(1, 1fr);
+                gap: 6px;
+                padding: 6px;
+            }
         }
 
         .thumbnail-name {
@@ -349,7 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         @media (max-width: 768px) {
             .thumbnail-grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                grid-template-columns: repeat(3, 1fr);
                 gap: 10px;
             }
             

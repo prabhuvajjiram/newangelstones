@@ -195,6 +195,160 @@ document.addEventListener('DOMContentLoaded', function() {
                 font-size: 1rem;
             }
         }
+        
+        /* Search results grid */
+        .search-results-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        @media (max-width: 768px) {
+            .search-results-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .search-results-grid {
+                grid-template-columns: repeat(1, 1fr);
+                gap: 10px;
+            }
+            
+            .search-results-grid .thumbnail {
+                max-width: 100%;
+                margin: 0 auto;
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 375px) {
+            .search-results-grid {
+                grid-template-columns: repeat(1, 1fr);
+                gap: 8px;
+            }
+        }
+        
+        /* Responsive thumbnail adjustments */
+        @media (max-width: 768px) {
+            .thumbnails-container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+                padding: 12px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .thumbnails-container {
+                grid-template-columns: repeat(1, 1fr);
+                gap: 8px;
+                padding: 10px;
+            }
+            
+            .thumbnail {
+                max-width: 100%;
+                margin: 0 auto;
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 375px) {
+            .thumbnails-container {
+                grid-template-columns: repeat(1, 1fr);
+                gap: 6px;
+                padding: 8px;
+            }
+        }
+        
+        /* Fullscreen styles */
+        .fullscreen-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .fullscreen-image-container {
+            position: relative;
+            width: 90%;
+            height: 90%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .fullscreen-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .fullscreen-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 10007;
+        }
+        
+        .fullscreen-close:hover {
+            background: #000;
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: scale(1.1);
+        }
+        
+        .fullscreen-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 10007;
+            transition: all 0.2s ease;
+        }
+        
+        .fullscreen-nav:hover {
+            background: #000;
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: scale(1.1) translateY(-50%);
+        }
+        
+        .fullscreen-prev {
+            left: 20px;
+        }
+        
+        .fullscreen-next {
+            right: 20px;
+        }
     `;
     document.head.appendChild(modalStyles);
 
@@ -420,23 +574,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 /* Thumbnails styles */
                 .thumbnails-container {
-                    display: flex;
-                    flex-wrap: wrap;
-                    gap: 10px;
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 12px;
                     overflow-y: auto;
-                    padding: 10px;
+                    padding: 15px;
                     background-color: #1a1a1a;
                     border-radius: 4px;
                 }
                 
                 .thumbnail {
-                    width: 120px;
-                    height: 120px;
+                    width: 100%;
+                    aspect-ratio: 1/1;
                     overflow: hidden;
                     border-radius: 4px;
                     border: 2px solid transparent;
                     cursor: pointer;
                     transition: all 0.3s;
+                    max-width: 100%;
                 }
                 
                 .thumbnail.active {
@@ -454,91 +609,71 @@ document.addEventListener('DOMContentLoaded', function() {
                     transform: scale(1.1);
                 }
                 
-                /* Fullscreen styles */
-                .fullscreen-view {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
+                /* Responsive thumbnail adjustments */
+                @media (max-width: 768px) {
+                    .thumbnails-container {
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 10px;
+                        padding: 12px;
+                    }
+                }
+                
+                @media (max-width: 576px) {
+                    .thumbnails-container {
+                        grid-template-columns: repeat(1, 1fr);
+                        gap: 8px;
+                        padding: 10px;
+                    }
+                    
+                    .thumbnail {
+                        max-width: 100%;
+                        margin: 0 auto;
+                        width: 100%;
+                    }
+                }
+                
+                @media (max-width: 375px) {
+                    .thumbnails-container {
+                        grid-template-columns: repeat(1, 1fr);
+                        gap: 6px;
+                        padding: 8px;
+                    }
+                }
+                
+                /* Search results grid */
+                .search-results-grid {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 15px;
                     width: 100%;
-                    height: 100%;
-                    background-color: rgba(0, 0, 0, 0.95);
-                    z-index: 2000;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
+                    box-sizing: border-box;
                 }
                 
-                .fullscreen-image-container {
-                    position: relative;
-                    width: 90%;
-                    height: 90%;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
+                @media (max-width: 768px) {
+                    .search-results-grid {
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 12px;
+                    }
                 }
                 
-                .fullscreen-image {
-                    max-width: 100%;
-                    max-height: 100%;
-                    object-fit: contain;
+                @media (max-width: 576px) {
+                    .search-results-grid {
+                        grid-template-columns: repeat(1, 1fr);
+                        gap: 10px;
+                    }
+                    
+                    .search-results-grid .thumbnail {
+                        max-width: 100%;
+                        margin: 0 auto;
+                        width: 100%;
+                    }
                 }
                 
-                .fullscreen-close {
-                    position: absolute;
-                    top: 20px;
-                    right: 20px;
-                    background: rgba(0, 0, 0, 0.8);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    color: white;
-                    font-size: 24px;
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    z-index: 10007;
-                }
-                
-                .fullscreen-close:hover {
-                    background: #000;
-                    border-color: rgba(255, 255, 255, 0.4);
-                    transform: scale(1.1);
-                }
-                
-                .fullscreen-nav {
-                    position: absolute;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    background: rgba(0, 0, 0, 0.8);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    color: #fff;
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    font-size: 24px;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    cursor: pointer;
-                    z-index: 10007;
-                    transition: all 0.2s ease;
-                }
-                
-                .fullscreen-nav:hover {
-                    background: #000;
-                    border-color: rgba(255, 255, 255, 0.4);
-                    transform: scale(1.1) translateY(-50%);
-                }
-                
-                .fullscreen-prev {
-                    left: 20px;
-                }
-                
-                .fullscreen-next {
-                    right: 20px;
+                @media (max-width: 375px) {
+                    .search-results-grid {
+                        grid-template-columns: repeat(1, 1fr);
+                        gap: 8px;
+                    }
                 }
             `;
             document.head.appendChild(modalStyles);
@@ -875,6 +1010,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
+            // Add a grid container inside thumbnails container for better layout control
+            const gridContainer = document.createElement('div');
+            gridContainer.className = 'search-results-grid';
+            this.thumbnailsContainer.appendChild(gridContainer);
+            
             // Create thumbnails for search results
             results.forEach((imageName, index) => {
                 // Create main carousel slide
@@ -916,7 +1056,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 thumbImg.loading = 'lazy';
                 
                 thumbnail.appendChild(thumbImg);
-                this.thumbnailsContainer.appendChild(thumbnail);
+                gridContainer.appendChild(thumbnail);
                 
                 // Add click event for thumbnail
                 thumbnail.addEventListener('click', () => {
