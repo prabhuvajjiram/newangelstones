@@ -310,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function() {
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.95);
-            z-index: 2000;
+            z-index: 3000;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -436,6 +436,73 @@ document.addEventListener('DOMContentLoaded', function() {
             color: #555;
             font-size: 14px;
         }
+        
+        /* Mobile-specific styles */
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .main-carousel-container {
+                height: 60vh;
+            }
+            
+            .thumbnails-scroll-container {
+                height: 30vh;
+            }
+            
+            .carousel-image {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
+            
+            .thumbnail {
+                width: 120px;
+                height: 120px;
+                flex: 0 0 120px;
+            }
+            
+            .thumbnail img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            
+            .nav-button {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+            
+            .modal-header {
+                padding: 10px;
+            }
+            
+            .modal-header h2 {
+                font-size: 1.2rem;
+            }
+        }
+        
+        /* Small mobile devices */
+        @media (max-width: 480px) {
+            .main-carousel-container {
+                height: 50vh;
+            }
+            
+            .thumbnails-scroll-container {
+                height: 40vh;
+            }
+            
+            .thumbnail {
+                width: 100px;
+                height: 100px;
+                flex: 0 0 100px;
+            }
+        }
     `;
     document.head.appendChild(modalStyles);
 
@@ -542,7 +609,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             this.createModal();
-            this.setupEventListeners();
+            this.initEvents();
         },
 
         createModal() {
@@ -552,15 +619,17 @@ document.addEventListener('DOMContentLoaded', function() {
             this.modal.innerHTML = `
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2>Product Collection</h2>
+                        <h2 id="featured-products-modal-title">Product Collection</h2>
                         <button class="close-modal">&times;</button>
                     </div>
                     <div class="modal-body">
-                        <div class="thumbnails-container"></div>
-                        <div class="main-carousel-container" style="display: none;">
+                        <div class="main-carousel-container">
                             <button class="nav-button prev"><i class="bi bi-chevron-left"></i></button>
                             <button class="nav-button next"><i class="bi bi-chevron-right"></i></button>
                             <div class="main-carousel-slides"></div>
+                        </div>
+                        <div class="thumbnails-scroll-container">
+                            <div class="thumbnails-container"></div>
                         </div>
                     </div>
                 </div>
@@ -659,6 +728,31 @@ document.addEventListener('DOMContentLoaded', function() {
                     cursor: pointer;
                 }
                 
+                .image-error-container {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    background-color: rgba(0, 0, 0, 0.7);
+                    color: #fff;
+                    padding: 20px;
+                    text-align: center;
+                }
+                
+                .image-error-icon {
+                    font-size: 48px;
+                    margin-bottom: 10px;
+                }
+                
+                .image-error-text {
+                    font-size: 16px;
+                }
+                
                 /* Navigation buttons */
                 .nav-button {
                     position: absolute;
@@ -694,44 +788,213 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 /* Thumbnails styles */
-                .thumbnails-container {
-                    display: grid;
-                    grid-template-columns: repeat(4, 1fr);
-                    gap: 12px;
-                    overflow-y: auto;
-                    height: 100%;
-                    padding: 15px;
-                    min-height: 0;
+                .thumbnails-scroll-container {
+                    width: 100%;
+                    height: 35%;
+                    overflow-x: hidden;
+                    overflow-y: hidden;
+                    position: relative;
+                    border-radius: 4px;
+                    background-color: #1a1a1a;
                 }
                 
-                @media (max-width: 768px) {
-                    .thumbnails-container {
-                        grid-template-columns: repeat(2, 1fr);
-                    }
+                .thumbnails-container {
+                    display: flex;
+                    flex-wrap: nowrap;
+                    gap: 10px;
+                    padding: 10px;
+                    overflow-x: auto;
+                    overflow-y: hidden;
+                    height: 100%;
+                    scrollbar-width: thin;
+                    scrollbar-color: #555 #333;
+                }
+                
+                .thumbnails-container::-webkit-scrollbar {
+                    height: 8px;
+                }
+                
+                .thumbnails-container::-webkit-scrollbar-track {
+                    background: #333;
+                    border-radius: 4px;
+                }
+                
+                .thumbnails-container::-webkit-scrollbar-thumb {
+                    background-color: #555;
+                    border-radius: 4px;
                 }
                 
                 .thumbnail {
+                    flex: 0 0 auto;
                     position: relative;
                     border-radius: 4px;
                     overflow: hidden;
                     cursor: pointer;
-                    height: 0;
-                    padding-bottom: 75%; /* Create square thumbnails */
+                    width: 150px;
+                    height: 150px;
                     background-color: #1a1a1a;
                     transition: transform 0.2s;
+                    border: 2px solid transparent;
                 }
                 
                 .thumbnail:hover {
                     transform: scale(1.05);
                 }
                 
+                .thumbnail.active {
+                    border-color: #ffeb3b;
+                }
+                
                 .thumbnail img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+                
+                .thumbnail-label {
                     position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    background-color: rgba(0, 0, 0, 0.7);
+                    color: #fff;
+                    padding: 5px;
+                    font-size: 12px;
+                    text-align: center;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+                
+                /* Mobile styles */
+                @media (max-width: 768px) {
+                    .modal-content {
+                        width: 95%;
+                        margin: 15px auto;
+                    }
+                    
+                    .main-carousel-container {
+                        height: 60%;
+                    }
+                    
+                    .thumbnails-scroll-container {
+                        height: 40%;
+                    }
+                    
+                    .thumbnail {
+                        width: 120px;
+                        height: 120px;
+                    }
+                }
+                
+                @media (max-width: 576px) {
+                    .modal-content {
+                        margin: 10px auto;
+                    }
+                    
+                    .main-carousel-container {
+                        height: 55%;
+                    }
+                    
+                    .thumbnails-scroll-container {
+                        height: 45%;
+                    }
+                    
+                    .thumbnail {
+                        width: 100px;
+                        height: 100px;
+                    }
+                }
+                
+                /* Fullscreen view styles */
+                .fullscreen-view {
+                    position: fixed;
                     top: 0;
                     left: 0;
                     width: 100%;
                     height: 100%;
-                    object-fit: cover;
+                    background-color: rgba(0, 0, 0, 0.95);
+                    z-index: 3000;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+                
+                .fullscreen-image-container {
+                    position: relative;
+                    width: 90%;
+                    height: 90%;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+                
+                .fullscreen-image {
+                    max-width: 100%;
+                    max-height: 100%;
+                    object-fit: contain;
+                }
+                
+                .fullscreen-close {
+                    position: absolute;
+                    top: 20px;
+                    right: 20px;
+                    background: rgba(0, 0, 0, 0.8);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    color: white;
+                    font-size: 24px;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    z-index: 10007;
+                }
+                
+                .fullscreen-close:hover {
+                    background: #000;
+                    border-color: rgba(255, 255, 255, 0.4);
+                    transform: scale(1.1);
+                }
+                
+                /* Search results container */
+                .search-results-container {
+                    display: none;
+                    width: 100%;
+                    height: 100%;
+                    overflow-y: auto;
+                    background-color: #1a1a1a;
+                    border-radius: 4px;
+                    padding: 15px;
+                }
+                
+                .search-results-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 15px;
+                    color: #fff;
+                }
+                
+                .search-results-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                    gap: 15px;
+                }
+                
+                @media (max-width: 768px) {
+                    .search-results-grid {
+                        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                    }
+                }
+                
+                @media (max-width: 576px) {
+                    .search-results-grid {
+                        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                    }
                 }
             `;
             document.head.appendChild(modalStyles);
@@ -745,100 +1008,127 @@ document.addEventListener('DOMContentLoaded', function() {
             this.nextButton = this.modal.querySelector('.nav-button.next');
         },
         
+        initEvents() {
+            // Close modal button
+            const closeBtn = this.modal.querySelector('.close-modal');
+            closeBtn.addEventListener('click', () => {
+                this.closeModal();
+            });
+
+            // Close modal when clicking outside of content
+            this.modal.addEventListener('click', (e) => {
+                if (e.target === this.modal) {
+                    this.closeModal();
+                }
+            });
+
+            // Next button
+            const nextBtn = this.modal.querySelector('.nav-button.next');
+            nextBtn.addEventListener('click', () => {
+                this.showNextSlide();
+            });
+
+            // Previous button
+            const prevBtn = this.modal.querySelector('.nav-button.prev');
+            prevBtn.addEventListener('click', () => {
+                this.showPrevSlide();
+            });
+
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (this.modal.style.display === 'block') {
+                    if (e.key === 'Escape') {
+                        this.closeModal();
+                    } else if (e.key === 'ArrowLeft') {
+                        this.showPrevSlide();
+                    } else if (e.key === 'ArrowRight') {
+                        this.showNextSlide();
+                    }
+                }
+            });
+
+            // Fullscreen view for carousel images
+            this.carouselContainer.addEventListener('click', (e) => {
+                // Make sure we're actually clicking an image, not the container or error message
+                if (e.target.tagName === 'IMG' && e.target.classList.contains('carousel-image')) {
+                    const imgSrc = e.target.src;
+                    // Prevent event bubbling
+                    e.stopPropagation();
+                    // Open fullscreen view with explicit high z-index
+                    this.openFullscreenView(imgSrc);
+                }
+            });
+            
+            // Enable horizontal scrolling with mouse wheel for thumbnails
+            this.thumbnailsContainer.addEventListener('wheel', (e) => {
+                if (e.deltaY !== 0) {
+                    e.preventDefault();
+                    this.thumbnailsContainer.scrollLeft += e.deltaY;
+                }
+            });
+        },
+
         constructImagePath(imageName) {
             if (!imageName) {
                 console.error('FeaturedProducts: Empty image name provided to constructImagePath');
-                return 'images/default-thumbnail.jpg';
+                return null;
             }
             
-            // Check if image name already has extension
-            const hasExtension = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(imageName);
-            if (hasExtension) {
-                return `${this.directory}/${imageName}`;
+            // If the path is already a full path, return it
+            if (typeof imageName === 'object' && imageName.path) {
+                console.log('FeaturedProducts: Using provided full path:', imageName.path);
+                return imageName.path;
             }
             
-            // Handle special case for MBNA 2025 - use exact directory name from server
-            let categoryForPath = this.categoryName;
+            // If imageName is an object with name property
+            const filename = typeof imageName === 'object' ? imageName.name : imageName;
+            
+            // Handle special case for MBNA 2025
+            let categoryPath = this.categoryName;
             if (this.categoryName.toLowerCase() === 'mbna 2025') {
-                // Use exact directory name that exists on server
-                categoryForPath = 'MBNA_2025';
-                console.log('FeaturedProducts: Using exact server directory "MBNA_2025" for MBNA 2025 category');
-            }
-            // For other acronym categories, preserve capitalization
-            else if (/^mbna|^ibm|^hp|^ge/i.test(this.categoryName)) {
-                categoryForPath = this.categoryName.toUpperCase();
-                console.log('FeaturedProducts: Using uppercase for acronym category:', categoryForPath);
-            } else {
-                categoryForPath = this.categoryName.charAt(0).toUpperCase() + this.categoryName.slice(1);
+                categoryPath = 'MBNA_2025';
+            } else if (/^mbna|^ibm|^hp|^ge/i.test(this.categoryName)) {
+                categoryPath = this.categoryName.toUpperCase();
             }
             
-            // Use server-provided name if available
-            if (window.serverCategoryNames && window.serverCategoryNames[this.categoryName]) {
-                categoryForPath = window.serverCategoryNames[this.categoryName];
-                console.log('FeaturedProducts: Using server-provided category name:', categoryForPath);
-            }
-            
-            // Return base path without extension - loader will try different extensions
-            return `images/products/${categoryForPath}/${imageName}`;
+            // Construct the path
+            const path = `images/products/${categoryPath}/${filename}`;
+            console.log('FeaturedProducts: Constructed path:', path);
+            return path;
         },
         
         loadImages() {
-            // Clear containers first
-            this.carouselContainer.innerHTML = '';
-            this.thumbnailsContainer.innerHTML = '';
-            
-            // Add loading indicators
-            const carouselLoader = document.createElement('div');
-            carouselLoader.className = 'loading-indicator';
-            carouselLoader.innerHTML = '<div class="spinner"></div>';
-            this.carouselContainer.appendChild(carouselLoader);
-            
-            const thumbsLoader = document.createElement('div');
-            thumbsLoader.className = 'loading-indicator';
-            thumbsLoader.innerHTML = '<div class="spinner"></div>';
-            this.thumbnailsContainer.appendChild(thumbsLoader);
-            
-            // Log everything for debugging
-            console.log('FeaturedProducts: Loading images for category:', this.categoryName);
-            console.log('FeaturedProducts: Images array:', this.images);
-            console.log('FeaturedProducts: Directory:', this.directory);
+            console.log('FeaturedProducts: Loading images:', this.images.length);
             
             if (!this.images || this.images.length === 0) {
-                this.showError('No images available for this category');
+                console.error('FeaturedProducts: No images to load');
+                this.thumbnailsContainer.innerHTML = '<div class="no-images">No images found in this category.</div>';
                 return;
             }
-            
-            // Maintain "thumbnails first" approach - hide main carousel initially
-            this.mainCarouselContainer.style.display = 'none';
-            this.thumbnailsContainer.style.height = '100%';
-            this.modal.querySelector('.modal-body').style.flexDirection = 'column';
-            
-            // Process images
-            const imageObjects = [];
-            
-            // Create image objects first
-            this.images.forEach((imageName, index) => {
-                // Skip empty image names
-                if (!imageName) return;
+
+            // Create a collection of image objects for easier manipulation
+            const imageObjects = this.images.map(item => {
+                // If item is an object with path property, use it directly
+                if (typeof item === 'object' && item.path) {
+                    return {
+                        name: item.name,
+                        path: item.path,
+                        fullname: item.fullname
+                    };
+                }
                 
-                // Extract base name without extension for display
-                const baseName = typeof imageName === 'string' ? 
-                    imageName.replace(/\.[^/.]+$/, '') : 
-                    imageName;
-                
-                // Get the base path without extension
-                const basePath = this.constructImagePath(imageName);
-                
-                const imageObj = {
-                    name: baseName,
-                    basePath: basePath,
-                    fullPath: basePath, // Will be updated with extension in the loader
-                    thumbPath: basePath // Will be updated with extension in the loader
+                // Otherwise construct the path
+                const name = typeof item === 'string' ? item : item.name;
+                return {
+                    name: name,
+                    path: this.constructImagePath(item),
+                    fullname: name
                 };
-                
-                imageObjects.push(imageObj);
             });
-            
+
+            // Store all images for reference
+            this.allImages = imageObjects;
+
             // Create carousel items
             this.carouselContainer.innerHTML = '';
             imageObjects.forEach((imageObj, index) => {
@@ -849,35 +1139,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 img.alt = imageObj.name;
                 img.className = 'carousel-image';
                 
-                // Choose extensions based on category - MBNA_2025 uses PNGs primarily
-                const extensions = this.categoryName.toLowerCase() === 'mbna 2025' || 
-                                   this.categoryName === 'MBNA_2025' ? 
-                                   ['png', 'jpg'] : ['jpg', 'png'];
-                
-                // Try first extension
-                img.onerror = () => {
-                    console.log(`FeaturedProducts: Failed to load ${extensions[0]}, trying ${extensions[1]}`);
-                    const secondPath = `${imageObj.basePath}.${extensions[1]}`;
-                    
-                    // Try second extension
-                    img.onerror = () => {
-                        console.error(`FeaturedProducts: Failed to load both ${extensions[0]} and ${extensions[1]}`);
-                        img.src = 'images/default-thumbnail.jpg';
-                        
-                        // Show error message
-                        const errorOverlay = document.createElement('div');
-                        errorOverlay.className = 'image-error-overlay';
-                        errorOverlay.innerHTML = `<span>Image not found: ${imageObj.name}</span>`;
-                        slide.appendChild(errorOverlay);
-                    };
-                    
-                    img.src = secondPath;
+                // Set up load and error handlers
+                img.onload = () => {
+                    console.log(`Image loaded successfully: ${img.src}`);
                 };
                 
-                // Set the first extension to try
-                img.src = `${imageObj.basePath}.${extensions[0]}`;
-                // Update the object with the path we're trying first
-                imageObj.fullPath = img.src;
+                img.onerror = () => {
+                    console.error(`Failed to load image: ${img.src}`);
+                    // Try without /products/ in path
+                    const simplifiedPath = img.src.replace('/products/', '/');
+                    if (img.src !== simplifiedPath) {
+                        console.log(`Trying simplified path: ${simplifiedPath}`);
+                        img.src = simplifiedPath;
+                    } else {
+                        img.src = 'images/default-thumbnail.jpg';
+                    }
+                };
+                
+                // Set image source
+                img.src = imageObj.path;
                 
                 slide.appendChild(img);
                 this.carouselContainer.appendChild(slide);
@@ -887,93 +1167,93 @@ document.addEventListener('DOMContentLoaded', function() {
             this.thumbnailsContainer.innerHTML = '';
             imageObjects.forEach((imageObj, index) => {
                 const thumbContainer = document.createElement('div');
-                thumbContainer.className = 'thumbnail';
+                thumbContainer.className = `thumbnail ${index === 0 ? 'active' : ''}`;
                 thumbContainer.dataset.index = index;
                 
                 const thumb = document.createElement('img');
                 thumb.alt = imageObj.name;
                 
-                // Choose extensions based on category - MBNA_2025 uses PNGs primarily
-                const extensions = this.categoryName.toLowerCase() === 'mbna 2025' || 
-                                   this.categoryName === 'MBNA_2025' ? 
-                                   ['png', 'jpg'] : ['jpg', 'png'];
-                
-                // Try first extension
-                thumb.onerror = () => {
-                    console.log(`FeaturedProducts: Failed to load thumbnail ${extensions[0]}, trying ${extensions[1]}`);
-                    const secondPath = `${imageObj.basePath}.${extensions[1]}`;
-                    
-                    // Try second extension
-                    thumb.onerror = () => {
-                        console.error(`FeaturedProducts: Failed to load both ${extensions[0]} and ${extensions[1]} thumbnails`);
-                        thumb.src = 'images/default-thumbnail.jpg';
-                    };
-                    
-                    thumb.src = secondPath;
+                // Set up load and error handlers for thumbnail
+                thumb.onload = () => {
+                    console.log(`Thumbnail loaded successfully: ${thumb.src}`);
                 };
                 
-                // Set the first extension to try
-                thumb.src = `${imageObj.basePath}.${extensions[0]}`;
-                // Update the object with the path we're trying
-                imageObj.thumbPath = thumb.src;
+                thumb.onerror = () => {
+                    console.error(`Failed to load thumbnail: ${thumb.src}`);
+                    // Try without /products/ in path
+                    const simplifiedPath = thumb.src.replace('/products/', '/');
+                    if (thumb.src !== simplifiedPath) {
+                        console.log(`Trying simplified path: ${simplifiedPath}`);
+                        thumb.src = simplifiedPath;
+                    } else {
+                        thumb.src = 'images/default-thumbnail.jpg';
+                    }
+                };
                 
-                // Add click event to show the main carousel view
+                // Set thumbnail source
+                thumb.src = imageObj.path;
+                
+                thumbContainer.appendChild(thumb);
+                
+                // Add name label
+                const label = document.createElement('div');
+                label.className = 'thumbnail-label';
+                label.textContent = imageObj.name.replace(/\.[^/.]+$/, '');
+                thumbContainer.appendChild(label);
+                
+                // Add click event handler
                 thumbContainer.addEventListener('click', (e) => {
                     e.preventDefault();
-                    e.stopPropagation();  // Prevent event from bubbling up
+                    e.stopPropagation();
                     
                     console.log(`FeaturedProducts: Showing slide ${index} from thumbnail click`);
                     
-                    // When clicking a thumbnail, switch to the corresponding full image
-                    this.mainCarouselContainer.style.display = 'block';
-                    this.thumbnailsContainer.style.height = '35%';
+                    const allThumbs = this.thumbnailsContainer.querySelectorAll('.thumbnail');
+                    allThumbs.forEach(t => t.classList.remove('active'));
+                    thumbContainer.classList.add('active');
                     
-                    // Make sure the layout positions the thumbnails at the bottom and carousel at the top
-                    this.modal.querySelector('.modal-body').style.flexDirection = 'column-reverse';
-                    
-                    // Show the correct slide
+                    thumbContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
                     this.showSlide(index);
                 });
                 
-                thumbContainer.appendChild(thumb);
                 this.thumbnailsContainer.appendChild(thumbContainer);
             });
             
-            console.log('FeaturedProducts: Images loaded for category:', this.categoryName);
-        },
-        
-        showError(message) {
-            // Show error in both containers
-            this.carouselContainer.innerHTML = `<div class="error-message">${message}</div>`;
-            this.thumbnailsContainer.innerHTML = `<div class="error-message">${message}</div>`;
-            console.error('FeaturedProducts Error:', message);
+            // Update modal title with image count
+            const modalTitle = this.modal.querySelector('.modal-header h2');
+            modalTitle.textContent = `${this.categoryName.replace(/_/g, ' ')} Collection (${this.images.length} Designs)`;
         },
         
         fetchImages(category) {
-            // Remove extension filter to allow all image types
-            return fetch(`get_directory_files.php?directory=${encodeURIComponent(this.directory)}`)
-                .then(response => response.json())
+            const apiUrl = `get_directory_files.php?directory=${encodeURIComponent(this.directory)}`;
+            console.log('Fetching:', apiUrl);
+            
+            return fetch(apiUrl)
+                .then(response => response.text())
+                .then(text => {
+                    console.log('Raw API response:', text);
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        console.error('Failed to parse API response:', e);
+                        throw new Error('Invalid API response');
+                    }
+                })
                 .then(data => {
-                    if (data.success && data.files.length > 0) {
+                    console.log('Parsed data:', data);
+                    if (data.success && data.files && data.files.length > 0) {
                         console.log('Featured Products API Response:', data);
-                        
-                        // Process files to normalize format
-                        this.images = data.files.map(file => {
-                            // If file is an object with a name property
-                            if (typeof file === 'object' && file !== null && file.name) {
-                                return file.name;
-                            }
-                            // If file is a string
-                            return file;
-                        });
-                        
-                        // Update modal title with image count
-                        const modalTitle = this.modal.querySelector('.modal-header h2');
-                        modalTitle.textContent = `${category.replace(/_/g, ' ')} Collection (${this.images.length} Designs)`;
+                        this.images = data.files;
+                        this.loadImages();
                     } else {
                         console.error('Error loading images:', data.error || 'No images found');
                         throw new Error('Error loading images');
                     }
+                })
+                .catch(error => {
+                    console.error('Failed to fetch images:', error);
+                    this.carouselContainer.innerHTML = '<div class="error-message">Failed to load images. Please try again later.</div>';
+                    this.thumbnailsContainer.innerHTML = '';
                 });
         },
         
@@ -1039,7 +1319,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const index = parseInt(e.target.getAttribute('data-index'));
                     this.openFullscreen(index);
                 } else if (e.target.matches('.modal-close') || e.target.matches('.modal-backdrop')) {
-                    this.close();
+                    this.closeModal();
                 }
             });
             
@@ -1051,7 +1331,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else if (e.key === 'ArrowRight') {
                         this.showNextSlide();
                     } else if (e.key === 'Escape') {
-                        this.close();
+                        this.closeModal();
                     }
                 }
             });
@@ -1091,90 +1371,95 @@ document.addEventListener('DOMContentLoaded', function() {
             this.categoryName = category;
             this.directory = `images/products/${categoryForPath}`;
             
-            // Check if we have images already or need to fetch them
-            if (this.allImages.length === 0) {
-                console.log('FeaturedProducts: Fetching images for category:', category);
-                this.fetchImages(category)
-                    .then(data => {
-                        this.images = data.map(item => {
-                            // Handle image paths
-                            const basePath = this.constructImagePath(item);
-                            return {
-                                name: item,
-                                basePath: basePath
-                            };
-                        });
-                        
-                        // Display the modal with images
-                        this.modal.style.display = 'block';
-                        document.body.style.overflow = 'hidden';
-                        document.getElementById('featured-products-modal-title').textContent = `${this.categoryName} Collection`;
-                        
-                        // Reset to show only thumbnails initially (thumbnails-first approach)
-                        this.mainCarouselContainer.style.display = 'none';
-                        this.thumbnailsContainer.style.display = 'grid';
-                        this.thumbnailsContainer.style.height = '100%';
-                        this.modal.querySelector('.modal-body').style.flexDirection = 'column';
-                        
-                        // Load the images
-                        this.loadImages();
-                    })
-                    .catch(error => {
-                        console.error('FeaturedProducts: Error fetching images:', error);
-                        this.showError('Failed to load images. Please try again later.');
-                    });
-            } else {
-                // We already have images loaded, just open the modal
-                this.modal.style.display = 'block';
-                document.body.style.overflow = 'hidden';
-                document.getElementById('featured-products-modal-title').textContent = `${this.categoryName} Collection`;
-                
-                // Reset to show only thumbnails initially (thumbnails-first approach)
-                this.mainCarouselContainer.style.display = 'none';
-                this.thumbnailsContainer.style.display = 'grid';
-                this.thumbnailsContainer.style.height = '100%';
-                this.modal.querySelector('.modal-body').style.flexDirection = 'column';
+            // Reset search state if active
+            if (this.searchResultsContainer) {
+                this.searchResultsContainer.style.display = 'none';
             }
+            
+            // Display the modal
+            this.modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            
+            // Set modal title
+            const modalTitle = document.getElementById('featured-products-modal-title');
+            if (modalTitle) {
+                modalTitle.textContent = `${this.categoryName.replace(/_/g, ' ')} Collection`;
+            }
+            
+            // Clear current images
+            this.images = [];
+            this.allImages = [];
+            this.currentImageIndex = 0;
+            
+            // Show loading indicators
+            this.carouselContainer.innerHTML = '<div class="loading-spinner"><div class="spinner"></div><div>Loading images...</div></div>';
+            this.thumbnailsContainer.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+            
+            // Fetch images from the server
+            this.fetchImages(category)
+                .then(data => {
+                    this.images = data;
+                    this.loadImages();
+                })
+                .catch(error => {
+                    console.error('FeaturedProducts: Error fetching images:', error);
+                    this.carouselContainer.innerHTML = '<div class="error-message">Error loading images. Please try again later.</div>';
+                    this.thumbnailsContainer.innerHTML = '<div class="error-message">Error loading images. Please try again later.</div>';
+                });
         },
         
         showSlide(index) {
-            // Update current index
-            this.currentIndex = index;
+            if (!this.carouselContainer) {
+                console.error('FeaturedProducts: Carousel container not found');
+                return;
+            }
             
-            // Remove active class from all slides
             const slides = this.carouselContainer.querySelectorAll('.main-carousel-slide');
-            slides.forEach(slide => slide.classList.remove('active'));
-            
-            // Add active class to selected slide
-            if (slides[index]) {
-                slides[index].classList.add('active');
+            if (slides.length === 0) {
+                console.error('FeaturedProducts: No slides found');
+                return;
             }
             
-            // Update active state on thumbnails
-            const thumbs = this.thumbnailsContainer.querySelectorAll('.thumbnail');
-            thumbs.forEach(thumb => thumb.classList.remove('active'));
-            
-            if (thumbs[index]) {
-                thumbs[index].classList.add('active');
-                
-                // Scroll thumbnail into view if needed
-                thumbs[index].scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'nearest',
-                    inline: 'nearest'
-                });
+            // Validate index
+            if (index < 0) {
+                index = slides.length - 1;
+            } else if (index >= slides.length) {
+                index = 0;
             }
             
-            console.log('FeaturedProducts: Showing slide', index);
+            // Update current index
+            this.currentImageIndex = index;
+            
+            // Hide all slides
+            slides.forEach(slide => {
+                slide.classList.remove('active');
+            });
+            
+            // Show the current slide
+            slides[index].classList.add('active');
+            
+            // Update active thumbnail
+            const thumbnails = this.thumbnailsContainer.querySelectorAll('.thumbnail');
+            thumbnails.forEach((thumb, idx) => {
+                if (idx === index) {
+                    thumb.classList.add('active');
+                    // Scroll the thumbnail into view if it's not visible
+                    thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                } else {
+                    thumb.classList.remove('active');
+                }
+            });
+            
+            console.log(`FeaturedProducts: Showing slide ${index}`);
         },
-
+        
         showPrevSlide() {
-            const newIndex = (this.currentIndex - 1 + this.images.length) % this.images.length;
+            const newIndex = (this.currentImageIndex - 1 + this.images.length) % this.images.length;
             this.showSlide(newIndex);
         },
 
         showNextSlide() {
-            const newIndex = (this.currentIndex + 1) % this.images.length;
+            const newIndex = (this.currentImageIndex + 1) % this.images.length;
             this.showSlide(newIndex);
         },
 
@@ -1259,14 +1544,70 @@ document.addEventListener('DOMContentLoaded', function() {
             }.bind(this));
         },
         
-        close() {
+        openFullscreenView(imgSrc) {
+            // Create fullscreen container
+            const fullscreenView = document.createElement('div');
+            fullscreenView.className = 'fullscreen-view';
+            
+            // Create image container
+            const imgContainer = document.createElement('div');
+            imgContainer.className = 'fullscreen-image-container';
+            
+            // Create image element
+            const img = document.createElement('img');
+            img.className = 'fullscreen-image';
+            img.src = imgSrc;
+            
+            // Create close button
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'fullscreen-close';
+            closeBtn.innerHTML = '&times;';
+            closeBtn.addEventListener('click', () => {
+                document.body.removeChild(fullscreenView);
+            });
+            
+            // Add everything to the DOM
+            imgContainer.appendChild(img);
+            fullscreenView.appendChild(imgContainer);
+            fullscreenView.appendChild(closeBtn);
+            
+            // Ensure the fullscreen view is rendered at the very top level of the DOM
+            // This prevents any z-index conflicts with nested containers
+            document.body.appendChild(fullscreenView);
+            
+            // Explicitly set high z-index to ensure it's above everything
+            fullscreenView.style.zIndex = '10000';
+            closeBtn.style.zIndex = '10001';
+            
+            // Close on click outside the image
+            fullscreenView.addEventListener('click', (e) => {
+                if (e.target === fullscreenView) {
+                    document.body.removeChild(fullscreenView);
+                }
+            });
+            
+            // Close on escape key
+            const escKeyHandler = (e) => {
+                if (e.key === 'Escape') {
+                    document.body.removeChild(fullscreenView);
+                    document.removeEventListener('keydown', escKeyHandler);
+                }
+            };
+            document.addEventListener('keydown', escKeyHandler);
+        },
+        
+        closeModal() {
             this.modal.style.display = 'none';
             document.body.style.overflow = '';
-            // Remove any open fullscreen views
-            const fullscreenView = document.querySelector('.fullscreen-view');
-            if (fullscreenView) {
-                fullscreenView.remove();
-            }
+            
+            // Clear data to free memory
+            this.images = [];
+            this.allImages = [];
+            this.currentImageIndex = 0;
+            
+            // Clear containers
+            this.carouselContainer.innerHTML = '';
+            this.thumbnailsContainer.innerHTML = '';
         },
         
         handleSearch(query) {
@@ -1337,27 +1678,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 const img = document.createElement('img');
                 img.alt = item.name;
                 
-                // Choose extensions based on category - MBNA_2025 uses PNGs primarily
-                const extensions = this.categoryName.toLowerCase() === 'mbna 2025' || 
-                                   this.categoryName === 'MBNA_2025' ? 
-                                   ['png', 'jpg'] : ['jpg', 'png'];
+                // Use the path from API response if available
+                if (item.path) {
+                    img.src = item.path;
+                } else {
+                    img.src = this.constructImagePath(item);
+                }
                 
-                // Set up error handling for first extension
+                // Add error handler
                 img.onerror = () => {
-                    console.log(`Search: Failed to load ${extensions[0]}, trying ${extensions[1]}`);
-                    const altPath = `${item.basePath}.${extensions[1]}`;
-                    
-                    // Set up final error handler
-                    img.onerror = () => {
-                        console.error(`Search: Failed to load with both extensions`);
-                        img.src = 'images/default-thumbnail.jpg';
-                    };
-                    
-                    img.src = altPath;
+                    console.error(`Failed to load image: ${img.src}`);
+                    img.src = 'images/default-thumbnail.jpg';
                 };
                 
-                // Set initial image source
-                img.src = `${item.basePath}.${extensions[0]}`;
                 thumbnail.appendChild(img);
                 
                 // Add name label
@@ -1412,35 +1745,19 @@ document.addEventListener('DOMContentLoaded', function() {
             img.alt = item.name;
             img.className = 'carousel-image';
             
-            // Choose extensions based on category
-            const extensions = this.categoryName.toLowerCase() === 'mbna 2025' || 
-                              this.categoryName === 'MBNA_2025' ? 
-                              ['png', 'jpg'] : ['jpg', 'png'];
+            // Use the path from API response if available
+            if (item.path) {
+                img.src = item.path;
+            } else {
+                img.src = this.constructImagePath(item);
+            }
             
-            // Set up error handling
+            // Add error handler
             img.onerror = () => {
-                console.log(`Search: Failed to load full image ${extensions[0]}, trying ${extensions[1]}`);
-                const altPath = `${item.basePath}.${extensions[1]}`;
-                
-                img.onerror = () => {
-                    console.error(`Search: Failed to load full image with both extensions`);
-                    img.src = 'images/default-thumbnail.jpg';
-                    
-                    // Show error message
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'image-error-container';
-                    errorDiv.innerHTML = `
-                        <div class="image-error-icon">⚠️</div>
-                        <div class="image-error-text">Image not found: ${item.name}</div>
-                    `;
-                    slide.appendChild(errorDiv);
-                };
-                
-                img.src = altPath;
+                console.error(`Failed to load image: ${img.src}`);
+                img.src = 'images/default-thumbnail.jpg';
             };
             
-            // Set initial source
-            img.src = `${item.basePath}.${extensions[0]}`;
             slide.appendChild(img);
             this.carouselContainer.appendChild(slide);
             
