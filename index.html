@@ -278,6 +278,10 @@
 
     <link rel="stylesheet" href="css/carousel.css">
 
+    <!-- Add these in the <head> section -->
+    <link rel="preload" as="image" href="images/video-poster-optimized.jpg">
+    <link rel="preload" as="video" href="path/to/your/video.mp4" type="video/mp4">
+
 </head>
 
 <body>
@@ -340,11 +344,12 @@
                 <section class="video-container">
                     <video 
                         id="hero-video"
-                        poster="images/video-poster.jpg"
+                        poster="images/video-poster-optimized.jpg"
                         playsinline 
                         muted
                         loop
                         autoplay
+                        preload="auto"
                         width="1920"
                         height="1080">
                         <source 

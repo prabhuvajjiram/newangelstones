@@ -1,3 +1,16 @@
+// Add this at the beginning of main.js, before any other code
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 // Initialize video immediately when page loads
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize hero video
@@ -49,6 +62,40 @@ document.addEventListener('DOMContentLoaded', function() {
             img.src = '';
             observer.observe(img);
         });
+    }
+
+    const heroVideo = document.getElementById('hero-video');
+    if (heroVideo) {
+        // Optimize video loading
+        heroVideo.style.opacity = '0';
+        heroVideo.style.transition = 'opacity 0.3s ease';
+
+        // Show video when poster is loaded
+        const posterImage = new Image();
+        posterImage.onload = function() {
+            heroVideo.style.opacity = '1';
+        };
+        posterImage.src = heroVideo.poster;
+
+        // Optimize playback
+        heroVideo.addEventListener('loadeddata', function() {
+            heroVideo.play().catch(function(error) {
+                console.log("Auto-play prevented:", error);
+            });
+        }, { once: true });
+
+        // Reduce quality on mobile
+        function adjustVideoQuality() {
+            if (window.innerWidth <= 768) {
+                heroVideo.setAttribute('poster', 'images/video-poster-mobile.jpg');
+            } else {
+                heroVideo.setAttribute('poster', 'images/video-poster-optimized.jpg');
+            }
+        }
+
+        // Listen for resize events
+        window.addEventListener('resize', debounce(adjustVideoQuality, 250));
+        adjustVideoQuality();
     }
 });
 
