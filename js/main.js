@@ -13,9 +13,64 @@ function debounce(func, wait) {
 
 // Initialize video immediately when page loads
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize hero video
-    initHeroVideo();
+    const video = document.getElementById('hero-video');
+    const container = document.querySelector('.video-container');
+    const posterImage = document.querySelector('.poster-image');
     
+    if (!video || !container) return;
+
+    // Function to start video
+    function startVideo() {
+        if (video.paused) {
+            video.style.opacity = '1';
+            const playPromise = video.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.catch(function(error) {
+                    console.log("Video autoplay failed:", error);
+                    // Show poster image if video fails to play
+                    if (posterImage) {
+                        posterImage.style.display = 'block';
+                    }
+                });
+            }
+        }
+    }
+
+    // Function to handle video loading
+    function handleVideoLoad() {
+        // Hide poster image when video starts playing
+        if (posterImage) {
+            posterImage.style.display = 'none';
+        }
+        
+        // Start video playback
+        startVideo();
+    }
+
+    // Add event listeners for video
+    video.addEventListener('loadeddata', handleVideoLoad);
+    video.addEventListener('canplay', handleVideoLoad);
+    video.addEventListener('error', function(e) {
+        console.error("Video loading error:", e);
+        // Show poster image if video fails to load
+        if (posterImage) {
+            posterImage.style.display = 'block';
+        }
+    });
+
+    // Try to start video immediately
+    startVideo();
+
+    // Fallback: If video hasn't started after 3 seconds, show poster
+    setTimeout(() => {
+        if (video.paused) {
+            if (posterImage) {
+                posterImage.style.display = 'block';
+            }
+        }
+    }, 3000);
+
     // Factory image loading
     const factoryImage = document.querySelector('.factory-image');
     if (factoryImage) {
@@ -64,87 +119,98 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    const heroVideo = document.getElementById('hero-video');
-    if (heroVideo) {
-        // Optimize video loading
-        heroVideo.style.opacity = '0';
-        heroVideo.style.transition = 'opacity 0.3s ease';
-
-        // Show video when poster is loaded
-        const posterImage = new Image();
-        posterImage.onload = function() {
-            heroVideo.style.opacity = '1';
-        };
-        posterImage.src = heroVideo.poster;
-
-        // Optimize playback
-        heroVideo.addEventListener('loadeddata', function() {
-            heroVideo.play().catch(function(error) {
-                console.log("Auto-play prevented:", error);
+    // Load video after important content
+    let videoLoadTimer;
+    
+    function loadVideo() {
+        // Clear any existing timer
+        if (videoLoadTimer) clearTimeout(videoLoadTimer);
+        
+        videoLoadTimer = setTimeout(() => {
+            // Start loading the video
+            video.preload = 'auto';
+            
+            // Wait for video to be loaded enough to play
+            video.addEventListener('loadeddata', function onVideoLoad() {
+                startVideo();
+                video.removeEventListener('loadeddata', onVideoLoad);
             });
-        }, { once: true });
-
-        // Reduce quality on mobile
-        function adjustVideoQuality() {
-            if (window.innerWidth <= 768) {
-                heroVideo.setAttribute('poster', 'images/video-poster-mobile.jpg');
-            } else {
-                heroVideo.setAttribute('poster', 'images/video-poster-optimized.jpg');
-            }
-        }
-
-        // Listen for resize events
-        window.addEventListener('resize', debounce(adjustVideoQuality, 250));
-        adjustVideoQuality();
+            
+            // Fallback if video takes too long
+            setTimeout(() => {
+                if (video.readyState >= 3) {
+                    startVideo();
+                }
+            }, 1000);
+        }, 1000); // Delay video loading by 1s after page load
     }
+
+    // Use Intersection Observer to load video when container is visible
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                loadVideo();
+                observer.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.1
+    });
+
+    observer.observe(container);
+
+    // Optimize playback
+    video.addEventListener('loadeddata', function() {
+        video.play().catch(function(error) {
+            console.log("Auto-play prevented:", error);
+        });
+    }, { once: true });
+
+    // Reduce quality on mobile
+    function adjustVideoQuality() {
+        if (window.innerWidth <= 768) {
+            video.setAttribute('poster', 'images/video-poster-mobile.jpg');
+        } else {
+            video.setAttribute('poster', 'images/video-poster-optimized.jpg');
+        }
+    }
+
+    // Listen for resize events
+    window.addEventListener('resize', debounce(adjustVideoQuality, 250));
+    adjustVideoQuality();
 });
 
 // Simple function to initialize hero video
 function initHeroVideo() {
-    // Get hero video element
     const video = document.getElementById('hero-video');
-    const playBtn = document.getElementById('manual-play-btn');
+    const container = video.closest('.video-container');
     
-    if (!video) {
-        console.error('Hero video element not found');
-        return;
-    }
-    
-    // Make sure video properties are set
-    video.muted = true;
-    video.playsInline = true;
-    video.loop = true;
-    
-    // Load the video
-    try {
+    if (video && container) {
+        // Check if video can play
+        const canPlay = video.canPlayType('video/mp4');
+        
+        if (canPlay === '') {
+            // Video format not supported
+            container.classList.add('fallback');
+            return;
+        }
+        
+        // Video can play
+        video.addEventListener('canplay', function() {
+            container.classList.add('video-loaded');
+        });
+        
+        // Handle video loading
         video.load();
         
-        // Try to play the video
-        const playPromise = video.play();
-        
-        if (playPromise !== undefined) {
-            playPromise.then(() => {
-            }).catch(error => {
-                console.error('Autoplay prevented:', error);
-                
-                // Show play button if available
-                if (playBtn) {
-                    playBtn.style.display = 'block';
-                    video.classList.add('needs-user-action');
-                    
-                    // Add click event to play button
-                    playBtn.addEventListener('click', function() {
-                        video.play()
-                            .then(() => {
-                                playBtn.style.display = 'none';
-                                video.classList.remove('needs-user-action');
-                            })
-                            .catch(err => console.error('Still cannot play video:', err));
-                    });
-                }
+        // Force play on mobile
+        document.addEventListener('touchstart', function() {
+            video.play().catch(function(error) {
+                console.log("Mobile autoplay failed:", error);
             });
-        }
-    } catch (error) {
-        console.error('Error setting up video:', error);
+        }, { once: true });
     }
 }
+
+// Call the function when document is ready
+document.addEventListener('DOMContentLoaded', initHeroVideo);
