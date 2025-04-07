@@ -1,0 +1,53 @@
+/* Add these performance optimizations to your existing CSS */
+img {
+    backface-visibility: hidden; /* Optimize GPU rendering */
+}
+
+.thumbnail-item img {
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Add these optimizations for the video container */
+.video-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    background: #000; /* Placeholder color while loading */
+}
+
+#hero-video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    will-change: transform;
+    backface-visibility: hidden;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .video-container {
+        height: 60vh;
+    }
+    
+    #hero-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+} 

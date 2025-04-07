@@ -686,4 +686,27 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, { passive: true });
     }
+
+    // Simple lazy loading for images
+    const images = document.querySelectorAll('img');
+    
+    if ('loading' in HTMLImageElement.prototype) {
+        // Use native lazy loading
+        images.forEach(img => {
+            if (!img.hasAttribute('loading')) {
+                img.loading = 'lazy';
+            }
+        });
+    }
+
+    // Simple performance optimization for scroll events
+    let ticking = false;
+    document.addEventListener('scroll', function() {
+        if (!ticking) {
+            window.requestAnimationFrame(function() {
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }, { passive: true });
 });
