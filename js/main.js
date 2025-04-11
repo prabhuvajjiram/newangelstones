@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     factoryImage.classList.remove('loading');
                     factoryImage.classList.add('loaded');
                 });
-    
+                
                 // Handle image errors
                 img.addEventListener('error', function() {
                     // Still remove loading class but add error class

@@ -1,0 +1,202 @@
+/* Critical mobile CSS for Angel Stones 
+   Extracted from the main stylesheet, only includes above-the-fold styles for mobile */
+
+/* Base styles */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  font-family: 'Didact Gothic', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  color: #555;
+  background-color: #fff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 500;
+}
+
+/* Hero video section */
+.hero-video {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 480px;
+  max-height: 780px;
+  overflow: hidden;
+  background-color: #111;
+}
+
+.video-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.video-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1;
+}
+
+.poster-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+#hero-video {
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+}
+
+.video-container .content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 0 15px;
+  color: #fff;
+}
+
+.video-container .content h1 {
+  font-size: 2.4rem;
+  margin: 0 0 10px;
+  letter-spacing: 2px;
+}
+
+.video-container .established-by {
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+.video-container .tagline {
+  font-size: 1.1rem;
+  font-style: italic;
+  margin-bottom: 15px;
+}
+
+.video-container .desc {
+  margin-bottom: 25px;
+}
+
+.video-container .button {
+  display: inline-block;
+  padding: 10px 25px;
+  border: 2px solid #fff;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.video-container .button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Navigation */
+.as-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 15px 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 999;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.as-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 15px;
+}
+
+.as-navbar-brand img {
+  height: 45px;
+  width: auto;
+}
+
+.hamburger {
+  display: block;
+  cursor: pointer;
+  padding: 10px;
+  z-index: 1100;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .video-container .content h1 {
+    font-size: 2rem;
+  }
+  
+  .video-container .established-by,
+  .video-container .tagline {
+    font-size: 0.9rem;
+  }
+  
+  .video-container .button {
+    padding: 8px 20px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-video {
+    max-height: 600px;
+  }
+  
+  .video-container .content h1 {
+    font-size: 1.7rem;
+  }
+}
+
+/* Loading state animations */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Promotion banner */
+.promotion-banner {
+  background-color: #262626;
+  color: white;
+  text-align: center;
+  padding: 8px 15px;
+  font-size: 0.9rem;
+  position: relative;
+  z-index: 1000;
+}
+
+.promotion-banner a {
+  color: white;
+  text-decoration: underline;
+}

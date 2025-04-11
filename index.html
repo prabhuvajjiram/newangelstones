@@ -95,85 +95,136 @@
       #our-product {
         contain: layout style paint;
       }
-      
-      .products-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            padding: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .product-card {
-            background: #333;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        
-        .product-image {
-            position: relative;
-            width: 100%;
-            height: 400px;
-            background: #2a2a2a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .product-img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            padding: 20px;
-        }
-        
-        .carousel-nav {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 40px;
-            height: 40px;
-            background: rgba(0, 0, 0, 0.7);
-            border: none;
-            border-radius: 50%;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            z-index: 2;
-        }
-        
-        .carousel-prev { left: 10px; }
-        .carousel-next { right: 10px; }
-        
-        .product-details {
-            padding: 20px;
-        }
-        
-        .product-title {
-            color: white;
-            margin: 0 0 10px 0;
-            font-size: 1.5rem;
-        }
-        
-        .product-description {
-            color: #aaa;
-            margin: 0;
-        }
-        
-        @media (max-width: 992px) {
-            .products-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        @media (max-width: 576px) {
-            .products-grid {
-                grid-template-columns: 1fr;
-            }
-        }
     </style>
+    
+    <!-- Critical Mobile CSS - Inlined for faster mobile rendering -->
+    <style id="critical-mobile-css">
+      /* Critical mobile CSS for quick rendering on small screens */
+      @media (max-width: 768px) {
+        /* Base styles */
+        html, body {
+          margin: 0;
+          padding: 0;
+          overflow-x: hidden;
+          font-family: 'Didact Gothic', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+          color: #555;
+          background-color: #fff;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
 
+        /* Hero video section */
+        .hero-video {
+          position: relative;
+          width: 100%;
+          height: 100vh;
+          min-height: 480px;
+          max-height: 600px;
+          overflow: hidden;
+          background-color: #111;
+        }
+
+        .video-container {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+
+        .video-container::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.4);
+          z-index: 1;
+        }
+
+        .poster-image {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 0;
+        }
+
+        .video-container .content {
+          position: relative;
+          z-index: 2;
+          text-align: center;
+          padding: 0 15px;
+          color: #fff;
+        }
+
+        .video-container .content h1 {
+          font-size: 1.7rem;
+          margin: 0 0 10px;
+          letter-spacing: 1px;
+        }
+
+        .video-container .established-by,
+        .video-container .tagline {
+          font-size: 0.9rem;
+          margin-bottom: 10px;
+        }
+
+        .video-container .button {
+          display: inline-block;
+          padding: 8px 20px;
+          border: 2px solid #fff;
+          color: #fff;
+          text-decoration: none;
+          font-weight: 500;
+          font-size: 0.9rem;
+          transition: all 0.3s ease;
+        }
+
+        /* Navigation */
+        .as-header {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          padding: 10px 0;
+          background: rgba(0, 0, 0, 0.8);
+          z-index: 999;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+        }
+
+        .as-navbar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 15px;
+        }
+
+        .as-navbar-brand img {
+          height: 40px;
+          width: auto;
+        }
+
+        /* Promotion banner */
+        .promotion-banner {
+          background-color: #262626;
+          color: white;
+          text-align: center;
+          padding: 8px 15px;
+          font-size: 0.85rem;
+          position: relative;
+          z-index: 1000;
+        }
+      }
+    </style>
+    
     <!-- Async load full font families -->
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Didact+Gothic&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
     <noscript>
@@ -363,10 +414,15 @@
                     <!-- Optimized poster image that loads immediately -->
                     <picture class="poster-image">
                         <source 
-                            srcset="images/video-poster-mobile.webp 768w,
-                                    images/video-poster.webp 1920w"
-                            sizes="100vw"
+                            srcset="images/webp/video-poster-mobile.webp 768w,
+                                    images/webp/video-poster.webp 1920w"
+                            sizes="(max-width: 768px) 100vw, 1920px"
                             type="image/webp">
+                        <source 
+                            srcset="images/video-poster-mobile.jpg 768w,
+                                    images/video-poster.jpg 1920w"
+                            sizes="(max-width: 768px) 100vw, 1920px"
+                            type="image/jpeg">
                         <img 
                             src="images/video-poster-mobile.jpg"
                             alt="Angel Granites Welcome"
