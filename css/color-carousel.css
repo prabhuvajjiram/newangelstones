@@ -1,0 +1,356 @@
+/**
+ * Color Carousel Styles
+ * For Angel Stones website
+ */
+
+/* View All Colors Button */
+.view-all-colors-btn {
+    background-color: #262626;
+    color: #ffffff;
+    padding: 8px 22px;
+    border: none;
+    border-radius: 3px;
+    font-family: 'Didact Gothic', sans-serif;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+}
+
+.view-all-colors-btn:hover {
+    background-color: #4d4d4d;
+    color: #ffffff;
+}
+
+/* Colors Grid in Modal */
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .color-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .color-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.color-grid-item {
+    cursor: pointer;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.color-grid-item:hover {
+    transform: translateY(-5px);
+}
+
+.color-image {
+    position: relative;
+    width: 100%;
+    padding-top: 100%; /* 1:1 Aspect Ratio */
+    overflow: hidden;
+}
+
+.color-image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.color-name {
+    padding: 10px;
+    text-align: center;
+    background-color: #262626;
+    color: #ffffff;
+    font-family: 'Didact Gothic', sans-serif;
+    letter-spacing: 1px;
+}
+
+/* Fullscreen View */
+.color-fullscreen-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.color-fullscreen-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.color-fullscreen-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.color-fullscreen-caption {
+    position: absolute;
+    bottom: -50px;
+    width: 100%;
+    text-align: center;
+    color: white;
+    font-family: 'Didact Gothic', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.color-fullscreen-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    z-index: 1;
+}
+
+.color-fullscreen-prev {
+    left: -60px;
+}
+
+.color-fullscreen-next {
+    right: -60px;
+}
+
+.color-fullscreen-nav:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.color-fullscreen-close {
+    position: absolute;
+    top: -50px;
+    right: 0;
+    background: transparent;
+    color: white;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1;
+    padding: 10px;
+}
+
+.overflow-hidden {
+    overflow: hidden;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .color-fullscreen-nav {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .color-fullscreen-prev {
+        left: 10px;
+    }
+    
+    .color-fullscreen-next {
+        right: 10px;
+    }
+    
+    .color-fullscreen-close {
+        top: 10px;
+        right: 10px;
+    }
+
+    .color-fullscreen-caption {
+        bottom: 20px;
+        font-size: 1rem;
+    }
+}
+
+/* Modal overrides to match site style */
+#allColorsModal .modal-content {
+    background-color: #f8f8f8;
+    border-radius: 6px;
+}
+
+#allColorsModal .modal-header {
+    border-bottom: 1px solid #ddd;
+    background-color: #262626;
+    color: white;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+}
+
+#allColorsModal .modal-title {
+    font-family: 'Playfair Display', serif;
+    letter-spacing: 1px;
+}
+
+#allColorsModal .btn-close {
+    filter: invert(1) brightness(200%);
+}
+
+/* Fix for modal scrolling issue */
+#allColorsModal .modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 20px;
+    scrollbar-width: thin;
+    scrollbar-color: #262626 #f8f8f8;
+}
+
+#allColorsModal .modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+#allColorsModal .modal-body::-webkit-scrollbar-track {
+    background: #f8f8f8;
+}
+
+#allColorsModal .modal-body::-webkit-scrollbar-thumb {
+    background-color: #262626;
+    border-radius: 20px;
+    border: 3px solid #f8f8f8;
+}
+
+/* Color Scroll Container - Modern horizontal scrolling */
+.color-scroll-container {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    padding: 10px 0;
+    margin: 0 -10px;
+    scrollbar-width: thin;
+    scrollbar-color: #262626 #f8f8f8;
+    gap: 20px;
+    position: relative;
+}
+
+/* Custom scrollbar for browsers that support it */
+.color-scroll-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.color-scroll-container::-webkit-scrollbar-track {
+    background: #f8f8f8;
+    border-radius: 3px;
+}
+
+.color-scroll-container::-webkit-scrollbar-thumb {
+    background-color: #262626;
+    border-radius: 3px;
+}
+
+/* Color items in the scrollable row */
+.color-scroll-item {
+    flex: 0 0 auto;
+    width: 220px;
+    border-radius: 5px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    margin: 0 5px;
+    position: relative;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.color-scroll-item:hover {
+    transform: translateY(-5px);
+}
+
+.color-scroll-image {
+    width: 100%;
+    padding-top: 100%; /* 1:1 Aspect ratio */
+    position: relative;
+    overflow: hidden;
+}
+
+.color-scroll-image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.color-scroll-item .caption {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(38, 38, 38, 0.9);
+    color: white;
+    padding: 8px 0;
+    text-align: center;
+}
+
+.color-scroll-item .caption p {
+    margin: 0;
+    font-family: 'Didact Gothic', sans-serif;
+    letter-spacing: 1px;
+}
+
+/* Scroll hint animation */
+@keyframes scrollHint {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(20px); }
+    100% { transform: translateX(0); }
+}
+
+.scrollable-hint::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(38, 38, 38, 0.7);
+    border-radius: 50%;
+    transform: translateY(-50%);
+    animation: scrollHint 1.5s ease-in-out;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-arrow-right" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: center;
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .color-scroll-item {
+        width: 180px;
+    }
+}
+
+@media (max-width: 480px) {
+    .color-scroll-item {
+        width: 160px;
+    }
+}
