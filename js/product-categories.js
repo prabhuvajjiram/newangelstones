@@ -534,10 +534,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Add close handlers
         const closeBtn = modal.querySelector('.close-modal');
-        closeBtn.addEventListener('click', () => {
+        const handleClose = () => {
             modal.style.display = 'none';
-        });
+        };
 
+        closeBtn.addEventListener('click', handleClose);
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 modal.style.display = 'none';
@@ -552,8 +553,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Add fullscreen image viewer function
-    function showFullscreenImage(imagePath, productNumber) {
+    // Function to display fullscreen image with navigation
+    function showFullscreenImage(imagePath, productNumber, currentIndex) {
+        // First, add the fullscreen-active class to the body to hide sidebar
+        document.body.classList.add('fullscreen-active');
+        
+        // Create or retrieve fullscreen container
         let fullscreen = document.getElementById('fullscreen-view');
         const cleanup = new Set();
 
@@ -571,21 +576,56 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.appendChild(fullscreen);
         fullscreen.style.display = 'flex';
 
+        // Store current category images for navigation
+        let currentCategory = '';
+        let categoryImages = [];
+        let imageIndex = 0;
+        
+        // Find the parent category modal
+        const categoryModal = document.querySelector('.category-modal');
+        if (categoryModal) {
+            // Get all thumbnail items in this category
+            const thumbnails = categoryModal.querySelectorAll('.thumbnail-item');
+            if (thumbnails.length > 0) {
+                categoryImages = Array.from(thumbnails).map(thumb => {
+                    const img = thumb.querySelector('img');
+                    const label = thumb.querySelector('.thumbnail-label');
+                    return {
+                        path: img.getAttribute('src'),
+                        name: label ? label.textContent : ''
+                    };
+                });
+                
+                // Find the index of the current image
+                imageIndex = categoryImages.findIndex(img => img.path === imagePath);
+                if (imageIndex === -1) imageIndex = 0;
+            }
+        }
+        
         // Load image
         const img = new Image();
         img.onload = () => {
+            // Determine if we need navigation buttons
+            const showNavigation = categoryImages.length > 1;
+            
             fullscreen.innerHTML = `
                 <div class="fullscreen-image-container">
                     <img src="${imagePath}" class="fullscreen-image" alt="${productNumber}">
                     <div class="fullscreen-label">${productNumber}</div>
                     <button class="close-fullscreen">&times;</button>
+                    ${showNavigation ? `
+                        <button class="fullscreen-nav prev" ${imageIndex <= 0 ? 'disabled' : ''}>&lt;</button>
+                        <button class="fullscreen-nav next" ${imageIndex >= categoryImages.length - 1 ? 'disabled' : ''}>&gt;</button>
+                    ` : ''}
                 </div>
             `;
 
-            // Add close handlers with cleanup
+            // Add close handler
             const closeBtn = fullscreen.querySelector('.close-fullscreen');
             const handleClose = () => {
                 fullscreen.style.display = 'none';
+                // Remove the fullscreen-active class when closing
+                document.body.classList.remove('fullscreen-active');
                 cleanup.forEach(fn => fn());
                 cleanup.clear();
             };
@@ -593,20 +633,128 @@ document.addEventListener('DOMContentLoaded', function() {
             closeBtn.addEventListener('click', handleClose);
             cleanup.add(() => closeBtn.removeEventListener('click', handleClose));
 
+            // Add navigation handlers if we have multiple images
+            if (showNavigation) {
+                const prevBtn = fullscreen.querySelector('.fullscreen-nav.prev');
+                const nextBtn = fullscreen.querySelector('.fullscreen-nav.next');
+                
+                if (prevBtn) {
+                    prevBtn.addEventListener('click', () => {
+                        if (imageIndex > 0) {
+                            imageIndex--;
+                            const prevImage = categoryImages[imageIndex];
+                            showFullscreenImage(prevImage.path, prevImage.name, imageIndex);
+                        }
+                    });
+                }
+                
+                if (nextBtn) {
+                    nextBtn.addEventListener('click', () => {
+                        if (imageIndex < categoryImages.length - 1) {
+                            imageIndex++;
+                            const nextImage = categoryImages[imageIndex];
+                            showFullscreenImage(nextImage.path, nextImage.name, imageIndex);
+                        }
+                    });
+                }
+                
+                // Add touch swipe functionality for mobile devices
+                let touchStartX = 0;
+                let touchEndX = 0;
+                const imageContainer = fullscreen.querySelector('.fullscreen-image-container');
+                
+                // Touch start handler
+                const handleTouchStart = (e) => {
+                    touchStartX = e.changedTouches[0].screenX;
+                };
+                
+                // Touch end handler
+                const handleTouchEnd = (e) => {
+                    touchEndX = e.changedTouches[0].screenX;
+                    handleSwipe();
+                };
+                
+                // Handle swipe logic
+                const handleSwipe = () => {
+                    const minSwipeDistance = 50; // Minimum distance for a swipe to be registered
+                    const swipeDistance = touchEndX - touchStartX;
+                    
+                    if (Math.abs(swipeDistance) < minSwipeDistance) return; // Not a significant swipe
+                    
+                    if (swipeDistance > 0) {
+                        // Swiped right - go to previous image
+                        if (imageIndex > 0) {
+                            imageIndex--;
+                            const prevImage = categoryImages[imageIndex];
+                            showFullscreenImage(prevImage.path, prevImage.name, imageIndex);
+                        }
+                    } else {
+                        // Swiped left - go to next image
+                        if (imageIndex < categoryImages.length - 1) {
+                            imageIndex++;
+                            const nextImage = categoryImages[imageIndex];
+                            showFullscreenImage(nextImage.path, nextImage.name, imageIndex);
+                        }
+                    }
+                };
+                
+                // Add touch event listeners
+                imageContainer.addEventListener('touchstart', handleTouchStart, { passive: true });
+                imageContainer.addEventListener('touchend', handleTouchEnd, { passive: true });
+                
+                // Add to cleanup
+                cleanup.add(() => {
+                    imageContainer.removeEventListener('touchstart', handleTouchStart);
+                    imageContainer.removeEventListener('touchend', handleTouchEnd);
+                });
+            }
+
+            // Close on outside click
             const handleOutsideClick = (e) => {
                 if (e.target === fullscreen) handleClose();
             };
             fullscreen.addEventListener('click', handleOutsideClick);
             cleanup.add(() => fullscreen.removeEventListener('click', handleOutsideClick));
 
-            const handleEscape = (e) => {
-                if (e.key === 'Escape') handleClose();
+            // Handle keyboard navigation
+            const handleKeyboard = (e) => {
+                if (e.key === 'Escape') {
+                    handleClose();
+                } else if (showNavigation) {
+                    if (e.key === 'ArrowLeft' && imageIndex > 0) {
+                        imageIndex--;
+                        const prevImage = categoryImages[imageIndex];
+                        showFullscreenImage(prevImage.path, prevImage.name, imageIndex);
+                    } else if (e.key === 'ArrowRight' && imageIndex < categoryImages.length - 1) {
+                        imageIndex++;
+                        const nextImage = categoryImages[imageIndex];
+                        showFullscreenImage(nextImage.path, nextImage.name, imageIndex);
+                    }
+                }
             };
-            document.addEventListener('keydown', handleEscape);
-            cleanup.add(() => document.removeEventListener('keydown', handleEscape));
+            document.addEventListener('keydown', handleKeyboard);
+            cleanup.add(() => document.removeEventListener('keydown', handleKeyboard));
         };
 
         img.src = imagePath;
+        
+        // Add error handling for image loading
+        img.onerror = () => {
+            fullscreen.innerHTML = `
+                <div class="fullscreen-image-container">
+                    <div class="error-message">
+                        <p>Failed to load image</p>
+                    </div>
+                    <button class="close-fullscreen">&times;</button>
+                </div>
+            `;
+            
+            const closeBtn = fullscreen.querySelector('.close-fullscreen');
+            closeBtn.addEventListener('click', () => {
+                fullscreen.style.display = 'none';
+                document.body.classList.remove('fullscreen-active');
+            });
+        };
     }
 
     // Add loading indicator function
