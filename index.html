@@ -46,8 +46,12 @@
     <link rel="preconnect" href="https://www.googletagmanager.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <!-- Preconnect to Tawk.to -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    
+    <!-- Critical CSS Preload -->
+    <link rel="preload" href="css/color-carousel.min.css" as="style">
+    <link rel="preload" href="css/hamburger.css" as="style">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" as="style">
     <link rel="preconnect" href="https://embed.tawk.to">
     <link rel="dns-prefetch" href="https://embed.tawk.to">
     
@@ -221,7 +225,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/hamburger.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="css/color-carousel.css">
+    <link rel="stylesheet" href="css/color-carousel.min.css">
     
     <!-- Non-Critical CSS Files -->
     <link rel="stylesheet" href="css/animate.min.css" media="print" onload="this.media='all'">
@@ -978,7 +982,7 @@
     <script src="js/featured-products.js?v=20250329"></script>
     <script src="js/main.js"></script>
     <script src="js/custom.min.js" defer></script>
-    <script src="js/color-carousel.js" defer></script>
+    <script src="js/color-carousel.min.js" defer></script>
     
     <!-- Protection Script -->
     <script>
