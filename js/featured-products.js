@@ -1069,32 +1069,44 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         constructImagePath(imageName) {
-            if (!imageName) {
-                console.error('FeaturedProducts: Empty image name provided to constructImagePath');
-                return null;
+            if (!imageName) return '';
+            
+            // Default path
+            let path = `${this.directory}/${imageName}`;
+            
+            // Check if the path has http prefix (full URL)
+            if (imageName.startsWith('http://') || imageName.startsWith('https://')) {
+                path = imageName;
             }
             
-            // If the path is already a full path, return it
-            if (typeof imageName === 'object' && imageName.path) {
-                console.log('FeaturedProducts: Using provided full path:', imageName.path);
-                return imageName.path;
-            }
+            // Add error handling when constructing paths
+            this.validateImagePath(path, imageName);
             
-            // If imageName is an object with name property
-            const filename = typeof imageName === 'object' ? imageName.name : imageName;
-            
-            // Handle special case for MBNA 2025
-            let categoryPath = this.categoryName;
-            if (this.categoryName.toLowerCase() === 'mbna 2025') {
-                categoryPath = 'MBNA_2025';
-            } else if (/^mbna|^ibm|^hp|^ge/i.test(this.categoryName)) {
-                categoryPath = this.categoryName.toUpperCase();
-            }
-            
-            // Construct the path
-            const path = `images/products/${categoryPath}/${filename}`;
-            console.log('FeaturedProducts: Constructed path:', path);
             return path;
+        },
+        
+        validateImagePath(path, imageName) {
+            if (!path) return;
+            
+            // Create a test image to check if the resource exists
+            const testImg = new Image();
+            testImg.onerror = () => {
+                console.log(`Image not found: ${path}, using fallback`);
+                
+                // Try alternative paths if original fails
+                if (path.includes('/products/') && !path.includes('/products/placeholder.png')) {
+                    // Update image sources that failed to load with placeholder
+                    const imgElements = document.querySelectorAll(`img[src="${path}"]`);
+                    if (imgElements.length > 0) {
+                        imgElements.forEach(img => {
+                            img.src = 'images/placeholder.png';
+                        });
+                    }
+                }
+            };
+            
+            // Start the test load
+            testImg.src = path;
         },
         
         loadImages() {
@@ -1466,134 +1478,79 @@ document.addEventListener('DOMContentLoaded', function() {
         openFullscreen(index) {
             const fullscreenView = document.createElement('div');
             fullscreenView.className = 'fullscreen-view';
+            fullscreenView.id = 'fullscreen-product-view';
             
-            const imageContainer = document.createElement('div');
-            imageContainer.className = 'fullscreen-image-container';
+            // Add fullscreen-view class to body to hide sidebar
+            document.body.classList.add('fullscreen-view');
             
-            const fullscreenImg = document.createElement('img');
-            fullscreenImg.className = 'fullscreen-image';
-            fullscreenImg.src = `${this.directory}/${this.images[index]}`;
-            fullscreenImg.alt = `Full size ${this.images[index].replace('.png', '')}`;
+            const imgSrc = this.images[index]?.fullImage || this.images[index]?.thumbImage;
+            const productNumber = this.getProductNumber(index);
             
-            const closeButton = document.createElement('button');
-            closeButton.className = 'fullscreen-close';
-            closeButton.innerHTML = '&times;';
+            fullscreenView.innerHTML = `
+                <div class="fullscreen-container">
+                    <img src="${imgSrc}" alt="${productNumber}" class="fullscreen-image">
+                    <div class="fullscreen-info">
+                        <h3>${productNumber}</h3>
+                    </div>
+                    <div class="fullscreen-close">&times;</div>
+                    <button class="fullscreen-nav prev-nav">&lt;</button>
+                    <button class="fullscreen-nav next-nav">&gt;</button>
+                </div>
+            `;
             
-            const prevButton = document.createElement('button');
-            prevButton.className = 'nav-button fullscreen-nav fullscreen-prev';
-            prevButton.innerHTML = '<i class="bi bi-chevron-left"></i>';
-            
-            const nextButton = document.createElement('button');
-            nextButton.className = 'nav-button fullscreen-nav fullscreen-next';
-            nextButton.innerHTML = '<i class="bi bi-chevron-right"></i>';
-            
-            imageContainer.appendChild(fullscreenImg);
-            imageContainer.appendChild(closeButton);
-            imageContainer.appendChild(prevButton);
-            imageContainer.appendChild(nextButton);
-            
-            fullscreenView.appendChild(imageContainer);
             document.body.appendChild(fullscreenView);
             
-            let fullscreenIndex = index;
-            
-            const updateFullscreenImage = () => {
-                fullscreenImg.src = `${this.directory}/${this.images[fullscreenIndex]}`;
-                fullscreenImg.alt = `Full size ${this.images[fullscreenIndex].replace('.png', '')}`;
-                
-                // Update button states
-                prevButton.disabled = fullscreenIndex === 0;
-                nextButton.disabled = fullscreenIndex === this.images.length - 1;
-            };
-            
-            closeButton.addEventListener('click', () => {
+            // Add event listeners
+            const closeBtn = fullscreenView.querySelector('.fullscreen-close');
+            closeBtn.addEventListener('click', () => {
                 fullscreenView.remove();
+                // Remove fullscreen-view class when closing
+                document.body.classList.remove('fullscreen-view');
             });
             
-            prevButton.addEventListener('click', () => {
-                if (fullscreenIndex > 0) {
-                    fullscreenIndex--;
-                    updateFullscreenImage();
-                }
-            });
-            
-            nextButton.addEventListener('click', () => {
-                if (fullscreenIndex < this.images.length - 1) {
-                    fullscreenIndex++;
-                    updateFullscreenImage();
-                }
-            });
-            
+            // Close on outside click
             fullscreenView.addEventListener('click', (e) => {
                 if (e.target === fullscreenView) {
                     fullscreenView.remove();
+                    // Remove fullscreen-view class when closing
+                    document.body.classList.remove('fullscreen-view');
                 }
             });
-            
-            document.addEventListener('keydown', function handleKeyDown(e) {
-                if (e.key === 'Escape') {
-                    fullscreenView.remove();
-                    document.removeEventListener('keydown', handleKeyDown);
-                } else if (e.key === 'ArrowLeft' && fullscreenIndex > 0) {
-                    fullscreenIndex--;
-                    updateFullscreenImage();
-                } else if (e.key === 'ArrowRight' && fullscreenIndex < this.images.length - 1) {
-                    fullscreenIndex++;
-                    updateFullscreenImage();
-                }
-            }.bind(this));
         },
         
         openFullscreenView(imgSrc) {
-            // Create fullscreen container
+            // Create fullscreen view
             const fullscreenView = document.createElement('div');
             fullscreenView.className = 'fullscreen-view';
             
-            // Create image container
-            const imgContainer = document.createElement('div');
-            imgContainer.className = 'fullscreen-image-container';
+            // Add fullscreen-view class to body to hide sidebar
+            document.body.classList.add('fullscreen-view');
             
-            // Create image element
-            const img = document.createElement('img');
-            img.className = 'fullscreen-image';
-            img.src = imgSrc;
+            fullscreenView.innerHTML = `
+                <div class="fullscreen-container">
+                    <img src="${imgSrc}" alt="Product image" class="fullscreen-image">
+                    <div class="fullscreen-close">&times;</div>
+                </div>
+            `;
             
-            // Create close button
-            const closeBtn = document.createElement('button');
-            closeBtn.className = 'fullscreen-close';
-            closeBtn.innerHTML = '&times;';
-            closeBtn.addEventListener('click', () => {
-                document.body.removeChild(fullscreenView);
-            });
-            
-            // Add everything to the DOM
-            imgContainer.appendChild(img);
-            fullscreenView.appendChild(imgContainer);
-            fullscreenView.appendChild(closeBtn);
-            
-            // Ensure the fullscreen view is rendered at the very top level of the DOM
-            // This prevents any z-index conflicts with nested containers
             document.body.appendChild(fullscreenView);
             
-            // Explicitly set high z-index to ensure it's above everything
-            fullscreenView.style.zIndex = '10000';
-            closeBtn.style.zIndex = '10001';
-            
-            // Close on click outside the image
-            fullscreenView.addEventListener('click', (e) => {
-                if (e.target === fullscreenView) {
-                    document.body.removeChild(fullscreenView);
-                }
+            // Add event listeners
+            const closeBtn = fullscreenView.querySelector('.fullscreen-close');
+            closeBtn.addEventListener('click', () => {
+                fullscreenView.remove();
+                // Remove fullscreen-view class when closing
+                document.body.classList.remove('fullscreen-view');
             });
             
-            // Close on escape key
-            const escKeyHandler = (e) => {
-                if (e.key === 'Escape') {
-                    document.body.removeChild(fullscreenView);
-                    document.removeEventListener('keydown', escKeyHandler);
+            // Close on outside click
+            fullscreenView.addEventListener('click', (e) => {
+                if (e.target === fullscreenView) {
+                    fullscreenView.remove();
+                    // Remove fullscreen-view class when closing
+                    document.body.classList.remove('fullscreen-view');
                 }
-            };
-            document.addEventListener('keydown', escKeyHandler);
+            });
         },
         
         closeModal() {

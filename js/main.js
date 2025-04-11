@@ -76,23 +76,28 @@ document.addEventListener('DOMContentLoaded', function() {
     if (factoryImage) {
         const factoryPicture = factoryImage.querySelector('picture');
         
-        // Add loading class initially
-        factoryImage.classList.add('loading');
-        
-        // Wait for the image to load
-        const img = factoryPicture.querySelector('img');
-        img.addEventListener('load', function() {
-            // Remove loading class and add loaded class
-            factoryImage.classList.remove('loading');
-            factoryImage.classList.add('loaded');
-        });
-
-        // Handle image errors
-        img.addEventListener('error', function() {
-            console.error('Failed to load factory image');
-            // Fallback to default image
-            img.src = 'images/Factory-1280.webp';
-        });
+        // Only proceed if we found the picture element
+        if (factoryPicture) {
+            // Add loading class initially
+            factoryImage.classList.add('loading');
+            
+            // Wait for the image to load
+            const img = factoryPicture.querySelector('img');
+            if (img) {
+                img.addEventListener('load', function() {
+                    // Remove loading class and add loaded class
+                    factoryImage.classList.remove('loading');
+                    factoryImage.classList.add('loaded');
+                });
+    
+                // Handle image errors
+                img.addEventListener('error', function() {
+                    // Still remove loading class but add error class
+                    factoryImage.classList.remove('loading');
+                    factoryImage.classList.add('error');
+                });
+            }
+        }
     }
 
     // Add lazy loading support for older browsers
@@ -178,6 +183,49 @@ document.addEventListener('DOMContentLoaded', function() {
     // Listen for resize events
     window.addEventListener('resize', debounce(adjustVideoQuality, 250));
     adjustVideoQuality();
+
+    // Handle hero video
+    const heroVideo = document.getElementById('hero-video');
+    if (heroVideo) {
+        // Create a play button for manual interaction
+        const playButton = document.getElementById('manual-play-btn');
+        
+        // Add event listener to play video on interaction (needed for autoplay policies)
+        if (playButton) {
+            playButton.addEventListener('click', function() {
+                // Try to play the video
+                const playPromise = heroVideo.play();
+                
+                // Handle play promise (to avoid AbortError)
+                if (playPromise !== undefined) {
+                    playPromise.then(_ => {
+                        // Video playback started successfully
+                        playButton.style.display = 'none';
+                    }).catch(error => {
+                        // Auto-play was prevented, show play button
+                        playButton.style.display = 'flex';
+                        console.log('Video autoplay not allowed by browser. User interaction required.');
+                    });
+                }
+            });
+        }
+        
+        // Try to play the video (will work on desktop, might be blocked on mobile)
+        heroVideo.addEventListener('canplaythrough', function() {
+            const playPromise = heroVideo.play();
+            
+            // Handle play promise to prevent AbortError
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    // Auto-play was prevented, show play button
+                    if (playButton) {
+                        playButton.style.display = 'flex';
+                    }
+                    console.log('Video autoplay not allowed by browser. User interaction required.');
+                });
+            }
+        });
+    }
 });
 
 // Simple function to initialize hero video
