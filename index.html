@@ -221,6 +221,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/hamburger.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/color-carousel.css">
     
     <!-- Non-Critical CSS Files -->
     <link rel="stylesheet" href="css/animate.min.css" media="print" onload="this.media='all'">
@@ -911,54 +912,22 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="owl-carousel owl-theme">
-                                <div class="variety-of-granites">
-                                    <img src="images/bluepearl.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Blue Pearl">
-                                    <div class="caption"><p>Blue Pearl</p></div>
-                                </div>
-                                <div class="variety-of-granites">
-                                    <img src="images/indian-black.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Indian Black">
-                                    <div class="caption"><p>Indian Black</p></div>
-                                </div>
-                                <div class="variety-of-granites">
-                                    <img src="images/vizag-blue.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Vizag Blue">
-                                    <div class="caption"><p>Vizag Blue</p></div>
-                                </div>
-                                <div class="variety-of-granites">
-                                    <img src="images/paradiso.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Paradiso">
-                                    <div class="caption"><p>Paradiso</p></div>
-                                </div>
-                                <div class="variety-of-granites">
-                                    <img src="images/galaxy.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Galaxy">
-                                    <div class="caption"><p>Galaxy</p></div>
-                                </div>
-                                <div class="variety-of-granites">
-                                    <img src="images/white-and-red.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="White and Red">
-                                    <div class="caption"><p>White and Red</p></div>
-                                </div>
-                                <div class="variety-of-granites">
-                                    <img src="images/himalayan-blue.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Himalayan Blue">
-                                    <div class="caption"><p>Himalayan Blue</p></div>
-                                </div>
-                                <div class="variety-of-granites">
-                                    <img src="images/green.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Green">
-                                    <div class="caption"><p>Green</p></div>
-                                </div>
-                                <div class="variety-of-granites">
-                                    <img src="images/aurora.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Aurora">
-                                    <div class="caption"><p>Aurora</p></div>
-                                </div>
-                                <div class="variety-of-granites">
-                                    <img src="images/Jet-Black.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Jet Black">
-                                    <div class="caption"><p>Jet Black</p></div>
-                                </div>
-                                <div class="variety-of-granites">
-                                    <img src="images/Bahama-Blue.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Bahama Blue">
-                                    <div class="caption"><p>Bahama Blue</p></div>
-                                </div>
-                                <div class="variety-of-granites">
-                                    <img src="images/NH-Red.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="NH Red">
-                                    <div class="caption"><p>NH Red</p></div>
-                                </div>
+                                <!-- Color images will be loaded dynamically by color-carousel.js -->
+                                <!-- Fallback content in case JavaScript is disabled -->
+                                <noscript>
+                                    <div class="variety-of-granites">
+                                        <img src="images/colors/bluepearl.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Blue Pearl">
+                                        <div class="caption"><p>Blue Pearl</p></div>
+                                    </div>
+                                    <div class="variety-of-granites">
+                                        <img src="images/colors/indian-black.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Indian Black">
+                                        <div class="caption"><p>Indian Black</p></div>
+                                    </div>
+                                    <div class="variety-of-granites">
+                                        <img src="images/colors/vizag-blue.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Vizag Blue">
+                                        <div class="caption"><p>Vizag Blue</p></div>
+                                    </div>
+                                </noscript>
                             </div>
                         </div>
                     </div>
@@ -1009,6 +978,7 @@
     <script src="js/featured-products.js?v=20250329"></script>
     <script src="js/main.js"></script>
     <script src="js/custom.min.js" defer></script>
+    <script src="js/color-carousel.js" defer></script>
     
     <!-- Protection Script -->
     <script>
