@@ -37,193 +37,27 @@
     <meta name="Keywords" content="granite monument manufacturer, custom headstones, memorial stones near me, cemetery monuments, granite headstones prices, custom cemetery memorials, grave markers, affordable monuments, granite manufacturers direct"> 
     
     <!-- Preload Critical Resources -->
-    <link rel="preload" href="images/video-poster.jpg" as="image" fetchpriority="high">
-    <link rel="preload" href="css/bootstrap.min.css" as="style">
-    <link rel="preload" href="css/style.css" as="style">
-    <link rel="preload" href="images/Factory-768.webp" as="image" fetchpriority="high">
-    <link rel="preload" href="images/Factory-1280.webp" as="image">
-    <link rel="preload" href="images/Factory-1920.webp" as="image">
+    <link rel="preload" href="images/video-poster-mobile.jpg" as="image" fetchpriority="high">
+    <link rel="preload" href="css/critical.min.css" as="style">
     <link rel="preconnect" href="https://www.googletagmanager.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    
-    <!-- Critical CSS Preload -->
-    <link rel="preload" href="css/color-carousel.min.css" as="style">
-    <link rel="preload" href="css/hamburger.css" as="style">
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" as="style">
     <link rel="preconnect" href="https://embed.tawk.to">
     <link rel="dns-prefetch" href="https://embed.tawk.to">
     
-    <!-- Inline critical font styles -->
+    <!-- Critical CSS - Inlined for fastest possible rendering -->
     <style>
-      /* Font fallback to prevent layout shift */
-      html { 
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-      }
-      
-      /* Optimized font loading with size-adjust to prevent layout shift */
-      @font-face {
-        font-family: 'Playfair Display';
-        font-style: normal;
-        font-weight: 400;
-        font-display: swap;
-        size-adjust: 105%;
-        src: url(https://fonts.gstatic.com/s/playfairdisplay/v36/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvXDXbtXK-F2qC0s.woff) format('woff');
-      }
-      @font-face {
-        font-family: 'Didact Gothic';
-        font-style: normal;
-        font-weight: 400;
-        font-display: swap;
-        size-adjust: 97%;
-        src: url(https://fonts.gstatic.com/s/didactgothic/v20/ahcfv8qz1zt6hCC5G4F_P4ASlUuYpnLl.woff2) format('woff2');
-      }
-
-      /* Prevent animation layout shifts */
-      .animate-box {
-        will-change: transform;
-        transform: translateZ(0);
-        backface-visibility: hidden;
-      }
-
-      /* Reserve space for dynamic content */
-      .section-padding {
-        min-height: 200px;
-      }
-      
-      #our-product {
-        contain: layout style paint;
-      }
+      /* Inline critical CSS for fast rendering on all devices */
+      html{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}body{margin:0;padding:0;overflow-x:hidden;color:#555;background:#fff}@font-face{font-family:'Playfair Display';font-style:normal;font-weight:400;font-display:swap;size-adjust:105%;src:url(https://fonts.gstatic.com/s/playfairdisplay/v36/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvXDXbtXK-F2qC0s.woff) format('woff')}@font-face{font-family:'Didact Gothic';font-style:normal;font-weight:400;font-display:swap;size-adjust:97%;src:url(https://fonts.gstatic.com/s/didactgothic/v20/ahcfv8qz1zt6hCC5G4F_P4ASlUuYpnLl.woff2) format('woff2')}h1,h2,h3,h4,h5{font-family:'Playfair Display',serif}.promotion-banner{background-color:#262626;color:#fff;text-align:center;padding:8px 15px;font-size:.9rem;position:relative;z-index:1000}.as-header{position:fixed;top:0;left:0;width:100%;padding:15px 0;background:rgba(0,0,0,.8);z-index:999;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}.as-navbar{display:flex;align-items:center;justify-content:space-between;padding:0 15px}.as-navbar-brand img{height:45px;width:auto}.hero-video{position:relative;width:100%;height:100vh;min-height:480px;max-height:780px;overflow:hidden;background-color:#111}.video-container{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}.video-container::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:1}.poster-image{position:absolute;top:0;left:0;width:100%;height:100%;z-index:0}.video-container .content{position:relative;z-index:2;text-align:center;padding:0 15px;color:#fff}.video-container .content h1{font-size:2.5rem;margin:0 0 10px;letter-spacing:2px}@media (max-width:768px){.video-container .content h1{font-size:1.7rem}.as-navbar-brand img{height:40px}}
     </style>
-    
-    <!-- Critical Mobile CSS - Inlined for faster mobile rendering -->
-    <style id="critical-mobile-css">
-      /* Critical mobile CSS for quick rendering on small screens */
-      @media (max-width: 768px) {
-        /* Base styles */
-        html, body {
-          margin: 0;
-          padding: 0;
-          overflow-x: hidden;
-          font-family: 'Didact Gothic', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-          color: #555;
-          background-color: #fff;
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-        }
 
-        /* Hero video section */
-        .hero-video {
-          position: relative;
-          width: 100%;
-          height: 100vh;
-          min-height: 480px;
-          max-height: 600px;
-          overflow: hidden;
-          background-color: #111;
-        }
-
-        .video-container {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          overflow: hidden;
-        }
-
-        .video-container::after {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(0, 0, 0, 0.4);
-          z-index: 1;
-        }
-
-        .poster-image {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          z-index: 0;
-        }
-
-        .video-container .content {
-          position: relative;
-          z-index: 2;
-          text-align: center;
-          padding: 0 15px;
-          color: #fff;
-        }
-
-        .video-container .content h1 {
-          font-size: 1.7rem;
-          margin: 0 0 10px;
-          letter-spacing: 1px;
-        }
-
-        .video-container .established-by,
-        .video-container .tagline {
-          font-size: 0.9rem;
-          margin-bottom: 10px;
-        }
-
-        .video-container .button {
-          display: inline-block;
-          padding: 8px 20px;
-          border: 2px solid #fff;
-          color: #fff;
-          text-decoration: none;
-          font-weight: 500;
-          font-size: 0.9rem;
-          transition: all 0.3s ease;
-        }
-
-        /* Navigation */
-        .as-header {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          padding: 10px 0;
-          background: rgba(0, 0, 0, 0.8);
-          z-index: 999;
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-        }
-
-        .as-navbar {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 0 15px;
-        }
-
-        .as-navbar-brand img {
-          height: 40px;
-          width: auto;
-        }
-
-        /* Promotion banner */
-        .promotion-banner {
-          background-color: #262626;
-          color: white;
-          text-align: center;
-          padding: 8px 15px;
-          font-size: 0.85rem;
-          position: relative;
-          z-index: 1000;
-        }
-      }
-    </style>
+    <!-- Non-critical CSS loaded asynchronously -->
+    <link rel="stylesheet" href="css/bootstrap.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/style.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/hamburger.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/color-carousel.min.css" media="print" onload="this.media='all'">
     
     <!-- Async load full font families -->
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Didact+Gothic&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
@@ -272,18 +106,13 @@
     <meta name="twitter:image" content="https://www.theangelstones.com/angel-granite-stones.jpg">
     
     <!-- Critical CSS Files -->	
-    <link rel="stylesheet" href="css/bootstrap.min.css">	
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/hamburger.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="css/color-carousel.min.css">
-    
-    <!-- Non-Critical CSS Files -->
     <link rel="stylesheet" href="css/animate.min.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/all.min.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/magnific-popup.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/owl.carousel.min.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/owl.theme.default.min.css" media="print" onload="this.media='all'">
+    
+    <!-- Swiper CSS for mobile gallery support -->
     
     <style>
         .hero-image {
@@ -351,6 +180,72 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Didact+Gothic&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 
+    <!-- HTML structure optimized for mobile-first loading -->
+    <link rel="preload" as="script" href="js/jquery-3.7.1.min.js" fetchpriority="low">
+    <script>
+        // Lazily load all images based on viewport visibility
+        document.addEventListener('DOMContentLoaded', function() {
+            // Register an intersection observer
+            const imgObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        const src = img.getAttribute('data-src');
+                        if (src) {
+                            img.src = src;
+                            img.removeAttribute('data-src');
+                            observer.unobserve(img);
+                        }
+                    }
+                });
+            }, {rootMargin: "0px 0px 200px 0px"});
+            
+            // Apply to all lazy images
+            document.querySelectorAll('img[data-src]').forEach(img => {
+                imgObserver.observe(img);
+            });
+            
+            // Thumbnails-first approach
+            const loadThumbsFirst = () => {
+                const categoryThumbs = document.querySelectorAll('.category-thumbnail');
+                if (categoryThumbs.length > 0) {
+                    categoryThumbs.forEach(thumb => {
+                        thumb.style.opacity = 1;
+                    });
+                }
+            };
+            
+            // Execute after a short delay to prioritize LCP
+            setTimeout(loadThumbsFirst, 200);
+        });
+        
+        // Detect mobile device for optimizations
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile) {
+            // Mobile-specific optimizations
+            document.documentElement.classList.add('mobile-device');
+        }
+    </script>
+    
+    <!-- Initial content visibility for mobile optimization -->
+    <style>
+        @media (max-width: 768px) {
+            .defer-visibility {
+                content-visibility: auto;
+                contain-intrinsic-size: 0 500px;
+            }
+            
+            .category-thumbnail {
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+            
+            .mobile-device .video-container video {
+                display: none;
+            }
+        }
+    </style>
+
 </head>
 
 <body>
@@ -358,12 +253,10 @@
 <div class="promotion-banner">
     <div class="promotion-content">
         <div class="promotion-text">
-            <h3>Loading...</h3>
-            <p></p>
-        </div>
-        <div class="promotion-expanded">
-            <img src="" alt="" class="promotion-image">
-            <a href="#" class="promotion-link">Shop Now</a>
+            <noscript>
+                <h3>Special Offer</h3>
+                <p>Limited time discount on selected monuments</p>
+            </noscript>
         </div>
         <div class="promotion-controls">
             <button class="promotion-btn minimize-btn" title="Minimize">
@@ -414,8 +307,8 @@
                     <!-- Optimized poster image that loads immediately -->
                     <picture class="poster-image">
                         <source 
-                            srcset="images/webp/video-poster-mobile.webp 768w,
-                                    images/webp/video-poster.webp 1920w"
+                            srcset="images/video-poster-mobile.webp 768w,
+                                    images/video-poster.webp 1920w"
                             sizes="(max-width: 768px) 100vw, 1920px"
                             type="image/webp">
                         <source 
@@ -569,7 +462,7 @@
             <!--Our Product Section End Here-->
             <div class="divider-line"></div>
             <!--Featured Products Section Start Here-->
-            <section id="featured-products" class="featured-products section-padding animate-box" data-animate-effect="fadeInUp">
+            <section id="featured-products" class="featured-products section-padding animate-box defer-visibility" data-animate-effect="fadeInUp">
                 <div class="container">
                     <div class="row">
                         <div class="col-md-12"> 
@@ -647,7 +540,7 @@
             <!--Featured Products Section End Here-->
             <div class="divider-line"></div>
             <!--Projects Section Start Here-->
-            <section id="projects" class="section-padding animate-box" data-animate-effect="fadeInUp">
+            <section id="projects" class="section-padding animate-box defer-visibility" data-animate-effect="fadeInUp">
                 <div class="container">
                     <div class="row">
                         <div class="col-md-12">
@@ -1022,10 +915,10 @@
         <i class="bi bi-chevron-up"></i>
     </a>
 
-    <!-- jQuery -->
-    <script src="js/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/navigation.js"></script>
+    <!-- Optimized script loading strategy - all JS deferred and loaded after critical content -->
+    <script src="js/jquery-3.7.1.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="js/navigation.js" defer></script>
     <script src="js/modernizr-custom.js" defer></script>
     <script src="js/jquery.easing.min.js" defer></script>
     <script src="js/jquery.waypoints.min.js" defer></script>
@@ -1034,11 +927,15 @@
     <script src="js/jquery.magnific-popup.min.js" defer></script>
     <script src="js/owl.carousel.min.js" defer></script>
     <script src="https://unpkg.com/imagesloaded@5/imagesloaded.pkgd.min.js" defer></script>
-    <script src="js/product-categories.js?v=20250329"></script>
-    <script src="js/featured-products.js?v=20250329"></script>
-    <script src="js/main.js"></script>
+    <script src="js/product-categories.js?v=20250329" defer></script>
+    <script src="js/featured-products.js?v=20250329" defer></script>
+    <script src="js/main.js" defer></script>
     <script src="js/custom.min.js" defer></script>
     <script src="js/color-carousel.min.js" defer></script>
+    <script src="js/ux-improvements.js" defer></script>
+    <script src="js/color-carousel-mobile.js" defer></script>
+    <script src="js/featured-products-mobile.js" defer></script>
+    <script src="js/product-categories-mobile.js" defer></script>
     
     <!-- Protection Script -->
     <script>
