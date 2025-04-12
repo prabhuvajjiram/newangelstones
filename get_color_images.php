@@ -7,21 +7,30 @@
 // Set content type to JSON
 header('Content-Type: application/json');
 
-// Directory path
+// Directory path - updated to ensure it finds the correct path
 $colorsDir = __DIR__ . '/images/webp/colors/';
 
 // Check if directory exists
 if (!is_dir($colorsDir)) {
-    echo json_encode(['error' => 'Colors directory not found', 'colors' => []]);
-    exit;
+    // Try alternative path
+    $colorsDir = __DIR__ . '/images/colors/';
+    
+    // If still not found, return error
+    if (!is_dir($colorsDir)) {
+        echo json_encode(['error' => 'Colors directory not found', 'path_checked' => $colorsDir, 'colors' => []]);
+        exit;
+    }
 }
 
-// Get all image files (jpg, jpeg, png)
+// Get all image files
 $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
 $colors = [];
 
 // Read directory
 $files = scandir($colorsDir);
+
+// Debug output to console
+// error_log("Files in directory: " . print_r($files, true));
 
 foreach ($files as $file) {
     // Skip hidden files and directories
@@ -40,19 +49,27 @@ foreach ($files as $file) {
         // Properly format the name (capitalize first letter of each word)
         $name = ucwords($name);
         
+        // Determine the correct path
+        $path = 'images/webp/colors/' . $file;
+        
+        // Check if file exists at that path, if not use fallback
+        if (!file_exists(__DIR__ . '/images/webp/colors/' . $file)) {
+            $path = 'images/colors/' . $file;
+        }
+        
         // Add to colors array
         $colors[] = [
             'name' => $name,
-            'path' => 'images/webp/colors/' . $file
+            'path' => $path
         ];
     }
 }
 
 // Sort colors alphabetically by name
 usort($colors, function($a, $b) {
-    return strcasecmp($a['name'], $b['name']);
+    return strcmp($a['name'], $b['name']);
 });
 
-// Return JSON response
+// Return JSON - IMPORTANT: Wrap colors in an object as expected by the JS
 echo json_encode(['colors' => $colors]);
 ?>

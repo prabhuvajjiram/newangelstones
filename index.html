@@ -5,6 +5,64 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
+    <!-- CRITICAL CAPTION COLOR FIX -->
+    <style id="caption-color-fix">
+        /* Gold caption style with ultra-high specificity */
+        html body .caption p, 
+        html body #variety-of-granites .caption p,
+        html body .owl-carousel .caption p,
+        html body .owl-carousel .owl-item .caption p,
+        .variety-of-granites .caption p,
+        .color-item .caption p,
+        [id="variety-of-granites"] [class*="caption"] p,
+        #variety-of-granites .owl-carousel .owl-item .caption p,
+        .owl-carousel.color-row .caption p {
+            color: #d4af37 !important;
+            text-shadow: 1px 1px 3px rgba(0,0,0,1) !important;
+            font-weight: 700 !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            display: block !important;
+        }
+        
+        /* Mobile-specific fixes */
+        @media (max-width: 767px) {
+            /* Fix carousel scrolling on mobile */
+            #variety-of-granites .owl-carousel,
+            .owl-carousel.color-row {
+                display: flex !important;
+                overflow-x: auto !important;
+                scroll-snap-type: x mandatory !important;
+                -webkit-overflow-scrolling: touch !important;
+                scroll-behavior: smooth !important;
+            }
+            
+            /* Fix carousel items on mobile */
+            #variety-of-granites .owl-carousel .owl-item,
+            .owl-carousel.color-row .owl-item {
+                flex: 0 0 auto !important;
+                width: 160px !important;
+                margin: 0 5px !important;
+                scroll-snap-align: center !important;
+            }
+            
+            /* Hide owl controls on mobile */
+            #variety-of-granites .owl-nav,
+            #variety-of-granites .owl-dots {
+                display: none !important;
+            }
+            
+            /* Fix video display on mobile */
+            #hero-video {
+                opacity: 1 !important;
+                object-fit: cover !important;
+                width: 100% !important;
+                height: 100% !important;
+                display: block !important;
+            }
+        }
+    </style>
+    
     <!-- Essential Services -->
     <script>
         window.addEventListener('load', function() {
@@ -58,6 +116,31 @@
     <link rel="stylesheet" href="css/hamburger.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/color-carousel.min.css" media="print" onload="this.media='all'">
+    
+    <!-- Direct gold caption styling -->
+    <style>
+        .caption p, 
+        #variety-of-granites .caption p, 
+        .owl-carousel .caption p,
+        .owl-item .caption p,
+        .variety-of-granites .caption p,
+        [class*="caption"] p,
+        .owl-carousel .owl-item .caption p {
+            color: #d4af37 !important;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.9) !important;
+            font-weight: 600 !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        /* Extra specificity to override any conflicting styles */
+        html body .caption p,
+        html body #variety-of-granites .caption p,
+        html body .owl-carousel .caption p,
+        body .owl-item .caption p {
+            color: #d4af37 !important;
+        }
+    </style>
     
     <!-- Async load full font families -->
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Didact+Gothic&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
@@ -259,10 +342,10 @@
             </noscript>
         </div>
         <div class="promotion-controls">
-            <button class="promotion-btn minimize-btn" title="Minimize">
+            <button class="promotion-btn minimize-btn" title="Minimize" aria-label="Minimize promotion banner">
                 <i class="bi bi-chevron-up"></i>
             </button>
-            <button class="promotion-btn close-btn" title="Close">
+            <button class="promotion-btn close-btn" title="Close" aria-label="Close promotion banner">
                 <i class="bi bi-x"></i>
             </button>
         </div>
@@ -274,7 +357,7 @@
     <!-- End Google Tag Manager (noscript) -->
 
     <header id="as-header">
-        <button class="as-nav-toggle">
+        <button class="as-nav-toggle" aria-label="Toggle navigation menu">
             <i></i>
         </button>
     </header>
@@ -319,24 +402,25 @@
                         <img 
                             src="images/video-poster-mobile.jpg"
                             alt="Angel Granites Welcome"
-                            width="1920"
+                            width="1920" 
                             height="1080"
                             fetchpriority="high"
-                            decoding="sync"
-                            style="width: 100%; height: 100%; object-fit: cover;">
+                            class="img-fluid">
                     </picture>
 
                     <!-- Deferred video loading -->
                     <video 
                         id="hero-video"
                         playsinline 
+                        webkit-playsinline
                         muted
                         loop
                         autoplay
-                        preload="metadata"
+                        preload="auto"
                         width="1920"
                         height="1080"
-                        style="opacity: 0; transition: opacity 0.3s;">
+                        poster="images/video-poster-mobile.jpg"
+                        style="opacity: 1 !important; object-fit: cover !important; width: 100% !important; height: 100% !important; display: block !important;">
                         <source src="images/as.mp4" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
@@ -405,7 +489,7 @@
                             <div class="section-header">
                                 <div class="subtitle">
                                     <img src="images/title-star.svg" alt="Angel Stones">
-                                        Angel Granites
+                                    Angel Granites
                                     <img src="images/title-star.svg" alt="Angel Stones">
                                 </div>
                                 <div class="title">Our Product</div>
@@ -865,7 +949,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <!-- Desktop view with owl-carousel -->
-                            <div class="owl-carousel owl-theme color-row">
+                            <div class="owl-carousel owl-theme color-row" style="--caption-color: #d4af37;">
                                 <!-- Color images will be loaded dynamically by color-carousel.js -->
                                 <!-- Fallback content in case JavaScript is disabled -->
                                 <noscript>
@@ -912,7 +996,7 @@
     </div>
 
     <!-- Back to Top Button -->
-    <a href="#" class="back-to-top d-flex align-items-center justify-content-center">
+    <a href="#" class="back-to-top d-flex align-items-center justify-content-center" aria-label="Back to top of page">
         <i class="bi bi-chevron-up"></i>
     </a>
 
@@ -934,6 +1018,7 @@
     <script src="js/custom.min.js" defer></script>
     <script src="js/color-carousel.min.js?v=20250411-2" defer></script>
     <script src="js/color-carousel-mobile.js?v=20250411-2" defer></script>
+    <script src="js/color-carousel-debug.js?v=20250411" defer></script>
     <script src="js/ux-improvements.js?v=20250411" defer></script>
     <script src="js/featured-products-mobile.js?v=20250411" defer></script>
     <script src="js/product-categories-mobile.js?v=20250411" defer></script>
@@ -1052,7 +1137,7 @@
         // Preload larger images after page load
         window.addEventListener('load', function() {
             // Delay loading of larger images to prioritize LCP
-            setTimeout(() => {
+            setTimeout(function() {
                 const images = ['images/Factory-768.webp', 'images/Factory-1280.webp', 'images/Factory-1920.webp'];
                 images.forEach(src => {
                     const img = new Image();
@@ -1082,5 +1167,106 @@
     <div style="display: none;">
         <img id="default-thumbnail" src="images/default-thumbnail.jpg" alt="Default Thumbnail">
     </div>
+    <script>
+        // Force gold captions as soon as possible
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add inline styles to all captions
+            function forceGoldCaptions() {
+                const captions = document.querySelectorAll('.caption p, #variety-of-granites .caption p, .owl-item .caption p');
+                captions.forEach(function(caption) {
+                    caption.style.color = '#d4af37';
+                    caption.style.textShadow = '1px 1px 3px rgba(0,0,0,0.9)';
+                    caption.style.fontWeight = '600';
+                    caption.style.visibility = 'visible';
+                    caption.style.opacity = '1';
+                });
+            }
+            
+            // Run multiple times to catch dynamically loaded content
+            forceGoldCaptions();
+            setTimeout(forceGoldCaptions, 500);
+            setTimeout(forceGoldCaptions, 1500);
+            
+            // Run again when images load
+            window.addEventListener('load', forceGoldCaptions);
+        });
+    </script>
+    <script>
+        // Only run on mobile
+        if (window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            // Fix mobile video playback
+            document.addEventListener('DOMContentLoaded', function() {
+                var video = document.getElementById('hero-video');
+                if (video) {
+                    // Set required attributes
+                    video.setAttribute('playsinline', '');
+                    video.setAttribute('webkit-playsinline', '');
+                    video.muted = true;
+                    
+                    // Force play
+                    video.pause();
+                    video.currentTime = 0;
+                    setTimeout(function() {
+                        var playPromise = video.play();
+                        if (playPromise !== undefined) {
+                            playPromise.catch(function() {
+                                // Silent catch - autoplay might be prevented
+                            });
+                        }
+                    }, 500);
+                }
+                
+                // Add mobile carousel scrolling
+                setTimeout(function() {
+                    var carousel = document.querySelector('#variety-of-granites .owl-carousel');
+                    if (carousel) {
+                        // Auto-scroll functionality
+                        var position = 0;
+                        var scrollInterval = setInterval(function() {
+                            if (document.hidden) return;
+                            
+                            position += 170; // Width + margin
+                            
+                            // Reset when reaching the end
+                            if (position >= carousel.scrollWidth - carousel.clientWidth) {
+                                position = 0;
+                            }
+                            
+                            // Smooth scroll
+                            carousel.scrollTo({
+                                left: position,
+                                behavior: 'smooth'
+                            });
+                        }, 3000);
+                        
+                        // Pause scrolling on touch
+                        carousel.addEventListener('touchstart', function() {
+                            clearInterval(scrollInterval);
+                        }, { passive: true });
+                        
+                        // Resume scrolling after touch
+                        carousel.addEventListener('touchend', function() {
+                            position = carousel.scrollLeft;
+                            
+                            // Resume auto-scrolling
+                            scrollInterval = setInterval(function() {
+                                if (document.hidden) return;
+                                
+                                position += 170;
+                                if (position >= carousel.scrollWidth - carousel.clientWidth) {
+                                    position = 0;
+                                }
+                                
+                                carousel.scrollTo({
+                                    left: position,
+                                    behavior: 'smooth'
+                                });
+                            }, 3000);
+                        }, { passive: true });
+                    }
+                }, 1000);
+            });
+        }
+    </script>
 </body>
 </html>
