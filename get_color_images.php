@@ -8,7 +8,7 @@
 header('Content-Type: application/json');
 
 // Directory path
-$colorsDir = __DIR__ . '/images/colors/';
+$colorsDir = __DIR__ . '/images/webp/colors/';
 
 // Check if directory exists
 if (!is_dir($colorsDir)) {
@@ -17,7 +17,7 @@ if (!is_dir($colorsDir)) {
 }
 
 // Get all image files (jpg, jpeg, png)
-$allowedExtensions = ['jpg', 'jpeg', 'png'];
+$allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
 $colors = [];
 
 // Read directory
@@ -43,7 +43,7 @@ foreach ($files as $file) {
         // Add to colors array
         $colors[] = [
             'name' => $name,
-            'path' => 'images/colors/' . $file
+            'path' => 'images/webp/colors/' . $file
         ];
     }
 }

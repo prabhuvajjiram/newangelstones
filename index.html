@@ -848,7 +848,7 @@
             <div class="divider-line"></div>
             <!-- Get in Touch Section Start Here  -->
             <!-- Variety of Granites -->
-            <section id="variety-of-granites" class="section-padding animate-box" data-animate-effect="fadeInUp">
+            <section id="variety-of-granites" class="section-padding animate-box colors-section" data-animate-effect="fadeInUp">
                 <div class="container">
                     <div class="row">
                         <div class="col-md-12">
@@ -864,19 +864,20 @@
                     </div>
                     <div class="row">
                         <div class="col-md-12">
-                            <div class="owl-carousel owl-theme">
+                            <!-- Desktop view with owl-carousel -->
+                            <div class="owl-carousel owl-theme color-row">
                                 <!-- Color images will be loaded dynamically by color-carousel.js -->
                                 <!-- Fallback content in case JavaScript is disabled -->
                                 <noscript>
-                                    <div class="variety-of-granites">
+                                    <div class="variety-of-granites color-item">
                                         <img src="images/colors/bluepearl.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Blue Pearl">
                                         <div class="caption"><p>Blue Pearl</p></div>
                                     </div>
-                                    <div class="variety-of-granites">
+                                    <div class="variety-of-granites color-item">
                                         <img src="images/colors/indian-black.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Indian Black">
                                         <div class="caption"><p>Indian Black</p></div>
                                     </div>
-                                    <div class="variety-of-granites">
+                                    <div class="variety-of-granites color-item">
                                         <img src="images/colors/vizag-blue.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Vizag Blue">
                                         <div class="caption"><p>Vizag Blue</p></div>
                                     </div>
@@ -927,15 +928,15 @@
     <script src="js/jquery.magnific-popup.min.js" defer></script>
     <script src="js/owl.carousel.min.js" defer></script>
     <script src="https://unpkg.com/imagesloaded@5/imagesloaded.pkgd.min.js" defer></script>
-    <script src="js/product-categories.js?v=20250329" defer></script>
-    <script src="js/featured-products.js?v=20250329" defer></script>
+    <script src="js/product-categories.js?v=20250411" defer></script>
+    <script src="js/featured-products.js?v=20250411" defer></script>
     <script src="js/main.js" defer></script>
     <script src="js/custom.min.js" defer></script>
-    <script src="js/color-carousel.min.js" defer></script>
-    <script src="js/ux-improvements.js" defer></script>
-    <script src="js/color-carousel-mobile.js" defer></script>
-    <script src="js/featured-products-mobile.js" defer></script>
-    <script src="js/product-categories-mobile.js" defer></script>
+    <script src="js/color-carousel.min.js?v=20250411-2" defer></script>
+    <script src="js/color-carousel-mobile.js?v=20250411-2" defer></script>
+    <script src="js/ux-improvements.js?v=20250411" defer></script>
+    <script src="js/featured-products-mobile.js?v=20250411" defer></script>
+    <script src="js/product-categories-mobile.js?v=20250411" defer></script>
     
     <!-- Protection Script -->
     <script>
@@ -1021,6 +1022,23 @@
         </div>
     </div>
 
+    <!-- Color Modal -->
+    <div class="modal fade" id="colorModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">All Colors</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="color-grid">
+                        <!-- Will be populated dynamically by color-carousel.js -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Cookie Consent -->
     <script>
         window.addEventListener('load', function() {
@@ -1044,7 +1062,6 @@
         });
     </script>
     <script src="js/promotion-banner.js"></script>
-    <script src="js/featured-products.js"></script>
     <!-- Full Collection Modal -->
     <div class="collection-modal" id="collectionModal">
         <div class="modal-content">
