@@ -1,568 +1,128 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Add modal styles
-    const modalStyles = document.createElement('style');
-    modalStyles.textContent = `
-        .featured-products {
-            padding: 2rem 0;
-            background: #101010;
-            min-height: 400px;
+    // Helper function to add cache buster to URL (exclude MBNA_2025 category)
+    function addCacheBuster(url, category) {
+        // Don't add cache buster for MBNA_2025 category
+        if (category === 'MBNA_2025') {
+            return url;
         }
         
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
+        // Add timestamp cache buster
+        const timestamp = Date.now();
+        return url.includes('?') ? `${url}&v=${timestamp}` : `${url}?v=${timestamp}`;
+    }
+    
+    // Advanced image error handling - try multiple paths when an image fails to load
+    function handleImageError(img, originalSrc) {
+        console.log(`Image failed to load: ${originalSrc}, trying alternatives...`);
+        
+        // Parse the path
+        const parts = originalSrc.split('/');
+        const filename = parts[parts.length - 1];
+        const basename = filename.split('.')[0];
+        const extension = filename.split('.').pop();
+        
+        // Store original src for reference
+        if (!img.dataset.originalSrc) {
+            img.dataset.originalSrc = originalSrc;
         }
         
-        .product-card {
-            background: #333;
-            border-radius: 8px;
-            overflow: hidden;
-            height: 100%;
-            position: relative;
+        // Track attempts to avoid infinite loops
+        img.dataset.attempts = (parseInt(img.dataset.attempts || 0) + 1).toString();
+        if (parseInt(img.dataset.attempts) > 3) {
+            console.log(`Failed to load image after multiple attempts: ${originalSrc}`);
+            return; // Stop trying after 3 attempts
         }
         
-        .product-image {
-            position: relative;
-            width: 100%;
-            height: 300px;
-            background: #2a2a2a;
-            overflow: hidden;
-        }
+        // Prepare alternative paths to try
+        const alternatives = [];
         
-        .product-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-        
-        .product-card:hover .product-image img {
-            transform: scale(1.05);
-        }
-        
-        .product-details {
-            padding: 1.5rem;
-        }
-        
-        .product-title {
-            margin: 0 0 0.5rem;
-            color: #fff;
-            font-size: 1.2rem;
-        }
-        
-        .product-description {
-            color: #ccc;
-            margin: 0;
-            font-size: 0.9rem;
-        }
-        
-        .category-carousel {
-            display: flex;
-            overflow-x: auto;
-            scroll-behavior: smooth;
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
-            padding: 1.5rem 0;
-            gap: 1.5rem;
-        }
-        
-        .category-carousel::-webkit-scrollbar {
-            display: none;
-        }
-        
-        .category-item {
-            flex: 0 0 300px;
-            scroll-snap-align: center;
-        }
-        
-        .carousel-container {
-            position: relative;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 40px;
-        }
-        
-        .carousel-wrapper {
-            display: flex;
-            gap: 20px;
-            overflow-x: auto;
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
-            scroll-behavior: smooth;
-            padding: 20px 0;
-        }
-        
-        .carousel-wrapper::-webkit-scrollbar {
-            display: none;
-        }
-        
-        .carousel-item {
-            flex: 0 0 260px;
-            transition: transform 0.3s ease;
-        }
-        
-        .carousel-item:hover {
-            transform: translateY(-10px);
-        }
-        
-        .category-link {
-            display: block;
-            text-decoration: none;
-            background: #222;
-            border-radius: 8px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .category-link:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        }
-        
-        .category-image {
-            height: 200px;
-            overflow: hidden;
-        }
-        
-        .category-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-        
-        .category-link:hover .category-image img {
-            transform: scale(1.1);
-        }
-        
-        .carousel-item h4 {
-            color: #fff;
-            padding: 15px 15px 5px;
-            margin: 0;
-            font-size: 1.2rem;
-        }
-        
-        .category-count {
-            display: block;
-            padding: 0 15px 15px;
-            color: #d6b772;
-            font-size: 0.9rem;
-        }
-        
-        .nav-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 40px;
-            height: 40px;
-            background: rgba(0, 0, 0, 0.5);
-            border: none;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #fff;
-            font-size: 1.2rem;
-            cursor: pointer;
-            z-index: 5;
-            transition: all 0.3s ease;
-        }
-        
-        .nav-btn:hover {
-            background: rgba(214, 183, 114, 0.7);
-        }
-        
-        .prev-btn {
-            left: 10px;
-        }
-        
-        .next-btn {
-            right: 10px;
-        }
-        
-        @media (max-width: 768px) {
-            .carousel-item {
-                flex: 0 0 200px;
+        // Extract the category from the path
+        let category = '';
+        const pathLower = originalSrc.toLowerCase();
+        if (pathLower.includes('/monuments/')) {
+            category = 'monuments';
+        } else if (pathLower.includes('/mbna_2025/')) {
+            category = 'MBNA_2025';
+        } else {
+            // Try to extract category from path segments
+            for (let i = 0; i < parts.length; i++) {
+                if (parts[i].toLowerCase() === 'products' && i+1 < parts.length) {
+                    category = parts[i+1];
+                    break;
+                }
             }
+        }
+        
+        // 1. Try changing case of category
+        if (category) {
+            // Possible case variations
+            const categoryCases = [
+                category.toLowerCase(),
+                category.toUpperCase(),
+                category.charAt(0).toUpperCase() + category.slice(1).toLowerCase()
+            ];
             
-            .category-image {
-                height: 150px;
-            }
-            
-            .carousel-item h4 {
-                font-size: 1rem;
-            }
-        }
-        
-        /* Search results grid */
-        .search-results-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        
-        @media (max-width: 768px) {
-            .search-results-grid {
-                grid-template-columns: repeat(1, 1fr);
-                gap: 20px;
-                display: flex;
-                flex-direction: column;
-            }
-            
-            .search-results-grid .thumbnail {
-                max-width: 100%;
-                margin: 0 auto 20px;
-                width: 100%;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                flex: 0 0 auto;
-                position: relative;
-            }
-            
-            .search-results-grid .thumbnail img {
-                width: 100%;
-                max-height: 450px;
-                height: auto;
-                object-fit: contain;
-                display: block;
-            }
-        }
-        
-        @media (max-width: 576px) {
-            .search-results-grid {
-                grid-template-columns: repeat(1, 1fr);
-                gap: 10px;
-            }
-            
-            .search-results-grid .thumbnail {
-                max-width: 100%;
-                margin: 0 auto;
-                width: 100%;
-            }
-        }
-        
-        @media (max-width: 375px) {
-            .search-results-grid {
-                grid-template-columns: repeat(1, 1fr);
-                gap: 8px;
-            }
-        }
-        
-        /* Responsive thumbnail adjustments */
-        @media (max-width: 768px) {
-            .thumbnails-container {
-                grid-template-columns: repeat(1, 1fr);
-                gap: 20px;
-                padding: 12px;
-                display: flex;
-                flex-direction: column;
-                height: auto;
-            }
-            
-            .thumbnail {
-                max-width: 100%;
-                margin: 0 auto 20px;
-                width: 100%;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                flex: 0 0 auto;
-                position: relative;
-            }
-            
-            .thumbnail img {
-                width: 100%;
-                max-height: 450px;
-                height: auto;
-                object-fit: contain;
-                display: block;
-            }
-        }
-        
-        @media (max-width: 576px) {
-            .thumbnails-container {
-                grid-template-columns: repeat(1, 1fr);
-                gap: 8px;
-                padding: 10px;
-            }
-            
-            .thumbnail {
-                max-width: 100%;
-                margin: 0 auto;
-                width: 100%;
-            }
-        }
-        
-        @media (max-width: 375px) {
-            .thumbnails-container {
-                grid-template-columns: repeat(1, 1fr);
-                gap: 6px;
-                padding: 8px;
-            }
-        }
-        
-        /* Fullscreen styles */
-        .fullscreen-view {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.95);
-            z-index: 3000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .fullscreen-image-container {
-            position: relative;
-            width: 90%;
-            height: 90%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .fullscreen-image {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-        
-        .fullscreen-close {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            font-size: 24px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            z-index: 10007;
-        }
-        
-        .fullscreen-close:hover {
-            background: #000;
-            border-color: rgba(255, 255, 255, 0.4);
-            transform: scale(1.1);
-        }
-        
-        .fullscreen-nav {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-size: 24px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            z-index: 10007;
-            transition: all 0.2s ease;
-        }
-        
-        .fullscreen-nav:hover {
-            background: #000;
-            border-color: rgba(255, 255, 255, 0.4);
-            transform: scale(1.1) translateY(-50%);
-        }
-        
-        .fullscreen-prev {
-            left: 20px;
-        }
-        
-        .fullscreen-next {
-            right: 20px;
-        }
-        
-        /* Loading and error styles */
-        .loading-thumbnail {
-            position: relative;
-            min-height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f5f5f5;
-            border-radius: 8px;
-        }
-        
-        .loading-spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left-color: #888;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            100% { transform: rotate(360deg); }
-        }
-        
-        .image-error-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 15px;
-            background: #f8f8f8;
-            min-height: 200px;
-            border-radius: 8px;
-            border: 1px dashed #ccc;
-        }
-        
-        .image-error-icon {
-            font-size: 32px;
-            color: #888;
-            margin-bottom: 10px;
-        }
-        
-        .image-error-text {
-            text-align: center;
-            color: #555;
-            font-size: 14px;
-        }
-        
-        /* Mobile-specific styles */
-        @media (max-width: 768px) {
-            .modal-content {
-                width: 100%;
-                height: 100%;
-                margin: 0;
-                border-radius: 0;
-            }
-            
-            .main-carousel-container {
-                height: 60vh;
-            }
-            
-            .thumbnails-scroll-container {
-                height: 30vh;
-            }
-            
-            .carousel-image {
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
-            }
-            
-            .thumbnail {
-                width: 120px;
-                height: 120px;
-                flex: 0 0 120px;
-            }
-            
-            .thumbnail img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-            
-            .nav-button {
-                width: 40px;
-                height: 40px;
-                font-size: 20px;
-            }
-            
-            .modal-header {
-                padding: 10px;
-            }
-            
-            .modal-header h2 {
-                font-size: 1.2rem;
-            }
-        }
-        
-        /* Small mobile devices */
-        @media (max-width: 480px) {
-            .main-carousel-container {
-                height: 50vh;
-            }
-            
-            .thumbnails-scroll-container {
-                height: 40vh;
-            }
-            
-            .thumbnail {
-                width: 100px;
-                height: 100px;
-                flex: 0 0 100px;
-            }
-        }
-    `;
-    document.head.appendChild(modalStyles);
-
-    // Category Carousel
-    const categoryCarousel = {
-        container: null,
-        wrapper: null,
-        items: [],
-        prevBtn: null,
-        nextBtn: null,
-        scrollAmount: 0,
-        itemWidth: 0,
-        visibleWidth: 0,
-
-        init() {
-            this.container = document.querySelector('.carousel-container');
-            if (!this.container) return;
-
-            this.wrapper = this.container.querySelector('.carousel-wrapper');
-            this.items = Array.from(this.wrapper.querySelectorAll('.carousel-item'));
-            this.prevBtn = this.container.querySelector('.prev-btn');
-            this.nextBtn = this.container.querySelector('.next-btn');
-
-            if (!this.container || !this.wrapper) {
-                console.error('Carousel elements not found');
-                return;
-            }
-
-            // Calculate dimensions
-            this.updateDimensions();
-
-            // Set up event listeners
-            this.prevBtn.addEventListener('click', () => this.scroll('left'));
-            this.nextBtn.addEventListener('click', () => this.scroll('right'));
-
-            // Update on window resize
-            window.addEventListener('resize', () => this.updateDimensions());
-        },
-
-        updateDimensions() {
-            if (this.items.length === 0) return;
-            
-            this.itemWidth = this.items[0].offsetWidth + parseInt(window.getComputedStyle(this.items[0]).marginRight);
-            this.visibleWidth = this.wrapper.offsetWidth;
-            this.scrollAmount = this.itemWidth * 3; // Scroll by 3 items at a time
-        },
-
-        scroll(direction) {
-            const currentScroll = this.wrapper.scrollLeft;
-            const newScroll = direction === 'left' 
-                ? Math.max(0, currentScroll - this.scrollAmount)
-                : currentScroll + this.scrollAmount;
-            
-            this.wrapper.scrollTo({
-                left: newScroll,
-                behavior: 'smooth'
+            categoryCases.forEach(c => {
+                if (c !== category) {
+                    const newPath = originalSrc.replace(new RegExp(`/${category}/`, 'i'), `/${c}/`);
+                    alternatives.push(addCacheBuster(newPath, c));
+                }
             });
         }
-    };
-
+        
+        // 2. Try changing AS- to AG- and vice versa for monument images
+        if (basename.startsWith('AS-')) {
+            const agName = `AG-${basename.substring(3)}`;
+            const agPath = originalSrc.replace(basename, agName);
+            alternatives.push(addCacheBuster(agPath, category));
+        } 
+        else if (basename.startsWith('AG-')) {
+            const asName = `AS-${basename.substring(3)}`;
+            const asPath = originalSrc.replace(basename, asName);
+            alternatives.push(addCacheBuster(asPath, category));
+        }
+        
+        // 3. Try different extensions if appropriate
+        if (category === 'monuments') {
+            const extensions = ['jpg', 'jpeg', 'png', 'gif'];
+            extensions.forEach(ext => {
+                if (ext !== extension) {
+                    const extPath = originalSrc.replace(`.${extension}`, `.${ext}`);
+                    alternatives.push(addCacheBuster(extPath, category));
+                }
+            });
+        }
+        
+        // Try the alternatives one by one
+        tryNextAlternative(img, alternatives, 0);
+    }
+    
+    // Helper function to try alternative paths one by one
+    function tryNextAlternative(img, alternatives, index) {
+        if (index >= alternatives.length) {
+            // We've tried all alternatives, set a placeholder or empty src
+            console.log(`All alternatives failed for ${img.dataset.originalSrc}`);
+            img.src = 'images/placeholder.png'; // Fallback to placeholder
+            return;
+        }
+        
+        const nextSrc = alternatives[index];
+        console.log(`Trying alternative path ${index+1}/${alternatives.length}: ${nextSrc}`);
+        
+        // Create a new image to test this path
+        const testImg = new Image();
+        testImg.onload = function() {
+            // This alternative worked, use it
+            console.log(`Alternative path successful: ${nextSrc}`);
+            img.src = nextSrc;
+        };
+        testImg.onerror = function() {
+            // Try the next alternative
+            tryNextAlternative(img, alternatives, index + 1);
+        };
+        testImg.src = nextSrc;
+    }
+    
     // Product Collection Modal
     const productModal = {
         modal: null,
@@ -578,496 +138,28 @@ document.addEventListener('DOMContentLoaded', function() {
             this.categoryName = categoryName;
             this.images = images;
             
-            // Handle special case for MBNA 2025 - use exact directory name from server
-            let categoryForPath = categoryName;
-            if (categoryName.toLowerCase() === 'mbna 2025') {
-                // Use exact directory name that exists on server
-                categoryForPath = 'MBNA_2025';
-                console.log('FeaturedProducts: Using exact server directory "MBNA_2025" for MBNA 2025 category');
-            }
-            // For other acronym categories, preserve capitalization
-            else if (/^mbna|^ibm|^hp|^ge/i.test(categoryName)) {
-                categoryForPath = categoryName.toUpperCase();
-                console.log('FeaturedProducts: Using uppercase for acronym category:', categoryForPath);
+            // Handle directory path - use provided or construct from category
+            if (directory) {
+                this.directory = directory;
+            } else if (categoryName) {
+                this.directory = `images/products/${categoryName}`;
             } else {
-                categoryForPath = categoryName.charAt(0).toUpperCase() + categoryName.slice(1);
+                this.directory = 'images/products/';
             }
             
-            // Use server-provided name if available
-            if (window.serverCategoryNames && window.serverCategoryNames[categoryName]) {
-                categoryForPath = window.serverCategoryNames[categoryName];
-                console.log('FeaturedProducts: Using server-provided category name:', categoryForPath);
-            }
-            
-            this.directory = directory || `images/products/${categoryForPath}`;
             console.log('FeaturedProducts: Using directory:', this.directory);
             
-            // Only log error if actually trying to initialize with a category
-            if (categoryName !== '' && !categoryName) {
-                console.error('Invalid category name');
-                return;
+            // Make sure modal is created
+            if (!this.modal) {
+                this.createModal();
             }
             
-            this.createModal();
+            this.carouselContainer.innerHTML = '';
+            this.thumbnailsContainer.innerHTML = '';
+            
             this.initEvents();
         },
-
-        createModal() {
-            // Completely replace the modal DOM structure
-            this.modal = document.createElement('div');
-            this.modal.className = 'collection-modal';
-            this.modal.innerHTML = `
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2 id="featured-products-modal-title">Product Collection</h2>
-                        <button class="close-modal">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="main-carousel-container">
-                            <button class="nav-button prev"><i class="bi bi-chevron-left"></i></button>
-                            <button class="nav-button next"><i class="bi bi-chevron-right"></i></button>
-                            <div class="main-carousel-slides"></div>
-                        </div>
-                        <div class="thumbnails-scroll-container">
-                            <div class="thumbnails-container"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(this.modal);
-
-            // Add modal styles
-            const modalStyles = document.createElement('style');
-            modalStyles.textContent = `
-                .collection-modal {
-                    display: none;
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background-color: rgba(0, 0, 0, 0.9);
-                    z-index: 1000;
-                    overflow: auto;
-                }
-                
-                .modal-content {
-                    position: relative;
-                    width: 90%;
-                    max-width: 1200px;
-                    margin: 30px auto;
-                    background-color: #222;
-                    border-radius: 8px;
-                    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-                    overflow: hidden;
-                    display: flex;
-                    flex-direction: column;
-                    height: 90vh;
-                }
-                
-                .modal-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 15px 20px;
-                    background-color: #333;
-                    border-bottom: 1px solid #444;
-                }
-                
-                .modal-header h2 {
-                    color: #fff;
-                    margin: 0;
-                    font-size: 1.5rem;
-                }
-                
-                .close-modal {
-                    background: none;
-                    border: none;
-                    color: #fff;
-                    font-size: 1.8rem;
-                    cursor: pointer;
-                    line-height: 1;
-                }
-                
-                .modal-body {
-                    padding: 20px;
-                    flex-grow: 1;
-                    display: flex;
-                    flex-direction: column;
-                    height: calc(100% - 60px);
-                    overflow: hidden;
-                }
-                
-                /* Main carousel styles */
-                .main-carousel-container {
-                    position: relative;
-                    width: 100%;
-                    height: 65%;
-                    background-color: #000;
-                    margin-bottom: 20px;
-                    border-radius: 4px;
-                    overflow: hidden;
-                }
-                
-                .main-carousel-slide {
-                    display: none;
-                    width: 100%;
-                    height: 100%;
-                    justify-content: center;
-                    align-items: center;
-                }
-                
-                .main-carousel-slide.active {
-                    display: flex;
-                }
-                
-                .main-carousel-slide img {
-                    max-width: 100%;
-                    max-height: 100%;
-                    object-fit: contain;
-                    cursor: pointer;
-                }
-                
-                .image-error-container {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    align-items: center;
-                    background-color: rgba(0, 0, 0, 0.7);
-                    color: #fff;
-                    padding: 20px;
-                    text-align: center;
-                }
-                
-                .image-error-icon {
-                    font-size: 48px;
-                    margin-bottom: 10px;
-                }
-                
-                .image-error-text {
-                    font-size: 16px;
-                }
-                
-                /* Navigation buttons */
-                .nav-button {
-                    position: absolute;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    width: 50px;
-                    height: 50px;
-                    background: rgba(0, 0, 0, 0.8);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 50%;
-                    color: white;
-                    font-size: 24px;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    cursor: pointer;
-                    z-index: 10;
-                    transition: all 0.3s;
-                }
-                
-                .nav-button:hover {
-                    background: #000;
-                    border-color: rgba(255, 255, 255, 0.4);
-                    transform: scale(1.1) translateY(-50%);
-                }
-                
-                .nav-button.prev {
-                    left: 10px;
-                }
-                
-                .nav-button.next {
-                    right: 10px;
-                }
-                
-                /* Thumbnails styles */
-                .thumbnails-scroll-container {
-                    width: 100%;
-                    height: 35%;
-                    overflow-x: hidden;
-                    overflow-y: hidden;
-                    position: relative;
-                    border-radius: 4px;
-                    background-color: #1a1a1a;
-                }
-                
-                .thumbnails-container {
-                    display: flex;
-                    flex-wrap: nowrap;
-                    gap: 10px;
-                    padding: 10px;
-                    overflow-x: auto;
-                    overflow-y: hidden;
-                    height: 100%;
-                    scrollbar-width: thin;
-                    scrollbar-color: #555 #333;
-                }
-                
-                .thumbnails-container::-webkit-scrollbar {
-                    height: 8px;
-                }
-                
-                .thumbnails-container::-webkit-scrollbar-track {
-                    background: #333;
-                    border-radius: 4px;
-                }
-                
-                .thumbnails-container::-webkit-scrollbar-thumb {
-                    background-color: #555;
-                    border-radius: 4px;
-                }
-                
-                .thumbnail {
-                    flex: 0 0 auto;
-                    position: relative;
-                    border-radius: 4px;
-                    overflow: hidden;
-                    cursor: pointer;
-                    width: 150px;
-                    height: 150px;
-                    background-color: #1a1a1a;
-                    transition: transform 0.2s;
-                    border: 2px solid transparent;
-                }
-                
-                .thumbnail:hover {
-                    transform: scale(1.05);
-                }
-                
-                .thumbnail.active {
-                    border-color: #ffeb3b;
-                }
-                
-                .thumbnail img {
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                }
-                
-                .thumbnail-label {
-                    position: absolute;
-                    bottom: 0;
-                    left: 0;
-                    right: 0;
-                    background-color: rgba(0, 0, 0, 0.7);
-                    color: #fff;
-                    padding: 5px;
-                    font-size: 12px;
-                    text-align: center;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                }
-                
-                /* Mobile styles */
-                @media (max-width: 768px) {
-                    .modal-content {
-                        width: 95%;
-                        margin: 15px auto;
-                    }
-                    
-                    .main-carousel-container {
-                        height: 60%;
-                    }
-                    
-                    .thumbnails-scroll-container {
-                        height: 40%;
-                    }
-                    
-                    .thumbnail {
-                        width: 120px;
-                        height: 120px;
-                    }
-                }
-                
-                @media (max-width: 576px) {
-                    .modal-content {
-                        margin: 10px auto;
-                    }
-                    
-                    .main-carousel-container {
-                        height: 55%;
-                    }
-                    
-                    .thumbnails-scroll-container {
-                        height: 45%;
-                    }
-                    
-                    .thumbnail {
-                        width: 100px;
-                        height: 100px;
-                    }
-                }
-                
-                /* Fullscreen view styles */
-                .fullscreen-view {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background-color: rgba(0, 0, 0, 0.95);
-                    z-index: 3000;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                }
-                
-                .fullscreen-image-container {
-                    position: relative;
-                    width: 90%;
-                    height: 90%;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                }
-                
-                .fullscreen-image {
-                    max-width: 100%;
-                    max-height: 100%;
-                    object-fit: contain;
-                }
-                
-                .fullscreen-close {
-                    position: absolute;
-                    top: 20px;
-                    right: 20px;
-                    background: rgba(0, 0, 0, 0.8);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    color: white;
-                    font-size: 24px;
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    z-index: 10007;
-                }
-                
-                .fullscreen-close:hover {
-                    background: #000;
-                    border-color: rgba(255, 255, 255, 0.4);
-                    transform: scale(1.1);
-                }
-                
-                /* Search results container */
-                .search-results-container {
-                    display: none;
-                    width: 100%;
-                    height: 100%;
-                    overflow-y: auto;
-                    background-color: #1a1a1a;
-                    border-radius: 4px;
-                    padding: 15px;
-                }
-                
-                .search-results-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 15px;
-                    color: #fff;
-                }
-                
-                .search-results-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-                    gap: 15px;
-                }
-                
-                @media (max-width: 768px) {
-                    .search-results-grid {
-                        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-                    }
-                }
-                
-                @media (max-width: 576px) {
-                    .search-results-grid {
-                        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-                    }
-                }
-            `;
-            document.head.appendChild(modalStyles);
-
-            // Cache elements
-            this.closeBtn = this.modal.querySelector('.close-modal');
-            this.carouselContainer = this.modal.querySelector('.main-carousel-slides');
-            this.mainCarouselContainer = this.modal.querySelector('.main-carousel-container');
-            this.thumbnailsContainer = this.modal.querySelector('.thumbnails-container');
-            this.prevButton = this.modal.querySelector('.nav-button.prev');
-            this.nextButton = this.modal.querySelector('.nav-button.next');
-        },
         
-        initEvents() {
-            // Close modal button
-            const closeBtn = this.modal.querySelector('.close-modal');
-            closeBtn.addEventListener('click', () => {
-                this.closeModal();
-            });
-
-            // Close modal when clicking outside of content
-            this.modal.addEventListener('click', (e) => {
-                if (e.target === this.modal) {
-                    this.closeModal();
-                }
-            });
-
-            // Next button
-            const nextBtn = this.modal.querySelector('.nav-button.next');
-            nextBtn.addEventListener('click', () => {
-                this.showNextSlide();
-            });
-
-            // Previous button
-            const prevBtn = this.modal.querySelector('.nav-button.prev');
-            prevBtn.addEventListener('click', () => {
-                this.showPrevSlide();
-            });
-
-            // Keyboard navigation
-            document.addEventListener('keydown', (e) => {
-                if (this.modal.style.display === 'block') {
-                    if (e.key === 'Escape') {
-                        this.closeModal();
-                    } else if (e.key === 'ArrowLeft') {
-                        this.showPrevSlide();
-                    } else if (e.key === 'ArrowRight') {
-                        this.showNextSlide();
-                    }
-                }
-            });
-
-            // Fullscreen view for carousel images
-            this.carouselContainer.addEventListener('click', (e) => {
-                // Make sure we're actually clicking an image, not the container or error message
-                if (e.target.tagName === 'IMG' && e.target.classList.contains('carousel-image')) {
-                    const imgSrc = e.target.src;
-                    // Prevent event bubbling
-                    e.stopPropagation();
-                    // Open fullscreen view with explicit high z-index
-                    this.openFullscreenView(imgSrc);
-                }
-            });
-            
-            // Enable horizontal scrolling with mouse wheel for thumbnails
-            this.thumbnailsContainer.addEventListener('wheel', (e) => {
-                if (e.deltaY !== 0) {
-                    e.preventDefault();
-                    this.thumbnailsContainer.scrollLeft += e.deltaY;
-                }
-            });
-        },
-
         constructImagePath(imageName) {
             if (!imageName) return '';
             
@@ -1110,163 +202,138 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         
         loadImages() {
-            console.log('FeaturedProducts: Loading images:', this.images.length);
-            
             if (!this.images || this.images.length === 0) {
-                console.error('FeaturedProducts: No images to load');
-                this.thumbnailsContainer.innerHTML = '<div class="no-images">No images found in this category.</div>';
+                console.error('No images to load');
                 return;
             }
-
-            // Create a collection of image objects for easier manipulation
-            const imageObjects = this.images.map(item => {
-                // If item is an object with path property, use it directly
-                if (typeof item === 'object' && item.path) {
-                    return {
-                        name: item.name,
-                        path: item.path,
-                        fullname: item.fullname
-                    };
-                }
-                
-                // Otherwise construct the path
-                const name = typeof item === 'string' ? item : item.name;
-                return {
-                    name: name,
-                    path: this.constructImagePath(item),
-                    fullname: name
-                };
-            });
-
-            // Store all images for reference
-            this.allImages = imageObjects;
-
-            // Create carousel items
+            
+            // Clear containers
             this.carouselContainer.innerHTML = '';
-            imageObjects.forEach((imageObj, index) => {
+            this.thumbnailsContainer.innerHTML = '';
+            
+            // Add images to carousel and thumbnails
+            this.images.forEach((imageObj, index) => {
+                // Create slide
                 const slide = document.createElement('div');
-                slide.className = `main-carousel-slide ${index === 0 ? 'active' : ''}`;
+                slide.className = 'main-carousel-slide';
                 
+                // Create image
                 const img = document.createElement('img');
-                img.alt = imageObj.name;
                 img.className = 'carousel-image';
+                img.alt = imageObj.name;
                 
-                // Set up load and error handlers
+                // Set up image loading and error handling
                 img.onload = () => {
-                    console.log(`Image loaded successfully: ${img.src}`);
+                    // Fade in animation
+                    img.style.opacity = '1';
                 };
                 
+                // Simple error handling
                 img.onerror = () => {
                     console.error(`Failed to load image: ${img.src}`);
-                    // Try without /products/ in path
-                    const simplifiedPath = img.src.replace('/products/', '/');
-                    if (img.src !== simplifiedPath) {
-                        console.log(`Trying simplified path: ${simplifiedPath}`);
-                        img.src = simplifiedPath;
-                    } else {
-                        img.src = 'images/default-thumbnail.jpg';
-                    }
+                    img.src = 'images/placeholder.png';
                 };
                 
-                // Set image source
-                img.src = imageObj.path;
+                // Set image source with cache busting
+                img.src = addCacheBuster(imageObj.path, this.categoryName);
                 
                 slide.appendChild(img);
                 this.carouselContainer.appendChild(slide);
-            });
-            
-            // Create thumbnails
-            this.thumbnailsContainer.innerHTML = '';
-            imageObjects.forEach((imageObj, index) => {
-                const thumbContainer = document.createElement('div');
-                thumbContainer.className = `thumbnail ${index === 0 ? 'active' : ''}`;
-                thumbContainer.dataset.index = index;
                 
+                // Create thumbnail
+                const thumbContainer = document.createElement('div');
+                thumbContainer.className = 'thumbnail';
+                
+                // Create thumbnail image
                 const thumb = document.createElement('img');
                 thumb.alt = imageObj.name;
                 
-                // Set up load and error handlers for thumbnail
+                // Set up thumbnail loading and error handling
                 thumb.onload = () => {
-                    console.log(`Thumbnail loaded successfully: ${thumb.src}`);
+                    // Fade in animation
+                    thumb.style.opacity = '1';
                 };
                 
+                // Simple error handling
                 thumb.onerror = () => {
                     console.error(`Failed to load thumbnail: ${thumb.src}`);
-                    // Try without /products/ in path
-                    const simplifiedPath = thumb.src.replace('/products/', '/');
-                    if (thumb.src !== simplifiedPath) {
-                        console.log(`Trying simplified path: ${simplifiedPath}`);
-                        thumb.src = simplifiedPath;
-                    } else {
-                        thumb.src = 'images/default-thumbnail.jpg';
-                    }
+                    thumb.src = 'images/placeholder.png';
                 };
                 
-                // Set thumbnail source
-                thumb.src = imageObj.path;
+                // Set thumbnail source with cache busting
+                thumb.src = addCacheBuster(imageObj.path, this.categoryName);
                 
                 thumbContainer.appendChild(thumb);
                 
-                // Add name label
+                // Add label to thumbnail
                 const label = document.createElement('div');
                 label.className = 'thumbnail-label';
                 label.textContent = imageObj.name.replace(/\.[^/.]+$/, '');
                 thumbContainer.appendChild(label);
                 
+                this.thumbnailsContainer.appendChild(thumbContainer);
+                
                 // Add click event handler
                 thumbContainer.addEventListener('click', (e) => {
                     e.preventDefault();
-                    e.stopPropagation();
+                    e.stopPropagation();  // Prevent event from bubbling up
                     
-                    console.log(`FeaturedProducts: Showing slide ${index} from thumbnail click`);
+                    console.log(`FeaturedProducts: Showing slide ${index}`);
                     
                     const allThumbs = this.thumbnailsContainer.querySelectorAll('.thumbnail');
                     allThumbs.forEach(t => t.classList.remove('active'));
                     thumbContainer.classList.add('active');
-                    
                     thumbContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
                     this.showSlide(index);
                 });
-                
-                this.thumbnailsContainer.appendChild(thumbContainer);
             });
             
             // Update modal title with image count
-            const modalTitle = this.modal.querySelector('.modal-header h2');
-            modalTitle.textContent = `${this.categoryName.replace(/_/g, ' ')} Collection (${this.images.length} Designs)`;
+            const title = document.getElementById('featured-products-modal-title');
+            if (title) {
+                title.textContent = `${this.categoryName.replace(/_/g, ' ')} Collection (${this.images.length} items)`;
+            }
+            
+            // Show first image
+            this.showSlide(0);
         },
         
         fetchImages(category) {
-            const apiUrl = `get_directory_files.php?directory=${encodeURIComponent(this.directory)}`;
-            console.log('Fetching:', apiUrl);
-            
-            return fetch(apiUrl)
-                .then(response => response.text())
-                .then(text => {
-                    console.log('Raw API response:', text);
-                    try {
-                        return JSON.parse(text);
-                    } catch (e) {
-                        console.error('Failed to parse API response:', e);
-                        throw new Error('Invalid API response');
-                    }
-                })
-                .then(data => {
-                    console.log('Parsed data:', data);
-                    if (data.success && data.files && data.files.length > 0) {
-                        console.log('Featured Products API Response:', data);
-                        this.images = data.files;
-                        this.loadImages();
-                    } else {
-                        console.error('Error loading images:', data.error || 'No images found');
-                        throw new Error('Error loading images');
-                    }
-                })
-                .catch(error => {
-                    console.error('Failed to fetch images:', error);
-                    this.carouselContainer.innerHTML = '<div class="error-message">Failed to load images. Please try again later.</div>';
-                    this.thumbnailsContainer.innerHTML = '';
-                });
+            return new Promise((resolve, reject) => {
+                console.log(`Fetching images for category: ${category}`);
+                
+                // Handle special case for MBNA 2025 directory
+                let categoryForPath = category;
+                if (category.toLowerCase() === 'mbna 2025') {
+                    categoryForPath = 'MBNA_2025';
+                }
+                
+                // Add timestamp for cache busting
+                const timestamp = Date.now();
+                const url = `get_directory_files.php?directory=products/${categoryForPath}&_=${timestamp}`;
+                
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Failed to fetch images: ${response.status} ${response.statusText}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success && data.files) {
+                            console.log(`Found ${data.files.length} images for category: ${category}`);
+                            this.images = data.files;
+                            resolve(data.files);
+                        } else {
+                            console.error('No files found in response:', data);
+                            reject(new Error('No files found in response'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching images:', error);
+                        reject(error);
+                    });
+            });
         },
         
         setupEventListeners() {
@@ -1350,131 +417,93 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         openCategory(category) {
-            console.log(`FeaturedProducts: Opening category ${category}`);
-            
-            // Make sure category exists
-            if (!category) {
-                console.error('FeaturedProducts: No category provided to openCategory');
-                return;
-            }
-            
-            // Handle special case for MBNA 2025 directory
-            let categoryForPath = category;
-            if (category.toLowerCase() === 'mbna_2025' || category.toLowerCase() === 'mbna 2025') {
-                // Use exact directory name that exists on server
-                categoryForPath = 'MBNA_2025';
-                console.log('FeaturedProducts: Using exact directory name "MBNA_2025" for MBNA 2025 category');
-            }
-            // For MBNA and similar acronym categories, preserve capitalization
-            else if (/^mbna|^ibm|^hp|^ge/i.test(category)) {
-                categoryForPath = category.toUpperCase();
-                console.log('FeaturedProducts: Using uppercase for acronym category:', categoryForPath);
-            } else {
-                categoryForPath = category.charAt(0).toUpperCase() + category.slice(1);
-            }
-            
-            // Use server-provided name if available
-            if (window.serverCategoryNames && window.serverCategoryNames[category]) {
-                categoryForPath = window.serverCategoryNames[category];
-                console.log('FeaturedProducts: Using server-provided category name:', categoryForPath);
-            }
-            
-            // Update properties
             this.categoryName = category;
-            this.directory = `images/products/${categoryForPath}`;
             
-            // Reset search state if active
-            if (this.searchResultsContainer) {
-                this.searchResultsContainer.style.display = 'none';
-            }
-            
-            // Display the modal
-            this.modal.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-            
-            // Set modal title
-            const modalTitle = document.getElementById('featured-products-modal-title');
-            if (modalTitle) {
-                modalTitle.textContent = `${this.categoryName.replace(/_/g, ' ')} Collection`;
-            }
-            
-            // Clear current images
-            this.images = [];
-            this.allImages = [];
-            this.currentImageIndex = 0;
-            
-            // Show loading indicators
-            this.carouselContainer.innerHTML = '<div class="loading-spinner"><div class="spinner"></div><div>Loading images...</div></div>';
-            this.thumbnailsContainer.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
-            
-            // Fetch images from the server
+            // First, fetch images for this category
             this.fetchImages(category)
-                .then(data => {
-                    this.images = data;
-                    this.loadImages();
+                .then(images => {
+                    if (images && images.length > 0) {
+                        // Update modal title
+                        const title = document.getElementById('featured-products-modal-title');
+                        if (title) {
+                            title.textContent = `${category.replace(/_/g, ' ')} Collection (${images.length} items)`;
+                        }
+                        
+                        // Load images
+                        this.loadImages();
+                        
+                        // Show first image
+                        this.showSlide(0);
+                        
+                        // Display modal
+                        if (this.modal) {
+                            this.modal.style.display = 'block';
+                        }
+                    } else {
+                        console.error('No images found for category:', category);
+                    }
                 })
                 .catch(error => {
-                    console.error('FeaturedProducts: Error fetching images:', error);
-                    this.carouselContainer.innerHTML = '<div class="error-message">Error loading images. Please try again later.</div>';
-                    this.thumbnailsContainer.innerHTML = '<div class="error-message">Error loading images. Please try again later.</div>';
+                    console.error('Error opening category:', error);
                 });
         },
         
         showSlide(index) {
-            if (!this.carouselContainer) {
-                console.error('FeaturedProducts: Carousel container not found');
-                return;
-            }
-            
-            const slides = this.carouselContainer.querySelectorAll('.main-carousel-slide');
-            if (slides.length === 0) {
-                console.error('FeaturedProducts: No slides found');
-                return;
-            }
+            if (!this.carouselContainer) return;
             
             // Validate index
-            if (index < 0) {
-                index = slides.length - 1;
-            } else if (index >= slides.length) {
-                index = 0;
-            }
+            if (index < 0) index = 0;
+            if (index >= this.images.length) index = this.images.length - 1;
             
             // Update current index
-            this.currentImageIndex = index;
+            this.currentIndex = index;
             
-            // Hide all slides
-            slides.forEach(slide => {
-                slide.classList.remove('active');
-            });
+            // Get all slides and hide them
+            const slides = this.carouselContainer.querySelectorAll('.main-carousel-slide');
+            slides.forEach(slide => slide.classList.remove('active'));
             
-            // Show the current slide
-            slides[index].classList.add('active');
+            // Show the selected slide
+            if (slides[index]) {
+                slides[index].classList.add('active');
+            }
             
-            // Update active thumbnail
+            // Update thumbnails
             const thumbnails = this.thumbnailsContainer.querySelectorAll('.thumbnail');
-            thumbnails.forEach((thumb, idx) => {
-                if (idx === index) {
+            thumbnails.forEach((thumb, i) => {
+                if (i === index) {
                     thumb.classList.add('active');
-                    // Scroll the thumbnail into view if it's not visible
                     thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
                 } else {
                     thumb.classList.remove('active');
                 }
             });
             
-            console.log(`FeaturedProducts: Showing slide ${index}`);
+            // Update navigation buttons state
+            if (this.prevButton) {
+                this.prevButton.disabled = index === 0;
+                this.prevButton.style.opacity = index === 0 ? '0.5' : '1';
+            }
+            
+            if (this.nextButton) {
+                this.nextButton.disabled = index === this.images.length - 1;
+                this.nextButton.style.opacity = index === this.images.length - 1 ? '0.5' : '1';
+            }
         },
         
         showPrevSlide() {
-            const newIndex = (this.currentImageIndex - 1 + this.images.length) % this.images.length;
-            this.showSlide(newIndex);
+            this.showSlide(this.currentIndex - 1);
         },
-
+        
         showNextSlide() {
-            const newIndex = (this.currentImageIndex + 1) % this.images.length;
-            this.showSlide(newIndex);
+            this.showSlide(this.currentIndex + 1);
         },
-
+        
+        closeModal() {
+            if (this.modal) {
+                this.modal.style.display = 'none';
+            }
+        },
+        
         openFullscreen(index) {
             const fullscreenView = document.createElement('div');
             fullscreenView.className = 'fullscreen-view';
@@ -1553,18 +582,84 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         },
         
-        closeModal() {
-            this.modal.style.display = 'none';
-            document.body.style.overflow = '';
+        initEvents() {
+            // Close modal button
+            if (this.closeBtn) {
+                this.closeBtn.addEventListener('click', () => {
+                    this.closeModal();
+                });
+            }
+
+            // Close modal when clicking outside of content
+            if (this.modal) {
+                this.modal.addEventListener('click', (e) => {
+                    if (e.target === this.modal) {
+                        this.closeModal();
+                    }
+                });
+            }
+
+            // Add navigation button handlers
+            if (this.prevButton) {
+                this.prevButton.addEventListener('click', () => {
+                    this.showPrevSlide();
+                });
+            }
             
-            // Clear data to free memory
-            this.images = [];
-            this.allImages = [];
-            this.currentImageIndex = 0;
+            if (this.nextButton) {
+                this.nextButton.addEventListener('click', () => {
+                    this.showNextSlide();
+                });
+            }
+
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (this.modal && this.modal.style.display === 'block') {
+                    if (e.key === 'Escape') {
+                        this.closeModal();
+                    } else if (e.key === 'ArrowLeft') {
+                        this.showPrevSlide();
+                    } else if (e.key === 'ArrowRight') {
+                        this.showNextSlide();
+                    }
+                }
+            });
             
-            // Clear containers
-            this.carouselContainer.innerHTML = '';
-            this.thumbnailsContainer.innerHTML = '';
+            // Touch swipe support
+            if (this.mainCarouselContainer) {
+                let startX = 0;
+                let currentX = 0;
+                let isDragging = false;
+                
+                this.mainCarouselContainer.addEventListener('touchstart', (e) => {
+                    startX = e.touches[0].clientX;
+                    isDragging = true;
+                }, { passive: true });
+                
+                this.mainCarouselContainer.addEventListener('touchmove', (e) => {
+                    if (!isDragging) return;
+                    currentX = e.touches[0].clientX;
+                }, { passive: true });
+                
+                this.mainCarouselContainer.addEventListener('touchend', () => {
+                    if (!isDragging) return;
+                    
+                    const diffX = startX - currentX;
+                    const threshold = 50; // Minimum swipe distance
+                    
+                    if (Math.abs(diffX) > threshold) {
+                        if (diffX > 0) {
+                            // Swiped left - go to next
+                            this.showNextSlide();
+                        } else {
+                            // Swiped right - go to previous
+                            this.showPrevSlide();
+                        }
+                    }
+                    
+                    isDragging = false;
+                }, { passive: true });
+            }
         },
         
         handleSearch(query) {
@@ -1644,8 +739,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Add error handler
                 img.onerror = () => {
-                    console.error(`Failed to load image: ${img.src}`);
-                    img.src = 'images/default-thumbnail.jpg';
+                    handleImageError(img, img.src);
                 };
                 
                 thumbnail.appendChild(img);
@@ -1711,8 +805,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Add error handler
             img.onerror = () => {
-                console.error(`Failed to load image: ${img.src}`);
-                img.src = 'images/default-thumbnail.jpg';
+                handleImageError(img, img.src);
             };
             
             slide.appendChild(img);
@@ -1730,10 +823,252 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             this.carouselContainer.innerHTML = '';
         },
+        
+        createModal() {
+            // Completely replace the modal DOM structure
+            this.modal = document.createElement('div');
+            this.modal.className = 'collection-modal';
+            this.modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 id="featured-products-modal-title">Product Collection</h2>
+                        <button class="close-modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="main-carousel-container">
+                            <button class="nav-button prev"><i class="bi bi-chevron-left"></i></button>
+                            <button class="nav-button next"><i class="bi bi-chevron-right"></i></button>
+                            <div class="main-carousel-slides"></div>
+                        </div>
+                        <div class="thumbnails-scroll-container">
+                            <div class="thumbnails-container"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(this.modal);
+
+            // Add modal styles if not already added
+            if (!document.getElementById('featured-products-modal-styles')) {
+                const modalStyles = document.createElement('style');
+                modalStyles.id = 'featured-products-modal-styles';
+                modalStyles.textContent = `
+                    .collection-modal {
+                        display: none;
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(0, 0, 0, 0.9);
+                        z-index: 1000;
+                        overflow: auto;
+                    }
+                    
+                    .modal-content {
+                        position: relative;
+                        width: 90%;
+                        max-width: 1200px;
+                        margin: 30px auto;
+                        background-color: #222;
+                        border-radius: 8px;
+                        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+                        overflow: hidden;
+                        display: flex;
+                        flex-direction: column;
+                        height: 90vh;
+                    }
+                    
+                    .modal-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 15px 20px;
+                        background-color: #333;
+                        border-bottom: 1px solid #444;
+                    }
+                    
+                    .modal-header h2 {
+                        color: #fff;
+                        margin: 0;
+                        font-size: 1.5rem;
+                    }
+                    
+                    .close-modal {
+                        background: none;
+                        border: none;
+                        color: #fff;
+                        font-size: 1.8rem;
+                        cursor: pointer;
+                        line-height: 1;
+                    }
+                    
+                    .modal-body {
+                        padding: 20px;
+                        flex-grow: 1;
+                        display: flex;
+                        flex-direction: column;
+                        height: calc(100% - 60px);
+                        overflow: hidden;
+                    }
+                    
+                    /* Main carousel styles */
+                    .main-carousel-container {
+                        position: relative;
+                        width: 100%;
+                        height: 65%;
+                        background-color: #000;
+                        margin-bottom: 20px;
+                        border-radius: 4px;
+                        overflow: hidden;
+                    }
+                    
+                    .main-carousel-slide {
+                        display: none;
+                        width: 100%;
+                        height: 100%;
+                        justify-content: center;
+                        align-items: center;
+                    }
+                    
+                    .main-carousel-slide.active {
+                        display: flex;
+                    }
+                    
+                    .main-carousel-slide img {
+                        max-width: 100%;
+                        max-height: 100%;
+                        object-fit: contain;
+                        cursor: pointer;
+                    }
+                    
+                    /* Navigation buttons */
+                    .nav-button {
+                        position: absolute;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        width: 50px;
+                        height: 50px;
+                        background: rgba(0, 0, 0, 0.8);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        border-radius: 50%;
+                        color: white;
+                        font-size: 24px;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        cursor: pointer;
+                        z-index: 10;
+                        transition: all 0.3s;
+                    }
+                    
+                    .nav-button:hover {
+                        background: #000;
+                        border-color: rgba(255, 255, 255, 0.4);
+                        transform: scale(1.1) translateY(-50%);
+                    }
+                    
+                    .nav-button.prev {
+                        left: 10px;
+                    }
+                    
+                    .nav-button.next {
+                        right: 10px;
+                    }
+                    
+                    /* Thumbnails styles */
+                    .thumbnails-scroll-container {
+                        width: 100%;
+                        height: 35%;
+                        overflow-x: hidden;
+                        overflow-y: hidden;
+                        position: relative;
+                        border-radius: 4px;
+                        background-color: #1a1a1a;
+                    }
+                    
+                    .thumbnails-container {
+                        display: flex;
+                        flex-wrap: nowrap;
+                        gap: 10px;
+                        padding: 10px;
+                        overflow-x: auto;
+                        overflow-y: hidden;
+                        height: 100%;
+                        scrollbar-width: thin;
+                        scrollbar-color: #555 #333;
+                    }
+                    
+                    .thumbnails-container::-webkit-scrollbar {
+                        height: 8px;
+                    }
+                    
+                    .thumbnails-container::-webkit-scrollbar-track {
+                        background: #333;
+                        border-radius: 4px;
+                    }
+                    
+                    .thumbnails-container::-webkit-scrollbar-thumb {
+                        background-color: #555;
+                        border-radius: 4px;
+                    }
+                    
+                    .thumbnail {
+                        flex: 0 0 auto;
+                        position: relative;
+                        border-radius: 4px;
+                        overflow: hidden;
+                        cursor: pointer;
+                        width: 150px;
+                        height: 150px;
+                        background-color: #1a1a1a;
+                        transition: transform 0.2s;
+                        border: 2px solid transparent;
+                    }
+                    
+                    .thumbnail:hover {
+                        transform: scale(1.05);
+                    }
+                    
+                    .thumbnail.active {
+                        border-color: #ffeb3b;
+                    }
+                    
+                    .thumbnail img {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                    }
+                    
+                    .thumbnail-label {
+                        position: absolute;
+                        bottom: 0;
+                        left: 0;
+                        right: 0;
+                        background-color: rgba(0, 0, 0, 0.7);
+                        color: #fff;
+                        padding: 5px;
+                        font-size: 12px;
+                        text-align: center;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
+                `;
+                document.head.appendChild(modalStyles);
+            }
+
+            // Cache elements
+            this.closeBtn = this.modal.querySelector('.close-modal');
+            this.carouselContainer = this.modal.querySelector('.main-carousel-slides');
+            this.mainCarouselContainer = this.modal.querySelector('.main-carousel-container');
+            this.thumbnailsContainer = this.modal.querySelector('.thumbnails-container');
+            this.prevButton = this.modal.querySelector('.nav-button.prev');
+            this.nextButton = this.modal.querySelector('.nav-button.next');
+        },
     };
 
     // Initialize components
-    categoryCarousel.init();
     productModal.init('', [], '');
 
     // Handle window resize
@@ -1741,7 +1076,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
-            categoryCarousel.init();
+            productModal.init('', [], '');
         }, 250);
     });
 
