@@ -14,6 +14,18 @@ function isImageFile(filename) {
     return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
 }
 
+// Simple cache busting helper - adds a timestamp to URLs
+function addCacheBuster(url, category) {
+    // Skip cache busting for MBNA_2025 category
+    if (category === 'MBNA_2025' || url.includes('/MBNA_2025/')) {
+        return url;
+    }
+    
+    // Add cache buster parameter
+    const cacheBuster = `?v=${Date.now()}`;
+    return url.includes('?') ? url : url + cacheBuster;
+}
+
 // Main functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize state
@@ -29,20 +41,22 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoadingIndicator(container);
 
         try {
-            // First, get all categories
-            const response = await fetch('get_directory_files.php?directory=products/');
+            // First, get all categories with cache-busting timestamp
+            const timestamp = Date.now();
+            const response = await fetch(`get_directory_files.php?directory=products&_=${timestamp}`);
             const data = await response.json();
             
             if (!data.success) {
                 throw new Error(data.error || 'Failed to load categories');
             }
 
-            // For each category, fetch its contents
+            // For each category, fetch its contents with unique timestamp for each request
             for (const file of data.files) {
                 if (typeof file === 'object' && file.name) {
                     const categoryName = file.name;
                     try {
-                        const categoryResponse = await fetch(`get_directory_files.php?directory=products/${categoryName}`);
+                        const categoryTimestamp = Date.now(); // New timestamp for each category request
+                        const categoryResponse = await fetch(`get_directory_files.php?directory=products/${categoryName}&_=${categoryTimestamp}`);
                         const categoryData = await categoryResponse.json();
                         if (categoryData.success && categoryData.files) {
                             categories[categoryName] = categoryData.files;
@@ -90,7 +104,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (images && images.length > 0) {
                 const img = document.createElement('img');
                 img.alt = category;
-                img.src = images[0].path;
+                img.src = addCacheBuster(images[0].path, category);
+                // Simplified error handling
+                img.onerror = function() {
+                    console.error(`Failed to load image: ${img.src}`);
+                    img.src = 'images/placeholder.png';
+                };
                 thumbContainer.appendChild(img);
             }
 
@@ -117,8 +136,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Search API function
+    async function searchAPI(term) {
+        try {
+            // Add timestamp for cache busting
+            const timestamp = Date.now();
+            const response = await fetch(`get_directory_files.php?search=${encodeURIComponent(term)}&_=${timestamp}`);
+            const data = await response.json();
+            
+            if (data.success && Array.isArray(data.files)) {
+                return data.files;
+            } else {
+                console.error('Search API error:', data.error || 'Unknown error');
+                return [];
+            }
+        } catch (error) {
+            console.error('Search API error:', error);
+            return [];
+        }
+    }
+
     // Search function
-    function handleSearch(searchTerm) {
+    async function handleSearch(searchTerm) {
         console.log('Searching for:', searchTerm);
         searchTerm = searchTerm.toLowerCase().trim();
 
@@ -167,8 +206,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 resultItem.className = 'search-result-item';
 
                 const img = document.createElement('img');
-                img.src = image.path;
+                img.src = addCacheBuster(image.path, image.category);
                 img.alt = image.name;
+                img.onerror = function() {
+                    console.error(`Failed to load image: ${img.src}`);
+                    img.src = 'images/placeholder.png';
+                };
 
                 const label = document.createElement('div');
                 label.className = 'result-label';
@@ -512,7 +555,7 @@ document.addEventListener('DOMContentLoaded', function() {
             };
 
             // Use lazy loading
-            lazyLoadImage(img, image.path);
+            lazyLoadImage(img, addCacheBuster(image.path, category));
 
             const label = document.createElement('div');
             label.className = 'thumbnail-label';
@@ -591,7 +634,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const img = thumb.querySelector('img');
                     const label = thumb.querySelector('.thumbnail-label');
                     return {
-                        path: img.getAttribute('src'),
+                        path: img.src,
                         name: label ? label.textContent : ''
                     };
                 });
@@ -604,13 +647,20 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Load image
         const img = new Image();
+        
+        // Add robust error handling for image loading
+        img.onerror = function() {
+            console.error(`Failed to load image: ${imagePath}`);
+            img.src = 'images/placeholder.png';
+        };
+        
         img.onload = () => {
             // Determine if we need navigation buttons
             const showNavigation = categoryImages.length > 1;
             
             fullscreen.innerHTML = `
                 <div class="fullscreen-image-container">
-                    <img src="${imagePath}" class="fullscreen-image" alt="${productNumber}">
+                    <img src="${addCacheBuster(imagePath, currentCategory || 'monuments')}" class="fullscreen-image" alt="${productNumber}">
                     <div class="fullscreen-label">${productNumber}</div>
                     <button class="close-fullscreen">&times;</button>
                     ${showNavigation ? `
@@ -739,7 +789,7 @@ document.addEventListener('DOMContentLoaded', function() {
         img.src = imagePath;
         
         // Add error handling for image loading
-        img.onerror = () => {
+        img.onerror = function() {
             fullscreen.innerHTML = `
                 <div class="fullscreen-image-container">
                     <div class="error-message">
@@ -803,6 +853,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add this function for lazy loading images
     function lazyLoadImage(img, src) {
+        // Add error handler
+        img.onerror = function() {
+            console.error(`Failed to load image: ${src}`);
+            img.src = 'images/placeholder.png';
+        };
+        
         if ('loading' in HTMLImageElement.prototype) {
             // Browser supports native lazy loading
             img.loading = 'lazy';

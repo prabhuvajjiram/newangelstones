@@ -8,6 +8,11 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
 header('Access-Control-Allow-Headers: Content-Type');
+// Add no-cache headers to prevent browser caching of API responses
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Cache-Control: post-check=0, pre-check=0', false);
+header('Pragma: no-cache');
+header('Expires: 0');
 
 /**
  * Get all files in a specific directory
@@ -132,6 +137,14 @@ function getDirectoryFiles($directory) {
                 
                 // Create web-accessible path - use the exact category name as found on disk
                 $webPath = 'images/products/' . $category . '/' . $item;
+                
+                // Add cache-busting timestamp to force browser to load the latest image
+                // Skip cache busting for MBNA_2025 category
+                if ($category !== 'MBNA_2025') {
+                    // Use file's last modified time as cache buster
+                    $fileTimestamp = filemtime($normalizedItemPath);
+                    $webPath .= "?v=" . $fileTimestamp;
+                }
                 
                 // For debugging
                 error_log("Adding file: {$item} with web path: {$webPath}");
