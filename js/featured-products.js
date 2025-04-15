@@ -11,6 +11,179 @@ document.addEventListener('DOMContentLoaded', function() {
         return url.includes('?') ? `${url}&v=${timestamp}` : `${url}?v=${timestamp}`;
     }
     
+    // Add styles for fullscreen view if not already present
+    if (!document.getElementById('featured-products-fullscreen-styles')) {
+        const fullscreenStyles = document.createElement('style');
+        fullscreenStyles.id = 'featured-products-fullscreen-styles';
+        fullscreenStyles.textContent = `
+            .fullscreen-view {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.9);
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .fullscreen-container {
+                position: relative;
+                width: 90%;
+                height: 90%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+            
+            .fullscreen-image {
+                max-width: 90%;
+                max-height: 80%;
+                object-fit: contain;
+                width: auto;
+                height: auto;
+                margin: auto;
+                display: block;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            }
+            
+            .fullscreen-info {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                background-color: rgba(0, 0, 0, 0.7);
+                color: white;
+                padding: 10px;
+                text-align: center;
+            }
+            
+            .fullscreen-close {
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                font-size: 30px;
+                color: white;
+                background-color: rgba(0, 0, 0, 0.5);
+                width: 40px;
+                height: 40px;
+                line-height: 40px;
+                text-align: center;
+                border-radius: 50%;
+                cursor: pointer;
+                z-index: 10001;
+            }
+            
+            .fullscreen-nav {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                background-color: rgba(0, 0, 0, 0.5);
+                color: white;
+                font-size: 30px;
+                border: none;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10001;
+            }
+            
+            .fullscreen-nav.prev-nav {
+                left: 20px;
+            }
+            
+            .fullscreen-nav.next-nav {
+                right: 20px;
+            }
+            
+            .fullscreen-nav:disabled {
+                opacity: 0.3;
+                cursor: not-allowed;
+            }
+            
+            /* Mobile styles */
+            @media (max-width: 768px) {
+                .fullscreen-container {
+                    width: 100%;
+                    height: 100%;
+                    padding: 10px;
+                }
+                
+                .fullscreen-image {
+                    max-width: 95%;
+                    max-height: 70%;
+                }
+                
+                .fullscreen-close {
+                    top: 10px;
+                    right: 10px;
+                    width: 36px;
+                    height: 36px;
+                    line-height: 36px;
+                    font-size: 24px;
+                }
+                
+                .fullscreen-nav {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 24px;
+                    background-color: rgba(0, 0, 0, 0.7);
+                }
+                
+                .fullscreen-nav.prev-nav {
+                    left: 10px;
+                }
+                
+                .fullscreen-nav.next-nav {
+                    right: 10px;
+                }
+                
+                .fullscreen-info {
+                    padding: 5px;
+                    font-size: 14px;
+                }
+                
+                .fullscreen-info h3 {
+                    margin: 0;
+                    font-size: 14px;
+                }
+            }
+            
+            /* Small mobile styles */
+            @media (max-width: 480px) {
+                .fullscreen-image {
+                    max-width: 95%;
+                    max-height: 60%;
+                }
+                
+                .fullscreen-nav {
+                    width: 36px;
+                    height: 36px;
+                    font-size: 20px;
+                }
+                
+                .fullscreen-close {
+                    width: 32px;
+                    height: 32px;
+                    line-height: 32px;
+                    font-size: 20px;
+                }
+                
+                .fullscreen-info h3 {
+                    font-size: 12px;
+                }
+            }
+        `;
+        document.head.appendChild(fullscreenStyles);
+    }
+
     // Advanced image error handling - try multiple paths when an image fails to load
     function handleImageError(img, originalSrc) {
         console.log(`Image failed to load: ${originalSrc}, trying alternatives...`);
@@ -236,6 +409,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Set image source with cache busting
                 img.src = addCacheBuster(imageObj.path, this.categoryName);
+                
+                // Add click handler to open fullscreen view
+                img.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.openFullscreen(index);
+                });
                 
                 slide.appendChild(img);
                 this.carouselContainer.appendChild(slide);
@@ -512,9 +692,17 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add fullscreen-view class to body to hide sidebar
             document.body.classList.add('fullscreen-view');
             
-            const imgSrc = this.images[index]?.fullImage || this.images[index]?.thumbImage;
-            const productNumber = this.getProductNumber(index);
+            // Get the correct image path with cache busting
+            const currentImage = this.images[index];
+            if (!currentImage) {
+                console.error('No image found at index:', index);
+                return;
+            }
             
+            const imgSrc = addCacheBuster(currentImage.path, this.categoryName);
+            const productNumber = currentImage.name || '';
+            
+            // Create fullscreen HTML with navigation buttons
             fullscreenView.innerHTML = `
                 <div class="fullscreen-container">
                     <img src="${imgSrc}" alt="${productNumber}" class="fullscreen-image">
@@ -522,29 +710,103 @@ document.addEventListener('DOMContentLoaded', function() {
                         <h3>${productNumber}</h3>
                     </div>
                     <div class="fullscreen-close">&times;</div>
-                    <button class="fullscreen-nav prev-nav">&lt;</button>
-                    <button class="fullscreen-nav next-nav">&gt;</button>
+                    <button class="fullscreen-nav prev-nav" ${index <= 0 ? 'disabled' : ''}>&lt;</button>
+                    <button class="fullscreen-nav next-nav" ${index >= this.images.length - 1 ? 'disabled' : ''}>&gt;</button>
                 </div>
             `;
             
             document.body.appendChild(fullscreenView);
             
-            // Add event listeners
+            // Close button handler
             const closeBtn = fullscreenView.querySelector('.fullscreen-close');
             closeBtn.addEventListener('click', () => {
                 fullscreenView.remove();
-                // Remove fullscreen-view class when closing
                 document.body.classList.remove('fullscreen-view');
             });
             
-            // Close on outside click
+            // Close on clicking outside
             fullscreenView.addEventListener('click', (e) => {
                 if (e.target === fullscreenView) {
                     fullscreenView.remove();
-                    // Remove fullscreen-view class when closing
                     document.body.classList.remove('fullscreen-view');
                 }
             });
+            
+            // Keyboard navigation
+            const keyHandler = (e) => {
+                if (e.key === 'Escape') {
+                    fullscreenView.remove();
+                    document.body.classList.remove('fullscreen-view');
+                    document.removeEventListener('keydown', keyHandler);
+                } else if (e.key === 'ArrowLeft' && index > 0) {
+                    fullscreenView.remove();
+                    document.removeEventListener('keydown', keyHandler);
+                    this.openFullscreen(index - 1);
+                } else if (e.key === 'ArrowRight' && index < this.images.length - 1) {
+                    fullscreenView.remove();
+                    document.removeEventListener('keydown', keyHandler);
+                    this.openFullscreen(index + 1);
+                }
+            };
+            
+            document.addEventListener('keydown', keyHandler);
+            
+            // Navigation buttons
+            const prevBtn = fullscreenView.querySelector('.prev-nav');
+            if (prevBtn) {
+                prevBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (index > 0) {
+                        fullscreenView.remove();
+                        this.openFullscreen(index - 1);
+                    }
+                });
+            }
+            
+            const nextBtn = fullscreenView.querySelector('.next-nav');
+            if (nextBtn) {
+                nextBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (index < this.images.length - 1) {
+                        fullscreenView.remove();
+                        this.openFullscreen(index + 1);
+                    }
+                });
+            }
+            
+            // Touch swipe support
+            let touchStartX = 0;
+            let touchEndX = 0;
+            let touchStartTime = 0;
+            
+            fullscreenView.addEventListener('touchstart', (e) => {
+                // Only track primary touch
+                if (e.touches.length === 1) {
+                    touchStartX = e.changedTouches[0].screenX;
+                    touchStartTime = Date.now();
+                }
+            }, { passive: true });
+            
+            fullscreenView.addEventListener('touchend', (e) => {
+                // Ensure this is the same touch that started and enough time has passed
+                if (e.changedTouches.length === 1 && Date.now() - touchStartTime > 100 && Date.now() - touchStartTime < 1000) {
+                    touchEndX = e.changedTouches[0].screenX;
+                    const swipeDiff = touchEndX - touchStartX;
+                    
+                    // Only register significant horizontal swipes (more distance and not accidental)
+                    if (Math.abs(swipeDiff) > 75) {
+                        if (swipeDiff > 0 && index > 0) {
+                            // Swipe right - previous image
+                            fullscreenView.remove();
+                            this.openFullscreen(index - 1);
+                        } else if (swipeDiff < 0 && index < this.images.length - 1) {
+                            // Swipe left - next image
+                            fullscreenView.remove();
+                            this.openFullscreen(index + 1);
+                        }
+                    }
+                }
+            }, { passive: true });
         },
         
         openFullscreenView(imgSrc) {
