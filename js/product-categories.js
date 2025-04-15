@@ -658,9 +658,12 @@ document.addEventListener('DOMContentLoaded', function() {
             // Determine if we need navigation buttons
             const showNavigation = categoryImages.length > 1;
             
+            // Apply cache busting to image path
+            const cachedImagePath = addCacheBuster(imagePath, currentCategory || 'monuments');
+            
             fullscreen.innerHTML = `
                 <div class="fullscreen-image-container">
-                    <img src="${addCacheBuster(imagePath, currentCategory || 'monuments')}" class="fullscreen-image" alt="${productNumber}">
+                    <img src="${cachedImagePath}" class="fullscreen-image" alt="${productNumber}">
                     <div class="fullscreen-label">${productNumber}</div>
                     <button class="close-fullscreen">&times;</button>
                     ${showNavigation ? `
@@ -669,7 +672,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     ` : ''}
                 </div>
             `;
-
             // Add close handler
             const closeBtn = fullscreen.querySelector('.close-fullscreen');
             const handleClose = () => {
@@ -693,7 +695,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (imageIndex > 0) {
                             imageIndex--;
                             const prevImage = categoryImages[imageIndex];
-                            showFullscreenImage(prevImage.path, prevImage.name, imageIndex);
+                            showFullscreenImage(prevImage.path, prevImage.name.split('.')[0], imageIndex);
                         }
                     });
                 }
@@ -703,7 +705,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (imageIndex < categoryImages.length - 1) {
                             imageIndex++;
                             const nextImage = categoryImages[imageIndex];
-                            showFullscreenImage(nextImage.path, nextImage.name, imageIndex);
+                            showFullscreenImage(nextImage.path, nextImage.name.split('.')[0], imageIndex);
                         }
                     });
                 }
@@ -711,39 +713,44 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Add touch swipe functionality for mobile devices
                 let touchStartX = 0;
                 let touchEndX = 0;
+                let touchStartTime = 0;
                 const imageContainer = fullscreen.querySelector('.fullscreen-image-container');
                 
                 // Touch start handler
                 const handleTouchStart = (e) => {
-                    touchStartX = e.changedTouches[0].screenX;
+                    // Only track primary touch
+                    if (e.touches.length === 1) {
+                        touchStartX = e.changedTouches[0].screenX;
+                        touchStartTime = Date.now();
+                    }
                 };
                 
                 // Touch end handler
                 const handleTouchEnd = (e) => {
-                    touchEndX = e.changedTouches[0].screenX;
-                    handleSwipe();
-                };
-                
-                // Handle swipe logic
-                const handleSwipe = () => {
-                    const minSwipeDistance = 50; // Minimum distance for a swipe to be registered
-                    const swipeDistance = touchEndX - touchStartX;
-                    
-                    if (Math.abs(swipeDistance) < minSwipeDistance) return; // Not a significant swipe
-                    
-                    if (swipeDistance > 0) {
-                        // Swiped right - go to previous image
-                        if (imageIndex > 0) {
-                            imageIndex--;
-                            const prevImage = categoryImages[imageIndex];
-                            showFullscreenImage(prevImage.path, prevImage.name, imageIndex);
-                        }
-                    } else {
-                        // Swiped left - go to next image
-                        if (imageIndex < categoryImages.length - 1) {
-                            imageIndex++;
-                            const nextImage = categoryImages[imageIndex];
-                            showFullscreenImage(nextImage.path, nextImage.name, imageIndex);
+                    // Ensure this is the same touch that started and has reasonable timing
+                    if (e.changedTouches.length === 1 && Date.now() - touchStartTime > 100 && Date.now() - touchStartTime < 1000) {
+                        touchEndX = e.changedTouches[0].screenX;
+                        
+                        // Handle swipe only if substantial horizontal movement
+                        const swipeDistance = touchEndX - touchStartX;
+                        const minSwipeDistance = 75; // Increased threshold for more deliberate swipes
+                        
+                        if (Math.abs(swipeDistance) > minSwipeDistance) {
+                            if (swipeDistance > 0) {
+                                // Swiped right - go to previous image
+                                if (imageIndex > 0) {
+                                    imageIndex--;
+                                    const prevImage = categoryImages[imageIndex];
+                                    showFullscreenImage(prevImage.path, prevImage.name.split('.')[0], imageIndex);
+                                }
+                            } else {
+                                // Swiped left - go to next image
+                                if (imageIndex < categoryImages.length - 1) {
+                                    imageIndex++;
+                                    const nextImage = categoryImages[imageIndex];
+                                    showFullscreenImage(nextImage.path, nextImage.name.split('.')[0], imageIndex);
+                                }
+                            }
                         }
                     }
                 };
@@ -774,11 +781,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (e.key === 'ArrowLeft' && imageIndex > 0) {
                         imageIndex--;
                         const prevImage = categoryImages[imageIndex];
-                        showFullscreenImage(prevImage.path, prevImage.name, imageIndex);
+                        showFullscreenImage(prevImage.path, prevImage.name.split('.')[0], imageIndex);
                     } else if (e.key === 'ArrowRight' && imageIndex < categoryImages.length - 1) {
                         imageIndex++;
                         const nextImage = categoryImages[imageIndex];
-                        showFullscreenImage(nextImage.path, nextImage.name, imageIndex);
+                        showFullscreenImage(nextImage.path, nextImage.name.split('.')[0], imageIndex);
                     }
                 }
             };
@@ -913,4 +920,162 @@ document.addEventListener('DOMContentLoaded', function() {
             ticking = true;
         }
     }, { passive: true });
+
+    // Add CSS styles to ensure fullscreen images stay within screen bounds
+    const fullscreenStyles = document.createElement('style');
+    fullscreenStyles.textContent = `
+        .fullscreen-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .fullscreen-image-container {
+            position: relative;
+            width: 90%;
+            height: 90%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .fullscreen-image {
+            max-width: 90%;
+            max-height: 80%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            margin: auto;
+            display: block;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .fullscreen-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .fullscreen-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 24px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .fullscreen-nav.prev {
+            left: 20px;
+        }
+        
+        .fullscreen-nav.next {
+            right: 20px;
+        }
+        
+        .close-fullscreen {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .fullscreen-image-container {
+                width: 100%;
+                height: 100%;
+                padding: 10px;
+            }
+            
+            .fullscreen-image {
+                max-width: 95%;
+                max-height: 70%;
+            }
+            
+            .close-fullscreen {
+                top: 10px;
+                right: 10px;
+                width: 36px;
+                height: 36px;
+                font-size: 24px;
+            }
+            
+            .fullscreen-nav {
+                width: 40px;
+                height: 40px;
+                font-size: 24px;
+                background-color: rgba(0, 0, 0, 0.7);
+            }
+            
+            .fullscreen-nav.prev {
+                left: 10px;
+            }
+            
+            .fullscreen-nav.next {
+                right: 10px;
+            }
+            
+            .fullscreen-label {
+                padding: 5px;
+                font-size: 14px;
+            }
+        }
+        
+        /* Small mobile optimizations */
+        @media (max-width: 480px) {
+            .fullscreen-image {
+                max-width: 95%;
+                max-height: 60%;
+            }
+            
+            .fullscreen-nav {
+                width: 36px;
+                height: 36px;
+                font-size: 20px;
+            }
+            
+            .close-fullscreen {
+                width: 32px;
+                height: 32px;
+                font-size: 20px;
+            }
+            
+            .fullscreen-label {
+                font-size: 12px;
+            }
+        }
+    `;
+    document.head.appendChild(fullscreenStyles);
 });
