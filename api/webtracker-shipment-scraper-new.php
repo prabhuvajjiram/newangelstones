@@ -156,6 +156,7 @@ function extractShipmentData($html) {
         ];
         
         // Map of expected header text to database column names
+        global $headerToColumnMap;
         $headerToColumnMap = [
             'Shipment#' => 'shipment_number',
             'Bill' => 'bill',
@@ -261,44 +262,40 @@ function extractShipmentData($html) {
         foreach ($tables as $tableIndex => $table) {
             logDebug("Processing table #$tableIndex");
             
-            // Get all rows
+            // Find rows
             $rows = $xpath->query('.//tr', $table);
-            if ($rows->length <= 1) {
-                logDebug("Table #$tableIndex has too few rows: " . $rows->length);
-                continue; // Skip tables with only header or empty
+            
+            // Skip empty tables
+            if ($rows->length < 2) {
+                continue;
             }
             
-            logDebug("Table #$tableIndex has " . $rows->length . " rows");
-            
-            // Check if this is a header row (class="DetailsHeader")
+            // Find the header row (first row or one with class 'DetailsHeader')
             $headerRows = $xpath->query('.//tr[contains(@class, "DetailsHeader")]', $table);
             $headerRow = null;
             
             if ($headerRows->length > 0) {
                 $headerRow = $headerRows->item(0);
-                logDebug("Found DetailsHeader row");
             } else {
-                // Use first row as header
                 $headerRow = $rows->item(0);
-                logDebug("Using first row as header");
             }
             
-            // Extract header texts
+            // Get header cells
             $headerCells = $xpath->query('.//td', $headerRow);
-            
-            // If no TD elements, try TH elements
-            if ($headerCells->length == 0) {
+            if ($headerCells->length === 0) {
+                // Try with th instead of td
                 $headerCells = $xpath->query('.//th', $headerRow);
             }
             
-            if ($headerCells->length == 0) {
+            if ($headerCells->length === 0) {
                 logDebug("No header cells found in table #$tableIndex");
                 continue;
             }
             
-            logDebug("Found " . $headerCells->length . " header cells");
+            // Log header count for debugging
+            logDebug("Found " . $headerCells->length . " header cells in table #$tableIndex");
             
-            // Extract header texts and map them to expected headers
+            // Extract header texts
             $headers = [];
             $headerIndexes = [];
             
@@ -366,12 +363,125 @@ function extractShipmentData($html) {
                             if (isset($headerToColumnMap[$headerText])) {
                                 $columnName = $headerToColumnMap[$headerText];
                                 $shipment[$columnName] = $value;
+                                
+                                // Log important fields for debugging
+                                if (in_array($headerText, ['Shipper', 'Consignee', 'Charges'])) {
+                                    logDebug("Found $headerText: '$value'", "DEBUG");
+                                }
                             }
                             
                             // Also store with the original header name
                             $shipment[$headerText] = $value;
+                        } else {
+                            // Store empty values as NULL instead of empty strings
+                            if (isset($headerToColumnMap[$headerText])) {
+                                $columnName = $headerToColumnMap[$headerText];
+                                $shipment[$columnName] = null;
+                            }
                         }
                     }
+                }
+                
+                // Direct access to important fields by position for error checking
+                // In case our header mapping failed, try again using direct position access
+                if ((!isset($shipment['shipper']) || $shipment['shipper'] === null) && isset($cells) && $cells->length > 2) {
+                    $shipment['shipper'] = trim($cells->item(2)->textContent);
+                    logDebug("Direct shipper extraction: " . $shipment['shipper'], "DEBUG");
+                }
+                
+                if ((!isset($shipment['consignee']) || $shipment['consignee'] === null || $shipment['consignee'] === 'NC') && isset($cells) && $cells->length > 3) {
+                    $shipment['consignee'] = trim($cells->item(3)->textContent);
+                    logDebug("Direct consignee extraction: " . $shipment['consignee'], "DEBUG");
+                }
+                
+                if ((!isset($shipment['charges']) || $shipment['charges'] === null) && isset($cells) && $cells->length > 12) {
+                    $shipment['charges'] = trim($cells->item(12)->textContent);
+                    logDebug("Direct charges extraction: " . $shipment['charges'], "DEBUG");
+                }
+
+                // Always force direct field extraction for critical fields to ensure data quality
+                if (isset($cells) && $cells->length > 3) {
+                    // These fields are so important we'll always use direct extraction
+                    $shipment['shipper'] = trim($cells->item(2)->textContent);
+                    $shipment['consignee'] = trim($cells->item(3)->textContent);
+                    
+                    // Direct map of important fields by position
+                    $directFieldMap = [
+                        // Core shipping info
+                        0 => 'shipment_number',
+                        1 => 'bill',
+                        2 => 'shipper',
+                        3 => 'consignee',
+                        4 => 'origin',
+                        5 => 'etd',
+                        6 => 'destination',
+                        7 => 'eta',
+                        
+                        // Charges
+                        11 => 'booked_online',
+                        12 => 'charges',
+                        13 => 'charges_apply',
+                        
+                        // Consignee address details
+                        14 => 'consignee_address',
+                        15 => 'consignee_city',
+                        16 => 'consignee_full_address',
+                        17 => 'consignee_post_code',
+                        18 => 'consignee_state',
+                        
+                        // Container details
+                        19 => 'container_mode',
+                        20 => 'containers',
+                        
+                        // Port & vessel info
+                        22 => 'current_discharge_port',
+                        23 => 'current_load_port',
+                        24 => 'current_vessel',
+                        25 => 'current_voy_flight',
+                        26 => 'delivery_agent',
+                        
+                        // Dates and scheduling
+                        31 => 'first_leg_load_atd',
+                        32 => 'first_leg_load_etd',
+                        33 => 'goods_description',
+                        34 => 'goods_value',
+                        35 => 'inspection',
+                        37 => 'last_leg_discharge_ata',
+                        38 => 'last_leg_discharge_eta',
+                        
+                        // Other important fields
+                        44 => 'mode',
+                        45 => 'on_board',
+                        48 => 'packs',
+                        49 => 'payment_term',
+                        
+                        // Shipper address details
+                        57 => 'shipper_address',
+                        58 => 'shipper_city',
+                        59 => 'shipper_full_address',
+                        60 => 'shipper_post_code',
+                        61 => 'shipper_state',
+                        63 => 'storage_commences',
+                        64 => 'teu',
+                        65 => 'type',
+                        66 => 'volume',
+                        67 => 'weight'
+                    ];
+                    
+                    // Extract all fields we can by direct position
+                    foreach ($directFieldMap as $position => $fieldName) {
+                        if ($cells->length > $position) {
+                            $value = trim($cells->item($position)->textContent);
+                            if (!empty($value) && $value != '&nbsp;') {
+                                $shipment[$fieldName] = $value;
+                                if (in_array($fieldName, ['consignee_address', 'consignee_city', 'consignee_state', 'consignee_post_code', 'shipper_address'])) {
+                                    logDebug("Direct extraction of $fieldName: '$value'", "DEBUG");
+                                }
+                            }
+                        }
+                    }
+                    
+                    logDebug("Completed direct field extraction for " . count($directFieldMap) . " fields", "DEBUG");
                 }
                 
                 // Add standard fields mapping
@@ -691,6 +801,7 @@ function getWebtrackerDbConnection() {
  * Save shipment data to the database
  */
 function saveShipmentsToDatabase($shipments) {
+    global $headerToColumnMap;
     global $verboseMode;
     
     $pdo = getWebtrackerDbConnection();
@@ -712,172 +823,104 @@ function saveShipmentsToDatabase($shipments) {
         $existingColumns = getExistingDatabaseColumns($pdo, 'shipment_tracking');
         logDebug("Found " . count($existingColumns) . " existing columns in the database");
         
-        // Complete columns list based on the actual WebTracker columns
-        $allColumns = [
-            // Primary key field
-            'shipment_number',
-            
-            // Standard WebTracker fields matching the headers provided
-            'bill', 
-            'shipper', 
-            'consignee', 
-            'origin', 
-            'etd', 
-            'destination', 
-            'eta', 
-            'declaration_country', 
-            'actual_pickup', 
-            'additional_terms',
-            'booked_online', 
-            'charges', 
-            'charges_apply', 
-            'consignee_address',
-            'consignee_city', 
-            'consignee_full_address', 
-            'consignee_post_code',
-            'consignee_state', 
-            'container_mode', 
-            'containers', 
-            'currency',
-            'current_discharge_port', 
-            'current_load_port', 
-            'current_vessel',
-            'current_voy_flight', 
-            'delivery_agent', 
-            'delivery_date',
-            'delivery_required_by', 
-            'estimated_delivery', 
-            'estimated_pickup',
-            'first_leg_load_atd', 
-            'first_leg_load_etd', 
-            'goods_description',
-            'goods_value', 
-            'inspection', 
-            'job_notes', 
-            'last_leg_discharge_ata',
-            'last_leg_discharge_eta', 
-            'loading_meters', 
-            'main_discharge_port',
-            'main_load_port', 
-            'main_vessel', 
-            'main_voy_flight', 
-            'mode',
-            'on_board', 
-            'order_ref', 
-            'owners_ref', 
-            'packs', 
-            'payment_term',
-            'pickup_agent', 
-            'pickup_required_by', 
-            'pieces_received',
-            'received_by', 
-            'received_date', 
-            'release_type', 
-            'service_level',
-            'shipper_address', 
-            'shipper_city', 
-            'shipper_full_address',
-            'shipper_post_code', 
-            'shipper_state', 
-            'shippers_ref',
-            'storage_commences', 
-            'teu', 
-            'type', 
-            'volume', 
-            'weight',
-            
-            // Legacy fields for compatibility
-            'container_id',
-            'customer',
-            'port_id',
-            'port_date',
-            'location',
-            'est_departure',
-            'est_arrival',
-            'carrier',
-            'status',
-            
-            // Special fields
-            'json_data',
-            'last_updated'
-        ];
-        
-        // Filter to only include columns that actually exist in the database
-        $columns = array_intersect($allColumns, $existingColumns);
-        
-        // Always ensure essential columns are included
-        $essentialColumns = ['shipment_number', 'json_data', 'last_updated'];
-        foreach ($essentialColumns as $col) {
-            if (!in_array($col, $columns)) {
-                logDebug("Warning: Essential column $col is missing from database");
+        // Collect all required columns from the data
+        $requiredColumns = ['id', 'shipment_number', 'last_updated'];
+        foreach ($shipments as $shipment) {
+            foreach ($shipment as $key => $value) {
+                // Only add database column names, not the original header names
+                if (in_array($key, array_values($headerToColumnMap)) && !in_array($key, $requiredColumns)) {
+                    $requiredColumns[] = $key;
+                }
             }
         }
         
-        logDebug("Using " . count($columns) . " matching columns for database operation");
+        // Add any missing columns to the table
+        alterShipmentTableSchema($pdo, $requiredColumns);
         
-        // If we don't have valid columns to work with, create/alter the table
-        if (count($columns) < 5) { // At least need shipment_number and a few data columns
-            logDebug("Too few usable columns, altering table schema");
-            alterShipmentTableSchema($pdo, $allColumns);
-            $columns = getExistingDatabaseColumns($pdo, 'shipment_tracking');
-            logDebug("After alteration, using " . count($columns) . " columns");
-        }
-        
-        // Start transaction
+        // Begin transaction
         $pdo->beginTransaction();
         
-        // Prepare SQL statement that UPSERTS (INSERT or UPDATE if exists)
-        $placeholders = array_map(function($col) { return ":$col"; }, $columns);
-        
-        // Build the SQL statement
-        $sql = "INSERT INTO shipment_tracking (" . implode(',', $columns) . ") 
-                VALUES (" . implode(',', $placeholders) . ")
-                ON DUPLICATE KEY UPDATE ";
-        
-        // Add update clause for all fields except shipment_number (which is the primary key)
-        $updateClauses = [];
-        foreach ($columns as $column) {
-            if ($column !== 'shipment_number') {
-                $updateClauses[] = "$column = VALUES($column)";
-            }
-        }
-        $sql .= implode(', ', $updateClauses);
-        
-        $stmt = $pdo->prepare($sql);
-        $insertCount = 0;
-        $updateCount = 0;
+        // Track changes for logging
+        $created = 0;
+        $updated = 0;
+        $unchanged = 0;
         
         foreach ($shipments as $shipment) {
-            // Skip shipments without a shipment number
-            if (empty($shipment['shipment_number'])) {
-                logDebug("Skipping shipment without shipment_number");
+            if (!isset($shipment['shipment_number']) || empty($shipment['shipment_number'])) {
+                logDebug("Skipping shipment with missing shipment number", "WARNING");
                 continue;
             }
             
-            // Prepare data for insertion
-            $data = [];
-            foreach ($columns as $column) {
-                if ($column === 'json_data') {
-                    // Store complete shipment data as JSON for future reference
-                    $data[":$column"] = json_encode($shipment);
-                } elseif ($column === 'last_updated') {
-                    // Set current timestamp
-                    $data[":$column"] = date('Y-m-d H:i:s');
-                } else {
-                    // For regular columns, get from shipment data or set NULL
-                    $data[":$column"] = $shipment[$column] ?? null;
+            // Prepare column list and values for SQL
+            $columns = ['shipment_number', 'last_updated'];
+            $values = [$shipment['shipment_number'], date('Y-m-d H:i:s')];
+            $placeholders = ['?', '?'];
+            $updatePairs = ['last_updated = ?'];
+            
+            // Add other columns
+            foreach ($shipment as $key => $value) {
+                // Skip original header columns (only use normalized column names)
+                if (!in_array($key, array_values($headerToColumnMap)) || $key === 'shipment_number') {
+                    continue;
                 }
+                
+                // Skip empty values to avoid overwriting existing data with NULL
+                if ($value === null && $value === '') {
+                    continue;
+                }
+                
+                $columns[] = $key;
+                $values[] = $value;
+                $placeholders[] = '?';
+                $updatePairs[] = "$key = ?";
             }
+            
+            // Store full data as JSON (optional)
+            $columns[] = 'full_data';
+            $values[] = json_encode($shipment);
+            $placeholders[] = '?';
+            $updatePairs[] = "full_data = ?";
+            
+            // Prepare SQL statement that UPSERTS (INSERT or UPDATE if exists)
+            $sql = "INSERT INTO shipment_tracking (" . implode(',', $columns) . ") 
+                    VALUES (" . implode(',', $placeholders) . ")
+                    ON DUPLICATE KEY UPDATE ";
+            
+            // Add update clause for all fields except shipment_number (which is the primary key)
+            $sql .= implode(', ', $updatePairs);
+            
+            // Debug logging for the query parameters
+            if ($verboseMode) {
+                logDebug("SQL: $sql", "DEBUG");
+                logDebug("Columns: " . implode(', ', $columns), "DEBUG");
+                logDebug("Placeholders: " . implode(', ', $placeholders), "DEBUG");
+                logDebug("Values count: " . count($values), "DEBUG");
+                logDebug("Update pairs: " . implode(', ', $updatePairs), "DEBUG");
+            }
+            
+            // For update values, we need to provide the parameters again
+            // Let's make sure we have the right number of parameters
+            $allValues = $values;
+            
+            // Add values for the UPDATE part (except shipment_number which is primary key)
+            // The first parameter in $values is shipment_number, so we skip it
+            for ($i = 1; $i < count($values); $i++) {
+                $allValues[] = $values[$i];
+            }
+            
+            $stmt = $pdo->prepare($sql);
             
             // Execute statement
             try {
-                $result = $stmt->execute($data);
+                $result = $stmt->execute($allValues);
                 if ($result) {
                     $rowCount = $stmt->rowCount();
                     if ($rowCount === 1) {
-                        $insertCount++;
+                        $created++;
                     } elseif ($rowCount === 2) {
-                        $updateCount++;
+                        $updated++;
+                    } else {
+                        $unchanged++;
                     }
                 }
             } catch (PDOException $e) {
@@ -889,9 +932,9 @@ function saveShipmentsToDatabase($shipments) {
         
         // Commit transaction
         $pdo->commit();
-        logDebug("Successfully saved $insertCount new shipments and updated $updateCount existing shipments");
+        logDebug("Successfully saved $created new shipments, updated $updated existing shipments, and left $unchanged unchanged");
         
-        return $insertCount + $updateCount;
+        return $created + $updated;
         
     } catch (Exception $e) {
         // Rollback transaction on error

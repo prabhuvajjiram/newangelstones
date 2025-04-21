@@ -7,9 +7,9 @@
 
 // Database credentials
 define('DB_HOST', 'localhost');
-define('DB_USER', 'your_production_db_user');
-define('DB_PASS', 'your_production_db_password');
-define('DB_NAME', 'your_production_db_name');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+define('DB_NAME', 'angelstones_quotes_new');
 
 /**
  * Get a new database connection
