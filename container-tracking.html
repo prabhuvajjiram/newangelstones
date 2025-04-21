@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angel Stones - Container Tracking</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/container-tracking.css">
+    <style>
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            font-size: 1.2rem;
+            color: #666;
+        }
+        .error-message {
+            background: #fff3e0;
+            border-left: 4px solid #f57c00;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .error-message i {
+            color: #f57c00;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        .error-message p {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: #757575;
+            font-size: 1.2rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+        .tracking-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .debug-panel {
+            background: #f8f9fa;
+            padding: 1rem;
+            margin-top: 2rem;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .debug-toggle {
+            background: #eee;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .debug-content {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            margin-bottom: 1rem;
+        }
+        .stat-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .stat-info {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="bi bi-box-seam me-2"></i> Angel Stones Inventory Tracking</h1>
+                    <p>Track and manage inventory across all containers</p>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <a href="/crm/index.php" class="btn btn-outline-light"><i class="bi bi-arrow-left me-2"></i> Back to CRM</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid" id="main-container">
+        <div id="main-container-view">
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="search-box">
+                            <input type="text" id="search-input" placeholder="Search by any field (product type, color, size, container...)">
+                            <i class="bi bi-search search-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stats Section -->
+            <div class="stats-section" id="stats-container">
+                <div class="row">
+                    <div class="col-md-3 col-sm-6 mb-4">
+                        <div class="stat-card total">
+                            <div class="stat-value" id="total-containers">0</div>
+                            <div class="stat-label">Total Containers</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-4">
+                        <div class="stat-card">
+                            <div class="stat-value" id="total-items">0</div>
+                            <div class="stat-label">Total Products</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-4">
+                        <div class="stat-card delivered">
+                            <div class="stat-value" id="delivered">0</div>
+                            <div class="stat-label">Delivered</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-4">
+                        <div class="stat-card in-transit">
+                            <div class="stat-value" id="in-transit">0</div>
+                            <div class="stat-label">In Transit</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- View Toggle Section -->
+            <div class="view-toggle mb-4">
+                <button id="grid-view-btn" class="btn active"><i class="bi bi-grid me-2"></i> Grid View</button>
+                <button id="table-view-btn" class="btn"><i class="bi bi-table me-2"></i> Table View</button>
+            </div>
+
+            <!-- Container listing - will be populated by JS -->
+            <div class="container-section">
+                <div id="container-list">
+                    <!-- Container cards will be inserted here by JavaScript -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Container Detail View -->
+        <div id="container-detail-view" class="d-none">
+            <div class="mb-4">
+                <button id="back-to-list" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i> Back to All Containers
+                </button>
+            </div>
+            
+            <div class="container-card">
+                <div id="detail-container-header" class="container-header">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+                <div id="detail-container-items" class="container-body">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Pagination -->
+            <div id="pagination-container" class="my-4">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Loader -->
+        <div id="loader" class="loader-container">
+            <div class="loader"></div>
+        </div>
+        
+        <!-- Debug Panel -->
+        <div class="debug-panel">
+            <button id="toggle-debug" class="debug-toggle">Show Debug Information</button>
+            <div id="debug-content" class="debug-content"></div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="/js/container-tracking.js"></script>
+    <script>
+        // Debug Panel
+        document.getElementById('toggle-debug').addEventListener('click', function() {
+            const debugContent = document.getElementById('debug-content');
+            const toggleButton = document.getElementById('toggle-debug');
+            
+            if (debugContent.style.display === 'block') {
+                debugContent.style.display = 'none';
+                toggleButton.textContent = 'Show Debug Information';
+            } else {
+                debugContent.style.display = 'block';
+                toggleButton.textContent = 'Hide Debug Information';
+                
+                // Add system info
+                let debugInfo = '';
+                debugInfo += '<h4>System Info</h4>';
+                debugInfo += `<p>User Agent: ${navigator.userAgent}</p>`;
+                debugInfo += `<p>Window Size: ${window.innerWidth} x ${window.innerHeight}</p>`;
+                debugInfo += `<p>Timestamp: ${new Date().toISOString()}</p>`;
+                
+                // Create a detailed log of loaded containers
+                const containerView = document.getElementById('container-view');
+                const containerCards = containerView.querySelectorAll('.container-card');
+                
+                debugInfo += '<h4>Container Data</h4>';
+                if (containerCards.length === 0) {
+                    debugInfo += '<p>No containers loaded</p>';
+                } else {
+                    debugInfo += `<p>Total Containers: ${containerCards.length}</p>`;
+                    debugInfo += '<ul>';
+                    containerCards.forEach(card => {
+                        const containerId = card.getAttribute('data-container');
+                        const statusElement = card.querySelector('.status');
+                        const status = statusElement ? statusElement.textContent.trim() : 'Unknown';
+                        
+                        const itemsTable = card.querySelector('.items-table');
+                        const itemCount = itemsTable ? itemsTable.querySelectorAll('tbody tr').length : 0;
+                        
+                        debugInfo += `<li>Container: ${containerId} - Status: ${status} - Items: ${itemCount}</li>`;
+                    });
+                    debugInfo += '</ul>';
+                }
+                
+                // Add console log
+                debugInfo += '<h4>Console Log</h4>';
+                debugInfo += '<pre id="console-log">Loading console logs...</pre>';
+                
+                debugContent.innerHTML = debugInfo;
+                
+                // Intercept console logs
+                if (!window.originalConsoleLog) {
+                    window.originalConsoleLog = console.log;
+                    window.logMessages = [];
+                    
+                    console.log = function() {
+                        window.logMessages.push(Array.from(arguments).join(' '));
+                        window.originalConsoleLog.apply(console, arguments);
+                        
+                        const consoleLogElement = document.getElementById('console-log');
+                        if (consoleLogElement) {
+                            consoleLogElement.textContent = window.logMessages.join('\n');
+                        }
+                    };
+                }
+            }
+        });
+    </script>
+</body>
+</html>
