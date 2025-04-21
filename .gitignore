@@ -9,7 +9,7 @@ node_modules
 /crm/includes/Angestonescrm.json
 /crm/includes/db_config.php
 /crm/tests/simple_gmail_test/config.php
-
+/logs
 # Test results
 test-results/
 *.test-result
