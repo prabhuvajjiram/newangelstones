@@ -4,6 +4,8 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\OAuth;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
 
 class EmailManager {
     private $pdo;
@@ -11,7 +13,7 @@ class EmailManager {
 
     public function __construct($pdo) {
         $this->pdo = $pdo;
-        $this->mail = new PHPMailer(true);
+        $this->mail = new PHPMailer();
         $this->loadConfig();
     }
 
@@ -114,20 +116,26 @@ class EmailManager {
             $this->mail->SMTPAuth = true;
             $this->mail->AuthType = 'XOAUTH2';
             
+            // Get the email address from the refresh token
+            $stmt = $this->pdo->prepare("SELECT email FROM users WHERE refresh_token = ?");
+            $stmt->execute([$access_token]);
+            $user = $stmt->fetch();
+            
+            if (!$user) {
+                throw new Exception('No user found with the provided refresh token');
+            }
+            
             $this->mail->setOAuth(
                 new OAuth([
-                    'provider' => new Google([
-                        'clientId' => GOOGLE_CLIENT_ID,
-                        'clientSecret' => GOOGLE_CLIENT_SECRET
-                    ]),
+                    'provider' => 'Google',
                     'clientId' => GOOGLE_CLIENT_ID,
                     'clientSecret' => GOOGLE_CLIENT_SECRET,
-                    'refreshToken' => $_SESSION['email_refresh_token'] ?? null,
-                    'userName' => $_SESSION['email'] ?? null
+                    'refreshToken' => $access_token,
+                    'userName' => $user['email']
                 ])
             );
 
-            $this->mail->setFrom($_SESSION['email']);
+            $this->mail->setFrom($user['email']);
             $this->mail->addAddress($to);
             $this->mail->Subject = $subject;
             $this->mail->Body = $body;
@@ -155,6 +163,28 @@ class EmailManager {
         } catch (Exception $e) {
             error_log("Error sending email: " . $e->getMessage());
             throw $e;
+        }
+    }
+
+    public function getEmailSettings($userId) {
+        try {
+            $stmt = $this->pdo->prepare("SELECT * FROM email_settings WHERE user_id = ?");
+            $stmt->execute([$userId]);
+            return $stmt->fetchAll();
+        } catch (PDOException $e) {
+            error_log("Error getting email settings: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getEmailTemplates() {
+        try {
+            $stmt = $this->pdo->prepare("SELECT * FROM email_templates ORDER BY updated_at DESC");
+            $stmt->execute();
+            return $stmt->fetchAll();
+        } catch (PDOException $e) {
+            error_log("Error getting email templates: " . $e->getMessage());
+            return [];
         }
     }
 }
