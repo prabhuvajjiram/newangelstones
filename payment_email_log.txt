@@ -1,0 +1,43 @@
+=== New Payment Confirmation: 2025-04-26 00:49:07 ===
+Invoice: AG-20250426004851-D
+Amount: 299.99
+Name: Jane Smith
+Email: jane.smith@example.com
+Status: declined
+Decline Reason: Insufficient funds
+=== Payment Email Attempt: 2025-04-26 00:49:07 ===
+Invoice: AG-20250426004851-D
+Status: declined
+Connecting to SMTP server...
+Host: smtp.gmail.com
+Port: 587
+Security: tls
+Attempting to send email via Gmail SMTP...
+Email sent successfully via Gmail SMTP
+=== End of Log Entry ===
+
+Email result: Success
+Message: Email sent successfully
+=== End of Log Entry ===
+
+=== New Payment Confirmation: 2025-04-26 00:49:17 ===
+Invoice: AG-20250426004851-A
+Amount: 199.99
+Name: John Doe
+Email: john.doe@example.com
+Status: approved
+=== Payment Email Attempt: 2025-04-26 00:49:17 ===
+Invoice: AG-20250426004851-A
+Status: approved
+Connecting to SMTP server...
+Host: smtp.gmail.com
+Port: 587
+Security: tls
+Attempting to send email via Gmail SMTP...
+Email sent successfully via Gmail SMTP
+=== End of Log Entry ===
+
+Email result: Success
+Message: Email sent successfully
+=== End of Log Entry ===
+

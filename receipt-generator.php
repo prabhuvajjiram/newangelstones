@@ -40,9 +40,7 @@ class ReceiptPDF extends TCPDF {
         $logoOptions = [
             dirname(__FILE__) . '/images/Angel Granites Logo_350dpi.png',
             dirname(__FILE__) . '/images/Angel Granites Logo_300dpi.png',
-            dirname(__FILE__) . '/images/logo.png',
-            dirname(__FILE__) . '/crm/images/logo.png',
-            dirname(__FILE__) . '/crm/images/angelstones-logo.png'
+            dirname(__FILE__) . '/images/logo02.png'
         ];
         
         $logoFound = false;
@@ -214,6 +212,26 @@ try {
         }
     }
     
+    // Get payment status and decline reason
+    $paymentStatus = isset($_GET['status']) ? sanitizeInput($_GET['status']) : '';
+    if (empty($paymentStatus)) {
+        $paymentStatus = isset($_POST['status']) ? sanitizeInput($_POST['status']) : 'approved';
+    }
+    
+    // Normalize payment status - case insensitive check
+    $paymentStatus = strtolower(trim($paymentStatus));
+    if ($paymentStatus != 'declined' && $paymentStatus != 'decline' && $paymentStatus != 'failed' && $paymentStatus != 'failure' && $paymentStatus != 'error' && $paymentStatus != 'rejected') {
+        $paymentStatus = 'approved';
+    } else {
+        $paymentStatus = 'declined';
+    }
+    
+    // Get decline reason if payment was declined
+    $declineReason = isset($_GET['decline_reason']) ? sanitizeInput($_GET['decline_reason']) : '';
+    if (empty($declineReason)) {
+        $declineReason = isset($_POST['decline_reason']) ? sanitizeInput($_POST['decline_reason']) : '';
+    }
+    
     // Generate a default invoice number if none provided
     if (empty($invoice)) {
         $invoice = 'AG-' . date('Ymd') . '-' . substr(uniqid(), -5);
@@ -221,19 +239,6 @@ try {
     
     // Format the date
     $date = date("F j, Y, g:i a");
-    
-    // Log parameters to a file for debugging
-    $logFile = fopen(__DIR__ . '/receipt_debug.txt', 'a');
-    fwrite($logFile, date('Y-m-d H:i:s') . " - Receipt Request\n");
-    fwrite($logFile, "Invoice: $invoice\n");
-    fwrite($logFile, "Amount: $amount\n");
-    fwrite($logFile, "Name: $name\n");
-    fwrite($logFile, "Email: $email\n");
-    fwrite($logFile, "Phone: $phone\n");
-    fwrite($logFile, "Address: $address\n");
-    fwrite($logFile, "Transaction ID: $txnId\n");
-    fwrite($logFile, "Approval Code: $approvalCode\n\n");
-    fclose($logFile);
     
     // Check if we have required data
     if (empty($amount)) {
@@ -313,7 +318,10 @@ try {
     }
     
     addDetailRow($pdf, 'Payment Method:', 'Credit Card (Converge)');
-    addDetailRow($pdf, 'Status:', 'Completed');
+    addDetailRow($pdf, 'Status:', ucfirst($paymentStatus));
+    if (strtolower($paymentStatus) == 'declined') {
+        addDetailRow($pdf, 'Decline Reason:', $declineReason);
+    }
     
     // Thank you message
     $pdf->Ln(10);
@@ -331,12 +339,6 @@ try {
     $pdf->Output('Angel_Granites_Receipt_' . $invoice . '.pdf', 'I');
     
 } catch (Exception $e) {
-    // Log error
-    $errorLog = fopen(__DIR__ . '/receipt_error.txt', 'a');
-    fwrite($errorLog, date('Y-m-d H:i:s') . " - Error: " . $e->getMessage() . "\n");
-    fwrite($errorLog, "Invoice: $invoice, Amount: $amount\n\n");
-    fclose($errorLog);
-    
     // Clear output buffer
     if (ob_get_level()) ob_end_clean();
     

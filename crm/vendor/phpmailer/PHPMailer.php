@@ -20,10 +20,12 @@ class PHPMailer {
     const ENCRYPTION_SMTPS = 'ssl';
 
     public $Host = 'smtp.gmail.com';
-    public $Port = 465;
+    public $Port = 587;
     public $SMTPAuth = true;
+    public $Username;
+    public $Password;
     public $CharSet = 'UTF-8';
-    public $SMTPSecure = 'ssl';
+    public $SMTPSecure = 'tls';
     public $From;
     public $FromName;
     public $Subject;
@@ -97,89 +99,129 @@ class PHPMailer {
     }
 
     public function send() {
-        if (!$this->oauth) {
-            throw new \Exception('OAuth not configured');
-        }
-
         try {
-                // Get OAuth token
-    $token = $this->oauth->getToken();
-    if (!$token) {
-        throw new \Exception('Failed to get OAuth token');
-    }
-
-    // Prepare email data
-    $boundary = $this->createBoundary();
-    
-    // Format headers properly for Gmail API
-    $headers = [
-        'From: ' . ($this->FromName ? "{$this->FromName} <{$this->From}>" : $this->From),
-        'To: ' . implode(', ', array_map(function($recipient) {
-            return $recipient['name'] ? "{$recipient['name']} <{$recipient['address']}>" : $recipient['address'];
-        }, $this->to))
-    ];
-
-    // Add CC if not empty
-    if (!empty($this->cc)) {
-        $headers[] = 'Cc: ' . implode(', ', array_map(function($recipient) {
-            return is_array($recipient) ? ($recipient['name'] ? "{$recipient['name']} <{$recipient['address']}>" : $recipient['address']) : $recipient;
-        }, $this->cc));
-    }
-
-    // Add BCC if not empty
-    if (!empty($this->bcc)) {
-        $headers[] = 'Bcc: ' . implode(', ', array_map(function($recipient) {
-            return is_array($recipient) ? ($recipient['name'] ? "{$recipient['name']} <{$recipient['address']}>" : $recipient['address']) : $recipient;
-        }, $this->bcc));
-    }
-
-    // Add remaining headers
-    $headers = array_merge($headers, [
-        'Subject: ' . $this->Subject,
-        'MIME-Version: 1.0',
-        'Content-Type: multipart/mixed; boundary="' . $boundary . '"',
-        'Authorization: Bearer ' . $token
-    ]);
-
-    $message = implode("\r\n", $headers) . "\r\n\r\n";
-    $message .= $this->createMessageBody($boundary);
-
-            // Initialize cURL
-            $ch = curl_init();
-
-            // Set cURL options
-            curl_setopt_array($ch, [
-                CURLOPT_URL => 'https://www.googleapis.com/upload/gmail/v1/users/me/messages/send?uploadType=multipart',
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_POST => true,
-                CURLOPT_SSL_VERIFYPEER => false,
-                CURLOPT_HTTPHEADER => [
-                    'Authorization: Bearer ' . $token,
-                    'Content-Type: message/rfc822'
-                ],
-                CURLOPT_POSTFIELDS => $message
-            ]);
-
-            // Execute cURL request
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-            // Check for errors
-            if (curl_errno($ch)) {
-                throw new \Exception('cURL error: ' . curl_error($ch));
+            if ($this->oauth) {
+                return $this->sendWithOAuth();
+            } else {
+                return $this->sendWithSMTP();
             }
-
-            if ($httpCode !== 200) {
-                throw new \Exception('Gmail API error: ' . $response);
-            }
-
-            curl_close($ch);
-            return true;
-
         } catch (\Exception $e) {
             $this->ErrorInfo = $e->getMessage();
             throw $e;
         }
+    }
+
+    private function sendWithSMTP() {
+        if (empty($this->Username) || empty($this->Password)) {
+            throw new \Exception('SMTP credentials not configured');
+        }
+
+        // Create SSL/TLS context
+        $context = stream_context_create([
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'allow_self_signed' => true
+            ]
+        ]);
+
+        // Create socket with proper context
+        $socket = stream_socket_client(
+            ($this->SMTPSecure === 'ssl' ? 'ssl://' : 'tcp://') . $this->Host . ':' . $this->Port,
+            $errno,
+            $errstr,
+            30,
+            STREAM_CLIENT_CONNECT,
+            $context
+        );
+
+        if (!$socket) {
+            throw new \Exception("Failed to connect to server: $errstr ($errno)");
+        }
+
+        // Set socket timeout
+        stream_set_timeout($socket, 30);
+
+        // Read greeting
+        $this->readResponse($socket);
+
+        // Send EHLO
+        $this->sendCommand($socket, "EHLO " . gethostname());
+
+        // Start TLS if using TLS
+        if ($this->SMTPSecure === 'tls') {
+            $this->sendCommand($socket, "STARTTLS");
+            if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+                throw new \Exception('Failed to enable TLS encryption');
+            }
+            $this->sendCommand($socket, "EHLO " . gethostname());
+        }
+
+        // Authenticate
+        $this->sendCommand($socket, "AUTH LOGIN");
+        $this->sendCommand($socket, base64_encode($this->Username));
+        $this->sendCommand($socket, base64_encode($this->Password));
+
+        // Send From
+        $this->sendCommand($socket, "MAIL FROM:<{$this->From}>");
+
+        // Send To
+        foreach ($this->to as $recipient) {
+            $this->sendCommand($socket, "RCPT TO:<{$recipient['address']}>");
+        }
+
+        // Send Data
+        $this->sendCommand($socket, "DATA");
+
+        // Create message
+        $boundary = $this->createBoundary();
+        $message = $this->createHeaders($boundary);
+        $message .= $this->createMessageBody($boundary);
+
+        // Send message and finish
+        $this->sendCommand($socket, $message . "\r\n.");
+        $this->sendCommand($socket, "QUIT");
+
+        fclose($socket);
+        return true;
+    }
+
+    private function sendCommand($socket, $command) {
+        fwrite($socket, $command . "\r\n");
+        return $this->readResponse($socket);
+    }
+
+    private function readResponse($socket) {
+        $response = '';
+        while ($line = fgets($socket, 515)) {
+            $response .= $line;
+            if (substr($line, 3, 1) == ' ') break;
+        }
+        if (substr($response, 0, 3) >= '400') {
+            throw new \Exception("SMTP Error: " . trim($response));
+        }
+        return $response;
+    }
+
+    private function createHeaders($boundary) {
+        $headers = [
+            "Date: " . date("r"),
+            "To: " . implode(", ", array_map(function($recipient) {
+                return $recipient['name'] ? "{$recipient['name']} <{$recipient['address']}>" : $recipient['address'];
+            }, $this->to)),
+            "From: " . ($this->FromName ? "{$this->FromName} <{$this->From}>" : $this->From),
+            "Subject: " . $this->Subject,
+            "MIME-Version: 1.0",
+            "Content-Type: multipart/mixed; boundary=\"{$boundary}\""
+        ];
+
+        if (!empty($this->cc)) {
+            $headers[] = "Cc: " . implode(", ", array_map(function($recipient) {
+                return $recipient['name'] ? "{$recipient['name']} <{$recipient['address']}>" : $recipient['address'];
+            }, $this->cc));
+        }
+
+        return implode("\r\n", $headers) . "\r\n\r\n";
     }
 
     private function createMessageBody($boundary) {
