@@ -1,7 +1,7 @@
 <?php
 // Google OAuth Configuration
 define('GOOGLE_CLIENT_ID', '204729895453-5pm7f5oalknp8vl1q9sqf658j6ce996o.apps.googleusercontent.com');
-define('GOOGLE_CLIENT_SECRET', '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');
+define('GOOGLE_CLIENT_SECRET', '');
 
 // Determine if we're in a local environment
 $is_local = ($_SERVER['SERVER_NAME'] === 'localhost' || $_SERVER['SERVER_NAME'] === '127.0.0.1');
