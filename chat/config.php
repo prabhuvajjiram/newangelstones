@@ -17,8 +17,8 @@ if (basename($_SERVER['SCRIPT_FILENAME']) === 'config.php' && !defined('LOCAL_EN
 
 
 // RingCentral API Configuration
-define('RINGCENTRAL_CLIENT_ID', 'Vq6JLatlKvVb55XVXv0B2z');
-define('RINGCENTRAL_CLIENT_SECRET', 'VY19eiFTqfZcCnRpjnPeandEgWIEgb25IfvaJ2yEaT6x');
+define('RINGCENTRAL_CLIENT_ID', '');
+define('RINGCENTRAL_CLIENT_SECRET', '');
 define('RINGCENTRAL_SERVER', 'https://platform.ringcentral.com');
 define('RINGCENTRAL_DEFAULT_CHAT_ID', '147193044998'); // Default team chat ID for visitor conversations (angelgranites)
 
@@ -44,9 +44,9 @@ if ($isLocalDev) {
     define('RINGCENTRAL_REDIRECT_URI', 'https://theangelstones.com/chat/callback.php');
     // Database Configuration
     define('DB_HOST', 'localhost');
-    define('DB_NAME', 'theangel_quotes');
-    define('DB_USER', 'theangel');
-    define('DB_PASS', '#QSX$V032uXY');
+    define('DB_NAME', '');
+    define('DB_USER', '');
+    define('DB_PASS', '#');
 }
 
 // Define the URL for auth and token endpoints
