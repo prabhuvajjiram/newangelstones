@@ -1,7 +1,7 @@
 node_modules
 .env
 .DS_Store
-*.log
+#*.log
 /quotes/*.pdf
 /crm/quotes
 /crm/includes/config.php
