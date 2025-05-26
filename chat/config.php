@@ -17,8 +17,8 @@ if (basename($_SERVER['SCRIPT_FILENAME']) === 'config.php' && !defined('LOCAL_EN
 
 
 // RingCentral API Configuration
-define('RINGCENTRAL_CLIENT_ID', '');
-define('RINGCENTRAL_CLIENT_SECRET', '');
+define('RINGCENTRAL_CLIENT_ID', 'Vq6JLatlKvVb55XVXv0B2z');
+define('RINGCENTRAL_CLIENT_SECRET', 'VY19eiFTqfZcCnRpjnPeandEgWIEgb25IfvaJ2yEaT6x');
 define('RINGCENTRAL_SERVER', 'https://platform.ringcentral.com');
 define('RINGCENTRAL_DEFAULT_CHAT_ID', '147193044998'); // Default team chat ID for visitor conversations (angelgranites)
 
@@ -44,9 +44,9 @@ if ($isLocalDev) {
     define('RINGCENTRAL_REDIRECT_URI', 'https://theangelstones.com/chat/callback.php');
     // Database Configuration
     define('DB_HOST', 'localhost');
-    define('DB_NAME', '');
-    define('DB_USER', '');
-    define('DB_PASS', '#');
+    define('DB_NAME', 'theangel_quotes');
+    define('DB_USER', 'theangel');
+    define('DB_PASS', '#QSX$V032uXY');
 }
 
 // Define the URL for auth and token endpoints
@@ -68,6 +68,12 @@ define('RINGCENTRAL_WEBHOOK_ENABLED', true); // Set to true to enable webhook in
 // Set to true to attempt to forward messages to RingCentral (requires working OAuth)
 // Set to false to only store messages in the database without forwarding to RingCentral
 define('FORWARD_TO_RINGCENTRAL', true); // Set to true to enable RingCentral integration with dedicated chat rooms
+
+// RingCentral Team Chat Configuration
+define('RINGCENTRAL_TEAM_CHAT_ENABLED', true);
+define('RINGCENTRAL_TEAM_CHAT_MEMBERS', json_encode([
+    ['id' => '63395585031', 'email' => 'purchase@theangelstones.com']
+]));
 
 // Optional: Define extension IDs of system users if you want to filter by them as well
 $systemUsers = [
