@@ -115,7 +115,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Add category name and count
             const name = document.createElement('h4');
-            name.textContent = category.replace(/_/g, ' ');
+            // Special case for Monuments category
+            if (category === 'Monuments') {
+                name.textContent = 'Ready-to-Ship Monuments';
+            } else {
+                name.textContent = category.replace(/_/g, ' ');
+            }
 
             const count = document.createElement('span');
             count.className = 'category-count';
@@ -362,7 +367,7 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.innerHTML = `
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2>${category.replace(/_/g, ' ')} Collection (${images.length} items)</h2>
+                    <h2>${category === 'Monuments' ? 'Ready-to-Ship Monuments' : category.replace(/_/g, ' ')} Collection (${images.length} items)</h2>
                     <button class="close-modal">&times;</button>
                 </div>
                 <div class="modal-body">
