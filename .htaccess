@@ -47,16 +47,9 @@ RewriteEngine On
         Header set Cache-Control "max-age=7200, must-revalidate"
     </FilesMatch>
 </IfModule>
-# Force HTTPS - but not for local development
-RewriteCond %{HTTP_HOST} !^localhost [NC]
-RewriteCond %{HTTP_HOST} !^127\.0\.0\.1 [NC]
+# Force HTTPS
 RewriteCond %{HTTPS} off
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-
-# API routing rules - only apply to shipping API
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^api/shipping/(.*)$ api/shipping_endpoints.php [L,QSA]
 
 # php -- BEGIN cPanel-generated handler, do not edit
 # Set the “ea-php74” package as the default “PHP” programming language.
