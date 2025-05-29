@@ -10,16 +10,37 @@
     <meta name="robots" content="index, follow">
     <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     
-    <!-- Prevent Flash of Unstyled Content (FOUC) -->
+    <!-- Prevent Flash of Unstyled Content (FOUC) and provide content-visibility strategy -->
     <style id="anti-fouc">
         html { visibility: hidden; }
+        
+        /* Content-visibility optimization to prevent layout shifts */
+        .section-padding:not(.hero-video):not(#home) {
+            content-visibility: auto;
+            contain-intrinsic-size: 1px 500px;
+        }
+        
+        /* Add font-display: optional to reduce layout shifts */
+        @font-face {
+            font-family: 'Playfair Display';
+            font-display: optional;
+            src: local('Playfair Display');
+        }
+        @font-face {
+            font-family: 'Didact Gothic';
+            font-display: optional;
+            src: local('Didact Gothic');
+        }
     </style>
     
-    <!-- Preload critical CSS resources from CDN -->
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" as="style">
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" as="style">
-    <link rel="preload" href="css/style.css" as="style">
+    <!-- Preload critical CSS resources from CDN with proper onload handlers -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="css/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <link rel="preload" href="css/critical.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    
+    <!-- Preload jQuery since it's a critical dependency -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" as="script">
     
     <!-- CRITICAL CAPTION COLOR FIX -->
     <style id="caption-color-fix">
@@ -81,37 +102,46 @@
     
     <!-- Essential Services -->
     <script>
-        window.addEventListener('load', function() {
-            // Load Tawk.to as essential customer service
-            var Tawk_API = Tawk_API || {};
-            var Tawk_LoadStart = new Date();
-            (function(){
-                var s1 = document.createElement("script");
-                var s0 = document.getElementsByTagName("script")[0];
-                s1.async = true;
-                s1.src = 'https://embed.tawk.to/665adcb29a809f19fb37a0d0/1hv9es6en';
-                s1.charset = 'UTF-8';
-                s1.setAttribute('crossorigin', 'anonymous');
-                s0.parentNode.insertBefore(s1, s0);
-            })();
+        window.addEventListener('DOMContentLoaded', function() {
+            // Reserve space for chat widget to prevent layout shift
+            var chatWidgetPlaceholder = document.createElement('div');
+            chatWidgetPlaceholder.id = 'tawk-placeholder';
+            chatWidgetPlaceholder.style.cssText = 'position:fixed;bottom:0;right:0;width:60px;height:60px;z-index:989;';
+            document.body.appendChild(chatWidgetPlaceholder);
+            
+            // Load widgets after initial layout is complete (defer to reduce CLS)
+            setTimeout(function() {
+                // Load Tawk.to as essential customer service
+                var Tawk_API = Tawk_API || {};
+                var Tawk_LoadStart = new Date();
+                (function(){
+                    var s1 = document.createElement("script");
+                    var s0 = document.getElementsByTagName("script")[0];
+                    s1.defer = true; // Changed from async to defer
+                    s1.src = 'https://embed.tawk.to/665adcb29a809f19fb37a0d0/1hv9es6en';
+                    s1.charset = 'UTF-8';
+                    s1.setAttribute('crossorigin', 'anonymous');
+                    s0.parentNode.insertBefore(s1, s0);
+                })();
 
-            // Load GTM as basic analytics
-            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-            })(window,document,'script','dataLayer','GTM-56P7KZDV');
+                // Load GTM as basic analytics
+                (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+                new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+                j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.defer=true;j.src=
+                'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+                })(window,document,'script','dataLayer','GTM-56P7KZDV');
+            }, 1000); // Delay third-party scripts to prioritize core content
         });
     </script>
 
     <!-- Osano for optional cookies -->
-    <script async src="https://cmp.osano.com/16BlGRUNRhRsy6cS2/951c545c-64c9-4a8f-886a-b22b0ff1528d/osano.js"></script>
+    <script defer src="https://cmp.osano.com/16BlGRUNRhRsy6cS2/951c545c-64c9-4a8f-886a-b22b0ff1528d/osano.js"></script>
     <title>Angel Granites - A Venture of Angel Stones | Premium Granite Monuments & Custom Headstones</title>
     <meta name="description" content="Angel Granites, established by Angel Stones, is a leading granite monument manufacturer offering custom headstones, memorial stones, and cemetery monuments nationwide. Quality craftsmanship, wholesale prices, and direct shipping. 100+ Granite colors. Request a quote today.">
     <meta name="Keywords" content="granite monument manufacturer, custom headstones, memorial stones near me, cemetery monuments, granite headstones prices, custom cemetery memorials, grave markers, affordable monuments, granite manufacturers direct"> 
     
-    <!-- Preload Critical Resources -->
-    <link rel="preload" href="images/video-poster-mobile.jpg" as="image">
+    <!-- Preload Critical Resources with priority hints -->
+    <link rel="preload" href="images/video-poster-mobile.jpg" as="image" fetchpriority="high">
     <link rel="preconnect" href="https://www.googletagmanager.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -119,18 +149,91 @@
     <link rel="preconnect" href="https://embed.tawk.to">
     <link rel="dns-prefetch" href="https://embed.tawk.to">
     
+    <!-- Font loading optimization to prevent layout shifts -->
+    <link rel="preload" href="https://fonts.gstatic.com/s/playfairdisplay/v36/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvXDXbtXK-F2qC0s.woff" as="font" type="font/woff" crossorigin>
+    <link rel="preload" href="https://fonts.gstatic.com/s/didactgothic/v20/ahcfv8qz1zt6hCC5G4F_P4ASlUuYpnLl.woff2" as="font" type="font/woff2" crossorigin>
+    
     <!-- Critical CSS - Inlined for fastest possible rendering -->
     <style>
       /* Inline critical CSS for fast rendering on all devices */
       html{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}body{margin:0;padding:0;overflow-x:hidden;color:#555;background:#fff}@font-face{font-family:'Playfair Display';font-style:normal;font-weight:400;font-display:swap;size-adjust:105%;src:url(https://fonts.gstatic.com/s/playfairdisplay/v36/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvXDXbtXK-F2qC0s.woff) format('woff')}@font-face{font-family:'Didact Gothic';font-style:normal;font-weight:400;font-display:swap;size-adjust:97%;src:url(https://fonts.gstatic.com/s/didactgothic/v20/ahcfv8qz1zt6hCC5G4F_P4ASlUuYpnLl.woff2) format('woff2')}h1,h2,h3,h4,h5{font-family:'Playfair Display',serif}.promotion-banner{background-color:#262626;color:#fff;text-align:center;padding:8px 15px;font-size:.9rem;position:relative;z-index:1000}.as-header{position:fixed;top:0;left:0;width:100%;padding:15px 0;background:rgba(0,0,0,.8);z-index:999;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}.as-navbar{display:flex;align-items:center;justify-content:space-between;padding:0 15px}.as-navbar-brand img{height:45px;width:auto}.hero-video{position:relative;width:100%;height:100vh;min-height:480px;max-height:780px;overflow:hidden;background-color:#111}.video-container{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}.video-container::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:1}.poster-image{position:absolute;top:0;left:0;width:100%;height:100%;z-index:0}.video-container .content{position:relative;z-index:2;text-align:center;padding:0 15px;color:#fff}.video-container .content h1{font-size:2.5rem;margin:0 0 10px;letter-spacing:2px}@media (max-width:768px){.video-container .content h1{font-size:1.7rem}.as-navbar-brand img{height:40px}}
     </style>
 
-    <!-- Non-critical CSS loaded asynchronously with CDN where possible -->
+    <!-- Non-critical CSS loaded asynchronously with CDN where possible - With size hints to prevent layout shifts -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/style.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/hamburger.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/color-carousel.min.css" media="print" onload="this.media='all'">
+    
+    <!-- Add size containment hints for layout stability -->
+    <style>
+        /* Size containment for image-heavy sections to prevent CLS */
+        .factory-image-container, .featured-products img, iframe {
+            aspect-ratio: 16/9;
+            height: auto;
+        }
+        
+        /* Special handling for color variety images */
+        .variety-of-granites img, .color-item img, .owl-carousel.color-row img {
+            aspect-ratio: 1/1; /* Square aspect ratio for granite colors */
+            height: auto;
+            margin-bottom: 30px; /* Space for the color caption */
+        }
+        
+        /* Fix for caption display */
+        .color-item .caption, .owl-carousel.color-row .caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(0,0,0,0.7);
+            padding: 8px 0;
+            z-index: 2;
+        }
+        /* Provide explicit dimensions for logo to prevent header shift */
+        .as-navbar-brand img {
+            height: 45px;
+            width: 180px; /* Set explicit width */
+        }
+        /* Add minimum height for sections to prevent layout shifts during lazy loading */
+        .section-padding {
+            min-height: 200px;
+        }
+        
+        /* Mobile play button styling */
+        .mobile-play-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 4rem;
+            cursor: pointer;
+            padding: 0;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+        
+        .mobile-play-btn:hover,
+        .mobile-play-btn:focus {
+            opacity: 1;
+        }
+        
+        .mobile-play-btn i {
+            filter: drop-shadow(0 0 8px rgba(0,0,0,0.7));
+        }
+        
+        /* Ensure video is always correct size */
+        #hero-video {
+            object-fit: cover !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+    </style>
     
     <!-- Direct gold caption styling -->
     <style>
@@ -157,11 +260,23 @@
         }
     </style>
     
-    <!-- Async load full font families -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Didact+Gothic&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript>
-      <link href="https://fonts.googleapis.com/css2?family=Didact+Gothic&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
-    </noscript>
+    <!-- Async load full font families with font-display:swap to prevent layout shifts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Didact+Gothic&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap&display=swap">
+    <style>
+        /* Font fallback system to prevent layout shifts */
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+        }
+        h1, h2, h3, h4, h5 {
+            font-family: 'Playfair Display', Georgia, serif;
+            /* Font size must remain stable to prevent shifts */
+            font-size-adjust: 0.5;
+        }
+        p, span, div {
+            font-family: 'Didact Gothic', Arial, sans-serif;
+            font-size-adjust: 0.5;
+        }
+    </style>
     
     <!-- Duplicate Content Handling -->
     <meta name="robots" content="index, follow">
@@ -321,6 +436,53 @@
             
             // Execute after a short delay to prioritize LCP
             setTimeout(loadThumbsFirst, 200);
+            
+            // Simple video autoplay for all devices
+            function optimizeVideoLoading() {
+                var heroVideo = document.getElementById('hero-video');
+                if (!heroVideo) return;
+                
+                // Set basic properties for all devices
+                heroVideo.muted = true;
+                heroVideo.playsInline = true;
+                heroVideo.autoplay = true;
+                heroVideo.preload = 'auto';
+                
+                // Simple error handling for WebM -> MP4 fallback
+                heroVideo.addEventListener('error', function(e) {
+                    if (e.target.tagName.toLowerCase() === 'source' && 
+                        e.target.type === 'video/webm') {
+                        // Just use MP4 if WebM fails
+                        heroVideo.innerHTML = '<source src="images/as.mp4" type="video/mp4">';
+                        heroVideo.load();
+                        heroVideo.play();
+                    }
+                }, true);
+                
+                // Basic play attempt with single retry
+                function attemptPlay() {
+                    // Force play with Promise handling
+                    var playPromise = heroVideo.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(function(error) {
+                            // Single retry after a moment
+                            setTimeout(function() {
+                                heroVideo.play();
+                            }, 300);
+                        });
+                    }
+                }
+                
+                // Wait a moment for everything to load, then play
+                setTimeout(attemptPlay, 500);
+            }
+            
+            // Run video optimization after page content is stable
+            if (document.readyState === 'complete') {
+                optimizeVideoLoading();
+            } else {
+                window.addEventListener('load', optimizeVideoLoading);
+            }
         });
         
         // Detect mobile device for optimizations
@@ -344,8 +506,30 @@
                 transition: opacity 0.3s ease;
             }
             
+            /* Mobile video optimization - force display and autoplay */
             .mobile-device .video-container video {
-                display: none;
+                opacity: 1 !important;
+                display: block !important;
+                z-index: 1;
+            }
+            
+            /* Text content optimization for LCP */
+            .callout h1 {
+                font-size: 2rem !important;
+                font-weight: 700 !important;
+                margin-bottom: 5px !important;
+                text-rendering: optimizeSpeed !important;
+            }
+            
+            /* Fade in the video after LCP completes */
+            @media (min-width: 769px) {
+                #hero-video {
+                    opacity: 0 !important;
+                    transition: opacity 0.5s ease-in !important;
+                }
+                #hero-video.loaded {
+                    opacity: 1 !important;
+                }
             }
         }
     </style>
@@ -393,7 +577,7 @@
             <li><a href="#home">Home</a></li>
             <li><a href="#our-product">Our Products</a></li>
             <li><a href="#featured-products">Featured Products</a></li>
-            <li><a href="#projects">Projects</a></li>
+            <li><a href="#variety-of-granites">Granite Varieties</a></li>
             <li><a href="#why-choose-as">Why Choose Us</a></li>
             <li><a href="#get-in-touch">Contact</a></li>
         </ul>
@@ -408,27 +592,17 @@
             <!-- Hero Section Start Here-->
             <section class="outter hero-video" id="home">
                 <section class="video-container">
-                    <!-- Optimized poster image that loads immediately -->
-                    <picture class="poster-image">
-                        <source 
-                            srcset="images/video-poster-mobile.webp 768w,
-                                    images/video-poster.webp 1920w"
-                            sizes="(max-width: 768px) 100vw, 1920px"
-                            type="image/webp">
-                        <source 
-                            srcset="images/video-poster-mobile.jpg 768w,
-                                    images/video-poster.jpg 1920w"
-                            sizes="(max-width: 768px) 100vw, 1920px"
-                            type="image/jpeg">
-                        <img 
-                            src="images/video-poster-mobile.jpg"
-                            alt="Angel Granites Welcome"
-                            width="1920" 
-                            height="1080"
-                            class="img-fluid">
-                    </picture>
+                    <!-- Optimized hero image with preloaded assets for fast LCP -->
+                    <img 
+                        class="poster-image" 
+                        src="images/video-poster-mobile.jpg" 
+                        alt="Angel Granites" 
+                        width="100%" 
+                        height="100%" 
+                        fetchpriority="high"
+                        style="object-fit: cover; position: absolute; top: 0; left: 0;">
 
-                    <!-- Deferred video loading -->
+                    <!-- Video with loading optimization for better LCP -->
                     <video 
                         id="hero-video"
                         playsinline 
@@ -441,13 +615,14 @@
                         height="1080"
                         poster="images/video-poster-mobile.jpg"
                         style="opacity: 1 !important; object-fit: cover !important; width: 100% !important; height: 100% !important; display: block !important;">
-                        <source src="images/as.webm" type="video/webm">
+                        <!-- Use MP4 first for better mobile compatibility -->
                         <source src="images/as.mp4" type="video/mp4">
+                        <source src="images/as.webm" type="video/webm">
                         Your browser does not support the video tag.
                     </video>
                     
-                    <div class="callout">
-                        <h1>ANGEL GRANITES</h1>
+                    <div class="callout" id="hero-callout">
+                        <h1 id="main-heading">ANGEL GRANITES</h1>
                         <div class="established-by">Established by Angel Stones</div>
                         <div class="tagline">Elevating granite, preserving memories</div>
                         <div class="desc">Exquisite Granite Monuments and others</div>
@@ -513,7 +688,7 @@
                                     Angel Granites
                                     <img src="images/title-star.svg" alt="Angel Stones">
                                 </div>
-                                <div class="title">Our Product</div>
+                                <div class="title">Our Product and Services</div>
                             </div>
                         </div>
                     </div>
@@ -528,37 +703,37 @@
                         </div>
                         <div class="col-md-5">
                             <div class="our-product-image">
-                                <img src="images/granite-monuments.png" width="300" height="300" loading="lazy" alt="Example of our custom designed granite monument">
+                                <img src="images/products/Designs/chess.jpg" width="300" height="300" loading="lazy" alt="Example of our custom designed granite monument">
                             </div>
                         </div>
                     </div>
                     <div class="row justify-content-between align-items-center">
                         <div class="col-md-5">
                             <div class="our-product-image">
-                                <img src="images/granite-slabs.png" width="300" height="300" loading="lazy" alt="Example of our custom designed granite slab">
+                                <img src="images/sandblasting.jpg" width="300" height="300" loading="lazy" alt="Example of our custom designed granite slab">
                             </div>
                         </div>
                         <div class="col-md-7">
-                            <div class="title">Granite Slabs:</div>
+                            <div class="title">Sandblasting:</div>
                             <ul class="icon-list mt-40 mb-45">
-                                <li><i class="far fa-check"></i> Explore our collection of 33+ slab colors suitable for various applications.</li>
-                                <li><i class="far fa-check"></i> We combine functionality with aesthetic appeal.</li>
-                                <li><i class="far fa-check"></i> Each slab undergoes rigorous quality checks to ensure perfection.</li>
+                                <li><i class="far fa-check"></i> Add names, dates, or patterns with clean, long-lasting finish.</li>
+                                <li><i class="far fa-check"></i> Ideal for headstones, signage, and textured designs.</li>
+                                <li><i class="far fa-check"></i> Performed with precision for consistent depth and clarity.</li>
                             </ul>
                         </div>
                     </div>
                     <div class="row justify-content-between align-items-center">
                         <div class="col-md-7">
-                            <div class="title">Customized Designs:</div>
+                            <div class="title">Etching:</div>
                             <ul class="icon-list mt-40 mb-45">
-                                <li><i class="far fa-check"></i> We specialize in custom-made granite products tailored to your preferences.</li>
-                                <li><i class="far fa-check"></i> Collaborate with our skilled artisans to create personalized memorials, vases, and more.</li>
-                                <li><i class="far fa-check"></i> Your vision becomes our masterpiece.</li>
+                                <li><i class="far fa-check"></i> Create detailed portraits, landscapes, or artwork on granite.</li>
+                                <li><i class="far fa-check"></i> Laser and hand etching available for custom results.</li>
+                                <li><i class="far fa-check"></i> Perfect for personalized memorials and fine detailing.</li>
                             </ul>
                         </div>
                         <div class="col-md-5">
                             <div class="our-product-image">
-                                <img src="images/customized-designs.png" width="300" height="300" loading="lazy" alt="Example of our custom designed product">
+                                <img src="images/etching.jpg" width="300" height="300" loading="lazy" alt="Example of our custom designed product">
                             </div>
                         </div>
                     </div>
@@ -607,7 +782,7 @@
                                     <div class="category-image">
                                         <img src="images/products/Monuments/granite-monuments-project02.jpg" alt="Monuments" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
                                     </div>
-                                    <h4>In Stock Designs</h4>
+                                    <h4>In-stock, ready to ship special designs</h4>
                                     <span class="category-count">28 Designs</span>
                                 </a>
                             </div>
@@ -644,124 +819,47 @@
             </section>
             <!--Featured Products Section End Here-->
             <div class="divider-line"></div>
-            <!--Projects Section Start Here-->
-            <section id="projects" class="section-padding animate-box defer-visibility" data-animate-effect="fadeInUp">
+            <!-- Variety of Granites Section -->
+            <section id="variety-of-granites" class="section-padding animate-box colors-section defer-visibility" data-animate-effect="fadeInUp">
                 <div class="container">
                     <div class="row">
                         <div class="col-md-12">
                             <div class="section-header">
                                 <div class="subtitle">
                                     <img src="images/title-star.svg" alt="Angel Stones">
-                                        Angel Granites
+                                    Angel Granites
                                     <img src="images/title-star.svg" alt="Angel Stones">
                                 </div>
-                                <div class="title">Our Projects</div>
+                                <div class="title">Granite Varieties</div>
                             </div>
                         </div>
                     </div>
                     <div class="row">
-                        <ul class="col list-unstyled list-inline mb-0 projects-menu" id="menu-filter">
-                            <li class="list-inline-item"><a class="active" data-filter="*">All</a></li>
-                            <li class="list-inline-item"><a class="" data-filter=".granite-monuments">Granite Monuments</a></li>
-                            <li class="list-inline-item"><a class="" data-filter=".granite-slabs">Granite Slabs</a></li>
-                            <li class="list-inline-item"><a class="" data-filter=".customized-designs">Customized Designs</a></li>
-                        </ul>
-                    </div>
-                    <div class="row projects-filter mt-3">
-                        <div class="col-md-4 projects-item granite-monuments">
-                            <a href="images/granite-monuments-project01.png" class="image-popup-vertical-fit img-zoom" title="Granite Monuments">
-                                <div class="projects-box">
-                                    <div class="projects-img"> <img src="images/granite-monuments-project01.png" width="300" height="300" loading="lazy" class="img-fluid mx-auto d-block" alt="Example of our custom designed granite monument"> </div>
-                                    <div class="projects-detail">
-                                        <h4 class="mb-0">Granite Monuments</h4>
+                        <div class="col-md-12">
+                            <!-- Desktop view with owl-carousel -->
+                            <div class="owl-carousel owl-theme color-row" style="--caption-color: #d4af37;">
+                                <!-- Color images will be loaded dynamically by color-carousel.js -->
+                                <!-- Fallback content in case JavaScript is disabled -->
+                                <noscript>
+                                    <div class="variety-of-granites color-item">
+                                        <img src="images/colors/bluepearl.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Blue Pearl">
+                                        <div class="caption"><p>Blue Pearl</p></div>
                                     </div>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-md-4 projects-item granite-slabs">
-                            <a href="images/granite-slabs-project01.png" class="image-popup-vertical-fit img-zoom" title="Granite Slabs">
-                                <div class="projects-box">
-                                    <div class="projects-img"> <img src="images/granite-slabs-project01.png" width="300" height="300" loading="lazy" class="img-fluid mx-auto d-block" alt="Example of our custom designed granite slab"> </div>
-                                    <div class="projects-detail">
-                                        <h4 class="mb-0">Granite Slabs</h4>
+                                    <div class="variety-of-granites color-item">
+                                        <img src="images/colors/indian-black.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Indian Black">
+                                        <div class="caption"><p>Indian Black</p></div>
                                     </div>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-md-4 projects-item customized-designs">
-                            <a href="images/customized-designs-project01.png" class="image-popup-vertical-fit img-zoom" title="Customized Designs">
-                                <div class="projects-box">
-                                    <div class="projects-img"> <img src="images/customized-designs-project01.png" width="300" height="300" loading="lazy" class="img-fluid mx-auto d-block" alt="Example of our custom designed product"></div>
-                                    <div class="projects-detail">
-                                        <h4 class="mb-0">Customized Designs</h4>
+                                    <div class="variety-of-granites color-item">
+                                        <img src="images/colors/vizag-blue.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Vizag Blue">
+                                        <div class="caption"><p>Vizag Blue</p></div>
                                     </div>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-md-4 projects-item granite-monuments">
-                            <a href="images/granite-monuments-project02.png" class="image-popup-vertical-fit img-zoom" title="Granite Monuments">
-                                <div class="projects-box">
-                                    <div class="projects-img"> <img src="images/granite-monuments-project02.png" width="300" height="300" loading="lazy" class="img-fluid mx-auto d-block" alt="Example of our custom designed granite monument"> </div>
-                                    <div class="projects-detail">
-                                        <h4 class="mb-0">Granite Monuments</h4>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-md-4 projects-item granite-slabs">
-                            <a href="images/granite-slabs-project03.png" class="image-popup-vertical-fit img-zoom" title="Granite Slabs">
-                                <div class="projects-box">
-                                    <div class="projects-img"> <img src="images/granite-slabs-project03.png" width="300" height="300" loading="lazy" class="img-fluid mx-auto d-block" alt="Example of our custom designed granite slab"> </div>
-                                    <div class="projects-detail">
-                                        <h4 class="mb-0">Granite Slabs</h4>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-md-4 projects-item customized-designs">
-                            <a href="images/customized-designs-project02.png" class="image-popup-vertical-fit img-zoom" title="Customized Designs">
-                                <div class="projects-box">
-                                    <div class="projects-img"> <img src="images/customized-designs-project02.png" width="300" height="300" loading="lazy" class="img-fluid mx-auto d-block" alt="Example of our custom designed product"></div>
-                                    <div class="projects-detail">
-                                        <h4 class="mb-0">Customized Designs</h4>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-md-4 projects-item granite-slabs">
-                            <a href="images/granite-slabs-project02.png" class="image-popup-vertical-fit img-zoom" title="Granite Slabs">
-                                <div class="projects-box">
-                                    <div class="projects-img"> <img src="images/granite-slabs-project02.png" width="300" height="300" loading="lazy" class="img-fluid mx-auto d-block" alt="Example of our custom designed granite slab"> </div>
-                                    <div class="projects-detail">
-                                        <h4 class="mb-0">Granite Slabs</h4>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-md-4 projects-item granite-monuments">
-                            <a href="images/granite-monuments-project03.png" class="image-popup-vertical-fit img-zoom" title="Granite Monuments">
-                                <div class="projects-box">
-                                    <div class="projects-img"> <img src="images/granite-monuments-project03.png" width="300" height="300" loading="lazy" class="img-fluid mx-auto d-block" alt="Example of our custom designed granite monument"> </div>
-                                    <div class="projects-detail">
-                                        <h4 class="mb-0">Granite Monuments</h4>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-md-4 projects-item customized-designs">
-                            <a href="images/monumentcross.png" class="image-popup-vertical-fit img-zoom" title="Customized Designs">
-                                <div class="projects-box">
-                                    <div class="projects-img"> <img src="images/monumentcross.png" width="300" height="300" loading="lazy" class="img-fluid mx-auto d-block" alt="Example of our custom designed product"></div>
-                                    <div class="projects-detail">
-                                        <h4 class="mb-0">Customized Designs</h4>
-                                    </div>
-                                </div>
-                            </a>
+                                </noscript>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
-            <!--Projects Section End Here-->
+            <!-- Variety of Granites Section End Here -->
             <div class="divider1"></div>
             <!--Why Choose Section Start Here-->
             <section id="why-choose-as" class="section-padding animate-box why-choose-as" data-animate-effect="fadeInUp">
@@ -898,7 +996,10 @@
                             <p><b>Phone:</b> +1 866-682-5837</p>
                             <p><b>Email:</b> <a href="mailto:info@theangelstones.com">info@theangelstones.com</a></p>
                             <p><b>Mailing Address:</b> P.O. Box 370, Elberton, GA 30635 </p>
-                            <p><b>Physical Address:</b> 1187 Old Middleton Rd, Elberton, GA 30635 </p>
+                            <p><b>Physical Addresses:</b></p>
+                            <p style="margin-bottom: 0;">1187 Old Middleton Rd, Elberton, GA 30635</p>
+                            <p style="margin-bottom: 0;">203 Williams St, Elberton, GA</p>
+                            <p>15 Blackwell St, Barre, VT</p>
                             <p><b>Corporate Address:</b> 5540 Centerview Dr, ste 204,PMB 162836,Raleigh, NC </p>
                         </div>
                         <!-- Contact Form -->
@@ -935,6 +1036,7 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <iframe id="contactMap" 
+                                        width="600" height="450" loading="lazy"
                                         title="Angel Granites Location Map - 1187 Old Middleton Rd, Elberton, GA"
                                         src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3321.5307775848397!2d-82.91341548478827!3d34.08893748059733!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88f81452e4c1ab6d%3A0x9f8a9a4c7e18d083!2s1187+Old+Middleton+Rd%2C+Elberton%2C+GA+30635!5e0!3m2!1sen!2sus!4v1709448147692!5m2!1sen!2sus"
                                         width="100%" 
@@ -951,47 +1053,7 @@
                 </div>
             </section>
             <div class="divider-line"></div>
-            <!-- Get in Touch Section Start Here  -->
-            <!-- Variety of Granites -->
-            <section id="variety-of-granites" class="section-padding animate-box colors-section" data-animate-effect="fadeInUp">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="section-header">
-                                <div class="subtitle">
-                                    <img src="images/title-star.svg" alt="Angel Stones">
-                                    Angel Granites
-                                    <img src="images/title-star.svg" alt="Angel Stones">
-                                </div>
-                                <div class="title">Provided with the variety of Granite's</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <!-- Desktop view with owl-carousel -->
-                            <div class="owl-carousel owl-theme color-row" style="--caption-color: #d4af37;">
-                                <!-- Color images will be loaded dynamically by color-carousel.js -->
-                                <!-- Fallback content in case JavaScript is disabled -->
-                                <noscript>
-                                    <div class="variety-of-granites color-item">
-                                        <img src="images/colors/bluepearl.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Blue Pearl">
-                                        <div class="caption"><p>Blue Pearl</p></div>
-                                    </div>
-                                    <div class="variety-of-granites color-item">
-                                        <img src="images/colors/indian-black.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Indian Black">
-                                        <div class="caption"><p>Indian Black</p></div>
-                                    </div>
-                                    <div class="variety-of-granites color-item">
-                                        <img src="images/colors/vizag-blue.jpg" width="300" height="300" loading="lazy" class="img-fluid" alt="Vizag Blue">
-                                        <div class="caption"><p>Vizag Blue</p></div>
-                                    </div>
-                                </noscript>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            <!-- Get in Touch Section End Here  -->
             <!-- Footer -->
             <div id="as-footer-main">
                 <div class="as-narrow-content">
@@ -1003,7 +1065,7 @@
                             </p>
                         </div>
                         <div class="col-md-6">
-                            <div><link rel="preload" as="style" href="https://fonts.googleapis.com/css?family=Open+Sans" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans"></noscript><a href='https://www.convergepay.com/hosted-payments?ssl_txn_auth_token=E%2F8reYrhQjCCZuE850a9TQAAAZZqwm4V' style='color:#d6b772; font-size:14px; font-family:Open Sans; font-weight:bold; margin-bottom:15px; display:block;'>Pay Invoice</a></div>
+                            <div><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans"><a href='https://www.convergepay.com/hosted-payments?ssl_txn_auth_token=E%2F8reYrhQjCCZuE850a9TQAAAZZqwm4V' style='color:#d6b772; font-size:14px; font-family:Open Sans; font-weight:bold; margin-bottom:15px; display:block;'>Pay Invoice</a></div>
                             <ul class="social-network">
                                 <li><a href="#" target="_blank" rel="nofollow" aria-label="Visit our Facebook page">Facebook</a></li>
                                 <li><a href="#" target="_blank" rel="nofollow" aria-label="Follow us on Twitter">Twitter</a></li>
