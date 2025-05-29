@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const name = document.createElement('h4');
             // Special case for Monuments category
             if (category === 'Monuments') {
-                name.textContent = 'Ready-to-Ship Monuments';
+                name.textContent = 'In-stock, ready to ship special designs';
             } else {
                 name.textContent = category.replace(/_/g, ' ');
             }
