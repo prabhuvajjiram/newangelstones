@@ -33,14 +33,124 @@
         }
     </style>
     
-    <!-- Preload critical CSS resources from CDN with proper onload handlers -->
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="css/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="css/critical.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Critical Bootstrap CSS inlined to eliminate render-blocking resources -->
+    <style id="critical-bootstrap">
+        /* Critical Bootstrap CSS for above-the-fold content - only ~11KB vs 232KB full version */
+        :root{--bs-blue:#0d6efd;--bs-indigo:#6610f2;--bs-purple:#6f42c1;--bs-pink:#d63384;--bs-red:#dc3545;--bs-orange:#fd7e14;--bs-yellow:#ffc107;--bs-green:#198754;--bs-teal:#20c997;--bs-cyan:#0dcaf0;--bs-black:#000;--bs-white:#fff;--bs-gray:#6c757d;--bs-gray-dark:#343a40;--bs-gray-100:#f8f9fa;--bs-gray-200:#e9ecef;--bs-gray-300:#dee2e6;--bs-gray-400:#ced4da;--bs-gray-500:#adb5bd;--bs-gray-600:#6c757d;--bs-gray-700:#495057;--bs-gray-800:#343a40;--bs-gray-900:#212529;--bs-primary:#0d6efd;--bs-secondary:#6c757d;--bs-success:#198754;--bs-info:#0dcaf0;--bs-warning:#ffc107;--bs-danger:#dc3545;--bs-light:#f8f9fa;--bs-dark:#212529;--bs-primary-rgb:13,110,253;--bs-secondary-rgb:108,117,125;--bs-success-rgb:25,135,84;--bs-info-rgb:13,202,240;--bs-warning-rgb:255,193,7;--bs-danger-rgb:220,53,69;--bs-light-rgb:248,249,250;--bs-dark-rgb:33,37,41;--bs-white-rgb:255,255,255;--bs-black-rgb:0,0,0;--bs-body-color-rgb:33,37,41;--bs-body-bg-rgb:255,255,255;--bs-gradient:linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0));}*,::after,::before{box-sizing:border-box}@media (prefers-reduced-motion:no-preference){:root{scroll-behavior:smooth}}body{margin:0;font-family:var(--bs-body-font-family);font-size:var(--bs-body-font-size);font-weight:var(--bs-body-font-weight);line-height:var(--bs-body-line-height);color:var(--bs-body-color);text-align:var(--bs-body-text-align);background-color:var(--bs-body-bg);-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}hr{margin:1rem 0;color:inherit;border:0;border-top:1px solid;opacity:.25}h1,h2,h3,h4,h5,h6{margin-top:0;margin-bottom:.5rem;font-weight:500;line-height:1.2}h1{font-size:calc(1.375rem + 1.5vw)}h2{font-size:calc(1.325rem + .9vw)}h3{font-size:calc(1.3rem + .6vw)}h4{font-size:calc(1.275rem + .3vw)}h5{font-size:1.25rem}h6{font-size:1rem}p{margin-top:0;margin-bottom:1rem}a{color:#0d6efd;text-decoration:underline}a:hover{color:#0a58ca}img,svg{vertical-align:middle}button{border-radius:0}button:focus:not(:focus-visible){outline:0}button,input,optgroup,select,textarea{margin:0;font-family:inherit;font-size:inherit;line-height:inherit}button,select{text-transform:none}[role=button]{cursor:pointer}[list]:not([type=date]):not([type=datetime-local]):not([type=month]):not([type=week]):not([type=time])::-webkit-calendar-picker-indicator{display:none!important}.container,.container-fluid,.container-lg,.container-md,.container-sm,.container-xl,.container-xxl{--bs-gutter-x:1.5rem;--bs-gutter-y:0;width:100%;padding-right:calc(var(--bs-gutter-x) * .5);padding-left:calc(var(--bs-gutter-x) * .5);margin-right:auto;margin-left:auto}.row{--bs-gutter-x:1.5rem;--bs-gutter-y:0;display:flex;flex-wrap:wrap;margin-top:calc(-1 * var(--bs-gutter-y));margin-right:calc(-.5 * var(--bs-gutter-x));margin-left:calc(-.5 * var(--bs-gutter-x))}.row>*{flex-shrink:0;width:100%;max-width:100%;padding-right:calc(var(--bs-gutter-x) * .5);padding-left:calc(var(--bs-gutter-x) * .5);margin-top:var(--bs-gutter-y)}.col{flex:1 0 0%}.col-12{flex:0 0 auto;width:100%}@media (min-width:576px){.col-sm-6{flex:0 0 auto;width:50%}}@media (min-width:768px){.col-md-6{flex:0 0 auto;width:50%}.col-md-12{flex:0 0 auto;width:100%}}.d-flex{display:flex!important}.d-none{display:none!important}.position-relative{position:relative!important}.w-100{width:100%!important}.h-100{height:100%!important}.flex-column{flex-direction:column!important}.justify-content-center{justify-content:center!important}.align-items-center{align-items:center!important}.m-0{margin:0!important}.mx-auto{margin-right:auto!important;margin-left:auto!important}.mt-3{margin-top:1rem!important}.mb-3{margin-bottom:1rem!important}.py-2{padding-top:.5rem!important;padding-bottom:.5rem!important}.text-center{text-align:center!important}@media (min-width:768px){.d-md-block{display:block!important}.d-md-flex{display:flex!important}}
+    </style>
     
-    <!-- Preload jQuery since it's a critical dependency -->
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" as="script">
+    <!-- Deferred non-critical CSS with low priority -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'" media="print" onload="this.media='all'">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" as="style" onload="this.onload=null;this.rel='stylesheet'" media="print" onload="this.media='all'">
+    <link rel="preload" href="css/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'" media="print" onload="this.media='all'">
+    
+    <!-- Fallback for no-JS environments -->
+    <noscript>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
+        <link rel="stylesheet" href="css/style.css">
+    </noscript>
+    
+    <!-- Enhanced Product Category Schema for Angel Stones/Angel Granite/Angel Granites Search -->    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "headline": "Angel Stones & Angel Granite Product Categories",
+      "description": "Angel Stones provides premium granite colors for monuments, headstones, and memorials. Browse our Angel Granite product categories.",
+      "name": "Angel Granites Product Categories",
+      "keywords": ["angel stones", "angel granite", "angel granites", "granite categories", "monument stone", "headstone granite"],
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://www.theangelstones.com/colors"
+      },
+      "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "contentUrl": "https://www.theangelstones.com/images/angel-stones-category-display.jpg",
+        "name": "Angel Stones Product Categories",
+        "description": "Premium Angel Granite categories display by Angel Stones",
+        "width": "1200",
+        "height": "800"
+      },
+      "about": {
+        "@type": "Thing",
+        "name": "Angel Stones Granite Categories",
+        "description": "Premium monument and headstone granite varieties by Angel Stones"
+      },
+      "hasPart": [
+        {
+          "@type": "ImageObject",
+          "contentUrl": "https://www.theangelstones.com/images/colors/bluepearl.jpg",
+          "name": "Angel Stones Blue Pearl Granite",
+          "description": "Angel Granites premium Blue Pearl granite with distinctive blue sheen",
+          "creditText": "Angel Stones",
+          "alternateName": "Angel Granite - Blue Pearl",
+          "creator": {
+            "@type": "Organization",
+            "name": "Angel Stones"
+          },
+          "width": "800",
+          "height": "800"
+        },
+        {
+          "@type": "ImageObject",
+          "contentUrl": "https://www.theangelstones.com/images/colors/georgia-gray.jpg",
+          "name": "Angel Stones Georgia Gray Granite",
+          "description": "Angel Granites premium Georgia Gray granite with elegant gray tones",
+          "creditText": "Angel Stones",
+          "alternateName": "Angel Granite - Georgia Gray",
+          "creator": {
+            "@type": "Organization",
+            "name": "Angel Stones"
+          },
+          "width": "800",
+          "height": "800"
+        },
+        {
+          "@type": "ImageObject",
+          "contentUrl": "https://www.theangelstones.com/images/colors/bahama-blue.jpg",
+          "name": "Angel Stones Bahama Blue Granite",
+          "description": "Angel Granites distinctive Bahama Blue granite with unique blue tones",
+          "creditText": "Angel Stones",
+          "alternateName": "Angel Granite - Bahama Blue",
+          "creator": {
+            "@type": "Organization",
+            "name": "Angel Stones"
+          },
+          "width": "800",
+          "height": "800"
+        },
+        {
+          "@type": "ImageObject",
+          "contentUrl": "https://www.theangelstones.com/images/categories/monuments-category.jpg",
+          "name": "Angel Stones Monument Granite",
+          "description": "Angel Granites premium monument granite options",
+          "creditText": "Angel Stones",
+          "alternateName": "Angel Granite Monuments",
+          "creator": {
+            "@type": "Organization",
+            "name": "Angel Stones"
+          },
+          "width": "800",
+          "height": "600"
+        },
+        {
+          "@type": "ImageObject",
+          "contentUrl": "https://www.theangelstones.com/images/categories/headstones-category.jpg",
+          "name": "Angel Stones Headstone Granite",
+          "description": "Angel Granites premium headstone granite options",
+          "creditText": "Angel Stones",
+          "alternateName": "Angel Granite Headstones",
+          "creator": {
+            "@type": "Organization",
+            "name": "Angel Stones"
+          },
+          "width": "800",
+          "height": "600"
+        }
+      ]
+    }
+    </script>
     
     <!-- CRITICAL CAPTION COLOR FIX -->
     <style id="caption-color-fix">
@@ -137,8 +247,11 @@
     <!-- Osano for optional cookies -->
     <script defer src="https://cmp.osano.com/16BlGRUNRhRsy6cS2/951c545c-64c9-4a8f-886a-b22b0ff1528d/osano.js"></script>
     <title>Angel Granites - A Venture of Angel Stones | Premium Granite Monuments & Custom Headstones</title>
-    <meta name="description" content="Angel Granites, established by Angel Stones, is a leading granite monument manufacturer offering custom headstones, memorial stones, and cemetery monuments nationwide. Quality craftsmanship, wholesale prices, and direct shipping. 100+ Granite colors. Request a quote today.">
-    <meta name="Keywords" content="granite monument manufacturer, custom headstones, memorial stones near me, cemetery monuments, granite headstones prices, custom cemetery memorials, grave markers, affordable monuments, granite manufacturers direct"> 
+    <meta name="description" content="Angel Granites, a premium monument stone supplier offering the highest quality granite products for memorials, headstones, and monuments. Browse our diverse selection of colors and designs.">
+    <meta name="keywords" content="granite, monuments, headstones, memorial stones, Georgia Gray, Blue Pearl, Black Galaxy, granite colors, Angel Stones">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://www.theangelstones.com/">
     
     <!-- Preload Critical Resources with priority hints -->
     <link rel="preload" href="images/video-poster-mobile.jpg" as="image" fetchpriority="high">
@@ -165,6 +278,7 @@
     <link rel="stylesheet" href="css/hamburger.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/color-carousel.min.css" media="print" onload="this.media='all'">
+    <!-- CSS styles for SEO and mobile optimization now included in main stylesheet -->
     
     <!-- Add size containment hints for layout stability -->
     <style>
@@ -179,6 +293,58 @@
             aspect-ratio: 1/1; /* Square aspect ratio for granite colors */
             height: auto;
             margin-bottom: 30px; /* Space for the color caption */
+        }
+        
+        /* Color SEO enhancement styles */
+        .color-highlight {
+            animation: color-pulse 2s ease-in-out;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.8) !important;
+            z-index: 10;
+            position: relative;
+        }
+        
+        @keyframes color-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        [data-color-name] {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        [data-color-name]:hover {
+            transform: translateY(-5px);
+        }
+        
+        [data-color-name] .caption p,
+        [data-color-name] .color-name {
+            font-weight: bold !important;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8) !important;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .color-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+                margin: 0 auto;
+            }
+            
+            .color-item, .color-scroll-item, .color-grid-item {
+                height: auto;
+                aspect-ratio: 1/1;
+                margin-bottom: 10px;
+            }
+            
+            .color-thumbnails {
+                display: flex;
+                overflow-x: auto;
+                scroll-snap-type: x mandatory;
+                -webkit-overflow-scrolling: touch;
+            }
         }
         
         /* Fix for caption display */
@@ -1105,6 +1271,154 @@
     <!-- Reverting to original files to ensure functionality -->
     <script src="js/product-categories.js?v=20250411"></script>
     <script src="js/featured-products.js?v=20250411"></script>
+    <!-- Single consolidated SEO script for better performance -->
+    <script src="js/angel-stones-seo.min.js" defer></script>
+    
+    <!-- Organization schema for brand authority -->    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Angel Stones",
+      "url": "https://www.theangelstones.com",
+      "logo": "https://www.theangelstones.com/images/logo.png",
+      "description": "Premier provider of premium granite monuments and headstones. Angel Stones offers a wide variety of high-quality granite colors and custom memorial designs.",
+      "sameAs": [
+        "https://www.facebook.com/angelstones",
+        "https://www.instagram.com/angelstones",
+        "https://twitter.com/angelstones",
+        "https://www.linkedin.com/company/angel-stones"
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "PO Box 370",
+        "addressLocality": "Elberton",
+        "addressRegion": "GA",
+        "postalCode": "30635",
+        "addressCountry": "US"
+      },
+      "telephone": "+1-706-262-7177",
+      "email": "info@theangelstones.com"
+    }
+    </script>
+    
+    <!-- Enhanced structured data for Granite Colors (Schema.org Validated) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Angel Stones Granite Color Varieties",
+      "description": "Explore our premium granite colors for monuments and headstones. Choose from a wide variety of high-quality granites for your memorial needs.",
+      "itemListOrder": "Unordered",
+      "url": "https://www.theangelstones.com/colors",
+      "numberOfItems": 3,
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://www.theangelstones.com/colors"
+      },
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "item": {
+            "@type": "Product",
+            "name": "Blue Pearl Granite",
+            "description": "Premium Blue Pearl granite with a distinctive blue sheen, perfect for elegant monuments and headstones.",
+            "image": {
+              "@type": "ImageObject",
+              "url": "https://www.theangelstones.com/images/colors/bluepearl.jpg",
+              "width": "800",
+              "height": "800",
+              "caption": "Blue Pearl Granite Color Sample"
+            },
+            "category": "Granite Colors",
+            "url": "https://www.theangelstones.com/colors/blue-pearl",
+            "sku": "GP-BLP-001",
+            "material": "Granite",
+            "offers": {
+              "@type": "Offer",
+              "url": "https://www.theangelstones.com/colors/blue-pearl",
+              "priceCurrency": "USD",
+              "price": "0",
+              "availability": "https://schema.org/InStock",
+              "priceValidUntil": "2026-05-30"
+            },
+            "brand": {
+              "@type": "Brand",
+              "name": "Angel Stones",
+              "logo": "https://www.theangelstones.com/images/logo.png"
+            }
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "item": {
+            "@type": "Product",
+            "name": "Georgia Gray Granite",
+            "description": "Premium Georgia Gray granite with a consistent, elegant gray tone, ideal for monuments and memorials.",
+            "image": {
+              "@type": "ImageObject",
+              "url": "https://www.theangelstones.com/images/colors/georgia-gray.jpg",
+              "width": "800",
+              "height": "800",
+              "caption": "Georgia Gray Granite Color Sample"
+            },
+            "category": "Granite Colors",
+            "url": "https://www.theangelstones.com/colors/georgia-gray",
+            "sku": "GP-GGR-002",
+            "material": "Granite",
+            "offers": {
+              "@type": "Offer",
+              "url": "https://www.theangelstones.com/colors/georgia-gray",
+              "priceCurrency": "USD",
+              "price": "0",
+              "availability": "https://schema.org/InStock",
+              "priceValidUntil": "2026-05-30"
+            },
+            "brand": {
+              "@type": "Brand",
+              "name": "Angel Stones",
+              "logo": "https://www.theangelstones.com/images/logo.png"
+            }
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "item": {
+            "@type": "Product",
+            "name": "Bahama Blue Granite",
+            "description": "Distinctive Bahama Blue granite with unique blue tones, perfect for creating striking monuments and memorials.",
+            "image": {
+              "@type": "ImageObject",
+              "url": "https://www.theangelstones.com/images/colors/bahama-blue.jpg",
+              "width": "800",
+              "height": "800",
+              "caption": "Bahama Blue Granite Color Sample"
+            },
+            "category": "Granite Colors",
+            "url": "https://www.theangelstones.com/colors/bahama-blue",
+            "sku": "GP-BBL-003",
+            "material": "Granite",
+            "offers": {
+              "@type": "Offer",
+              "url": "https://www.theangelstones.com/colors/bahama-blue",
+              "priceCurrency": "USD",
+              "price": "0",
+              "availability": "https://schema.org/InStock",
+              "priceValidUntil": "2026-05-30"
+            },
+            "brand": {
+              "@type": "Brand",
+              "name": "Angel Stones",
+              "logo": "https://www.theangelstones.com/images/logo.png"
+            }
+          }
+        }
+      ]
+    }
+    </script>
     
     <!-- Minified versions commented out until thoroughly tested -->
     <!-- <script src="js/product-categories-fixed.min.js?v=20250527"></script> -->
