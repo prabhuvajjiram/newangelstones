@@ -17,8 +17,8 @@
     
     function init() {
         // Use intersection observer to lazy initialize
-        const projectsSection = document.getElementById('projects');
-        if (!projectsSection) return;
+        const graniteVarietiesSection = document.getElementById('variety-of-granites');
+        if (!graniteVarietiesSection) return;
         
         const observer = new IntersectionObserver(entries => {
             if (entries[0].isIntersecting) {
@@ -30,7 +30,7 @@
             threshold: 0.01 
         });
         
-        observer.observe(projectsSection);
+        observer.observe(graniteVarietiesSection);
     }
     
     function optimizeProductCategories() {

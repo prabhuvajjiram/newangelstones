@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Basic Chat Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        #chatButton {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        #chatWindow {
+            display: none;
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 320px;
+            height: 500px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            flex-direction: column;
+        }
+        #welcomeScreen, #chatScreen {
+            padding: 15px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button[type="submit"] {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+        button[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+        #chatLog {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+        #messageInput {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 10px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <h1>Basic Chat Test</h1>
+    <p>Look for the blue chat button in the bottom-right corner.</p>
+    
+    <!-- Chat Elements -->
+    <button id="chatButton">💬</button>
+    <div id="chatWindow">
+        <!-- Welcome Screen with User Info Form -->
+        <div id="welcomeScreen">
+            <h3 style="margin-top: 0;">Welcome to Chat Support</h3>
+            <p>Please provide your information to start chatting:</p>
+            <form id="userInfoForm">
+                <div class="form-group">
+                    <label for="userName">Name *</label>
+                    <input type="text" id="userName" required>
+                </div>
+                <div class="form-group">
+                    <label for="userEmail">Email *</label>
+                    <input type="email" id="userEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="userPhone">Phone Number</label>
+                    <input type="tel" id="userPhone">
+                </div>
+                <button type="submit">Start Chat</button>
+            </form>
+        </div>
+        
+        <!-- Chat Screen (initially hidden) -->
+        <div id="chatScreen" style="display: none;">
+            <div id="chatHeader" style="padding: 10px; border-bottom: 1px solid #eee; margin: -15px -15px 15px -15px;">
+                <h4 style="margin: 0;">Chat with Support</h4>
+                <p id="userGreeting" style="margin: 5px 0 0 0; font-size: 12px; color: #666;"></p>
+            </div>
+            <div id="chatLog"></div>
+            <div>
+                <input type="text" id="messageInput" placeholder="Type your message...">
+                <button type="button" id="sendMessage" style="margin-top: 10px;">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const chatButton = document.getElementById('chatButton');
+        const chatWindow = document.getElementById('chatWindow');
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const chatScreen = document.getElementById('chatScreen');
+        const userInfoForm = document.getElementById('userInfoForm');
+        const userNameInput = document.getElementById('userName');
+        const userEmailInput = document.getElementById('userEmail');
+        const userPhoneInput = document.getElementById('userPhone');
+        const chatLog = document.getElementById('chatLog');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendMessage');
+        const userGreeting = document.getElementById('userGreeting');
+
+        // User data
+        let userData = {
+            name: '',
+            email: '',
+            phone: ''
+        };
+
+        // Toggle chat window
+        chatButton.addEventListener('click', function() {
+            if (chatWindow.style.display === 'flex') {
+                chatWindow.style.display = 'none';
+                chatButton.textContent = '💬';
+            } else {
+                chatWindow.style.display = 'flex';
+                chatButton.textContent = '✕';
+                // Reset to welcome screen when opening
+                welcomeScreen.style.display = 'flex';
+                chatScreen.style.display = 'none';
+            }
+        });
+
+        // Handle user info form submission
+        userInfoForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            userData = {
+                name: userNameInput.value.trim(),
+                email: userEmailInput.value.trim(),
+                phone: userPhoneInput.value.trim()
+            };
+            
+            // Simple validation
+            if (!userData.name || !userData.email) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            // Show chat screen
+            welcomeScreen.style.display = 'none';
+            chatScreen.style.display = 'flex';
+            
+            // Show greeting
+            userGreeting.textContent = `Chatting as ${userData.name} (${userData.email})`;
+            
+            // Add welcome message
+            addMessage('Welcome to Angel Stones support! How can we help you today?', 'system');
+            
+            // Focus on message input
+            messageInput.focus();
+        });
+        
+        // Handle send message
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message) {
+                addMessage(message, 'user');
+                messageInput.value = '';
+                
+                // Simulate response after a short delay
+                setTimeout(() => {
+                    const responses = [
+                        'Thanks for your message! How can I assist you today?',
+                        'I\'ll be happy to help with that.',
+                        'One of our team members will be with you shortly.'
+                    ];
+                    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                    addMessage(randomResponse, 'agent');
+                }, 1000);
+            }
+        }
+        
+        // Send message on button click
+        sendButton.addEventListener('click', sendMessage);
+        
+        // Send message on Enter key
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Add message to chat
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.style.marginBottom = '10px';
+            messageDiv.style.padding = '8px 12px';
+            messageDiv.style.borderRadius = '15px';
+            messageDiv.style.maxWidth = '80%';
+            
+            if (sender === 'user') {
+                messageDiv.style.marginLeft = 'auto';
+                messageDiv.style.backgroundColor = '#3498db';
+                messageDiv.style.color = 'white';
+                messageDiv.style.borderTopRightRadius = '0';
+            } else {
+                messageDiv.style.marginRight = 'auto';
+                messageDiv.style.backgroundColor = '#f1f1f1';
+                messageDiv.style.borderTopLeftRadius = '0';
+            }
+            
+            messageDiv.textContent = text;
+            chatLog.appendChild(messageDiv);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+        
+        // Initial setup
+        chatWindow.style.display = 'none';
+    </script>
+</body>
+</html>

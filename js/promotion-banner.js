@@ -49,10 +49,25 @@ class PromotionBanner {
     async loadPromotions() {
         try {
             const response = await fetch('/crm/ajax/get_active_promotions.php');
+            
+            // Attempt to get response text regardless of response.ok for better error reporting
+            const responseText = await response.text();
+
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                // Include responseText in the error message if available
+                throw new Error(`HTTP error! status: ${response.status}. Response: ${responseText}`);
             }
-            const data = await response.json();
+            
+            let data;
+            try {
+                data = JSON.parse(responseText); 
+            } catch (parseError) {
+                // Log the raw response text that caused the JSON parsing error
+                console.error('Error parsing JSON from /crm/ajax/get_active_promotions.php:', parseError);
+                console.error('Raw response causing error:', responseText);
+                this.banner.style.display = 'none'; 
+                return; 
+            }
             
             // Check for success flag and promotions array in response
             if (data.success && Array.isArray(data.promotions) && data.promotions.length > 0) {
@@ -62,10 +77,12 @@ class PromotionBanner {
                     this.startCarousel();
                 }
             } else {
-                console.log('No active promotions found');
+                 // Log details if data.success is false or promotions array is missing/empty
+                console.log('No active promotions, or unsuccessful/invalid response. Data:', data);
                 this.banner.style.display = 'none';
             }
         } catch (error) {
+            // This will catch errors from fetch itself, or the new Error thrown for !response.ok, or re-thrown parseError
             console.error('Error loading promotions:', error);
             this.banner.style.display = 'none';
         }
@@ -105,7 +122,7 @@ class PromotionBanner {
         this.carouselInterval = setInterval(() => {
             this.currentIndex = (this.currentIndex + 1) % this.promotions.length;
             this.showPromotion(this.currentIndex);
-        }, 5000); // Change every 5 seconds
+        }, 5000); 
     }
 }
 

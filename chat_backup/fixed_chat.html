@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angel Stones RingCentral Chat Test (FIXED)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 20px;
+            background-color: #f7f7f7;
+        }
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .chat-header {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+        }
+        .chat-messages {
+            height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+            border-bottom: 1px solid #e6e6e6;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 70%;
+            clear: both;
+        }
+        .visitor-message {
+            background: #e9f5ff;
+            float: right;
+        }
+        .agent-message {
+            background: #f1f1f1;
+            float: left;
+        }
+        .system-message {
+            background: #fff3cd;
+            width: 100%;
+            text-align: center;
+            font-style: italic;
+            padding: 5px;
+            margin: 10px 0;
+            clear: both;
+        }
+        .chat-input {
+            padding: 15px;
+        }
+        .status-area {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        .auth-area {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        .visitor-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        /* Add a clearfix to force each message to start on a new line */
+        .message-container {
+            overflow: hidden;
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        /* Debugging indicator */
+        .debug-indicator {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Angel Stones RingCentral Chat Test (FIXED)</h1>
+        
+        <div class="chat-container">
+            <div class="chat-header">
+                <h5 class="mb-0">Chat Session: <span id="session-id">Loading...</span></h5>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <div class="system-message">Welcome to Angel Stones Chat!</div>
+            </div>
+            <div class="chat-input">
+                <form id="message-form" class="row g-3">
+                    <div class="col-md-9">
+                        <input type="text" class="form-control" id="message-input" placeholder="Type your message..." required>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">Send</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="status-area">
+            <h3>Status</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <button id="check-db" class="btn btn-secondary mb-3">Check Database Connection</button>
+                </div>
+                <div class="col-md-6">
+                    <button id="toggle-debug" class="btn btn-warning mb-3">Toggle Debug Mode</button>
+                </div>
+            </div>
+            <div id="status-output">
+                <pre>Status information will appear here...</pre>
+            </div>
+        </div>
+        
+        <div class="auth-area">
+            <h3>RingCentral Connection</h3>
+            <div class="mb-3">
+                <button id="check-auth" class="btn btn-primary">Check Authentication</button>
+            </div>
+            <div id="auth-status">Not checked yet</div>
+        </div>
+        
+        <div class="visitor-info">
+            <h3>Visitor Information</h3>
+            <form id="visitor-info-form" class="row g-3">
+                <div class="col-md-6">
+                    <label for="visitor-name" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="visitor-name" placeholder="John Doe">
+                </div>
+                <div class="col-md-6">
+                    <label for="visitor-email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="visitor-email" placeholder="john@example.com">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Update Visitor Info</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="debug-indicator" class="debug-indicator" style="display:none">Debug Mode: ON</div>
+    
+    <script>
+        // Generate a unique session ID or use a fixed one for testing
+        const urlParams = new URLSearchParams(window.location.search);
+        const debugMode = urlParams.get('debug') === 'true';
+        let sessionId = urlParams.get('session_id');
+        
+        if (!sessionId) {
+            // Use a fixed session ID for easier testing
+            sessionId = 'session_kwy37rqj2e';
+        }
+        
+        document.getElementById('session-id').textContent = sessionId;
+        
+        // Enable debug mode from URL parameter
+        if (debugMode) {
+            toggleDebugMode();
+        }
+        
+        // Handle message form submission
+        document.getElementById('message-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const inputField = document.getElementById('message-input');
+            const message = inputField.value.trim();
+            
+            if (message) {
+                sendMessage(message);
+                inputField.value = '';
+            }
+        });
+        
+        function sendMessage(message) {
+            // Show sending indication
+            addTempVisitorMessage(message);
+            
+            const formData = new FormData();
+            formData.append('session_id', sessionId);
+            formData.append('message', message);
+            
+            fetch('api/send_message.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Replace temp message with confirmed message
+                    const tempMsg = document.querySelector('.message.visitor-message.temp-message');
+                    if (tempMsg) {
+                        tempMsg.classList.remove('temp-message');
+                        tempMsg.setAttribute('data-id', data.message_id);
+                    }
+                    
+                    // Update status
+                    const statusOutput = document.querySelector('#status-output pre');
+                    if (statusOutput) {
+                        statusOutput.textContent = `Message sent successfully. ID: ${data.message_id}`;
+                    }
+                } else {
+                    // Handle error
+                    console.error('Error sending message:', data.message);
+                    const statusOutput = document.querySelector('#status-output pre');
+                    if (statusOutput) {
+                        statusOutput.textContent = `Error sending message: ${data.message}`;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+                const statusOutput = document.querySelector('#status-output pre');
+                if (statusOutput) {
+                    statusOutput.textContent = `Error sending message: ${error.message}`;
+                }
+            });
+        }
+        
+        // Add a temporary visitor message (while sending)
+        function addTempVisitorMessage(text) {
+            const messagesDiv = document.getElementById('chat-messages');
+            
+            // Create a wrapper div for the message
+            const messageContainer = document.createElement('div');
+            messageContainer.className = 'message-container';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message visitor-message temp-message';
+            messageDiv.innerHTML = text;
+            
+            messageContainer.appendChild(messageDiv);
+            messagesDiv.appendChild(messageContainer);
+            
+            // Scroll to the bottom of the chat
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        // Check authentication status
+        document.getElementById('check-auth').addEventListener('click', function() {
+            const authStatus = document.getElementById('auth-status');
+            authStatus.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div> Checking authentication status...';
+            
+            fetch('auth_status.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        authStatus.innerHTML = `<div class="alert alert-success">
+                            <h5>Authentication Successful</h5>
+                            <p><strong>Status:</strong> ${data.auth_status}</p>
+                            <p><strong>JWT Token:</strong> ${data.jwt_status}</p>
+                            <p><strong>Team Chat ID:</strong> ${data.team_chat_id || 'Not set'}</p>
+                        </div>`;
+                    } else {
+                        authStatus.innerHTML = `<div class="alert alert-danger">
+                            <h5>Authentication Failed</h5>
+                            <p><strong>Status:</strong> ${data.auth_status}</p>
+                            <p><strong>Error:</strong> ${data.message}</p>
+                        </div>`;
+                    }
+                })
+                .catch(error => {
+                    authStatus.innerHTML = `<div class="alert alert-danger">
+                        <h5>Error Checking Authentication</h5>
+                        <p>${error.message}</p>
+                    </div>`;
+                });
+        });
+        
+        // Check database connection
+        document.getElementById('check-db').addEventListener('click', function() {
+            const statusOutput = document.querySelector('#status-output pre');
+            statusOutput.textContent = 'Checking database status...';
+            
+            fetch('check_db.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        statusOutput.textContent = `Database connection successful!\nDatabase: ${data.database}\nTables found: ${data.tables.join(', ')}`;
+                    } else {
+                        statusOutput.textContent = `Database error: ${data.message}`;
+                    }
+                })
+                .catch(error => {
+                    statusOutput.textContent = `Error checking database: ${error.message}`;
+                });
+        });
+        
+        // Toggle debug mode
+        document.getElementById('toggle-debug').addEventListener('click', function() {
+            toggleDebugMode();
+        });
+        
+        function toggleDebugMode() {
+            const body = document.body;
+            const debugIndicator = document.getElementById('debug-indicator');
+            
+            if (body.classList.contains('debug-mode')) {
+                body.classList.remove('debug-mode');
+                debugIndicator.style.display = 'none';
+                console.log('Debug mode disabled');
+            } else {
+                body.classList.add('debug-mode');
+                debugIndicator.style.display = 'block';
+                console.log('Debug mode enabled');
+            }
+        }
+        
+        // Handle visitor info form
+        document.getElementById('visitor-info-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('visitor-name').value.trim();
+            const email = document.getElementById('visitor-email').value.trim();
+            
+            const formData = new FormData();
+            formData.append('session_id', sessionId);
+            formData.append('name', name);
+            formData.append('email', email);
+            
+            fetch('api/update_session.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const statusOutput = document.querySelector('#status-output pre');
+                    if (statusOutput) {
+                        statusOutput.textContent = 'Visitor information updated successfully';
+                    }
+                    
+                    // Add system message
+                    addSystemMessage('Visitor information updated');
+                } else {
+                    const statusOutput = document.querySelector('#status-output pre');
+                    if (statusOutput) {
+                        statusOutput.textContent = `Error updating visitor info: ${data.message}`;
+                    }
+                }
+            })
+            .catch(error => {
+                const statusOutput = document.querySelector('#status-output pre');
+                if (statusOutput) {
+                    statusOutput.textContent = `Error updating visitor info: ${error.message}`;
+                }
+            });
+        });
+        
+        // ==== FIXED POLLING MECHANISM ====
+        
+        function pollMessages() {
+            // Show polling indicator if in debug mode
+            if (document.body.classList.contains('debug-mode')) {
+                const statusOutput = document.querySelector('#status-output pre');
+                if (statusOutput) {
+                    statusOutput.textContent = `Polling for new messages at ${new Date().toLocaleTimeString()}...`;
+                }
+            }
+            
+            const messagesContainer = document.getElementById('chat-messages');
+            const lastMessageId = document.querySelector('#chat-messages .message:last-child')?.dataset?.id || 0;
+            
+            const url = `api/poll_messages.php?session_id=${sessionId}&last_message_id=${lastMessageId}`;
+            if (document.body.classList.contains('debug-mode')) {
+                console.log(`Polling with URL: ${url}`);
+            }
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (document.body.classList.contains('debug-mode')) {
+                        console.log('Poll response:', data);
+                    }
+                    
+                    if (data.status === 'success') {
+                        if (document.body.classList.contains('debug-mode')) {
+                            const statusOutput = document.querySelector('#status-output pre');
+                            if (statusOutput) {
+                                statusOutput.textContent = `Last poll: ${new Date().toLocaleTimeString()} - Found ${data.count} new messages`;
+                            }
+                        }
+                        
+                        // Add new messages to the chat
+                        if (data.messages && data.messages.length > 0) {
+                            data.messages.forEach(message => {
+                                if (document.body.classList.contains('debug-mode')) {
+                                    console.log('Processing message:', message);
+                                }
+                                
+                                // Skip if we already have this message
+                                if (document.querySelector(`#chat-messages .message[data-id="${message.id}"]`)) {
+                                    if (document.body.classList.contains('debug-mode')) {
+                                        console.log('Skipping duplicate message:', message.id);
+                                    }
+                                    return;
+                                }
+                                
+                                // FIXED: Process all message types properly
+                                if (message.sender_type === 'agent') {
+                                    addAgentMessage(message.message, message.id);
+                                } else if (message.sender_type === 'system') {
+                                    addSystemMessage(message.message, message.id);
+                                } else {
+                                    addVisitorMessage(message.message, message.id);
+                                }
+                            });
+                            
+                            // Scroll to the bottom of the chat
+                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        }
+                    } else {
+                        if (document.body.classList.contains('debug-mode')) {
+                            const statusOutput = document.querySelector('#status-output pre');
+                            if (statusOutput) {
+                                statusOutput.textContent = `Poll error: ${data.message}`;
+                            }
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error polling messages:', error);
+                    if (document.body.classList.contains('debug-mode')) {
+                        const statusOutput = document.querySelector('#status-output pre');
+                        if (statusOutput) {
+                            statusOutput.textContent = `Poll error: ${error.message}`;
+                        }
+                    }
+                });
+        }
+        
+        // ==== FIXED MESSAGE DISPLAY FUNCTIONS ====
+        
+        function addVisitorMessage(text, id) {
+            const messagesDiv = document.getElementById('chat-messages');
+            
+            // Skip if we already have this message
+            if (id && document.querySelector(`#chat-messages .message[data-id="${id}"]`)) {
+                return;
+            }
+            
+            // Create a wrapper div for the message
+            const messageContainer = document.createElement('div');
+            messageContainer.className = 'message-container';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message visitor-message';
+            messageDiv.innerHTML = text;
+            
+            if (id) {
+                messageDiv.setAttribute('data-id', id);
+            }
+            
+            messageContainer.appendChild(messageDiv);
+            messagesDiv.appendChild(messageContainer);
+            
+            // Scroll to the bottom of the chat
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            
+            if (document.body.classList.contains('debug-mode')) {
+                console.log('Added visitor message:', { text, id });
+            }
+        }
+        
+        function addAgentMessage(text, id) {
+            const messagesDiv = document.getElementById('chat-messages');
+            
+            // Skip if we already have this message
+            if (id && document.querySelector(`#chat-messages .message[data-id="${id}"]`)) {
+                return;
+            }
+            
+            // Create a wrapper div for the message to create a new line
+            const messageContainer = document.createElement('div');
+            messageContainer.className = 'message-container';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message agent-message';
+            messageDiv.innerHTML = text;
+            
+            if (id) {
+                messageDiv.setAttribute('data-id', id);
+            }
+            
+            messageContainer.appendChild(messageDiv);
+            messagesDiv.appendChild(messageContainer);
+            
+            // Scroll to the bottom of the chat
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            
+            if (document.body.classList.contains('debug-mode')) {
+                console.log('Added agent message:', { text, id });
+            }
+        }
+        
+        function addSystemMessage(text, id) {
+            const messagesDiv = document.getElementById('chat-messages');
+            
+            // Skip if we already have this message
+            if (id && document.querySelector(`#chat-messages .message[data-id="${id}"]`)) {
+                return;
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'system-message';
+            messageDiv.innerHTML = text;
+            
+            if (id) {
+                messageDiv.setAttribute('data-id', id);
+            }
+            
+            messagesDiv.appendChild(messageDiv);
+            
+            // Scroll to the bottom of the chat
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            
+            if (document.body.classList.contains('debug-mode')) {
+                console.log('Added system message:', { text, id });
+            }
+        }
+        
+        // Poll immediately when page loads
+        pollMessages();
+        
+        // Set up polling interval
+        setInterval(pollMessages, 3000); // Poll every 3 seconds
+    </script>
+</body>
+</html>
