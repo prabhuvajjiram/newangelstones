@@ -1,0 +1,226 @@
+/**
+ * Mobile-First Optimization for Color Gallery
+ * Enhances the mobile experience for browsing granite colors
+ */
+
+/* Mobile-optimized color grid */
+@media (max-width: 768px) {
+    /* Color grid layout */
+    .color-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin: 0 auto;
+        width: 100%;
+    }
+    
+    /* Individual color items */
+    .color-item, .color-scroll-item, .color-grid-item {
+        height: auto;
+        aspect-ratio: 1/1;
+        margin-bottom: 10px;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    
+    /* Color item hover/active state */
+    .color-item:hover, .color-scroll-item:hover, .color-grid-item:hover,
+    .color-item:active, .color-scroll-item:active, .color-grid-item:active {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    /* Color captions */
+    .color-item .caption, .color-scroll-item .caption, .color-grid-item .caption,
+    .color-item .color-name, .color-scroll-item .color-name, .color-grid-item .color-name {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        background: rgba(0,0,0,0.7);
+        padding: 8px 0;
+        margin: 0;
+        transition: all 0.3s ease;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+    
+    /* Color caption text */
+    .color-item .caption p, .color-scroll-item .caption p, .color-grid-item .caption p,
+    .color-item .color-name, .color-scroll-item .color-name, .color-grid-item .color-name {
+        margin: 0;
+        color: white;
+        text-align: center;
+        font-weight: bold;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        font-size: 14px;
+    }
+    
+    /* Optimize owl carousel for mobile */
+    .owl-carousel {
+        padding: 0 10px;
+    }
+    
+    .owl-carousel .owl-item {
+        padding: 0 5px;
+    }
+    
+    /* Mobile-optimized color modal */
+    .modal-dialog {
+        margin: 10px;
+        max-width: calc(100% - 20px);
+    }
+    
+    .modal-content {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    /* Mobile-optimized search results */
+    .search-results {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 10px;
+    }
+    
+    .search-result-item {
+        aspect-ratio: 1/1;
+        position: relative;
+    }
+    
+    /* Optimized color thumbnails section */
+    .color-thumbnails {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding: 10px 0;
+        margin: 0 -10px;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .color-thumbnails .thumbnail {
+        flex: 0 0 auto;
+        width: 80px;
+        height: 80px;
+        margin: 0 5px;
+        scroll-snap-align: center;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    /* Enhanced tap targets for better mobile UX */
+    button, .btn, .nav-link, .color-item, a {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Optimized tap target for color grid items */
+    .color-grid-item, .color-item, .color-scroll-item {
+        position: relative;
+    }
+    
+    .color-grid-item::after, .color-item::after, .color-scroll-item::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1;
+    }
+    
+    /* Mobile-optimized enhanced color content */
+    .color-enhanced-content {
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 8px;
+    }
+    
+    .color-details h3 {
+        font-size: 18px;
+    }
+    
+    .color-details h4 {
+        font-size: 16px;
+    }
+    
+    .color-features li, .applications-list li {
+        font-size: 14px;
+    }
+    
+    /* Mobile loading indicators */
+    .mobile-loader {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100px;
+    }
+    
+    .mobile-loader::after {
+        content: '';
+        width: 30px;
+        height: 30px;
+        border: 3px solid rgba(212, 175, 55, 0.3);
+        border-radius: 50%;
+        border-top-color: #d4af37;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+}
+
+/* Tablet optimization */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .color-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+    }
+    
+    .color-item, .color-scroll-item, .color-grid-item {
+        height: auto;
+        aspect-ratio: 1/1;
+    }
+    
+    .color-thumbnails {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding: 10px 0;
+    }
+    
+    .color-thumbnails .thumbnail {
+        flex: 0 0 auto;
+        width: 100px;
+        height: 100px;
+        margin: 0 5px;
+        scroll-snap-align: center;
+    }
+}
+
+/* High resolution mobile screens */
+@media (max-width: 768px) and (min-resolution: 2dppx) {
+    .color-item .caption p, .color-scroll-item .caption p, .color-grid-item .caption p,
+    .color-item .color-name, .color-scroll-item .color-name, .color-grid-item .color-name {
+        font-size: 16px;
+    }
+    
+    .color-thumbnails .thumbnail {
+        width: 90px;
+        height: 90px;
+    }
+}
+
+/* Fix for iOS Safari padding issues */
+@supports (-webkit-touch-callout: none) {
+    .color-grid {
+        padding: 0 10px;
+    }
+    
+    .color-thumbnails {
+        padding-bottom: 20px;
+    }
+}

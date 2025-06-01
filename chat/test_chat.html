@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angel Stones Chat Widget Test</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            margin-bottom: 30px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <h1 class="mb-4">Angel Stones Chat Widget Test</h1>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Chat Widget Demo</h5>
+                <p class="card-text">Click the chat button in the bottom right corner to test the chat widget.</p>
+                <p>The chat widget will collect visitor information before starting the chat session.</p>
+                
+                <div class="mt-4">
+                    <h6>Features:</h6>
+                    <ul>
+                        <li>Visitor information collection (name, email, phone)</li>
+                        <li>Responsive design</li>
+                        <li>Real-time messaging</li>
+                        <li>Typing indicators</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the chat widget -->
+    <script src="angel-chat-widget.js"></script>
+    
+    <script>
+        // Initialize the chat widget when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the chat widget with custom configuration
+            window.AngelChatWidget.init({
+                apiBaseUrl: 'https://theangelstones.com/chat/api',
+                widgetTitle: 'Angel Stones Support',
+                welcomeMessage: 'Welcome to Angel Stones! How can we assist you today?',
+                primaryColor: '#2c3e50',
+                accentColor: '#3498db',
+                position: 'right',
+                showWelcomeScreen: true
+            });
+
+            // You can also update visitor info programmatically if needed
+            // window.AngelChatWidget.updateVisitorInfo({
+            //     name: 'John Doe',
+            //     email: 'john@example.com',
+            //     phone: '123-456-7890'
+            // });
+            
+            // Open the chat widget automatically after a delay (optional)
+        });
+    </script>
+</body>
+</html>
+            open: toggleChat,
+            close: toggleChat,
+            addMessage: addMessage
+        };
+    </script>
+</body>
+</html>
