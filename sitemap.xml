@@ -1,34 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://www.theangelstones.com/</loc>
-    <lastmod>2025-05-27</lastmod>
+    <lastmod>2025-06-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+    <!-- Alternative URLs for the same page with fragments -->
+    <xhtml:link 
+      rel="alternate"
+      hreflang="en"
+      href="https://www.theangelstones.com/#what-we-offer"/>
+    <xhtml:link 
+      rel="alternate"
+      hreflang="en"
+      href="https://www.theangelstones.com/#our-product"/>
+    <xhtml:link 
+      rel="alternate"
+      hreflang="en"
+      href="https://www.theangelstones.com/#get-in-touch"/>
   </url>
   <url>
     <loc>https://www.theangelstones.com/discovered.html</loc>
     <lastmod>2025-05-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/#what-we-offer</loc>
-    <lastmod>2023-09-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/#our-product</loc>
-    <lastmod>2023-09-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/#get-in-touch</loc>
-    <lastmod>2023-09-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors</loc>

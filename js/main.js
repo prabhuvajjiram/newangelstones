@@ -254,7 +254,7 @@ function initHeroVideo() {
         // Force play on mobile
        // document.addEventListener('touchstart', function() {
           //  video.play().catch(function(error) {
-                console.log("Mobile autoplay failed:", error);
+              //  console.log("Mobile autoplay failed:", error);
         //    });
         //}, { once: true });
  // Video will be loaded lazily when visible
