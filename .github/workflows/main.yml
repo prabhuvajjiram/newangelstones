@@ -1,4 +1,4 @@
-name: 🚀 Auto Deploy to cPanel via FTPS
+name: 🚀 Auto Deploy to cPanel (FTPS, v5)
 
 on:
   push:
@@ -14,8 +14,8 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Deploy to cPanel with FTPS and cleanup
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+    - name: Deploy to cPanel with FTPS and deletion
+      uses: SamKirkland/FTP-Deploy-Action@5.0.0
       with:
         server: ${{ secrets.FTP_HOST }}
         username: ${{ secrets.FTP_USERNAME }}
@@ -24,8 +24,8 @@ jobs:
         port: 21
         server-dir: ${{ secrets.FTP_REMOTE_DIR }}
         local-dir: ./
-        max-ftp-threads: 10 # 👈 enables Thorttal 
-        delete: true  # 👈 enables deletion of removed files
+        delete: true                   # ✅ Only deletes files removed in repo
+        max-ftp-threads: 10             # ✅ Upload multiple files in parallel
         exclude: |
           **/.git*
           **/.github*
