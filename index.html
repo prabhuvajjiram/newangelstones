@@ -636,12 +636,13 @@
                     <!-- Video with loading optimization for better LCP -->
                     <video 
                         id="hero-video"
-                        playsinline 
+                        playsinline
                         webkit-playsinline
                         muted
                         loop
                         autoplay
                         preload="auto"
+                        fetchpriority="high"
                         width="1920"
                         height="1080"
                         poster="images/video-poster-mobile.jpg"
@@ -1116,16 +1117,16 @@
 
     <!-- Performance-optimized script loading strategy with CDN dependencies -->
     <!-- jQuery must load first as it's a dependency for other scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" defer></script>
     
     <!-- Required jQuery plugins before custom.min.js (via CDN) -->
-    <script src="https://cdn.jsdelivr.net/npm/waypoints@4.0.1/lib/jquery.waypoints.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sticky-kit@1.1.2/dist/sticky-kit.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/isotope-layout@3.0.6/dist/isotope.pkgd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/magnific-popup@1.1.0/dist/jquery.magnific-popup.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/owl.carousel@2.3.4/dist/owl.carousel.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/waypoints@4.0.1/lib/jquery.waypoints.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sticky-kit@1.1.2/dist/sticky-kit.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/isotope-layout@3.0.6/dist/isotope.pkgd.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/magnific-popup@1.1.0/dist/jquery.magnific-popup.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/owl.carousel@2.3.4/dist/owl.carousel.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js" defer></script>
     
     <!-- Core functionality -->
     <script src="js/main.js" defer></script>
@@ -1133,8 +1134,8 @@
     <script src="js/modernizr-custom.js" defer></script>
     
     <!-- Reverting to original files to ensure functionality -->
-    <script src="js/product-categories.js?v=20250411"></script>
-    <script src="js/featured-products.js?v=20250411"></script>
+    <script src="js/product-categories.js?v=20250411" defer></script>
+    <script src="js/featured-products.js?v=20250411" defer></script>
     
     <!-- Minified versions commented out until thoroughly tested -->
     <!-- <script src="js/product-categories-fixed.min.js?v=20250527"></script> -->
