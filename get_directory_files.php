@@ -181,9 +181,22 @@ function getDirectoryFiles($directory) {
 
 // Get directory parameter
 $directory = isset($_GET['directory']) ? $_GET['directory'] : '';
+$action = isset($_GET['action']) ? $_GET['action'] : '';
+$searchTerm = isset($_GET['search']) ? $_GET['search'] : '';
+$term = isset($_GET['term']) ? $_GET['term'] : '';
 
 // Log request for debugging
 error_log("Directory request: $directory");
+// Handle search functionality
+if ($action === 'findFile' && !empty($term)) {
+    echo json_encode(searchFiles($term), JSON_PRETTY_PRINT);
+    exit;
+}
+
+if (!empty($searchTerm)) {
+    echo json_encode(searchFiles($searchTerm), JSON_PRETTY_PRINT);
+    exit;
+}
 
 if (empty($directory)) {
     echo json_encode(['success' => false, 'error' => 'Directory parameter is required']);
