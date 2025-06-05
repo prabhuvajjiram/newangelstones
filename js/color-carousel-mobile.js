@@ -147,7 +147,7 @@
             
             // Set poster in JS as backup
             if (!video.poster || video.poster === '') {
-                video.poster = 'images/video-poster-mobile.jpg';
+                video.poster = 'images/video-poster-mobile.webp';
             }
             
             // Make opacity 1 immediately to ensure it's visible

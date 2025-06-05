@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Reduce quality on mobile
     function adjustVideoQuality() {
         if (window.innerWidth <= 768) {
-            video.setAttribute('poster', 'images/video-poster-mobile.jpg');
+            video.setAttribute('poster', 'images/video-poster-mobile.webp');
         } else {
             video.setAttribute('poster', 'images/video-poster-optimized.jpg');
         }
@@ -249,14 +249,15 @@ function initHeroVideo() {
         });
         
         // Handle video loading
-        video.load();
+        //video.load();
         
         // Force play on mobile
-        document.addEventListener('touchstart', function() {
-            video.play().catch(function(error) {
+       // document.addEventListener('touchstart', function() {
+          //  video.play().catch(function(error) {
                 console.log("Mobile autoplay failed:", error);
-            });
-        }, { once: true });
+        //    });
+        //}, { once: true });
+ // Video will be loaded lazily when visible
     }
 }
 
