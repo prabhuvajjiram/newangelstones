@@ -1,1 +1,31 @@
+User-agent: *
+Disallow: /discovered.html
+Disallow: /search/
+Disallow: /*.php$
+Disallow: /*.json$
+Disallow: /*.js$
+Disallow: /*.css$
+Disallow: /*.inc$
+Disallow: /includes/
+Disallow: /config/
+Disallow: /cache/
+Disallow: /cgi-bin/
+Disallow: /admin/
+Disallow: /wp-admin/
+Disallow: /wp-includes/
+Disallow: /wp-content/plugins/
+Disallow: /wp-content/cache/
+Disallow: /wp-json/
+Disallow: /xmlrpc.php
+Disallow: /feed/
+Disallow: /*/feed/
+Disallow: /*/feed/rss/$
+Disallow: /trackback/
+
+# Allow all other pages
+Allow: /
+
+# Sitemap location
 Sitemap: https://www.theangelstones.com/sitemap.xml
+
+# Crawl-delay: 10  # Uncomment if needed to limit crawl rate
