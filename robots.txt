@@ -1,11 +1,10 @@
+# robots.txt for theangelstones.com
+
+# Global rules for all crawlers
 User-agent: *
-Disallow: /discovered.html
+
+# Block sensitive directories
 Disallow: /search/
-Disallow: /*.php$
-Disallow: /*.json$
-Disallow: /*.js$
-Disallow: /*.css$
-Disallow: /*.inc$
 Disallow: /includes/
 Disallow: /config/
 Disallow: /cache/
@@ -22,8 +21,32 @@ Disallow: /*/feed/
 Disallow: /*/feed/rss/$
 Disallow: /trackback/
 
-# Allow all other pages
-Allow: /
+# Block query strings and dynamic URLs
+Disallow: /*?*
+Disallow: /*.php$
+Disallow: /*.json$
+Disallow: /*.inc$
+
+# Allow JS and CSS for proper rendering
+Allow: /*.js$
+Allow: /*.css$
+Allow: /*.js?*
+Allow: /*.css?*
+
+# Allow image formats
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.png$
+Allow: /*.gif$
+Allow: /*.webp$
+Allow: /*.svg$
+Allow: /*.ico$
+
+# Allow font files
+Allow: /*.woff$
+Allow: /*.woff2$
+Allow: /*.ttf$
+Allow: /*.eot$
 
 # Sitemap location
 Sitemap: https://www.theangelstones.com/sitemap.xml
