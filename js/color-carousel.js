@@ -116,23 +116,38 @@
         // Add colors to scrollable row
         colors.forEach((color, index) => {
             const safeName = $('<div>').text(color.name).html(); // Escape HTML in color name
+            
+            // Format color name for URL
+            const formattedName = color.name.toLowerCase().replace(/\s+/g, '-');
+            
+            // Create color item with schema.org attributes
             const item = `
-                <div class="color-scroll-item" data-index="${index}" 
-                     data-name="${safeName}" 
-                     data-filename="${color.filename || ''}">
-                    <div class="color-scroll-image position-relative">
-                        <img src="${color.path}" 
-                             loading="lazy" 
-                             class="img-fluid rounded shadow-sm" 
-                             alt="${safeName}" 
-                             onerror="this.onerror=null; this.src='images/placeholder.jpg';">
-                        <div class="color-overlay"></div>
+                <div class="color-item" 
+                     itemprop="itemListElement" 
+                     itemscope 
+                     itemtype="https://schema.org/ListItem"
+                     data-color-name="${color.name}">
+                    <meta itemprop="position" content="${index + 1}" />
+                    <div class="color-item-inner" 
+                         itemscope 
+                         itemtype="https://schema.org/Product" 
+                         itemid="#${formattedName}">
+                        <meta itemprop="name" content="${color.name} Granite">
+                        <meta itemprop="description" content="${color.description || 'Premium quality ' + color.name + ' granite'}">
+                        <meta itemprop="image" content="${color.image}">
+                        <div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+                            <meta itemprop="priceCurrency" content="USD">
+                            <meta itemprop="price" content="0">
+                            <link itemprop="availability" href="https://schema.org/InStock" />
+                        </div>
+                        <img src="${color.thumbnail || color.image}" 
+                             alt="${color.name} Granite" 
+                             loading="lazy"
+                             class="img-fluid"
+                             itemprop="image">
+                        <div class="color-name" itemprop="name">${color.name}</div>
                     </div>
-                    <div class="caption text-center mt-2">
-                        <p class="mb-0 small fw-medium">${safeName}</p>
-                    </div>
-                </div>
-            `;
+                </div>`;
             $container.append(item);
         });
 
