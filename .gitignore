@@ -10,6 +10,17 @@ node_modules
 /crm/includes/db_config.php
 /crm/tests/simple_gmail_test/config.php
 /logs
+/email_config.php
+/api/shipment_db_config.php
+/crm/includes/auth_config.php
+/crm/includes/db_config.php
+/main.yml
+/chat/config.php
+/crm/email_config.php
+/crm/includes/auth_config.php
+/crm/includes/db_config.php
+crm/includes/email_config.php
+
 # Test results
 test-results/
 *.test-result

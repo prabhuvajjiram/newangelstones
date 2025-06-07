@@ -24,8 +24,8 @@ jobs:
         port: 21
         server-dir: ${{ secrets.FTP_REMOTE_DIR }}
         local-dir: ./
-        delete: true                   # ✅ Only deletes files removed in repo
-        max-ftp-threads: 10             # ✅ Upload multiple files in parallel
+        #delete: true                   # ✅ Only deletes files removed in repo
+        #max-ftp-threads: 10             # ✅ Upload multiple files in parallel
         exclude: |
           **/.git*
           **/.github*
