@@ -47,6 +47,21 @@ RewriteEngine On
         Header set Cache-Control "max-age=7200, must-revalidate"
     </FilesMatch>
 </IfModule>
+# Sitemap reference for search engines
+RewriteEngine On
+
+# Sitemap URL (for search engines that don't read robots.txt)
+RewriteRule ^sitemap\.xml$ sitemap.xml [L]
+
+# Sitemap generation endpoint (protected)
+<Files "generate-sitemap.php">
+    Order Deny,Allow
+    Deny from all
+</Files>
+
+# SEO-friendly URLs for color pages
+RewriteRule ^colors/([a-z0-9-]+)/?$ /colors.php?color=$1 [NC,L]
+
 # Force HTTPS
 RewriteCond %{HTTPS} off
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
