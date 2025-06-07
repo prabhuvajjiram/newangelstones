@@ -2,9 +2,33 @@
 
 PHP and HTML5 based product catalog and showcase application.
 
+## SEO Features
+
+### Dynamic Sitemap
+- Automatically generates `sitemap.xml` with all color pages and images
+- Updates automatically when new colors are added
+- Includes proper XML formatting and SEO metadata
+
+### Color JSON API
+- Structured data for all colors in `/api/color.json`
+- Includes high-quality images, descriptions, and metadata
+- Used for both display and SEO purposes
+
 ## API Documentation
 
 The application provides the following API endpoints:
+
+## Maintenance Scripts
+
+### Update Sitemap
+```bash
+php update-sitemap.php
+```
+
+### Update Color JSON
+```bash
+php update-colors-json.php
+```
 
 ### 1. Directory Files API
 
