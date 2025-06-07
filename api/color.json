@@ -17,18 +17,53 @@
         "item": {
           "@type": "Product",
           "name": "Blue Pearl Granite",
-          "description": "Premium Blue Pearl granite with a distinctive blue sheen, perfect for elegant monuments and headstones.",
-          "image": {
-            "@type": "ImageObject",
-            "url": "https://www.theangelstones.com/images/colors/bluepearl.jpg",
-            "width": "800",
-            "height": "800",
-            "caption": "Blue Pearl Granite Color Sample"
-          },
-          "category": "Granite Colors",
+          "description": "Premium Blue Pearl granite features a distinctive blue sheen with silver and black speckles, making it a stunning choice for elegant monuments and headstones. Each piece is hand-selected for its unique pattern and durability.",
+          "image": [
+            {
+              "@type": "ImageObject",
+              "url": "https://www.theangelstones.com/images/colors/bluepearl.jpg",
+              "width": "800",
+              "height": "800",
+              "name": "Blue Pearl Granite Slab",
+              "caption": "Premium Blue Pearl Granite Slab - Natural Stone for Memorials"
+            },
+            {
+              "@type": "ImageObject",
+              "url": "https://www.theangelstones.com/images/colors/bluepearl-closeup.jpg",
+              "width": "800",
+              "height": "800",
+              "name": "Blue Pearl Granite Close-up",
+              "caption": "Close-up of Blue Pearl Granite Texture"
+            }
+          ],
+          "category": [
+            "Granite Colors",
+            "Natural Stone",
+            "Memorial Materials"
+          ],
           "url": "https://www.theangelstones.com/colors/blue-pearl",
           "sku": "GP-BLP-001",
-          "material": "Granite",
+          "material": "Natural Granite",
+          "color": "Blue with Silver and Black Specks",
+          "pattern": "Speckled",
+          "itemCondition": "https://schema.org/NewCondition",
+          "additionalProperty": [
+            {
+              "@type": "PropertyValue",
+              "name": "Origin",
+              "value": "Norway"
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "Hardness",
+              "value": "6-7 on Mohs scale"
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "Finish",
+              "value": "Polished"
+            }
+          ],
           "offers": {
             "@type": "Offer",
             "url": "https://www.theangelstones.com/colors/blue-pearl",

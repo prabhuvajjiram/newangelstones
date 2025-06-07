@@ -319,6 +319,9 @@
     <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
     <meta name="theme-color" content="#262626">
     
+    <!-- Color Gallery Styles -->
+    <link rel="stylesheet" href="/css/color-gallery.css">
+    
     <!-- Structured Data -->
     <script type="application/ld+json">
     {
@@ -609,7 +612,28 @@
     </style>
 
 </head>
-
+<!-- Add this in the head section, before any other scripts -->
+<script type="application/ld+json" id="colors-jsonld">
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "itemListElement": []
+    }
+    </script>
+    
+    <!-- Add this right before the closing </body> tag -->
+    <script>
+    // Fetch and inject JSON-LD
+    fetch('/api/generate-jsonld.php')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('colors-jsonld').textContent = JSON.stringify(data, null, 2);
+        })
+        .catch(console.error);
+    </script>
+    
+    <!-- Add the color gallery script -->
+    <script src="/js/color-gallery.js" defer></script>
 <body>
 <!-- Promotion Banner -->
 <div class="promotion-banner">
