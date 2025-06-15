@@ -2,7 +2,7 @@
 
 ## Architecture Overview
 
-We'll implement the Specials section using a combination of HTML, CSS, JavaScript, and PHP to create a modern, responsive PDF display section above the Featured Products section on the homepage.
+We'll implement the Specials section as a fully integrated component within the existing Single Page Application (SPA) architecture. The implementation will use modals for displaying PDF content rather than separate pages, maintaining the seamless SPA experience for users.
 
 ## Technology Stack
 
@@ -15,190 +15,366 @@ We'll implement the Specials section using a combination of HTML, CSS, JavaScrip
 
 - **Backend**: 
   - PHP 8.0+ (as used in the existing XAMPP setup)
+  - AJAX for asynchronous data loading
   - File system storage for PDF files
 
 ## Implementation Steps
 
 ### 1. Project Setup (Day 1)
 
-- Create a new directory structure for the Specials section:
+- Create directories for the Specials section within the existing SPA structure:
   ```
-  /specials/
-    /pdfs/         # Store PDF files here
-    /thumbnails/   # Store thumbnail images
-    index.php      # Controller for managing specials
-    viewer.php     # PDF viewer page
+  /images/
+    /specials/
+      /pdfs/         # Store PDF files here
+      /thumbnails/   # Store thumbnail images
+  /js/
+    /specials/       # JavaScript components for specials functionality
+  /css/
+    /specials/       # CSS styles for specials section
   ```
 
-- Import required libraries:
+- Create AJAX endpoints for specials data:
+  ```
+  /api/specials.php  # API endpoint for specials data
+  ```
+
+- Import required libraries (via CDN or local files):
   - PDF.js (for rendering PDFs)
   - turn.js (for page flip animation)
 
 ### 2. Backend Implementation (Days 1-2)
 
-#### PDF Management System
+#### AJAX API for Specials Management
 
-- Create a PHP class `SpecialsManager` that will:
-  - Scan the /pdfs/ directory to find available specials
-  - Generate and cache thumbnails
-  - Provide metadata about each PDF (page count, creation date)
+- Create a PHP API endpoint to serve specials data:
 
 ```php
-// specials/SpecialsManager.php
+// api/specials.php
+<?php
+require_once '../includes/SpecialsManager.php';
+
+header('Content-Type: application/json');
+
+$action = $_GET['action'] ?? 'list';
+$manager = new SpecialsManager();
+
+switch ($action) {
+    case 'list':
+        echo json_encode($manager->getAllSpecials());
+        break;
+    case 'get':
+        $id = $_GET['id'] ?? '';
+        echo json_encode($manager->getSpecialById($id));
+        break;
+    // Other actions as needed
+    default:
+        echo json_encode(['error' => 'Invalid action']);
+}
+```
+
+- Create the SpecialsManager class:
+
+```php
+// includes/SpecialsManager.php
 class SpecialsManager {
     private $pdfDirectory;
     private $thumbnailDirectory;
     
     public function __construct() {
-        $this->pdfDirectory = __DIR__ . '/pdfs/';
-        $this->thumbnailDirectory = __DIR__ . '/thumbnails/';
+        $this->pdfDirectory = __DIR__ . '/../images/specials/pdfs/';
+        $this->thumbnailDirectory = __DIR__ . '/../images/specials/thumbnails/';
     }
     
     public function getAllSpecials() {
         // Return list of all available specials with metadata
+        $specials = [];
+        foreach (glob($this->pdfDirectory . '*.pdf') as $pdfFile) {
+            $specials[] = $this->getSpecialMetadata($pdfFile);
+        }
+        return $specials;
     }
     
-    public function generateThumbnail($pdfFile) {
-        // Generate thumbnail for a PDF file
+    public function getSpecialById($id) {
+        // Get a specific special by ID
+        $filePath = $this->pdfDirectory . $id . '.pdf';
+        if (file_exists($filePath)) {
+            return $this->getSpecialMetadata($filePath);
+        }
+        return null;
+    }
+    
+    private function getSpecialMetadata($pdfFile) {
+        // Extract metadata and ensure thumbnail exists
+        $filename = basename($pdfFile);
+        $id = pathinfo($filename, PATHINFO_FILENAME);
+        
+        // Check if thumbnail exists, generate if not
+        $thumbnailPath = $this->thumbnailDirectory . $id . '.jpg';
+        if (!file_exists($thumbnailPath)) {
+            $this->generateThumbnail($pdfFile, $thumbnailPath);
+        }
+        
+        return [
+            'id' => $id,
+            'filename' => $filename,
+            'url' => '/images/specials/pdfs/' . $filename,
+            'thumbnail' => '/images/specials/thumbnails/' . $id . '.jpg',
+            // Add other metadata as needed
+        ];
+    }
+    
+    public function generateThumbnail($pdfFile, $outputPath) {
+        // Generate thumbnail from first page of PDF
+        // Implementation depends on available PDF tools
     }
 }
 ```
 
-- Create an administrative interface for managing PDF specials:
-  - Upload new PDFs
-  - Set display order
-  - Archive old specials
+- Add an admin section to the existing CRM for managing specials
 
 ### 3. Frontend Implementation (Days 3-5)
 
-#### Homepage Integration
+#### SPA Integration
 
-- Modify the homepage to include the Specials section above Featured Products:
+- Add the Specials section to the homepage above Featured Products:
 
-```php
-// Add to the homepage template
+```html
+<!-- Insert in index.php before the Featured Products section -->
 <section id="specials" class="specials-section">
     <div class="container">
         <h2 class="section-title">Special Offers</h2>
-        <div class="specials-carousel">
-            <!-- PDF previews will be loaded here -->
+        <div class="specials-container">
+            <div class="row" id="specials-row">
+                <!-- Specials will be loaded here via JavaScript -->
+            </div>
         </div>
     </div>
 </section>
 ```
 
-#### PDF Viewer Component
+#### Modal PDF Viewer Component
 
-- Create a responsive PDF viewer component with:
-  - Thumbnail previews of available specials
-  - Book-like interface for viewing PDFs
-  - Navigation controls (next/previous pages, zoom)
+- Create a modal component for the PDF viewer to maintain SPA experience:
 
 ```html
-<!-- specials/viewer.php -->
-<div class="pdf-viewer-container">
-    <div id="pdf-book" class="pdf-book">
-        <!-- PDF pages will be loaded here -->
-    </div>
-    <div class="pdf-controls">
-        <button id="prev-page" class="btn btn-primary"><i class="bi bi-chevron-left"></i></button>
-        <span id="page-num"></span> / <span id="page-count"></span>
-        <button id="next-page" class="btn btn-primary"><i class="bi bi-chevron-right"></i></button>
-        <a id="download-pdf" class="btn btn-secondary"><i class="bi bi-download"></i> Download PDF</a>
+<!-- Add to index.php, outside of other containers -->
+<div class="modal fade" id="pdf-viewer-modal" tabindex="-1" aria-labelledby="pdfViewerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pdfViewerModalLabel">Special Offer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="pdf-viewer-container">
+                    <div id="pdf-book" class="pdf-book">
+                        <!-- PDF pages will be loaded here -->
+                    </div>
+                    <div class="pdf-controls">
+                        <button id="prev-page" class="btn btn-primary"><i class="bi bi-chevron-left"></i></button>
+                        <span id="page-num"></span> / <span id="page-count"></span>
+                        <button id="next-page" class="btn btn-primary"><i class="bi bi-chevron-right"></i></button>
+                        <a id="download-pdf" class="btn btn-secondary"><i class="bi bi-download"></i> Download PDF</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 ```
 
 ### 4. JavaScript Implementation (Days 5-7)
 
-#### PDF Rendering
+#### AJAX Loading and PDF Rendering
 
-- Implement PDF.js to render the PDF documents:
+- Create JavaScript to load specials data and display thumbnails in the SPA:
 
 ```javascript
-// specials/js/pdf-viewer.js
-async function renderPDF(url, canvasContainer, options) {
-    const loadingTask = pdfjsLib.getDocument(url);
-    const pdf = await loadingTask.promise;
+// js/specials/specials-loader.js
+const SpecialsModule = (function() {
+    // Private variables and functions
+    let specials = [];
     
-    // Configure turn.js for page flipping effect
-    $(canvasContainer).turn({
-        width: options.width,
-        height: options.height,
-        autoCenter: true,
-        elevation: 50,
-        gradients: true,
-        when: {
-            turning: function(e, page, view) {
-                // Update page number display
-                document.getElementById('page-num').textContent = page;
-            }
-        }
-    });
+    function loadSpecials() {
+        return fetch('/api/specials.php?action=list')
+            .then(response => response.json())
+            .then(data => {
+                specials = data;
+                renderSpecials();
+                return data;
+            });
+    }
     
-    // Render each page
-    for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const viewport = page.getViewport({ scale: options.scale });
+    function renderSpecials() {
+        const container = document.getElementById('specials-row');
+        if (!container) return;
         
-        // Create page element
-        const pageElement = document.createElement('div');
+        container.innerHTML = '';
+        
+        specials.forEach(special => {
+            const specialCol = document.createElement('div');
+            specialCol.className = 'col-md-6 col-lg-4 mb-4';
+            
+            const specialCard = document.createElement('div');
+            specialCard.className = 'special-card h-100';
+            specialCard.dataset.specialId = special.id;
+            specialCard.addEventListener('click', () => openSpecialModal(special.id));
+            
+            specialCard.innerHTML = `
+                <div class="special-thumbnail">
+                    <img src="${special.thumbnail}" alt="${special.filename}" class="img-fluid">
+                    <div class="special-overlay">
+                        <span class="view-special">View Special</span>
+                    </div>
+                </div>
+            `;
+            
+            specialCol.appendChild(specialCard);
+            container.appendChild(specialCol);
+        });
+    }
+    
+    function openSpecialModal(specialId) {
+        const modal = document.getElementById('pdf-viewer-modal');
+        const modalInstance = new bootstrap.Modal(modal);
+        
+        // Clear previous PDF
+        document.getElementById('pdf-book').innerHTML = '';
+        
+        // Get special details
+        fetch(`/api/specials.php?action=get&id=${specialId}`)
+            .then(response => response.json())
+            .then(special => {
+                document.getElementById('pdfViewerModalLabel').textContent = 
+                    `Special Offer: ${special.filename.replace('.pdf', '')}`;
+                
+                // Set download link
+                document.getElementById('download-pdf').href = special.url;
+                
+                // Initialize PDF viewer
+                initPdfViewer(special.url);
+                
+                // Show modal
+                modalInstance.show();
+            });
+    }
+    
+    // Public API
+    return {
+        init: function() {
+            loadSpecials();
+        },
+        refresh: function() {
+            loadSpecials();
+        }
+    };
+})();
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    SpecialsModule.init();
+});
+```
+
+#### PDF Viewer with Book-like Interface
+
+```javascript
+// js/specials/pdf-viewer.js
+function initPdfViewer(pdfUrl) {
+    const container = document.getElementById('pdf-book');
+    const prevBtn = document.getElementById('prev-page');
+    const nextBtn = document.getElementById('next-page');
+    const pageNumSpan = document.getElementById('page-num');
+    const pageCountSpan = document.getElementById('page-count');
+    
+    // Load the PDF document
+    const loadingTask = pdfjsLib.getDocument(pdfUrl);
+    loadingTask.promise.then(function(pdf) {
+        // Initialize turn.js after we know how many pages
+        const numPages = pdf.numPages;
+        pageCountSpan.textContent = numPages;
+        
+        // Prepare container for turn.js
+        container.innerHTML = '';
+        for (let i = 1; i <= numPages; i++) {
+            const pageDiv = document.createElement('div');
+            pageDiv.className = 'pdf-page';
+            pageDiv.dataset.pageNumber = i;
+            container.appendChild(pageDiv);
+        }
+        
+        // Initialize turn.js
+        $(container).turn({
+            width: container.offsetWidth,
+            height: container.offsetHeight * 0.75,
+            autoCenter: true,
+            elevation: 50,
+            gradients: true,
+            acceleration: true,
+            when: {
+                turning: function(event, page, view) {
+                    pageNumSpan.textContent = page;
+                }
+            }
+        });
+        
+        // Render each page
+        for (let i = 1; i <= numPages; i++) {
+            renderPage(pdf, i);
+        }
+        
+        // Set initial page number
+        pageNumSpan.textContent = '1';
+        
+        // Hook up navigation buttons
+        prevBtn.onclick = function() {
+            $(container).turn('previous');
+        };
+        
+        nextBtn.onclick = function() {
+            $(container).turn('next');
+        };
+        
+        // Handle resize for responsiveness
+        window.addEventListener('resize', function() {
+            if ($(container).data().turn) {
+                $(container).turn('size', container.offsetWidth, container.offsetHeight * 0.75);
+            }
+        });
+    });
+}
+
+async function renderPage(pdf, pageNumber) {
+    const pageContainer = document.querySelector(`.pdf-page[data-page-number="${pageNumber}"]`);
+    if (!pageContainer) return;
+    
+    try {
+        const page = await pdf.getPage(pageNumber);
         const canvas = document.createElement('canvas');
-        pageElement.appendChild(canvas);
+        pageContainer.appendChild(canvas);
         
         const context = canvas.getContext('2d');
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
         
-        // Render PDF page to canvas
+        // Calculate scale to fit within container
+        const containerWidth = pageContainer.clientWidth;
+        const viewport = page.getViewport({ scale: 1 });
+        const scale = containerWidth / viewport.width;
+        const scaledViewport = page.getViewport({ scale: scale });
+        
+        canvas.height = scaledViewport.height;
+        canvas.width = scaledViewport.width;
+        
         const renderContext = {
             canvasContext: context,
-            viewport: viewport
+            viewport: scaledViewport
         };
         
         await page.render(renderContext).promise;
-        $(canvasContainer).turn('addPage', pageElement);
+    } catch (error) {
+        console.error('Error rendering page:', error);
     }
-    
-    document.getElementById('page-count').textContent = pdf.numPages;
 }
-```
-
-#### Carousel for Multiple PDFs
-
-- Implement a carousel to navigate between different special offer PDFs:
-
-```javascript
-// specials/js/specials-carousel.js
-$(document).ready(function() {
-    $('.specials-carousel').slick({
-        dots: true,
-        arrows: true,
-        infinite: false,
-        speed: 300,
-        slidesToShow: 2,
-        slidesToScroll: 1,
-        responsive: [
-            {
-                breakpoint: 768,
-                settings: {
-                    slidesToShow: 1
-                }
-            }
-        ]
-    });
-    
-    // Handle clicking on a special offer preview
-    $('.special-preview').click(function() {
-        const pdfUrl = $(this).data('pdf-url');
-        $('#pdf-viewer-modal').modal('show');
-        renderPDF(pdfUrl, '#pdf-book', {
-            width: 800,
-            height: 600,
-            scale: 1.5
-        });
-    });
-});
 ```
 
 ### 5. Responsive Design (Days 7-8)
@@ -261,20 +437,21 @@ $(document).ready(function() {
 ## File Structure
 
 ```
-/specials/
-  /css/
-    specials.css
-  /js/
-    pdf-viewer.js
-    specials-carousel.js
+/images/specials/
   /pdfs/
     special1.pdf
     special2.pdf
   /thumbnails/
     special1.jpg
     special2.jpg
-  index.php
-  viewer.php
+/js/specials/
+  pdf-viewer.js
+  specials-loader.js
+/css/specials/
+  specials.css
+/api/
+  specials.php
+/includes/
   SpecialsManager.php
 ```
 

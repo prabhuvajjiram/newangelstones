@@ -1,0 +1,198 @@
+/**
+ * Specials Section Styling
+ * For Angel Stones CRM
+ */
+
+/* Main Specials Section */
+.specials-section {
+    padding: 30px 0;
+    margin-bottom: 20px;
+}
+
+.section-title {
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+/* Special Card Styling */
+.special-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+}
+
+.special-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.special-thumbnail {
+    position: relative;
+    overflow: hidden;
+    height: 200px;
+}
+
+.special-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.special-card:hover .special-thumbnail img {
+    transform: scale(1.05);
+}
+
+.special-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.special-card:hover .special-overlay {
+    opacity: 1;
+}
+
+.view-special {
+    color: #fff;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+.special-info {
+    padding: 15px;
+}
+
+.special-title {
+    margin: 0 0 10px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.special-meta {
+    font-size: 14px;
+    color: #666;
+}
+
+.special-size {
+    display: inline-block;
+}
+
+/* PDF Viewer Modal */
+.modal-xl {
+    max-width: 90%;
+}
+
+.pdf-viewer-container {
+    min-height: 500px;
+    width: 100%;
+    position: relative;
+    padding: 20px;
+}
+
+.pdf-book {
+    margin: 0 auto;
+    position: relative;
+}
+
+/* PDF Page Styling */
+.pdf-page {
+    background-color: #f9f9f9;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+}
+
+.pdf-page canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Controls */
+.pdf-controls {
+    margin: 20px auto;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.pdf-controls button {
+    min-width: 40px;
+}
+
+/* Loading animations */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+    animation: spin 1s linear infinite;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    .modal-xl {
+        max-width: 100%;
+        margin: 0;
+    }
+    
+    .modal-dialog-centered {
+        align-items: flex-start;
+    }
+    
+    .pdf-viewer-container {
+        min-height: 400px;
+        padding: 10px;
+    }
+    
+    .pdf-controls {
+        margin: 10px auto;
+    }
+    
+    .special-thumbnail {
+        height: 150px;
+    }
+}
+
+/* Turn.js specific styles */
+.turn-page {
+    background-color: #fff;
+}
+
+.shadow {
+    -webkit-box-shadow: 0 4px 10px #666;
+    -moz-box-shadow: 0 4px 10px #666;
+    -ms-box-shadow: 0 4px 10px #666;
+    -o-box-shadow: 0 4px 10px #666;
+    box-shadow: 0 4px 10px #666;
+}
+
+.hard {
+    background: #ccc !important;
+    color: #333;
+    -webkit-box-shadow: inset 0 0 5px #666;
+    -moz-box-shadow: inset 0 0 5px #666;
+    -o-box-shadow: inset 0 0 5px #666;
+    -ms-box-shadow: inset 0 0 5px #666;
+    box-shadow: inset 0 0 5px #666;
+    font-weight: bold;
+}
