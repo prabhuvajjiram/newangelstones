@@ -12,8 +12,6 @@ node_modules
 /logs
 /email_config.php
 /api/shipment_db_config.php
-/crm/includes/auth_config.php
-/crm/includes/db_config.php
 /main.yml
 /chat/config.php
 /crm/email_config.php
