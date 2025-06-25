@@ -46,8 +46,15 @@ function initPdfViewer(pdfUrl) {
                     const containerWidth = container.parentElement.clientWidth;
                     const containerHeight = container.parentElement.clientHeight;
                     
-                    // Detect if we're on mobile
+                    // Detect device type
                     const isMobile = window.innerWidth < 768;
+                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                    
+                    // Add a special class for iOS devices
+                    if (isIOS) {
+                        container.classList.add('ios-pdf-view');
+                        document.body.classList.add('ios-pdf-active');
+                    }
                     
                     // Calculate dimensions maintaining aspect ratio
                     const aspectRatio = 1.414; // Standard PDF aspect ratio (A4)
@@ -90,8 +97,15 @@ function initPdfViewer(pdfUrl) {
                         }
                     };
                     
-                    // Initialize turn.js with our configuration
-                    $(container).turn(viewerConfig);
+                    // Use different initialization based on device
+                    if (isIOS) {
+                        // Use simpler viewer for iOS for better compatibility
+                        console.log('Using simple PDF viewer for iOS');
+                        initSimpleViewer(container, pdf, numPages, pageNumSpan, prevBtn, nextBtn);
+                    } else {
+                        // Initialize turn.js with our configuration
+                        $(container).turn(viewerConfig);
+                    }
                     
                     // Render first two pages initially
                     renderPage(pdf, 1);
@@ -164,22 +178,25 @@ function initPdfViewer(pdfUrl) {
  * Render a specific page of the PDF
  * @param {Object} pdf PDF.js document
  * @param {number} pageNumber Page number to render
+ * @param {HTMLElement} targetElement Optional specific element to render into (for iOS simple viewer)
  */
-async function renderPage(pdf, pageNumber) {
-    const pageContainer = document.querySelector(`.pdf-page[data-page-number="${pageNumber}"]`);
-    if (!pageContainer || pageContainer.querySelector('canvas')) {
+async function renderPage(pdf, pageNumber, targetElement = null) {
+    // If targetElement is provided (iOS simple viewer), use that, otherwise find page in turn.js
+    const pageEl = targetElement || document.querySelector(`#pdf-book .pdf-page[data-page-number="${pageNumber}"]`);
+    if (!pageEl) return; // Page element not found
+    if (pageEl.querySelector('canvas')) {
         return;
     }
     
     try {
         const page = await pdf.getPage(pageNumber);
         const canvas = document.createElement('canvas');
-        pageContainer.appendChild(canvas);
+        pageEl.appendChild(canvas);
         
         const context = canvas.getContext('2d');
         
         // Calculate scale to fit within container
-        const containerWidth = pageContainer.clientWidth;
+        const containerWidth = pageEl.clientWidth;
         const viewport = page.getViewport({ scale: 1 });
         const scale = containerWidth / viewport.width;
         const scaledViewport = page.getViewport({ scale: scale });
@@ -243,4 +260,93 @@ function debounce(func, wait) {
             func.apply(context, args);
         }, wait);
     };
+}
+
+/**
+ * Initialize a simple viewer for iOS devices where turn.js has compatibility issues
+ * This provides a stripped-down but reliable viewing experience
+ * @param {HTMLElement} container - The container element
+ * @param {Object} pdf - The PDF.js pdf document
+ * @param {number} numPages - Number of pages in the PDF
+ * @param {HTMLElement} pageNumSpan - Element to display current page number
+ * @param {HTMLElement} prevBtn - Previous page button
+ * @param {HTMLElement} nextBtn - Next page button
+ */
+function initSimpleViewer(container, pdf, numPages, pageNumSpan, prevBtn, nextBtn) {
+    // Clear the container first
+    container.innerHTML = '';
+    container.classList.add('ios-simple-viewer');
+    
+    // Create a simple page container
+    const pageContainer = document.createElement('div');
+    pageContainer.className = 'ios-page-container';
+    container.appendChild(pageContainer);
+    
+    // Create page navigation
+    let currentPage = 1;
+    pageNumSpan.textContent = currentPage;
+    
+    // Render initial page
+    renderPage(pdf, currentPage, pageContainer);
+    
+    // Function to change pages
+    function changePage(newPage) {
+        if (newPage < 1 || newPage > numPages) return;
+        
+        currentPage = newPage;
+        pageNumSpan.textContent = currentPage;
+        renderPage(pdf, currentPage, pageContainer);
+    }
+    
+    // Set up navigation buttons
+    prevBtn.onclick = function() {
+        changePage(currentPage - 1);
+    };
+    
+    nextBtn.onclick = function() {
+        changePage(currentPage + 1);
+    };
+    
+    // Handle touch swipe for changing pages
+    let startX, startY;
+    
+    container.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    }, { passive: true });
+    
+    container.addEventListener('touchend', function(e) {
+        if (!startX || !startY) return;
+        
+        const endX = e.changedTouches[0].clientX;
+        const endY = e.changedTouches[0].clientY;
+        
+        const diffX = startX - endX;
+        const diffY = startY - endY;
+        
+        // Only handle horizontal swipes (avoid triggering on scrolls)
+        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+            if (diffX > 0) {
+                // Swipe left - next page
+                changePage(currentPage + 1);
+            } else {
+                // Swipe right - previous page
+                changePage(currentPage - 1);
+            }
+        }
+        
+        startX = null;
+        startY = null;
+    }, { passive: true });
+    
+    // Support keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        if (document.getElementById('pdf-viewer-modal').classList.contains('show')) {
+            if (e.key === 'ArrowLeft') {
+                changePage(currentPage - 1);
+            } else if (e.key === 'ArrowRight') {
+                changePage(currentPage + 1);
+            }
+        }
+    });
 }
