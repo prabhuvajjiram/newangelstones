@@ -46,18 +46,29 @@ function initPdfViewer(pdfUrl) {
                     const containerWidth = container.parentElement.clientWidth;
                     const containerHeight = container.parentElement.clientHeight;
                     
+                    // Detect if we're on mobile
+                    const isMobile = window.innerWidth < 768;
+                    
                     // Calculate dimensions maintaining aspect ratio
                     const aspectRatio = 1.414; // Standard PDF aspect ratio (A4)
                     const height = Math.min(containerHeight * 0.8, containerWidth / aspectRatio);
                     const width = height * aspectRatio;
                     
-                    // Initialize turn.js with responsive dimensions
-                    $(container).turn({
+                    // Add mobile class if needed
+                    if (isMobile) {
+                        container.classList.add('mobile-pdf-view');
+                    } else {
+                        container.classList.remove('mobile-pdf-view');
+                    }
+                    
+                    // Configure viewer based on device
+                    const viewerConfig = {
                         width: width,
                         height: height,
                         autoCenter: true,
-                        elevation: 50,
-                        gradients: true,
+                        display: isMobile ? 'single' : 'double',  // Single page display on mobile
+                        elevation: isMobile ? 0 : 50,
+                        gradients: !isMobile,  // Disable gradients on mobile for performance
                         acceleration: true,
                         when: {
                             turning: function(event, page, view) {
@@ -77,7 +88,10 @@ function initPdfViewer(pdfUrl) {
                                 if (currentPage < numPages) renderPage(pdf, currentPage + 1);
                             }
                         }
-                    });
+                    };
+                    
+                    // Initialize turn.js with our configuration
+                    $(container).turn(viewerConfig);
                     
                     // Render first two pages initially
                     renderPage(pdf, 1);
