@@ -355,7 +355,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add this after your existing code but inside the DOMContentLoaded event listener
 
-    function showCategoryModal(category, images) {
+    // Make showCategoryModal available globally
+    window.showCategoryModal = function(category, images) {
         let modal = document.getElementById('category-modal');
         if (!modal) {
             modal = document.createElement('div');
