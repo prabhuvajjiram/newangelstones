@@ -164,6 +164,7 @@
                                 <option value="Jeremy">Jeremy</option>
                                 <option value="Angel">Angel</option>
                                 <option value="Jim">Jim</option>
+                                <option value="Test">Test</option>
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -341,6 +342,24 @@
                                     <input class="form-check-input" type="checkbox" id="sameAsBilling" name="same_as_billing" value="1">
                                     <label class="form-check-label" for="sameAsBilling">Ship to same as billing address</label>
                                 </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="sealCertificate" name="seal_certificate" value="1">
+                                            <label class="form-check-label" for="sealCertificate">Seal & Certificate</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                             <input class="form-check-input" type="checkbox" id="markCrate" name="mark_crate" value="1">
+                                            <label class="form-check-label" for="markCrate">Mark Crate</label>
+                                        </div>
+                                        <!-- Mark Crate Details (initially hidden) -->
+                                        <div class="mark-crate-details mt-2" style="display: none;">
+                                            <input type="text" class="form-control form-control-sm" id="markCrateDetails" name="mark_crate_details" placeholder="Enter Mark Crate details">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -482,6 +501,10 @@
                                                     <input class="form-check-input product-type" type="checkbox" name="products[0][product_types][]" id="product_type_other_1" value="Other">
                                                     <label class="form-check-label small" for="product_type_other_1">Other</label>
                                                 </div>
+                                                <!-- Text box for Other product type (initially hidden) -->
+                                                <div class="other-product-text mt-1" style="display: none;">
+                                                    <input type="text" class="form-control form-control-sm" name="products[0][other_product_name]" placeholder="Enter product name/code">
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="invalid-feedback">
@@ -511,7 +534,11 @@
                                             </select>
                                         </div>
                                         
-
+                                        <!-- Manufacturing Text Box -->
+                                        <div class="manufacturing-text-box mt-2">
+                                            <label class="form-label small mb-1">Manufacturing Details</label>
+                                            <input type="text" class="form-control form-control-sm" name="products[0][manufacturing_details]" placeholder="Enter manufacturing details">
+                                        </div>
                                         
                                         <!-- Side Section -->
                                         <div class="mt-3 border-top pt-2">
@@ -616,9 +643,9 @@
                 <!-- Form Actions -->
                 <div class="d-flex justify-content-between mt-4">
                     <div>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" id="saveDraft">
-                            <i class="bi bi-save"></i> Save as Draft
-                        </button>
+                    <button type="button" id="saveDraftBtn" class="btn btn-secondary me-2">
+    <i class="bi bi-file-earmark-arrow-down"></i> Save as Draft
+</button>
                     </div>
                     <div>
                         <button type="reset" class="btn btn-outline-secondary btn-sm me-2">
@@ -695,22 +722,6 @@
                     $customColorInput.addClass('d-none').prop('required', false).val('');
                 }
             });
-
-            // Handle DIGITIZATION toggle
-$(document).on('change', '.digitization-toggle', function() {
-    const $field = $(this).closest('.form-check').find('.digitization-field');
-    $field.toggle(this.checked);
-    if (!this.checked) {
-        $field.find('input[type="text"]').val('');
-    }
-});
-
-// Initialize on page load
-$(document).ready(function() {
-    $('.digitization-toggle:checked').each(function() {
-        $(this).closest('.form-check').find('.digitization-field').show();
-    });
-});
 
             // Handle manufacturing type selection
             $(document).on('change', '.manufacturing-type', function() {
@@ -946,6 +957,10 @@ $(document).ready(function() {
                                             <input class="form-check-input product-type" type="checkbox" name="products[${productCount-1}][product_types][]" id="product_type_other_${productCount}" value="Other">
                                             <label class="form-check-label small" for="product_type_other_${productCount}">Other</label>
                                         </div>
+                                        <!-- Text box for Other product type (initially hidden) -->
+                                        <div class="other-product-text mt-1" style="display: none;">
+                                            <input type="text" class="form-control form-control-sm" name="products[${productCount-1}][other_product_name]" placeholder="Enter product name/code">
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="invalid-feedback">
@@ -975,9 +990,12 @@ $(document).ready(function() {
                                     </select>
                                 </div>
                                 
-
-
-
+                                <!-- Manufacturing Text Box -->
+                                <div class="manufacturing-text-box mt-2">
+                                    <label class="form-label small mb-1">Manufacturing Details</label>
+                                    <input type="text" class="form-control form-control-sm" name="products[${productCount-1}][manufacturing_details]" placeholder="Enter manufacturing details">
+                                </div>
+                                
                                 <!-- Total Charges -->
 <div class="mt-3 border-top pt-2">
     <div class="row">
@@ -1359,13 +1377,12 @@ $(document).on('input', '#taxRate', function() {
 
 // Update toggle handlers to show/hide charge fields
 $(document).on('change', '.dedo-toggle', function() {
-    const $row = $(this).closest('tr');
-    const $chargeField = $row.find('.dedo-charge');
-    $chargeField.toggle(this.checked);
+    const $field = $(this).closest('.form-check').find('.dedo-charge');
+    $field.toggle(this.checked);
     if (!this.checked) {
-        $chargeField.val('');
+        $field.find('input[type="text"]').val('');
     }
-    updateRowTotal($row);
+    updateRowTotal($(this).closest('tr'));
 });
 
 $(document).on('change', '.domestic-addon-toggle', function() {
@@ -1411,6 +1428,15 @@ $(document).ready(function() {
         const $formCheck = $(this).closest('.form-check');
         const isChecked = $(this).is(':checked');
         $formCheck.find('.digitization-charge, .digitization-field').toggle(isChecked);
+    });
+
+    // Initialize manufacturing text box
+    $('.manufacturing-text-box').each(function() {
+        const $row = $(this).closest('tr');
+        const $manufacturingType = $row.find('.manufacturing-type:checked').val();
+        if ($manufacturingType) {
+            $(this).show();
+        }
     });
 });
 
@@ -1889,6 +1915,11 @@ $(document).on('change', '.domestic-addon-toggle', function() {
                                         <input type="number" class="form-control form-control-sm side-charge" name="products[${productIndex}][sides][${sideIndex}][digitization][charge]" step="0.01" min="0">
                                     </div>
                                 </div>
+                                <!-- Digitization Text Box -->
+                                <div class="mt-2 side-digitization-text" style="display: none;">
+                                    <label class="form-label small mb-1">Digitization Details</label>
+                                    <input type="text" class="form-control form-control-sm" name="products[${productIndex}][sides][${sideIndex}][digitization][details]" placeholder="Enter digitization details">
+                                </div>
                             </div>
                             
                             <!-- CHARGES ($) -->
@@ -2046,6 +2077,61 @@ $(document).on('change', '.domestic-addon-toggle', function() {
                 updateRowTotal($(this).closest('tr'));
             });
 
+            // Handle Mark Crate checkbox toggle
+            $('#markCrate').change(function() {
+                $('.mark-crate-details').toggle(this.checked);
+                if (!this.checked) {
+                    $('#markCrateDetails').val('');
+                }
+            });
+            
+            // Initialize all toggle behaviors
+            function initializeToggles() {
+                // Initialize Mark Crate details field visibility
+                $('.mark-crate-details').toggle($('#markCrate').is(':checked'));
+                
+                // All product-level charge toggles have been removed in favor of side-level toggles
+                
+                // Initialize side level toggles
+                $('.side-sb-toggle').each(function() {
+                    const $options = $(this).closest('.form-check').find('.side-sb-options');
+                    $options.toggle(this.checked);
+                });
+                
+                $('.side-etching-toggle').each(function() {
+                    const $options = $(this).closest('.form-check').find('.side-etching-options');
+                    $options.toggle(this.checked);
+                });
+                
+                $('.side-dedo-toggle').each(function() {
+                    const $chargeField = $(this).closest('.form-check').find('.side-dedo-charge');
+                    $chargeField.toggle(this.checked);
+                });
+                
+                $('.side-domestic-toggle').each(function() {
+                    const $fields = $(this).closest('.form-check').find('.side-domestic-fields');
+                    $fields.toggle(this.checked);
+                });
+                
+                $('.side-digitization-toggle').each(function() {
+                    const $chargeField = $(this).closest('.form-check').find('.side-digitization-charge');
+                    const $textField = $(this).closest('.form-check').find('.side-digitization-text');
+                    $chargeField.toggle(this.checked);
+                    $textField.toggle(this.checked);
+                });
+                
+                // Initialize manufacturing options display
+                $('.manufacturing-type:checked').each(function() {
+                    const $row = $(this).closest('tr');
+                    handleManufacturingSelection($row, this.value);
+                });
+                
+                // Initialize other product type text fields
+                $('.product-type[value="Other"]:checked').each(function() {
+                    $(this).closest('.form-check').siblings('.other-product-text').show();
+                });
+            }
+
             // Initialize toggles and calculate totals on page load
             $(document).ready(function() {
                 // Force recalculate all totals on page load
@@ -2120,116 +2206,242 @@ $(document).on('change', '.domestic-addon-toggle', function() {
                         $preview.append($item);
                     });
                 });
+                
+                // Initialize all toggle behaviors
+                initializeToggles();
             });
-            
-            // Initialize toggles on page load
-            function initializeToggles() {
-                // All product-level charge toggles have been removed in favor of side-level toggles
-                
-                // Initialize side level toggles
-                $('.side-sb-toggle').each(function() {
-                    if (this.checked) {
-                        $(this).closest('.form-check').find('.side-sb-options').show();
-                    }
-                });
-                
-                $('.side-etching-toggle').each(function() {
-                    if (this.checked) {
-                        $(this).closest('.form-check').find('.side-etching-options').show();
-                    }
-                });
-                
-                // Force recalculation for any existing values
-                $('.side-etching-charge').each(function() {
-                    if($(this).val()) {
-                        updateRowTotal($(this).closest('tr'));
-                    }
-                });
-                
-                $('.side-dedo-toggle').each(function() {
-                    if (this.checked) {
-                        $(this).closest('.form-check').find('.side-dedo-charge').show();
-                    }
-                });
-                
-                $('.side-digitization-toggle').each(function() {
-                    if (this.checked) {
-                        $(this).closest('.form-check').find('.side-digitization-charge').show();
-                    }
-                });
-                
-                $('.side-domestic-toggle').each(function() {
-                    if (this.checked) {
-                        $(this).closest('.form-check').find('.side-domestic-fields').show();
-                    }
-                });
-                
-                // Note: side-digitization-toggle is already handled above
-                
-                // Update all row totals on page load
-                $('.product-row').each(function() {
-                    updateRowTotal($(this));
-                });
-            }
 
-            // Call initialize on document ready
-            $(document).ready(initializeToggles);
-            
-            // Form submission handler
-            $('#orderQuoteForm').on('submit', function(e) {
-                e.preventDefault(); // Prevent default submission
-                
-                console.log('Form submission started');
-                
-                // Show loading state
-                $('#submitBtnText').text('Submitting...');
-                $('#submitSpinner').removeClass('d-none');
-                
-                // Get form data including files
-                const formData = new FormData(this);
-                
-                // Log what's being submitted for debugging
-                console.log('Form data being submitted:', formData);
-                
-                // Submit via AJAX
-                $.ajax({
-                    url: 'process_order_quote.php',
-                    type: 'POST',
-                    data: formData,
-                    processData: false,  // Don't process the data
-                    contentType: false,  // Don't set content type
-                    success: function(response) {
-                        console.log('Response received:', response);
-                        
-                        // Reset loading state
-                        $('#submitBtnText').text('Submit');
-                        $('#submitSpinner').addClass('d-none');
-                        
-                        if (response.status === 'success') {
-                            // Show success message
-                            alert(response.message);
-                            
-                            // Optionally reset form or redirect
-                            // $('#orderQuoteForm')[0].reset();
-                        } else {
-                            // Show error message
-                            alert('Error: ' + (response.message || 'An unknown error occurred'));
-                            
-                            // Log detailed debug info if available
-                            if (response.debug_info) {
-                                console.log('Debug info:', response.debug_info);
-                            }
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('AJAX Error:', status, error);
-                        $('#submitBtnText').text('Submit');
-                        $('#submitSpinner').addClass('d-none');
-                        alert('Error submitting form: ' + error);
-                    }
-                });
+            // Handle "Other" product type selection
+            $(document).on('change', '.product-type[value="Other"]', function() {
+                const $textField = $(this).closest('.form-check').siblings('.other-product-text');
+                $textField.toggle(this.checked);
+                if (!this.checked) {
+                    $textField.find('input').val('');
+                }
+            });
+
+            // Handle digitization toggle for showing/hiding both charge and text fields
+            $(document).on('change', '.side-digitization-toggle', function() {
+                const $formCheck = $(this).closest('.form-check');
+                const $chargeField = $formCheck.find('.side-digitization-charge');
+                const $textField = $formCheck.find('.side-digitization-text');
+                $chargeField.toggle(this.checked);
+                $textField.toggle(this.checked);
+                if (!this.checked) {
+                    $chargeField.find('input').val('');
+                    $textField.find('input').val('');
+                }
+                // Update totals when digitization is toggled
+                updateRowTotal($(this).closest('tr'));
             });
         });
     </script>
+    <script>
+$(document).ready(function() {
+    // Save as Draft functionality
+    $('#saveDraftBtn').click(function() {
+        // Create a hidden form to submit the data
+        var $form = $('<form>', {
+            'action': 'forms/order-draft-generator.php', // Path relative to current directory
+            'method': 'post',
+            'target': '_blank'
+        });
+        
+        // Debug message to console
+        console.log('Cloning form data for PDF generation');
+            
+        // Clone the current form data
+        $('#orderQuoteForm').find('input, select, textarea').each(function() {
+            var $input = $(this);
+            var name = $input.attr('name');
+            var value = $input.val();
+            
+            // Skip inputs without a name
+            if (!name) return;
+            
+            console.log('Processing form field: ' + name);
+            
+            // Handle checkboxes and radio buttons
+            if ($input.is(':checkbox') || $input.is(':radio')) {
+                if ($input.is(':checked')) {
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: name,
+                        value: value
+                    }).appendTo($form);
+                    console.log('Added checked field: ' + name + ' = ' + value);
+                }
+            } else {
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: name,
+                    value: value
+                }).appendTo($form);
+                console.log('Added regular field: ' + name + ' = ' + value);
+            }
+            
+            // Special handling for payment_terms radio buttons
+            if (name === 'payment_terms' && $input.is(':checked')) {
+                console.log('Payment term selected: ' + value);
+            }
+        });
+        
+        // Special handling for sides information - needs to capture ALL details
+        $('.product-row').each(function(productIndex) {
+            // First add the product name/code
+            var productName = $(this).find('.product-name').val() || '';
+            $('<input>').attr({
+                type: 'hidden',
+                name: 'products[' + productIndex + '][name]',
+                value: productName
+            }).appendTo($form);
+            console.log('Added product name: ' + productName);
+            
+            // Add manufacturing options
+            var manufacturingType = $(this).find('.manufacturing-type:checked').val() || '';
+            $('<input>').attr({
+                type: 'hidden',
+                name: 'products[' + productIndex + '][manufacturing_details]',
+                value: manufacturingType
+            }).appendTo($form);
+            
+            // Add in-house, outsource, inventory options
+            var inHouse = $(this).find('input[name^="products[' + productIndex + '][in_house]"]').is(':checked') ? '1' : '0';
+            var outsource = $(this).find('input[name^="products[' + productIndex + '][outsource]"]').is(':checked') ? '1' : '0';
+            var inventory = $(this).find('input[name^="products[' + productIndex + '][inventory]"]').is(':checked') ? '1' : '0';
+            
+            $('<input>').attr({
+                type: 'hidden',
+                name: 'products[' + productIndex + '][in_house]',
+                value: inHouse
+            }).appendTo($form);
+            
+            $('<input>').attr({
+                type: 'hidden',
+                name: 'products[' + productIndex + '][outsource]',
+                value: outsource
+            }).appendTo($form);
+            
+            $('<input>').attr({
+                type: 'hidden',
+                name: 'products[' + productIndex + '][inventory]',
+                value: inventory
+            }).appendTo($form);
+            
+            // Process each product's sides with all details
+            var $product = $(this);
+            $product.find('.side-card').each(function(sideIndex) {
+                var $side = $(this);
+                var sideData = {};
+                
+                // Get side notes
+                sideData.notes = $side.find('.side-notes').val() || '';
+                
+                // Get all checked options for this side
+                $side.find('input[type="checkbox"]:checked').each(function() {
+                    var optionId = $(this).attr('id');
+                    sideData[optionId] = '1';
+                    
+                    // Check for associated charge fields
+                    var $parent = $(this).closest('.form-check');
+                    
+                    // S/B CARVING charges
+                    if (optionId.includes('side_sb_')) {
+                        sideData.sb_carving_charge = $parent.find('input[type="number"]').val() || '0';
+                    }
+                    
+                    // ETCHING charges
+                    if (optionId.includes('side_etching_')) {
+                        sideData.etching_charge = $parent.find('input[type="number"]').val() || '0';
+                    }
+                    
+                    // DEDO charges
+                    if (optionId.includes('side_dedo_')) {
+                        sideData.dedo_charge = $parent.find('input[type="number"]').val() || '0';
+                    }
+                    
+                    // Digitization charges and details
+                    if (optionId.includes('side_digitization_')) {
+                        sideData.digitization_charge = $parent.find('input[type="number"]').val() || '0';
+                        sideData.digitization_details = $parent.find('input[type="text"]').val() || '';
+                    }
+                });
+                
+                // Add all side data as JSON to preserve structure
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: 'products[' + productIndex + '][sides][' + sideIndex + '][data]',
+                    value: JSON.stringify(sideData)
+                }).appendTo($form);
+                
+                console.log('Added complete side data for side ' + (sideIndex+1) + ' of product ' + (productIndex+1));
+            });
+        });
+        
+        // Add special instructions/notes
+        var specialInstructions = $('#specialInstructions').val() || '';
+        $('<input>').attr({
+            type: 'hidden',
+            name: 'special_instructions',
+            value: specialInstructions
+        }).appendTo($form);
+        
+        // Make sure sales person is properly included
+        var salesPerson = $('#salesRep').val() || 'N/A';
+        $('<input>').attr({
+            type: 'hidden',
+            name: 'salesperson',  // Using the field name expected by the PDF generator
+            value: salesPerson
+        }).appendTo($form);
+        console.log('Added sales person: ' + salesPerson);
+        
+        // Ensure we have the subtotal, additional charges total, tax, and grand total
+        // Calculate or get these values from the form
+        var subtotal = $('#subtotal').val() || $('#subtotalDisplay').text().replace('$', '');
+        var additionalChargesTotal = $('#additionalChargesTotal').val() || $('#additionalChargesTotalDisplay').text().replace('$', '');
+        var tax = $('#tax').val() || $('#taxDisplay').text().replace('$', '');
+        var grandTotal = $('#grandTotal').val() || $('#grandTotalDisplay').text().replace('$', '');
+        
+        // Add these totals to the form submission
+        $('<input>').attr({
+            type: 'hidden',
+            name: 'subtotal',
+            value: subtotal
+        }).appendTo($form);
+        
+        $('<input>').attr({
+            type: 'hidden',
+            name: 'additional_charges_total',
+            value: additionalChargesTotal
+        }).appendTo($form);
+        
+        $('<input>').attr({
+            type: 'hidden',
+            name: 'tax',
+            value: tax
+        }).appendTo($form);
+        
+        $('<input>').attr({
+            type: 'hidden',
+            name: 'grand_total',
+            value: grandTotal
+        }).appendTo($form);
+        
+        console.log('Added totals:', subtotal, additionalChargesTotal, tax, grandTotal);
+        
+        // Add the submit button to the form
+        $form.append($('<input>').attr({
+            type: 'submit',
+            value: 'Generate PDF'
+        }));
+        
+        // Append the form to the body and submit it
+        $form.appendTo('body').submit();
+        
+        // Clean up the form after submission
+        $form.remove();
+    });
+});
+</script>
 </body>
 </html>

@@ -1,14 +1,54 @@
 <?php
-// Include PHPMailer classes
-require_once __DIR__ . '/crm/vendor/phpmailer/PHPMailer.php';
-// Define secure access constant to satisfy security check
-define('SECURE_ACCESS', true);
-// Include email configuration file
-require_once 'email_config.php';
+// Enable all error reporting for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
+// Create a debug log file in the same directory
+$debugLog = fopen(__DIR__ . '/debug_order_form.log', 'a');
+fwrite($debugLog, "\n\n" . date('Y-m-d H:i:s') . " - Form submission received\n");
+fwrite($debugLog, "POST data: " . print_r($_POST, true) . "\n");
+
+// Function for logging
+function debug_log($message) {
+    global $debugLog;
+    fwrite($debugLog, date('Y-m-d H:i:s') . " - " . $message . "\n");
+}
+
+// Define secure access
+define('SECURE_ACCESS', true);
+
+// Load configuration from secure file
+$config_path = __DIR__ . '/email_config.php';
+if (!file_exists($config_path)) {
+    debug_log("ERROR: Email configuration file not found");
+    die('Email configuration error');
+}
+require_once $config_path;
+debug_log("Email configuration loaded successfully");
+
+// Load PHPMailer
+$phpmailer_path = __DIR__ . '/crm/vendor/phpmailer/PHPMailer.php';
+if (!file_exists($phpmailer_path)) {
+    debug_log("ERROR: PHPMailer library not found");
+    die('PHPMailer library not found');
+}
+require_once $phpmailer_path;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
+
+// Add this right after the PHPMailer includes (around line 35)
+$salesEmails = [
+    'Marth' => 'mruker@angelgranites.com',
+    'Candiss' => 'cgetter@angelgranites.com',
+    'Mike' => 'mscoggins@angelgranites.com',
+    'Jeremy' => 'jowens@angelgranites.com',
+    'Jim' => 'janderson@angelgranites.com',
+    'Angel' => 'adove@angelgranites.com',
+    'Test' => 'prabu@angelgranites.com'
+];
+
 
 // No debug logging in production
 
@@ -17,10 +57,11 @@ $response = ['status' => 'error', 'message' => 'An unknown error occurred'];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
-        // Initialize PHPMailer
+        // Initialize PHPMailer with exception handling enabled
         $mail = new PHPMailer(true);
+        debug_log("PHPMailer initialized");
         
-        // Configure SMTP settings from email_config.php
+        // SMTP Configuration from config file
         $mail->isSMTP();
         $mail->Host = SMTP_HOST;
         $mail->SMTPAuth = true;
@@ -28,6 +69,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $mail->Password = SMTP_PASSWORD;
         $mail->SMTPSecure = SMTP_SECURE;
         $mail->Port = SMTP_PORT;
+        $mail->SMTPDebug = 2; // Enable debug output
+        
+        // Redirect SMTP debug output to our log
+        $mail->Debugoutput = function($str, $level) {
+            debug_log("SMTP DEBUG: $str");
+        };
+        
+        debug_log("SMTP configured: " . SMTP_HOST . ":" . SMTP_PORT);
         
         // Set email content type
         $mail->isHTML(true);
@@ -36,6 +85,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $mail->setFrom(SMTP_FROM_EMAIL, SMTP_FROM_NAME);
         $mail->addAddress('da@theangelstones.com', 'Angel Stones Team'); // Using specific email for order quotes
         
+        // Then find the email sending section and add the CC
+        if (isset($_POST['sales_person']) && !empty($_POST['sales_person']) && isset($salesEmails[$_POST['sales_person']])) {
+            $salesEmail = $salesEmails[$_POST['sales_person']];
+            $mail->addCC($salesEmail, $_POST['sales_person']);
+            debug_log("CC added for salesperson: " . $_POST['sales_person'] . " <" . $salesEmail . ">");
+        }
+
         // Set email subject based on form type
         $formType = isset($_POST['form_type']) ? $_POST['form_type'] : 'Quote';
         $mail->Subject = "Angel Stones - New " . $formType . " Request";
@@ -96,6 +152,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (isset($_POST['trucker_info']) && !empty($_POST['trucker_info'])) {
             $truckerInfo = htmlspecialchars($_POST['trucker_info']);
             $emailContent .= "<tr><td><strong>Trucker Information</strong></td><td>{$truckerInfo}</td></tr>";
+        }
+        
+        // Seal & Certificate
+        if (isset($_POST['seal_certificate']) && $_POST['seal_certificate'] == '1') {
+            $emailContent .= "<tr><td><strong>Seal & Certificate</strong></td><td>Yes</td></tr>";
+        }
+        
+        // Mark Crate
+        if (isset($_POST['mark_crate']) && $_POST['mark_crate'] == '1') {
+            $markCrateText = 'Yes';
+            // Include Mark Crate details if available
+            if (isset($_POST['mark_crate_details']) && !empty($_POST['mark_crate_details'])) {
+                $markCrateDetails = htmlspecialchars($_POST['mark_crate_details']);
+                $markCrateText .= ' - ' . $markCrateDetails;
+            }
+            $emailContent .= "<tr><td><strong>Mark Crate</strong></td><td>{$markCrateText}</td></tr>";
         }
         
         // Terms
@@ -169,9 +241,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $productDetails .= implode(", ", $typeLabels);
                 }
                 
+                // Add Other Product Name if available
+                if (isset($product['other_product_name']) && !empty($product['other_product_name'])) {
+                    $productDetails .= "<br><strong>Other Product Name/Code:</strong> " . htmlspecialchars($product['other_product_name']);
+                }
+                
                 // Add Manufacturing Type if available
                 if (isset($product['manufacturing_type'])) {
                     $productDetails .= "<br><strong>Manufacturing:</strong> " . htmlspecialchars($product['manufacturing_type']);
+                }
+                
+                // Add Manufacturing Details if available
+                if (isset($product['manufacturing_details']) && !empty($product['manufacturing_details'])) {
+                    $productDetails .= "<br><strong>Manufacturing Details:</strong> " . htmlspecialchars($product['manufacturing_details']);
                 }
                 
                 if (isset($product['manufacturing_option']) && !empty($product['manufacturing_option'])) {
@@ -262,6 +344,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             if (isset($side['digitization']['charge']) && floatval($side['digitization']['charge']) > 0) {
                                 $productDetails .= ": $" . number_format(floatval($side['digitization']['charge']), 2);
                                 $additionalChargesTotal += floatval($side['digitization']['charge']);
+                            }
+                            // Add digitization details if available
+                            if (isset($side['digitization']['details']) && !empty($side['digitization']['details'])) {
+                                $productDetails .= "<br>Digitization Details: " . htmlspecialchars($side['digitization']['details']);
                             }
                         }
         
@@ -392,7 +478,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         // Send email
         try {
+            debug_log("Attempting to send email...");
+            
+            // Set recipient
+            $mail->setFrom(EMAIL_FROM, EMAIL_FROM_NAME);
+            $mail->addAddress('da@theangelstones.com', 'Angel Stones Admin'); // Ensure it's the correct recipient
+            debug_log("Email recipient set: da@theangelstones.com");
+            
+            // Set subject line from form data
+            $subject = isset($_POST['customer_name']) ? "Order/Quote from " . $_POST['customer_name'] : "New Order/Quote Submission";
+            $mail->Subject = $subject;
+            debug_log("Email subject set: " . $subject);
+            
+            // Log email content length
+            debug_log("Email content length: " . strlen($mail->Body));
+            
+            // Send email
             if ($mail->send()) {
+                debug_log("Email sent successfully!");
                 // Email sent successfully
                 $response = [
                     'status' => 'success',
@@ -406,6 +509,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     }
                 }
             } else {
+                debug_log("Email sending failed: " . $mail->ErrorInfo);
                 // Email sending failed
                 $response = [
                     'status' => 'error',
@@ -413,6 +517,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 ];
             }
         } catch (Exception $e) {
+            debug_log("Email exception: " . $e->getMessage());
             $response = [
                 'status' => 'error',
                 'message' => 'Failed to send email. Please try again or contact customer support.'
