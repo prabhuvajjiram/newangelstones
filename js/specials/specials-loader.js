@@ -161,6 +161,15 @@ const SpecialsModule = (function() {
             return;
         }
         
+        // Add mobile-friendly CSS if not already added
+        if (!document.getElementById('pdf-mobile-styles')) {
+            const mobileStyles = document.createElement('link');
+            mobileStyles.id = 'pdf-mobile-styles';
+            mobileStyles.rel = 'stylesheet';
+            mobileStyles.href = 'css/pdf-viewer-mobile.css';
+            document.head.appendChild(mobileStyles);
+        }
+        
         // Create modal HTML
         const modalHtml = `
             <div class="modal fade" id="pdf-viewer-modal" tabindex="-1" aria-labelledby="pdfViewerModalLabel" aria-hidden="true">

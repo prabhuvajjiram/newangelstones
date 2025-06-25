@@ -1,0 +1,73 @@
+/**
+ * Mobile-friendly PDF Viewer styles
+ * For Angel Stones CRM Specials Section
+ */
+
+/* Mobile-specific PDF viewer styles */
+@media (max-width: 767px) {
+    /* Larger modal for mobile viewing */
+    #pdf-viewer-modal .modal-dialog {
+        margin: 10px;
+        max-width: 95%;
+    }
+    
+    /* Full height modal on mobile */
+    #pdf-viewer-modal .modal-content {
+        height: 95vh;
+    }
+    
+    /* Larger, more touch-friendly controls */
+    .pdf-controls {
+        padding: 15px 5px;
+    }
+    
+    .pdf-controls button {
+        padding: 10px 15px;
+        margin: 0 10px;
+        font-size: 18px;
+    }
+    
+    /* Make page numbers larger */
+    .pdf-controls span {
+        font-size: 18px;
+        font-weight: bold;
+    }
+    
+    /* Special styling for mobile view */
+    .mobile-pdf-view {
+        /* Single page view for mobile */
+        width: 100% !important;
+    }
+    
+    /* Make PDF pages fill available width on mobile */
+    .mobile-pdf-view .pdf-page {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+    }
+    
+    /* Override turn.js animation on mobile for better performance */
+    .mobile-pdf-view .turn-page-wrapper {
+        box-shadow: none !important;
+    }
+    
+    /* Add pinch-zoom support */
+    .mobile-pdf-view canvas {
+        touch-action: pinch-zoom;
+    }
+    
+    /* Download button styling */
+    #download-pdf {
+        display: block;
+        margin-top: 10px;
+        width: 100%;
+        padding: 10px;
+    }
+    
+    /* Hide fancy effects on mobile for better performance */
+    .mobile-pdf-view .shadow,
+    .mobile-pdf-view .gradient {
+        display: none !important;
+    }
+}
