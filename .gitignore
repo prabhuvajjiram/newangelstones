@@ -18,6 +18,9 @@ node_modules
 /crm/includes/auth_config.php
 /crm/includes/db_config.php
 crm/includes/email_config.php
+userinput.py
+windsurfrules.txt
+.windsurfrules
 
 # Test results
 test-results/
