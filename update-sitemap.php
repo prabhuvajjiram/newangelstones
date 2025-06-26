@@ -67,6 +67,23 @@ function generateSitemap() {
         addUrl($urls, $baseUrl . $path, $today, $data['changefreq'], $data['priority']);
     }
     
+    // 2.5 Product Category Pages (for deep linking)
+    $productCategories = [
+        'mbna_2025' => ['name' => 'MBNA 2025', 'count' => 26],
+        'monuments' => ['name' => 'Monuments', 'count' => 28],
+        'columbarium' => ['name' => 'Columbarium', 'count' => 1],
+        'designs' => ['name' => 'Designs', 'count' => 1],
+        'benches' => ['name' => 'Benches', 'count' => 3]
+    ];
+    
+    foreach ($productCategories as $categorySlug => $categoryData) {
+        $categoryUrl = $baseUrl . '/?category=' . $categorySlug;
+        addUrl($urls, $categoryUrl, $today, 'weekly', '0.8');
+        
+        // Add a comment to indicate this is generated for SEO purposes
+        // We don't generate individual product URLs since they're accessed via JavaScript
+    }
+    
     // 3. Color pages from color.json
     $colorsJsonFile = __DIR__ . '/api/color.json';
     if (file_exists($colorsJsonFile)) {
