@@ -5,6 +5,110 @@ function getBasename(filename) {
     return filename.split('.').slice(0, -1).join('.');
 }
 
+/**
+ * Generate and inject schema.org structured data for product categories
+ * This helps search engines better understand page content (similar to Yoast SEO)
+ */
+function injectCategorySchema(category, images) {
+    // Remove any existing schema
+    const existingSchema = document.getElementById('category-schema');
+    if (existingSchema) existingSchema.remove();
+    
+    // Create schema for current category
+    const schema = document.createElement('script');
+    schema.id = 'category-schema';
+    schema.type = 'application/ld+json';
+    
+    const categoryName = category === 'Monuments' ? 'Ready-to-Ship Monuments' : category.replace(/_/g, ' ');
+    
+    // Create structured data for this category
+    const schemaData = {
+        "@context": "https://schema.org/",
+        "@type": "ItemList",
+        "name": `${categoryName} Collection`,
+        "description": `Browse our premium ${categoryName} collection featuring ${images.length} designs. High-quality stone monuments and granite products from Angel Stones.`,
+        "numberOfItems": images.length,
+        "itemListElement": images.slice(0, 10).map((img, idx) => ({
+            "@type": "ListItem",
+            "position": idx + 1,
+            "item": {
+                "@type": "Product",
+                "name": getBasename(img) || `${category} Design ${idx + 1}`,
+                "image": img,
+                "offers": {
+                    "@type": "Offer",
+                    "availability": "https://schema.org/InStock"
+                }
+            }
+        }))
+    };
+    
+    schema.textContent = JSON.stringify(schemaData);
+    document.head.appendChild(schema);
+}
+
+/**
+ * Update meta tags dynamically for better SEO when category is viewed
+ */
+function updateMetaTags(category, images) {
+    const categoryName = category === 'Monuments' ? 'Ready-to-Ship Monuments' : category.replace(/_/g, ' ');
+    
+    // Update meta description
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+        metaDescription = document.createElement('meta');
+        metaDescription.setAttribute('name', 'description');
+        document.head.appendChild(metaDescription);
+    }
+    
+    metaDescription.setAttribute('content', 
+        `Explore our premium ${categoryName} collection featuring ${images.length} designs. High-quality stone monuments and granite products from Angel Stones.`);
+    
+    // Update Open Graph meta tags
+    updateOpenGraphTags(category, images);
+    
+    // Update page title for better SEO
+    const originalTitle = document.title.split('|').pop().trim() || 'Angel Stones';
+    document.title = `${categoryName} Collection - ${images.length} Designs | ${originalTitle}`;
+}
+
+/**
+ * Update Open Graph meta tags for social sharing
+ */
+function updateOpenGraphTags(category, images) {
+    const categoryName = category === 'Monuments' ? 'Ready-to-Ship Monuments' : category.replace(/_/g, ' ');
+    const imageUrl = images.length > 0 ? images[0] : '';
+    const baseUrl = window.location.origin || 'https://theangelstones.com';
+    const canonicalUrl = `${baseUrl}/?category=${category.toLowerCase()}`;
+    
+    // Helper function to update or create meta tag
+    function updateMetaTag(property, content) {
+        let tag = document.querySelector(`meta[property="${property}"]`);
+        if (!tag) {
+            tag = document.createElement('meta');
+            tag.setAttribute('property', property);
+            document.head.appendChild(tag);
+        }
+        tag.setAttribute('content', content);
+    }
+    
+    // Update Open Graph tags
+    updateMetaTag('og:title', `${categoryName} Collection - Angel Stones`);
+    updateMetaTag('og:description', `Explore our premium ${categoryName} collection featuring ${images.length} designs. High-quality stone monuments and granite products.`);
+    if (imageUrl) updateMetaTag('og:image', imageUrl);
+    updateMetaTag('og:url', canonicalUrl);
+    updateMetaTag('og:type', 'website');
+    
+    // Update canonical URL
+    let canonicalLink = document.querySelector('link[rel="canonical"]');
+    if (!canonicalLink) {
+        canonicalLink = document.createElement('link');
+        canonicalLink.setAttribute('rel', 'canonical');
+        document.head.appendChild(canonicalLink);
+    }
+    canonicalLink.setAttribute('href', canonicalUrl);
+}
+
 function getExtension(filename) {
     return filename.split('.').pop().toLowerCase();
 }
@@ -357,6 +461,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Make showCategoryModal available globally
     window.showCategoryModal = function(category, images) {
+        // Add SEO enhancements (schema and meta tags) for search engines
+        try {
+            // Only apply SEO enhancements if the functions exist and work
+            if (typeof injectCategorySchema === 'function') {
+                injectCategorySchema(category, images);
+            }
+            if (typeof updateMetaTags === 'function') {
+                updateMetaTags(category, images);
+            }
+        } catch (e) {
+            // Silently handle errors to ensure modal still works
+            console.log('SEO enhancement error (non-critical):', e);
+        }
+        
         let modal = document.getElementById('category-modal');
         if (!modal) {
             modal = document.createElement('div');
