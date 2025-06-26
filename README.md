@@ -1,6 +1,7 @@
 # Angel Stones
 
 PHP and HTML5 based product catalog and showcase application.
+For mobile users, a Flutter app skeleton is available in `mobile_app/`. See that directory for setup instructions.
 
 ## SEO Features
 
