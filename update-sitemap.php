@@ -3,6 +3,9 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Set time limit for long-running scripts
+set_time_limit(300); // 5 minutes
+
 // Function to safely get file modification time
 function safeFileMtime($file) {
     return file_exists($file) ? date('Y-m-d', filemtime($file)) : date('Y-m-d');
@@ -35,6 +38,21 @@ function addUrl(&$urls, $loc, $lastmod, $changefreq, $priority, $hreflang = null
     return true;
 }
 
+// Function to validate XML
+function isValidXml($xmlString) {
+    if (trim($xmlString) == '') {
+        return false;
+    }
+    
+    libxml_use_internal_errors(true);
+    $doc = new DOMDocument('1.0', 'utf-8');
+    $doc->loadXML($xmlString);
+    $errors = libxml_get_errors();
+    libxml_clear_errors();
+    
+    return empty($errors);
+}
+
 // Main function to generate the sitemap
 function generateSitemap() {
     // Get base URL from constant or use default
@@ -46,12 +64,8 @@ function generateSitemap() {
     $urls = [];
 
     // 1. Homepage with alternate URLs
-    addUrl($urls, $baseUrl . '/', $today, 'daily', '1.0', [
-        ['lang' => 'en', 'url' => $baseUrl . '/#what-we-offer'],
-        ['lang' => 'en', 'url' => $baseUrl . '/#our-product'],
-        ['lang' => 'en', 'url' => $baseUrl . '/#get-in-touch']
-    ]);
-    
+    addUrl($urls, $baseUrl . '/', $today, 'daily', '1.0');
+
     // 2. Main pages
     $mainPages = [
         '/about' => ['changefreq' => 'monthly', 'priority' => '0.8'],
@@ -67,7 +81,7 @@ function generateSitemap() {
         addUrl($urls, $baseUrl . $path, $today, $data['changefreq'], $data['priority']);
     }
     
-    // 2.5 Product Category Pages (for deep linking)
+    // 2.5 Product Category Pages
     $productCategories = [
         'mbna_2025' => ['name' => 'MBNA 2025', 'count' => 26],
         'monuments' => ['name' => 'Monuments', 'count' => 28],
@@ -79,9 +93,6 @@ function generateSitemap() {
     foreach ($productCategories as $categorySlug => $categoryData) {
         $categoryUrl = $baseUrl . '/?category=' . $categorySlug;
         addUrl($urls, $categoryUrl, $today, 'weekly', '0.8');
-        
-        // Add a comment to indicate this is generated for SEO purposes
-        // We don't generate individual product URLs since they're accessed via JavaScript
     }
     
     // 3. Color pages from color.json
@@ -152,27 +163,19 @@ function generateSitemap() {
     
     // Start XML output
     $output = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-    $output .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ';
-    $output .= 'xmlns:xhtml="http://www.w3.org/1999/xhtml" ';
-    $output .= 'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">' . "\n";
+    $output .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';
+    $output .= ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"';
+    $output .= ' xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9';
+    $output .= ' http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">' . "\n";
     
     // Add URLs to the output
     foreach ($urls as $urlData) {
-        $output .= '    <url>' . "\n";
-        $output .= '        <loc>' . htmlspecialchars($urlData['loc']) . '</loc>' . "\n";
-        $output .= '        <lastmod>' . $urlData['lastmod'] . '</lastmod>' . "\n";
-        $output .= '        <changefreq>' . $urlData['changefreq'] . '</changefreq>' . "\n";
-        $output .= '        <priority>' . $urlData['priority'] . '</priority>' . "\n";
-        
-        if (!empty($urlData['hreflang'])) {
-            foreach ($urlData['hreflang'] as $hreflang) {
-                $output .= '        <xhtml:link rel="alternate" hreflang="' . 
-                    htmlspecialchars($hreflang['lang']) . '" href="' . 
-                    htmlspecialchars($hreflang['url']) . '" />' . "\n";
-            }
-        }
-        
-        $output .= '    </url>' . "\n";
+        $output .= '  <url>' . "\n";
+        $output .= '    <loc>' . htmlspecialchars($urlData['loc'], ENT_XML1) . '</loc>' . "\n";
+        $output .= '    <lastmod>' . htmlspecialchars($urlData['lastmod'], ENT_XML1) . '</lastmod>' . "\n";
+        $output .= '    <changefreq>' . htmlspecialchars($urlData['changefreq'], ENT_XML1) . '</changefreq>' . "\n";
+        $output .= '    <priority>' . htmlspecialchars($urlData['priority'], ENT_XML1) . '</priority>' . "\n";
+        $output .= '  </url>' . "\n";
     }
     
     $output .= '</urlset>';
@@ -180,24 +183,35 @@ function generateSitemap() {
     return $output;
 }
 
-// Generate the sitemap content
+// Main execution
 $sitemapContent = generateSitemap();
 
-// Debug output
-if (php_sapi_name() === 'cli') {
-    // In CLI mode, show debug info
-    if (empty($sitemapContent)) {
-        echo "Error: Generated sitemap content is empty.\n";
-        echo "Check for errors in the generateSitemap() function.\n";
-        exit(1);
-    } else {
-        // Output to file in CLI mode
-        file_put_contents('sitemap.xml', $sitemapContent);
-        echo "Sitemap generated successfully! Output written to sitemap.xml\n";
-    }
-} else {
-    // Web server output
-    header('Content-Type: application/xml; charset=utf-8');
-    header('X-Robots-Tag: noindex, follow', true);
-    echo $sitemapContent;
+// Validate the XML before saving
+if (!isValidXml($sitemapContent)) {
+    error_log('Error: Generated sitemap is not valid XML');
+    exit(1);
 }
+
+// Save to file
+$sitemapPath = __DIR__ . '/sitemap.xml';
+$tempPath = $sitemapPath . '.tmp';
+
+// Write to temporary file first
+if (file_put_contents($tempPath, $sitemapContent) === false) {
+    error_log('Error: Could not write to temporary sitemap file');
+    exit(1);
+}
+
+// Rename temporary file to final name (atomic operation)
+if (!rename($tempPath, $sitemapPath)) {
+    error_log('Error: Could not rename temporary sitemap file');
+    unlink($tempPath); // Clean up
+    exit(1);
+}
+
+// Set proper permissions
+chmod($sitemapPath, 0644);
+
+echo "Sitemap generated successfully at: " . $sitemapPath . "\n";
+
+exit(0);
