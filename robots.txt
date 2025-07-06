@@ -1,8 +1,9 @@
 # robots.txt for theangelstones.com
+# Last updated: 2025-01-30
 
 User-agent: *
 
-# Block sensitive system folders
+# Block sensitive system folders and files
 Disallow: /includes/
 Disallow: /config/
 Disallow: /cache/
@@ -18,6 +19,28 @@ Disallow: /feed/
 Disallow: /*/feed/
 Disallow: /*/feed/rss/$
 Disallow: /trackback/
+
+# Block search and filter pages
+Disallow: /search/
+Disallow: /?s=
+Disallow: /*?*
+
+# Block error pages
+Disallow: /404.html
+Disallow: /error/
+Disallow: /errors/
+
+# Block development and testing files
+Disallow: /*.php$
+Disallow: /*.sql$
+Disallow: /*.log$
+Disallow: /*.bak$
+Disallow: /*.old$
+Disallow: /*.swp$
+Disallow: /*.tmp$
+
+# Sitemap location
+Sitemap: https://theangelstones.com/sitemap.xml
 
 # Allow query-based and dynamic content for indexing
 Allow: /*?*
