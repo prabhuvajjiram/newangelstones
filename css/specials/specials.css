@@ -196,3 +196,38 @@
     box-shadow: inset 0 0 5px #666;
     font-weight: bold;
 }
+
+/* Animated glowing border used for specials cards */
+.glowing-border {
+    position: relative;
+    z-index: 0;
+}
+
+.glowing-border::before,
+.glowing-border::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    padding: 2px;
+    background: conic-gradient(from var(--deg, 0deg) at center,
+        #00c3ff,
+        #4d01f9,
+        #a630c6,
+        #00c3ff);
+    animation: autoRotate 2s linear infinite;
+    z-index: -2;
+}
+
+.glowing-border::after {
+    filter: blur(10px);
+}
+
+@keyframes autoRotate {
+    to {
+        --deg: 360deg;
+    }
+}
