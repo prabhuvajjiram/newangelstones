@@ -61,7 +61,7 @@ const SpecialsModule = (function() {
             specialCol.className = 'col-md-6 col-lg-4 mb-4';
             
             const specialCard = document.createElement('div');
-            specialCard.className = 'special-card h-100';
+            specialCard.className = 'special-card h-100 glowing-border';
             specialCard.dataset.specialId = special.id;
             
             // Create card content
