@@ -1385,9 +1385,9 @@
                     <div class="row">
                         <div class="col-12">
                             <div class="text-center pt-2">
-                                <a href="privacy-policy.html" class="text-light mx-2" target="_blank" rel="noopener">Privacy Policy</a> |
-                                <a href="terms-of-service.html" class="text-light mx-2" target="_blank" rel="noopener">Terms of Service</a> |
-                                <a href="sms-terms.html" class="text-light mx-2" target="_blank" rel="noopener">SMS Terms</a>
+                                <a href="#" class="text-light mx-2" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal">Privacy Policy</a> |
+                                <a href="#" class="text-light mx-2" data-bs-toggle="modal" data-bs-target="#termsOfServiceModal">Terms of Service</a> |
+                                <a href="#" class="text-light mx-2" data-bs-toggle="modal" data-bs-target="#smsTermsModal">SMS Terms</a>
                             </div>
                         </div>
                     </div>
@@ -1558,8 +1558,70 @@
         </div>
     </div>
     <script src="js/category-carousel.js"></script>
+    <script src="js/legal-modals.js"></script>
     <div style="display: none;">
         <img id="default-thumbnail" src="images/default-thumbnail.jpg" alt="Default Thumbnail">
+    </div>
+
+    <!-- Legal Document Modals -->
+    <!-- Privacy Policy Modal -->
+    <div class="modal fade legal-modal" id="privacyPolicyModal" tabindex="-1" aria-labelledby="privacyPolicyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="privacyPolicyModalLabel">Privacy Policy</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="privacyPolicyContent">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Loading Privacy Policy...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms of Service Modal -->
+    <div class="modal fade legal-modal" id="termsOfServiceModal" tabindex="-1" aria-labelledby="termsOfServiceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="termsOfServiceModalLabel">Terms of Service</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="termsOfServiceContent">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Loading Terms of Service...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SMS Terms Modal -->
+    <div class="modal fade legal-modal" id="smsTermsModal" tabindex="-1" aria-labelledby="smsTermsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="smsTermsModalLabel">SMS Terms</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="smsTermsContent">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Loading SMS Terms...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <script>
         // Force gold captions as soon as possible
