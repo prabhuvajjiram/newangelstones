@@ -72,7 +72,10 @@ function generateSitemap() {
         '/contact' => ['changefreq' => 'monthly', 'priority' => '0.8'],
         '/gallery' => ['changefreq' => 'weekly', 'priority' => '0.8'],
         '/colors' => ['changefreq' => 'weekly', 'priority' => '0.8'],
-        '/discovered.html' => ['changefreq' => 'weekly', 'priority' => '0.7']
+        '/discovered.html' => ['changefreq' => 'weekly', 'priority' => '0.7'],
+        '/privacy-policy.html' => ['changefreq' => 'monthly', 'priority' => '0.5'],
+        '/terms-of-service.html' => ['changefreq' => 'monthly', 'priority' => '0.5'],
+        '/sms-terms.html' => ['changefreq' => 'monthly', 'priority' => '0.5']
     ];
     
     foreach ($mainPages as $path => $data) {
