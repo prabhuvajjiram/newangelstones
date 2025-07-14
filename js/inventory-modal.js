@@ -136,6 +136,18 @@ document.addEventListener('DOMContentLoaded', function() {
             .inventory-modal .search-container input::placeholder {
                 color: #6c757d;
             }
+            .inventory-modal .summary-count {
+                color: #f8f9fa;
+                font-size: 0.9rem;
+            }
+            .inventory-modal .active-filter select,
+            .inventory-modal .active-filter input {
+                border-color: #d4af37;
+                font-weight: bold;
+            }
+            .inventory-modal .search-highlight {
+                background-color: #fff3cd !important;
+            }
             .inventory-modal .inventory-filters {
                 margin-bottom: 1rem;
             }
@@ -823,7 +835,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Build the filters HTML with selected values
                 const filtersHtml = `
-                    <div class="inventory-filters sticky-filters">
+                    <button class="btn btn-secondary btn-sm d-md-none mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#inventoryFilterGroup" aria-expanded="true" aria-controls="inventoryFilterGroup" id="toggleFiltersBtn">Hide Filters</button>
+                    <div class="inventory-filters sticky-filters collapse show" id="inventoryFilterGroup">
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="search-container">
@@ -834,7 +847,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </div>
                             <div class="col-md-8">
                                 <div class="row">
-                                    <div class="col-md-4 col-6">
+                                    <div class="col-md-6 col-6">
                                         <div class="form-group mb-3">
                                             <label for="typeFilter">Product Type</label>
                                             <select class="form-select" id="typeFilter">
@@ -843,7 +856,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 col-6">
+                                    <div class="col-md-6 col-6">
                                         <div class="form-group mb-3">
                                             <label for="colorFilter">Color</label>
                                             <select class="form-select" id="colorFilter">
@@ -852,7 +865,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 col-6">
+                                    <div class="col-md-6 col-6">
                                         <div class="form-group mb-3">
                                             <label for="designFilter">Design</label>
                                             <select class="form-select" id="designFilter">
@@ -861,7 +874,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 col-6">
+                                    <div class="col-md-6 col-6">
                                         <div class="form-group mb-3">
                                             <label for="finishFilter">Finish</label>
                                             <select class="form-select" id="finishFilter">
@@ -870,7 +883,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 col-6">
+                                    <div class="col-md-6 col-6">
                                         <div class="form-group mb-3">
                                             <label for="sizeFilter">Size</label>
                                             <select class="form-select" id="sizeFilter">
@@ -879,7 +892,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 col-6">
+                                    <div class="col-md-6 col-6">
                                         <div class="form-group mb-3">
                                             <label for="locationFilter">Location</label>
                                             <select class="form-select" id="locationFilter">
@@ -888,16 +901,20 @@ document.addEventListener('DOMContentLoaded', function() {
                                             </select>
                                         </div>
                                     </div>
+                                    <div class="col-12 text-end">
+                                        <button class="btn btn-outline-secondary btn-sm" id="resetFiltersBtn">Reset Filters</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    <div class="summary-count text-end mb-2">Showing ${filteredItems.length} of ${api.totalItems}</div>
                 `;
                 
                 // Build the table HTML
                 const tableHtml = `
-                    <div class="table-responsive">
-                        <table class="inventory-table table table-striped table-hover table-bordered align-middle">
+                    <div class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
+                        <table class="inventory-table table table-striped table-hover table-sm table-bordered align-middle">
                             <thead>
                                 <tr>
                                     <th>Product Code</th>
@@ -1090,7 +1107,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const finishFilter = document.getElementById('finishFilter');
             const sizeFilter = document.getElementById('sizeFilter');
             const locationFilter = document.getElementById('locationFilter');
-            
+            const searchInput = document.getElementById('inventorySearch');
+
             const filters = [typeFilter, colorFilter, designFilter, finishFilter, sizeFilter, locationFilter];
             
             // Define the filter change handler function
@@ -1110,8 +1128,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Setting filters:', filters);
                 console.log('Selected location:', api.selectedLocation);
                 
+                filters.forEach(el => {
+                    if (el && el.value) {
+                        el.classList.add('active-filter');
+                    } else if (el) {
+                        el.classList.remove('active-filter');
+                    }
+                });
+
                 api.setFilters(filters);
-                
+
                 // Reload data
                 loadInventoryData();
             };
@@ -1125,6 +1151,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     filter.addEventListener('change', filterChangeHandler);
                 }
             });
+
+            const resetBtn = document.getElementById('resetFiltersBtn');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                    filters.forEach(f => {
+                        if (f) {
+                            f.value = '';
+                            f.classList.remove('active-filter');
+                        }
+                    });
+                    if (searchInput) {
+                        searchInput.value = '';
+                        searchInput.parentElement.classList.remove('active-filter');
+                    }
+                    api.setFilters({ ptype:'', pcolor:'', pdesign:'', pfinish:'', psize:'' });
+                    api.selectedLocation = '';
+                    loadInventoryData();
+                });
+            }
         }
         
         // Function to set up pagination event listeners
@@ -1165,15 +1210,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 searchInputHandler = function() {
                     const searchTerm = this.value.toLowerCase().trim();
                     const tableRows = document.querySelectorAll('#inventoryTableBody tr');
-                    
+
                     tableRows.forEach(row => {
                         const text = row.textContent.toLowerCase();
                         if (text.includes(searchTerm)) {
                             row.style.display = '';
+                            if (searchTerm) {
+                                row.classList.add('search-highlight');
+                            } else {
+                                row.classList.remove('search-highlight');
+                            }
                         } else {
                             row.style.display = 'none';
+                            row.classList.remove('search-highlight');
                         }
                     });
+
+                    if (searchInput.value) {
+                        searchInput.parentElement.classList.add('active-filter');
+                    } else {
+                        searchInput.parentElement.classList.remove('active-filter');
+                    }
                 };
                 
                 // Remove any existing listeners first to prevent duplicates
