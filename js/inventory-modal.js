@@ -498,6 +498,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Initialize API client
         let api = new InventoryAPI();
+
+        // Keep a reference to the Bootstrap modal instance
+        let inventoryModalInstance = null;
+
+        // Handler reference for the footer close button
+        let closeBtnHandler;
         
         // Function to create the modal HTML if it doesn't exist
         function createModal() {
@@ -597,11 +603,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Verify the modal was added to the DOM
                 const modalCheck = document.getElementById('inventoryModal');
                 console.log('Modal created and added to DOM:', !!modalCheck);
-                
+
                 return !!modalCheck; // Return true if modal was created successfully
             } catch (error) {
                 console.error('Error creating modal:', error);
                 return false; // Failed to create modal
+            }
+        }
+
+        // Function to add listeners to modal buttons
+        function addModalButtonListeners() {
+            const closeBtn = document.getElementById('closeInventoryBtn');
+            if (closeBtn) {
+                // Ensure the close button triggers the Bootstrap dismissal
+                closeBtn.setAttribute('data-bs-dismiss', 'modal');
+
+                // Remove any existing listener to avoid duplicates
+                closeBtn.removeEventListener('click', closeBtnHandler);
+
+                closeBtnHandler = function() {
+                    if (inventoryModalInstance) {
+                        inventoryModalInstance.hide();
+                    }
+                };
+
+                closeBtn.addEventListener('click', closeBtnHandler);
             }
         }
 
@@ -1146,6 +1172,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (refreshBtn) {
                 refreshBtn.removeEventListener('click', loadInventoryData);
             }
+
+            // Clean up footer close button listener
+            const closeBtn = document.getElementById('closeInventoryBtn');
+            if (closeBtn && closeBtnHandler) {
+                closeBtn.removeEventListener('click', closeBtnHandler);
+            }
             
             // Clean up retry button listener
             const retryBtn = document.getElementById('retryLoadBtn');
@@ -1192,9 +1224,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 const modalElement = document.getElementById('inventoryModal');
                 if (modalElement) {
                     try {
-                        const bsModal = new bootstrap.Modal(modalElement);
-                        bsModal.show();
+                        inventoryModalInstance = new bootstrap.Modal(modalElement);
+                        inventoryModalInstance.show();
                         loadInventoryData();
+                        addModalButtonListeners();
                         
                         // Add event listener for when modal is shown
                         const shownHandler = function() {
@@ -1221,6 +1254,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         console.error('Error showing modal with Bootstrap:', error);
                         
                         // Fallback method if Bootstrap modal fails
+                        inventoryModalInstance = null;
                         modalElement.classList.add('show');
                         modalElement.style.display = 'block';
                         document.body.classList.add('modal-open');
@@ -1233,6 +1267,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                         
                         loadInventoryData();
+                        addModalButtonListeners();
                     }
                 } else {
                     console.error('Inventory modal element not found even though createModal returned true');
