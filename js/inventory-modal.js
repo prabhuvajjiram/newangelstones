@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             .inventory-modal .modal-body {
                 flex: 1;
-                overflow-y: auto;
+                overflow-y: hidden;
                 padding: 1rem;
                 position: relative;
             }
@@ -164,29 +164,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 background-color: #212529;
                 padding-top: 0.5rem;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            }
-            .inventory-modal .scroll-buttons {
-                position: absolute;
-                bottom: 15px;
-                right: 15px;
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-                z-index: 11;
-            }
-            .inventory-modal .scroll-button {
-                background-color: rgba(0,0,0,0.6);
-                border: none;
-                border-radius: 50%;
-                color: #fff;
-                width: 40px;
-                height: 40px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            .inventory-modal .scroll-button:hover {
-                background-color: rgba(0,0,0,0.8);
             }
             .inventory-modal .column-filter {
                 background-color: #343a40;
@@ -631,20 +608,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 scrollIndicator.appendChild(document.createTextNode(' Scroll for more items'));
                 modalBody.appendChild(scrollIndicator);
 
-                // Scroll control buttons
-                const scrollBtnContainer = document.createElement('div');
-                scrollBtnContainer.className = 'scroll-buttons';
-                const upBtn = document.createElement('button');
-                upBtn.type = 'button';
-                upBtn.className = 'scroll-button scroll-up';
-                upBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
-                const downBtn = document.createElement('button');
-                downBtn.type = 'button';
-                downBtn.className = 'scroll-button scroll-down';
-                downBtn.innerHTML = '<i class="fas fa-arrow-down"></i>';
-                scrollBtnContainer.appendChild(upBtn);
-                scrollBtnContainer.appendChild(downBtn);
-                modalBody.appendChild(scrollBtnContainer);
+
                 
                 // Create modal footer with sticky positioning
                 const modalFooter = document.createElement('div');
@@ -866,49 +830,49 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Build the table HTML
                 const tableHtml = `
                     <div class="table-responsive" style="max-height: 65vh; overflow-y: auto;">
-                        <table class="inventory-table table table-striped table-sm table-hover table-bordered align-middle">
+                        <table id="inventoryTable" class="inventory-table table table-striped table-sm table-hover table-bordered align-middle">
                             <thead>
                                 <tr>
                                     <th>Product Code</th>
                                     <th>Description</th>
                                     <th>
                                         Type
-                                        <select class="form-select form-select-sm column-filter mt-1" id="typeFilter">
+                                        <select class="form-select form-select-sm column-filter mt-1" id="typeFilter" data-col-index="2">
                                             <option value="" ${currentPtype === '' ? 'selected' : ''}>All</option>
                                             ${createOptions(productTypes, currentPtype)}
                                         </select>
                                     </th>
                                     <th>
                                         Color
-                                        <select class="form-select form-select-sm column-filter mt-1" id="colorFilter">
+                                        <select class="form-select form-select-sm column-filter mt-1" id="colorFilter" data-col-index="3">
                                             <option value="" ${currentPcolor === '' ? 'selected' : ''}>All</option>
                                             ${createOptions(productColors, currentPcolor)}
                                         </select>
                                     </th>
                                     <th>
                                         Design
-                                        <select class="form-select form-select-sm column-filter mt-1" id="designFilter">
+                                        <select class="form-select form-select-sm column-filter mt-1" id="designFilter" data-col-index="4">
                                             <option value="" ${currentPdesign === '' ? 'selected' : ''}>All</option>
                                             ${createOptions(productDesigns, currentPdesign)}
                                         </select>
                                     </th>
                                     <th>
                                         Finish
-                                        <select class="form-select form-select-sm column-filter mt-1" id="finishFilter">
+                                        <select class="form-select form-select-sm column-filter mt-1" id="finishFilter" data-col-index="5">
                                             <option value="" ${currentPfinish === '' ? 'selected' : ''}>All</option>
                                             ${createOptions(productFinishes, currentPfinish)}
                                         </select>
                                     </th>
                                     <th>
                                         Size
-                                        <select class="form-select form-select-sm column-filter mt-1" id="sizeFilter">
+                                        <select class="form-select form-select-sm column-filter mt-1" id="sizeFilter" data-col-index="6">
                                             <option value="" ${currentPsize === '' ? 'selected' : ''}>All</option>
                                             ${createOptions(productSizes, currentPsize)}
                                         </select>
                                     </th>
                                     <th>
                                         Location
-                                        <select class="form-select form-select-sm column-filter mt-1" id="locationFilter">
+                                        <select class="form-select form-select-sm column-filter mt-1" id="locationFilter" data-col-index="7">
                                             <option value="" ${currentLocation === '' ? 'selected' : ''}>All</option>
                                             ${createOptions(locations, currentLocation)}
                                         </select>
@@ -961,6 +925,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 setupPaginationListeners();
                 setupSearchListener();
                 setupScrollIndicator();
+                filterTable();
                 
                 // Load Font Awesome if not already loaded
                 if (!document.querySelector('link[href*="font-awesome"]')) {
@@ -1088,7 +1053,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Define reusable event handler functions for proper cleanup
-        let filterChangeHandler, paginationClickHandler, searchInputHandler, scrollUpHandler, scrollDownHandler;
+        let filterChangeHandler, paginationClickHandler, searchInputHandler;
         
         // Function to set up filter event listeners
         function setupFilterListeners() {
@@ -1128,9 +1093,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 api.setFilters(filters);
-
-                // Reload data
-                loadInventoryData();
+                filterTable();
             };
             
             // Add event listeners to all filter dropdowns
@@ -1158,7 +1121,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     api.setFilters({ ptype:'', pcolor:'', pdesign:'', pfinish:'', psize:'' });
                     api.selectedLocation = '';
-                    loadInventoryData();
+                    filterTable();
                 });
             }
 
@@ -1209,13 +1172,48 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else {
                         searchInput.parentElement.classList.remove('active-filter');
                     }
-                    loadInventoryData();
+                    filterTable();
                 };
-                
+
                 // Remove any existing listeners first to prevent duplicates
                 searchInput.removeEventListener('input', searchInputHandler);
                 // Add the new listener
                 searchInput.addEventListener('input', searchInputHandler);
+            }
+        }
+
+        // Apply dropdown and text search filters to the table
+        function filterTable() {
+            const rows = document.querySelectorAll('#inventoryTable tbody tr');
+            const searchVal = (document.getElementById('inventorySearch')?.value || '').toLowerCase();
+            const selects = document.querySelectorAll('.column-filter');
+            let visible = 0;
+
+            rows.forEach(row => {
+                row.style.display = 'table-row';
+                let show = true;
+
+                selects.forEach(select => {
+                    const colIndex = parseInt(select.dataset.colIndex, 10);
+                    const filterVal = select.value.toLowerCase();
+                    if (filterVal && !row.cells[colIndex].textContent.toLowerCase().includes(filterVal)) {
+                        show = false;
+                    }
+                });
+
+                if (show && searchVal) {
+                    if (!row.textContent.toLowerCase().includes(searchVal)) {
+                        show = false;
+                    }
+                }
+
+                row.style.display = show ? 'table-row' : 'none';
+                if (show) visible++;
+            });
+
+            const summary = document.querySelector('.summary-count');
+            if (summary) {
+                summary.textContent = `Showing ${visible} of ${rows.length}`;
             }
         }
         
@@ -1223,8 +1221,6 @@ document.addEventListener('DOMContentLoaded', function() {
         function setupScrollIndicator() {
             const modalBody = document.querySelector('.inventory-modal .modal-body');
             const scrollIndicator = document.querySelector('.inventory-modal .scroll-indicator');
-            const scrollUpBtn = document.querySelector('.inventory-modal .scroll-up');
-            const scrollDownBtn = document.querySelector('.inventory-modal .scroll-down');
 
             if (modalBody && scrollIndicator) {
                 // Show scroll indicator if content is scrollable
@@ -1250,16 +1246,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            if (modalBody && scrollUpBtn && scrollDownBtn) {
-                scrollUpHandler = () => modalBody.scrollTo({ top: 0, behavior: 'smooth' });
-                scrollDownHandler = () => modalBody.scrollTo({ top: modalBody.scrollHeight, behavior: 'smooth' });
 
-                scrollUpBtn.removeEventListener('click', scrollUpHandler);
-                scrollDownBtn.removeEventListener('click', scrollDownHandler);
-
-                scrollUpBtn.addEventListener('click', scrollUpHandler);
-                scrollDownBtn.addEventListener('click', scrollDownHandler);
-            }
             
             // Set up refresh button listener
             const refreshBtn = document.getElementById('refreshInventoryBtn');
@@ -1331,14 +1318,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     delete modalBody._scrollHandler;
                 }
 
-                const scrollUpBtn = document.querySelector('.inventory-modal .scroll-up');
-                const scrollDownBtn = document.querySelector('.inventory-modal .scroll-down');
-                if (scrollUpBtn && scrollUpHandler) {
-                    scrollUpBtn.removeEventListener('click', scrollUpHandler);
-                }
-                if (scrollDownBtn && scrollDownHandler) {
-                    scrollDownBtn.removeEventListener('click', scrollDownHandler);
-                }
 
                 // Clear any pending timeout
                 if (modalBody._scrollTimeout) {
