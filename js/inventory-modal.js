@@ -1608,5 +1608,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Initialize the modal
         init();
+        
+        // Expose the openModal function globally for deep linking
+        window.openInventoryModal = openModal;
     });
 });
