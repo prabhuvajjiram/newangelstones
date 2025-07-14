@@ -1536,23 +1536,40 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Function to set up inventory link handler
         function setupInventoryLinkHandler() {
-            // Try to find the inventory link by ID first
+            // Try to find the inventory links by ID first
             let inventoryLink = document.getElementById('inventoryLink');
+            let sideInventoryLink = document.getElementById('sideInventoryLink');
             let found = false;
             
+            // Set up event listener for footer inventory link if it exists
             if (inventoryLink) {
-                console.log('Found inventory link by ID');
+                console.log('Found footer inventory link by ID');
                 inventoryLink.addEventListener('click', function(e) {
-                    console.log('Inventory link clicked (found by ID)');
+                    console.log('Footer inventory link clicked');
                     e.preventDefault();
                     e.stopPropagation();
                     openModal();
                     return false;
                 });
                 found = true;
-            } else {
-                // If not found by ID, try to find by text content
-                console.log('Inventory link not found by ID, trying to find by text content');
+            }
+            
+            // Set up event listener for side menu inventory link if it exists
+            if (sideInventoryLink) {
+                console.log('Found side menu inventory link by ID');
+                sideInventoryLink.addEventListener('click', function(e) {
+                    console.log('Side menu inventory link clicked');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openModal();
+                    return false;
+                });
+                found = true;
+            }
+            
+            // If neither link was found by ID, try to find by text content
+            if (!found) {
+                console.log('Inventory links not found by ID, trying to find by text content');
                 const links = document.querySelectorAll('a');
                 links.forEach(link => {
                     if (link.textContent.trim().toLowerCase().includes('inventory')) {
@@ -1570,7 +1587,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 
                 if (!found) {
-                    console.error('Could not find inventory link by text content either');
+                    console.error('Could not find any inventory links by ID or text content');
                 }
             }
         }
