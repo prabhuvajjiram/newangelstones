@@ -824,13 +824,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         <div id="searchHelp" class="form-text">Search by product code, description, or any attribute</div>
                     </div>
-                    <div class="summary-count text-end mb-2">Showing ${filteredItems.length} of ${api.totalItems}</div>
+                    <div class="d-flex justify-content-end align-items-center mb-2">
+                        <div class="summary-count me-2">Showing ${filteredItems.length} of ${api.totalItems}</div>
+                        <span id="activeBadge" class="badge bg-secondary" style="display:none;">Filters Active</span>
+                    </div>
                 `;
                 
                 // Build the table HTML
                 const tableHtml = `
-                    <div class="table-responsive" style="max-height: 65vh; overflow-y: auto;">
-                        <table id="inventoryTable" class="inventory-table table table-striped table-sm table-hover table-bordered align-middle">
+                    <div class="table-responsive" style="max-height: 65vh; overflow-y: auto; overflow-x: auto;">
+                        <table id="inventoryTable" class="inventory-table table table-striped table-sm table-hover table-bordered align-middle w-100" style="table-layout: auto;">
                             <thead>
                                 <tr>
                                     <th>Product Code</th>
@@ -1054,6 +1057,24 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Define reusable event handler functions for proper cleanup
         let filterChangeHandler, paginationClickHandler, searchInputHandler;
+
+        // Utility to enable/disable reset button
+        function updateResetButtonState() {
+            const resetBtn = document.getElementById('resetFiltersBtn');
+            if (!resetBtn) return;
+            const filterInputs = document.querySelectorAll('.column-filter, #inventorySearch');
+            const anyActive = Array.from(filterInputs).some(el => el.value);
+            resetBtn.disabled = !anyActive;
+            if (anyActive) {
+                resetBtn.classList.remove('disabled');
+                const badge = document.getElementById('activeBadge');
+                if (badge) badge.style.display = 'inline-block';
+            } else {
+                resetBtn.classList.add('disabled');
+                const badge = document.getElementById('activeBadge');
+                if (badge) badge.style.display = 'none';
+            }
+        }
         
         // Function to set up filter event listeners
         function setupFilterListeners() {
@@ -1065,12 +1086,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const locationFilter = document.getElementById('locationFilter');
             const searchInput = document.getElementById('inventorySearch');
 
-            const filters = [typeFilter, colorFilter, designFilter, finishFilter, sizeFilter, locationFilter];
+            const filterElements = [typeFilter, colorFilter, designFilter, finishFilter, sizeFilter, locationFilter];
+
+            updateResetButtonState();
             
             // Define the filter change handler function
             filterChangeHandler = function() {
                 // Update API filters - don't include locid as it's handled separately
-                const filters = {
+                const filterValues = {
                     ptype: typeFilter ? typeFilter.value : '',
                     pcolor: colorFilter ? colorFilter.value : '',
                     pdesign: designFilter ? designFilter.value : '',
@@ -1081,10 +1104,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Store the selected location in a separate property
                 api.selectedLocation = locationFilter ? locationFilter.value : '';
                 
-                console.log('Setting filters:', filters);
+                console.log('Setting filters:', filterValues);
                 console.log('Selected location:', api.selectedLocation);
-                
-                filters.forEach(el => {
+
+                filterElements.forEach(el => {
                     if (el && el.value) {
                         el.classList.add('active-filter');
                     } else if (el) {
@@ -1092,12 +1115,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
 
-                api.setFilters(filters);
+                api.setFilters(filterValues);
                 filterTable();
+                updateResetButtonState();
             };
-            
+
             // Add event listeners to all filter dropdowns
-            filters.forEach(filter => {
+            filterElements.forEach(filter => {
                 if (filter) {
                     // Remove any existing listeners first to prevent duplicates
                     filter.removeEventListener('change', filterChangeHandler);
@@ -1109,7 +1133,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const resetBtn = document.getElementById('resetFiltersBtn');
             if (resetBtn) {
                 resetBtn.addEventListener('click', () => {
-                    filters.forEach(f => {
+                    filterElements.forEach(f => {
                         if (f) {
                             f.value = '';
                             f.classList.remove('active-filter');
@@ -1122,7 +1146,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     api.setFilters({ ptype:'', pcolor:'', pdesign:'', pfinish:'', psize:'' });
                     api.selectedLocation = '';
                     filterTable();
+                    updateResetButtonState();
                 });
+                updateResetButtonState();
             }
 
             const refreshBtnInline = document.getElementById('refreshTableBtn');
@@ -1173,6 +1199,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         searchInput.parentElement.classList.remove('active-filter');
                     }
                     filterTable();
+                    updateResetButtonState();
                 };
 
                 // Remove any existing listeners first to prevent duplicates
@@ -1215,6 +1242,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (summary) {
                 summary.textContent = `Showing ${visible} of ${rows.length}`;
             }
+            updateResetButtonState();
         }
         
         // Function to set up scroll indicator
