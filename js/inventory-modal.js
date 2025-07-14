@@ -39,6 +39,12 @@ document.addEventListener('DOMContentLoaded', function() {
             .inventory-modal .modal-footer {
                 border-top: 1px solid #343a40;
             }
+            .inventory-modal .modal-footer.sticky-bottom {
+                position: sticky;
+                bottom: 0;
+                background-color: #212529;
+                z-index: 9;
+            }
             .inventory-modal .modal-body {
                 flex: 1;
                 overflow-y: auto;
@@ -234,6 +240,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 .inventory-modal .search-container input {
                     font-size: 1rem;
                     padding: 0.375rem 0.75rem;
+                }
+                .inventory-modal .inventory-table thead tr {
+                    display: flex;
+                    flex-wrap: wrap;
+                }
+                .inventory-modal .inventory-table thead th {
+                    flex: 1 0 50%;
                 }
             }
         `;
@@ -633,20 +646,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 scrollBtnContainer.appendChild(downBtn);
                 modalBody.appendChild(scrollBtnContainer);
                 
-                // Create modal footer
+                // Create modal footer with sticky positioning
                 const modalFooter = document.createElement('div');
-                modalFooter.className = 'modal-footer';
+                modalFooter.className = 'modal-footer sticky-bottom d-flex flex-wrap justify-content-between';
                 modalContent.appendChild(modalFooter);
-                
-                // Create close button in footer
-                const closeBtn = document.createElement('button');
-                closeBtn.type = 'button';
-                closeBtn.className = 'btn btn-secondary';
-                closeBtn.id = 'closeInventoryBtn';
-                closeBtn.textContent = 'Close';
-                modalFooter.appendChild(closeBtn);
-                
-                // Create refresh button
+
+                // Reset filters button
+                const resetBtn = document.createElement('button');
+                resetBtn.type = 'button';
+                resetBtn.className = 'btn btn-outline-secondary';
+                resetBtn.id = 'resetFiltersBtn';
+                resetBtn.textContent = 'Reset Filters';
+                modalFooter.appendChild(resetBtn);
+
+                // Refresh data button
                 const refreshBtn = document.createElement('button');
                 refreshBtn.type = 'button';
                 refreshBtn.className = 'btn btn-gold';
@@ -656,6 +669,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 refreshBtn.appendChild(refreshIcon);
                 refreshBtn.appendChild(document.createTextNode(' Refresh Data'));
                 modalFooter.appendChild(refreshBtn);
+
+                // Close button
+                const closeBtn = document.createElement('button');
+                closeBtn.type = 'button';
+                closeBtn.className = 'btn btn-secondary';
+                closeBtn.id = 'closeInventoryBtn';
+                closeBtn.textContent = 'Close';
+                modalFooter.appendChild(closeBtn);
                 
                 // Append the complete modal to the document body
                 document.body.appendChild(modalDiv);
@@ -754,16 +775,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 const inventoryItems = data?.Data || data?.data || [];
                 console.log('Inventory items for rendering:', inventoryItems.length);
 
-                // If a location is selected that isn't handled on the server
-                // filter the results client-side using the Locationname field.
-                let filteredItems = inventoryItems;
-                if (api.selectedLocation && !['elberton', 'tate'].includes(api.selectedLocation.toLowerCase())) {
-                    filteredItems = inventoryItems.filter(item => {
-                        const locName = (item.Locationname || item.locationname || '').toLowerCase();
-                        return locName === api.selectedLocation.toLowerCase();
-                    });
-                    console.log(`Filtered items for location ${api.selectedLocation}:`, filteredItems.length);
-                }
+                // Apply column filters and search term client-side
+                const searchVal = (document.getElementById('inventorySearch')?.value || '').toLowerCase().trim();
+                const { ptype, pcolor, pdesign, pfinish, psize } = api.currentFilters;
+                const locFilter = api.selectedLocation || '';
+
+                const getFieldVal = (obj, field) => {
+                    if (obj[field] !== undefined) return String(obj[field]);
+                    const key = Object.keys(obj).find(k => k.toLowerCase() === field.toLowerCase());
+                    return key ? String(obj[key]) : '';
+                };
+
+                let filteredItems = inventoryItems.filter(item => {
+                    const typeMatch = !ptype || getFieldVal(item, 'Ptype').toLowerCase() === ptype.toLowerCase();
+                    const colorMatch = !pcolor || getFieldVal(item, 'PColor').toLowerCase() === pcolor.toLowerCase();
+                    const designMatch = !pdesign || getFieldVal(item, 'PDesign').toLowerCase() === pdesign.toLowerCase();
+                    const finishMatch = !pfinish || getFieldVal(item, 'PFinish').toLowerCase() === pfinish.toLowerCase();
+                    const sizeMatch = !psize || getFieldVal(item, 'Size').toLowerCase() === psize.toLowerCase();
+                    const locationMatch = !locFilter || getFieldVal(item, 'Locationname').toLowerCase() === locFilter.toLowerCase();
+                    const rowText = Object.values(item).join(' ').toLowerCase();
+                    const searchMatch = !searchVal || rowText.includes(searchVal);
+                    return typeMatch && colorMatch && designMatch && finishMatch && sizeMatch && locationMatch && searchMatch;
+                });
                 
                 if (!Array.isArray(filteredItems) || filteredItems.length === 0) {
                     contentDiv.innerHTML = `
@@ -786,12 +819,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Get unique values for filters
-                const productTypes = api.getUniqueValues({ Data: filteredItems }, 'Ptype');
-                const productColors = api.getUniqueValues({ Data: filteredItems }, 'PColor');
-                const productDesigns = api.getUniqueValues({ Data: filteredItems }, 'PDesign');
-                const productFinishes = api.getUniqueValues({ Data: filteredItems }, 'PFinish');
-                const productSizes = api.getUniqueValues({ Data: filteredItems }, 'Size');
-                const locations = api.getUniqueValues({ Data: filteredItems }, 'Locationname');
+                const productTypes = api.getUniqueValues({ Data: inventoryItems }, 'Ptype');
+                const productColors = api.getUniqueValues({ Data: inventoryItems }, 'PColor');
+                const productDesigns = api.getUniqueValues({ Data: inventoryItems }, 'PDesign');
+                const productFinishes = api.getUniqueValues({ Data: inventoryItems }, 'PFinish');
+                const productSizes = api.getUniqueValues({ Data: inventoryItems }, 'Size');
+                const locations = api.getUniqueValues({ Data: inventoryItems }, 'Locationname');
                 
                 // Helper function to create option elements with selected state
                 const createOptions = (items, selectedValue) => {
@@ -823,7 +856,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="inventory-filters sticky-filters">
                         <div class="search-container">
                             <i class="fas fa-search search-icon"></i>
-                            <input type="text" class="form-control" id="inventorySearch" placeholder="Search by product code, description, or any attribute...">
+                            <input type="text" class="form-control" id="inventorySearch" placeholder="Search by product code, description, or any attribute..." value="${searchVal || ''}">
                         </div>
                         <div id="searchHelp" class="form-text">Search by product code, description, or any attribute</div>
                     </div>
@@ -832,8 +865,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Build the table HTML
                 const tableHtml = `
-                    <div class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
-                        <table class="inventory-table table table-striped table-hover table-sm table-bordered align-middle">
+                    <div class="table-responsive" style="max-height: 65vh; overflow-y: auto;">
+                        <table class="inventory-table table table-striped table-sm table-hover table-bordered align-middle">
                             <thead>
                                 <tr>
                                     <th>Product Code</th>
@@ -888,15 +921,18 @@ document.addEventListener('DOMContentLoaded', function() {
                                     // Helper function to get field value with case-insensitive matching
                                     const getField = (fieldName) => {
                                         if (item[fieldName] !== undefined) return item[fieldName];
-                                        
+
                                         // Try lowercase matching
                                         const lowerField = fieldName.toLowerCase();
                                         const key = Object.keys(item).find(k => k.toLowerCase() === lowerField);
                                         return key ? item[key] : '';
                                     };
-                                    
+
+                                    const rowText = Object.values(item).join(' ').toLowerCase();
+                                    const highlight = searchVal && rowText.includes(searchVal) ? ' search-highlight' : '';
+
                                     return `
-                                    <tr>
+                                    <tr class="${highlight.trim()}">
                                         <td>${getField('EndProductCode')}</td>
                                         <td>${getField('EndProductDescription')}</td>
                                         <td>${getField('Ptype')}</td>
@@ -917,15 +953,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Build pagination HTML
                 const paginationHtml = buildPagination(api.currentPage, api.totalPages);
 
-                const controlsHtml = `
-                    <div class="d-flex justify-content-between my-2">
-                        <button class="btn btn-outline-secondary btn-sm" id="resetFiltersBtn">Reset Filters</button>
-                        <button class="btn btn-outline-secondary btn-sm" id="refreshTableBtn"><i class="fas fa-sync-alt"></i> Refresh Data</button>
-                    </div>
-                `;
-
                 // Combine all HTML
-                contentDiv.innerHTML = searchHtml + tableHtml + controlsHtml + paginationHtml;
+                contentDiv.innerHTML = searchHtml + tableHtml + paginationHtml;
                 
                 // Add event listeners for filters and pagination
                 setupFilterListeners();
@@ -1175,29 +1204,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (searchInput) {
                 // Define the search input handler function
                 searchInputHandler = function() {
-                    const searchTerm = this.value.toLowerCase().trim();
-                    const tableRows = document.querySelectorAll('#inventoryTableBody tr');
-
-                    tableRows.forEach(row => {
-                        const text = row.textContent.toLowerCase();
-                        if (text.includes(searchTerm)) {
-                            row.style.display = '';
-                            if (searchTerm) {
-                                row.classList.add('search-highlight');
-                            } else {
-                                row.classList.remove('search-highlight');
-                            }
-                        } else {
-                            row.style.display = 'none';
-                            row.classList.remove('search-highlight');
-                        }
-                    });
-
                     if (searchInput.value) {
                         searchInput.parentElement.classList.add('active-filter');
                     } else {
                         searchInput.parentElement.classList.remove('active-filter');
                     }
+                    loadInventoryData();
                 };
                 
                 // Remove any existing listeners first to prevent duplicates
