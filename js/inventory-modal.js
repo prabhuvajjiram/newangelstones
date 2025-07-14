@@ -1,4 +1,13 @@
 /**
+ * Inventory Modal
+ * 
+ * This script creates a modal dialog that displays inventory data
+ * from the monument.business API via a PHP proxy.
+ * 
+ * Version: 2.2.0 - Improved cache management (2025-07-14)
+ * Version: 2.1.0 - Product codes hidden (2025-07-14)
+ */
+/**
  * Inventory Modal Handler
  * Fetches and displays inventory data from monument.business API in a modal
  */
@@ -267,6 +276,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.pageSize = 1000;
                 this.totalItems = 0;
                 this.totalPages = 0;
+                this.forceRefresh = false; // Flag to force refresh and bypass cache
+                this.cacheExpiryMinutes = 1; // Reduce cache expiry to 1 minute for fresher data
                 this.currentFilters = {
                     ptype: '',
                     pcolor: '',
@@ -275,6 +286,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     psize: '',
                     locid: ''
                 };
+                
+                // Cache configuration
+                this.cacheKey = 'inventoryData';
+                this.cacheExpiryKey = 'inventoryDataExpiry';
+                this.expiryDuration = this.cacheExpiryMinutes * 60 * 1000; // Convert minutes to milliseconds
             }
 
             /**
@@ -287,6 +303,29 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Current page:', this.currentPage);
                     console.log('Page size:', this.pageSize);
                     console.log('Selected location:', this.selectedLocation);
+                    
+                    // Check if we have any filters applied
+                    const hasFilters = Object.values(this.currentFilters).some(val => val !== '');
+                    const hasSearch = document.getElementById('inventorySearch')?.value?.trim() !== '';
+                    
+                    // Only use cache for unfiltered data and when not forcing refresh
+                    if (!hasFilters && !hasSearch && !this.forceRefresh) {
+                        // Check for cached data
+                        const now = Date.now();
+                        const cached = localStorage.getItem(this.cacheKey);
+                        const expiry = localStorage.getItem(this.cacheExpiryKey);
+                        
+                        if (cached && expiry && now < parseInt(expiry)) {
+                            console.log('Using cached inventory data (expires in', Math.round((parseInt(expiry) - now)/1000), 'seconds)');
+                            return JSON.parse(cached);
+                        } else {
+                            console.log('Cache expired or not found, fetching fresh data');
+                        }
+                    } else if (this.forceRefresh) {
+                        console.log('Force refresh requested, bypassing cache');
+                    } else {
+                        console.log('Filters or search applied, bypassing cache');
+                    }
                     
                     // Define the location IDs to fetch based on the selected location
                     let locationIds = ['45555', '45587']; // Default: fetch both locations (Elberton and Tate)
@@ -325,6 +364,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         });
                         
                         // Use GET method instead of POST to avoid potential CORS issues
+                        // Add timestamp to prevent caching by Cloudflare
+                        locParams.timestamp = Date.now();
                         const queryString = new URLSearchParams(locParams).toString();
                         const fetchPromise = fetch(`inventory-proxy.php?${queryString}`, {
                             method: 'GET',
@@ -447,13 +488,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         combinedData.Total = combinedData.Data.length;
                     }
                     
-                    console.log('Combined data:', combinedData);
-                    console.log(`Total items: ${combinedData.Data.length}`);
-                    
-                    // Update pagination info
-                    this.totalItems = combinedData.Total || combinedData.Data.length;
-                    this.totalPages = Math.ceil(this.totalItems / this.pageSize) || 1;
-                    
+                    // Cache the combined data if no filters are applied
+                    // Reuse the hasFilters and hasSearch variables from earlier in the function
+                    if (!hasFilters && !hasSearch && hasValidData) {
+                        console.log(`Caching inventory data for ${this.cacheExpiryMinutes} minute(s)`);
+                        const now = Date.now();
+                        // Store the timestamp with the data for cache freshness checking
+                        const dataWithTimestamp = {
+                            ...combinedData,
+                            _cachedAt: now
+                        };
+                        localStorage.setItem(this.cacheKey, JSON.stringify(dataWithTimestamp));
+                        localStorage.setItem(this.cacheExpiryKey, now + this.expiryDuration);
+                    }
                     return combinedData;
                 } catch (error) {
                     console.error('Error fetching inventory data:', error);
@@ -507,6 +554,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 return false;
             }
 
+            /**
+             * Set force refresh flag to bypass cache
+             * @param {Boolean} force - Whether to force refresh
+             */
+            setForceRefresh(force = true) {
+                this.forceRefresh = force;
+                return this;
+            }
+            
+            /**
+             * Reset force refresh flag after use
+             */
+            resetForceRefresh() {
+                this.forceRefresh = false;
+                return this;
+            }
+            
             /**
              * Go to previous page if available
              */
@@ -690,7 +754,10 @@ document.addEventListener('DOMContentLoaded', function() {
         function addModalButtonListeners() {
             const footerBtn = document.getElementById('closeInventoryBtn');
             const headerBtn = document.getElementById('inventoryModalCloseBtn');
+            const refreshBtn = document.getElementById('refreshInventoryBtn');
+            const resetBtn = document.getElementById('resetFiltersBtn');
 
+            // Close button handlers
             [footerBtn, headerBtn].forEach(btn => {
                 if (btn) {
                     // Ensure button triggers the Bootstrap dismissal
@@ -711,6 +778,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     btn.addEventListener('click', closeBtnHandler);
                 }
             });
+            
+            // Refresh button handler - force refresh data bypassing cache
+            if (refreshBtn) {
+                // Remove any existing listener to avoid duplicates
+                refreshBtn.removeEventListener('click', refreshDataHandler);
+                
+                refreshDataHandler = function() {
+                    console.log('Force refreshing inventory data...');
+                    // Set force refresh flag to bypass cache
+                    api.setForceRefresh(true);
+                    loadInventoryData().then(() => {
+                        // Reset the flag after use
+                        api.resetForceRefresh();
+                    });
+                };
+                
+                refreshBtn.addEventListener('click', refreshDataHandler);
+            }
         }
 
         // Function to load and display inventory data
@@ -850,9 +935,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="inventory-filters sticky-filters">
                         <div class="search-container">
                             <i class="fas fa-search search-icon"></i>
-                            <input type="text" class="form-control" id="inventorySearch" placeholder="Search by product code, description, or any attribute..." value="${searchVal || ''}">
+                            <input type="text" class="form-control" id="inventorySearch" placeholder="Search by description, type, color, or any attribute..." value="${searchVal || ''}">
                         </div>
-                        <div id="searchHelp" class="form-text">Search by product code, description, or any attribute</div>
+                        <div id="searchHelp" class="form-text">Search by description, type, color, or any attribute</div>
                     </div>
                     <div class="d-flex justify-content-end align-items-center mb-2">
                         <div class="summary-count me-2">Showing ${filteredItems.length} of ${api.totalItems}</div>
@@ -867,7 +952,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <table id="inventoryTable" class="inventory-table table table-striped table-sm table-hover table-bordered align-middle w-100">
                             <thead>
                                 <tr>
-                                    <th>Product Code</th>
+                                    <!-- Product Code column hidden per client request -->
                                     <th>Description</th>
                                     <th>
                                         Type
@@ -931,7 +1016,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                     return `
                                     <tr class="${highlight.trim()}">
-                                        <td>${getField('EndProductCode')}</td>
+                                        <!-- Product Code column hidden per client request -->
                                         <td>${getField('EndProductDescription')}</td>
                                         <td>${getField('Ptype')}</td>
                                         <td>${getField('PColor')}</td>
@@ -1407,8 +1492,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Clean up refresh button listener
             const refreshBtn = document.getElementById('refreshInventoryBtn');
-            if (refreshBtn) {
-                refreshBtn.removeEventListener('click', loadInventoryData);
+            if (refreshBtn && refreshDataHandler) {
+                refreshBtn.removeEventListener('click', refreshDataHandler);
             }
             const refreshBtnInline = document.getElementById('refreshTableBtn');
             if (refreshBtnInline) {
