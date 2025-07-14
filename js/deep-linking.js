@@ -1,11 +1,42 @@
 /**
- * Deep Linking support for Angel Granites product categories
+ * Deep Linking support for Angel Granites product categories and inventory
  * 
- * This script enables deep linking to product categories via URL parameters.
- * For example: ?category=monuments will open the monuments category.
+ * This script enables deep linking to product categories via URL parameters
+ * and to the inventory modal via URL hash.
+ * For example: 
+ * - ?category=monuments will open the monuments category
+ * - #inventory will open the inventory modal
  */
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Function to handle inventory modal deep linking via hash
+    function handleInventoryDeepLink() {
+        if (window.location.hash === '#inventory') {
+            console.log('Deep linking: Opening inventory modal from hash');
+            
+            // Wait a moment for all scripts to load
+            setTimeout(function() {
+                // Try to find and click the inventory link
+                const sideInventoryLink = document.getElementById('sideInventoryLink');
+                const inventoryLink = document.getElementById('inventoryLink');
+                
+                if (sideInventoryLink) {
+                    console.log('Deep linking: Clicking side inventory link');
+                    sideInventoryLink.click();
+                } else if (inventoryLink) {
+                    console.log('Deep linking: Clicking footer inventory link');
+                    inventoryLink.click();
+                } else {
+                    console.log('Deep linking: No inventory link found, trying direct modal open');
+                    // Try to open the modal directly if available
+                    if (typeof window.openInventoryModal === 'function') {
+                        window.openInventoryModal();
+                    }
+                }
+            }, 800);
+        }
+    }
+    
     // Function to handle category opening based on URL parameters
     function handleCategoryDeepLink() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -116,6 +147,20 @@ document.addEventListener('DOMContentLoaded', function() {
         handleCategoryDeepLink();
     });
     
-    // Initial check for deep link on page load
+    // Initial check for deep links on page load
     handleCategoryDeepLink();
+    handleInventoryDeepLink();
+    
+    // Update browser history when inventory link is clicked
+    const inventoryLinks = [document.getElementById('sideInventoryLink'), document.getElementById('inventoryLink')];
+    inventoryLinks.forEach(function(link) {
+        if (link) {
+            link.addEventListener('click', function(e) {
+                // Don't prevent default here - let the original click handler work
+                
+                // Update the URL without reloading the page
+                window.history.pushState({ inventory: true }, '', '#inventory');
+            });
+        }
+    });
 });
