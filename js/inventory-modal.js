@@ -686,8 +686,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Check if we have data - handle both uppercase and lowercase 'data' property
                 const inventoryItems = data?.Data || data?.data || [];
                 console.log('Inventory items for rendering:', inventoryItems.length);
+
+                // If a location is selected that isn't handled on the server
+                // filter the results client-side using the Locationname field.
+                let filteredItems = inventoryItems;
+                if (api.selectedLocation && !['elberton', 'tate'].includes(api.selectedLocation.toLowerCase())) {
+                    filteredItems = inventoryItems.filter(item => {
+                        const locName = (item.Locationname || item.locationname || '').toLowerCase();
+                        return locName === api.selectedLocation.toLowerCase();
+                    });
+                    console.log(`Filtered items for location ${api.selectedLocation}:`, filteredItems.length);
+                }
                 
-                if (!Array.isArray(inventoryItems) || inventoryItems.length === 0) {
+                if (!Array.isArray(filteredItems) || filteredItems.length === 0) {
                     contentDiv.innerHTML = `
                         <div class="no-results">
                             <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
@@ -708,12 +719,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Get unique values for filters
-                const productTypes = api.getUniqueValues(data, 'Ptype');
-                const productColors = api.getUniqueValues(data, 'PColor');
-                const productDesigns = api.getUniqueValues(data, 'PDesign');
-                const productFinishes = api.getUniqueValues(data, 'PFinish');
-                const productSizes = api.getUniqueValues(data, 'Size');
-                const locations = api.getUniqueValues(data, 'Locationname');
+                const productTypes = api.getUniqueValues({ Data: filteredItems }, 'Ptype');
+                const productColors = api.getUniqueValues({ Data: filteredItems }, 'PColor');
+                const productDesigns = api.getUniqueValues({ Data: filteredItems }, 'PDesign');
+                const productFinishes = api.getUniqueValues({ Data: filteredItems }, 'PFinish');
+                const productSizes = api.getUniqueValues({ Data: filteredItems }, 'Size');
+                const locations = api.getUniqueValues({ Data: filteredItems }, 'Locationname');
                 
                 // Helper function to create option elements with selected state
                 const createOptions = (items, selectedValue) => {
@@ -831,7 +842,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </tr>
                             </thead>
                             <tbody id="inventoryTableBody">
-                                ${inventoryItems.map(item => {
+                                ${filteredItems.map(item => {
                                     // Helper function to get field value with case-insensitive matching
                                     const getField = (fieldName) => {
                                         if (item[fieldName] !== undefined) return item[fieldName];
