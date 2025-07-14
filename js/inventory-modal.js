@@ -75,6 +75,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 overflow-x: auto;
                 overflow-y: auto;
             }
+            .inventory-modal .table-scroll-wrapper {
+                position: relative;
+            }
+            .inventory-modal .table-scroll-wrapper .table-responsive {
+                margin-right: 14px;
+            }
+            .inventory-modal .scrollbar-track {
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 12px;
+                height: 100%;
+                background: #343a40;
+            }
+            .inventory-modal .scrollbar-thumb {
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 100%;
+                background-color: #6c757d;
+                border-radius: 6px;
+                cursor: pointer;
+            }
             .inventory-modal .inventory-table {
                 width: 100%;
                 margin-bottom: 1rem;
@@ -839,8 +862,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Build the table HTML
                 const tableHtml = `
-                    <div class="table-responsive" style="max-height: 65vh; overflow-y: auto; overflow-x: auto;">
-                        <table id="inventoryTable" class="inventory-table table table-striped table-sm table-hover table-bordered align-middle w-100">
+                    <div class="table-scroll-wrapper" style="max-height: 65vh;">
+                        <div id="inventoryTableContainer" class="table-responsive" style="max-height: 65vh; overflow-y: auto; overflow-x: auto;">
+                            <table id="inventoryTable" class="inventory-table table table-striped table-sm table-hover table-bordered align-middle w-100">
                             <thead>
                                 <tr>
                                     <th>Product Code</th>
@@ -921,6 +945,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 }).join('')}
                             </tbody>
                         </table>
+                        </div>
+                        <div class="scrollbar-track"><div class="scrollbar-thumb"></div></div>
                     </div>
                 `;
                 
@@ -936,6 +962,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 setupSearchListener();
                 setupScrollIndicator();
                 filterTable();
+                setupCustomScrollbar();
                 
                 // Load Font Awesome if not already loaded
                 if (!document.querySelector('link[href*="font-awesome"]')) {
@@ -1250,6 +1277,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 summary.textContent = `Showing ${visible} of ${rows.length}`;
             }
             updateResetButtonState();
+            updateCustomScrollbar();
         }
         
         // Function to set up scroll indicator
@@ -1292,7 +1320,65 @@ document.addEventListener('DOMContentLoaded', function() {
                 refreshBtn.addEventListener('click', loadInventoryData);
             }
         }
-        
+
+        // Set up custom scrollbar for the table
+        function setupCustomScrollbar() {
+            const container = document.getElementById('inventoryTableContainer');
+            const track = document.querySelector('.inventory-modal .scrollbar-track');
+            const thumb = document.querySelector('.inventory-modal .scrollbar-thumb');
+
+            if (!container || !track || !thumb) return;
+
+            const updateThumb = () => {
+                const { scrollHeight, clientHeight, scrollTop } = container;
+                const ratio = clientHeight / scrollHeight;
+                const thumbHeight = Math.max(clientHeight * ratio, 20);
+                thumb.style.height = thumbHeight + 'px';
+                const maxTop = clientHeight - thumbHeight;
+                const top = scrollTop / (scrollHeight - clientHeight) * maxTop;
+                thumb.style.top = top + 'px';
+            };
+
+            const onScroll = () => updateThumb();
+            container.addEventListener('scroll', onScroll);
+
+            let startY = 0;
+            let startTop = 0;
+
+            const onMouseDown = (e) => {
+                startY = e.clientY;
+                startTop = parseFloat(thumb.style.top) || 0;
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+                e.preventDefault();
+            };
+
+            const onMouseMove = (e) => {
+                const delta = e.clientY - startY;
+                const maxTop = track.clientHeight - thumb.offsetHeight;
+                let newTop = Math.min(Math.max(startTop + delta, 0), maxTop);
+                const scrollRatio = newTop / maxTop;
+                container.scrollTop = scrollRatio * (container.scrollHeight - container.clientHeight);
+            };
+
+            const onMouseUp = () => {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            };
+
+            thumb.addEventListener('mousedown', onMouseDown);
+
+            container._customScroll = { onScroll, onMouseDown, updateThumb };
+            updateThumb();
+        }
+
+        function updateCustomScrollbar() {
+            const container = document.getElementById('inventoryTableContainer');
+            if (container && container._customScroll) {
+                container._customScroll.updateThumb();
+            }
+        }
+
         // Function to clean up all event listeners
         function cleanupEventListeners() {
             console.log('Cleaning up all event listeners...');
@@ -1359,6 +1445,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     clearTimeout(modalBody._scrollTimeout);
                     delete modalBody._scrollTimeout;
                 }
+            }
+
+            // Clean up custom scrollbar listeners
+            const container = document.getElementById('inventoryTableContainer');
+            if (container && container._customScroll) {
+                container.removeEventListener('scroll', container._customScroll.onScroll);
+                const thumb = document.querySelector('.inventory-modal .scrollbar-thumb');
+                if (thumb) {
+                    thumb.removeEventListener('mousedown', container._customScroll.onMouseDown);
+                }
+                delete container._customScroll;
             }
             
             // Clean up any other timers or intervals
