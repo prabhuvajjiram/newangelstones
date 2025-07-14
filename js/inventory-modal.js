@@ -47,7 +47,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             .inventory-modal .modal-body {
                 flex: 1;
-                overflow-y: hidden;
+                overflow-y: auto;
+                overflow-x: auto;
                 padding: 1rem;
                 position: relative;
             }
@@ -70,12 +71,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 50% { opacity: 1; }
                 100% { opacity: 0.3; }
             }
+            .inventory-modal .table-responsive {
+                overflow-x: auto;
+                overflow-y: auto;
+            }
             .inventory-modal .inventory-table {
                 width: 100%;
                 margin-bottom: 1rem;
                 color: #212529;
                 border-collapse: separate;
                 border-spacing: 0;
+                table-layout: auto;
+                min-width: 100%;
             }
             .inventory-modal .inventory-table th,
             .inventory-modal .inventory-table td {
@@ -833,7 +840,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Build the table HTML
                 const tableHtml = `
                     <div class="table-responsive" style="max-height: 65vh; overflow-y: auto; overflow-x: auto;">
-                        <table id="inventoryTable" class="inventory-table table table-striped table-sm table-hover table-bordered align-middle w-100" style="table-layout: auto;">
+                        <table id="inventoryTable" class="inventory-table table table-striped table-sm table-hover table-bordered align-middle w-100">
                             <thead>
                                 <tr>
                                     <th>Product Code</th>
