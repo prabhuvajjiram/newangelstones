@@ -182,17 +182,10 @@ document.addEventListener('DOMContentLoaded', function() {
             .inventory-modal .scroll-button:hover {
                 background-color: rgba(0,0,0,0.8);
             }
-            .inventory-modal .inventory-filters select {
+            .inventory-modal .column-filter {
                 background-color: #343a40;
                 border-color: #495057;
                 color: #f8f9fa;
-            }
-            .inventory-modal .inventory-filters .form-group {
-                margin-bottom: 0.5rem;
-            }
-            .inventory-modal .inventory-filters label {
-                font-size: 0.875rem;
-                margin-bottom: 0.25rem;
             }
             .inventory-modal #searchHelp {
                 font-size: 0.85rem;
@@ -227,17 +220,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             /* Responsive styles */
             @media (max-width: 767.98px) {
-                .inventory-modal .inventory-filters .row {
-                    margin-right: -5px;
-                    margin-left: -5px;
-                }
                 .inventory-modal .sticky-filters {
                     position: static;
                     box-shadow: none;
-                }
-                .inventory-modal .inventory-filters [class*="col-"] {
-                    padding-right: 5px;
-                    padding-left: 5px;
                 }
                 .inventory-modal .btn {
                     padding: 0.25rem 0.5rem;
@@ -833,80 +818,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     location: currentLocation
                 });
                 
-                // Build the filters HTML with selected values
-                const filtersHtml = `
-                    <button class="btn btn-secondary btn-sm d-md-none mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#inventoryFilterGroup" aria-expanded="true" aria-controls="inventoryFilterGroup" id="toggleFiltersBtn">Hide Filters</button>
-                    <div class="inventory-filters sticky-filters collapse show" id="inventoryFilterGroup">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="search-container">
-                                    <i class="fas fa-search search-icon"></i>
-                                    <input type="text" class="form-control" id="inventorySearch" placeholder="Search inventory...">
-                                </div>
-                                <div id="searchHelp" class="form-text">Search by product code, description, or any attribute</div>
-                            </div>
-                            <div class="col-md-8">
-                                <div class="row">
-                                    <div class="col-md-6 col-6">
-                                        <div class="form-group mb-3">
-                                            <label for="typeFilter">Product Type</label>
-                                            <select class="form-select" id="typeFilter">
-                                                <option value="" ${currentPtype === '' ? 'selected' : ''}>All Types</option>
-                                                ${createOptions(productTypes, currentPtype)}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 col-6">
-                                        <div class="form-group mb-3">
-                                            <label for="colorFilter">Color</label>
-                                            <select class="form-select" id="colorFilter">
-                                                <option value="" ${currentPcolor === '' ? 'selected' : ''}>All Colors</option>
-                                                ${createOptions(productColors, currentPcolor)}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 col-6">
-                                        <div class="form-group mb-3">
-                                            <label for="designFilter">Design</label>
-                                            <select class="form-select" id="designFilter">
-                                                <option value="" ${currentPdesign === '' ? 'selected' : ''}>All Designs</option>
-                                                ${createOptions(productDesigns, currentPdesign)}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 col-6">
-                                        <div class="form-group mb-3">
-                                            <label for="finishFilter">Finish</label>
-                                            <select class="form-select" id="finishFilter">
-                                                <option value="" ${currentPfinish === '' ? 'selected' : ''}>All Finishes</option>
-                                                ${createOptions(productFinishes, currentPfinish)}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 col-6">
-                                        <div class="form-group mb-3">
-                                            <label for="sizeFilter">Size</label>
-                                            <select class="form-select" id="sizeFilter">
-                                                <option value="" ${currentPsize === '' ? 'selected' : ''}>All Sizes</option>
-                                                ${createOptions(productSizes, currentPsize)}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 col-6">
-                                        <div class="form-group mb-3">
-                                            <label for="locationFilter">Location</label>
-                                            <select class="form-select" id="locationFilter">
-                                                <option value="" ${currentLocation === '' ? 'selected' : ''}>All Locations</option>
-                                                ${createOptions(locations, currentLocation)}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 text-end">
-                                        <button class="btn btn-outline-secondary btn-sm" id="resetFiltersBtn">Reset Filters</button>
-                                    </div>
-                                </div>
-                            </div>
+                // Build the search HTML with selected values
+                const searchHtml = `
+                    <div class="inventory-filters sticky-filters">
+                        <div class="search-container">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" class="form-control" id="inventorySearch" placeholder="Search by product code, description, or any attribute...">
                         </div>
+                        <div id="searchHelp" class="form-text">Search by product code, description, or any attribute</div>
                     </div>
                     <div class="summary-count text-end mb-2">Showing ${filteredItems.length} of ${api.totalItems}</div>
                 `;
@@ -919,12 +838,48 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <tr>
                                     <th>Product Code</th>
                                     <th>Description</th>
-                                    <th>Type</th>
-                                    <th>Color</th>
-                                    <th>Design</th>
-                                    <th>Finish</th>
-                                    <th>Size</th>
-                                    <th>Location</th>
+                                    <th>
+                                        Type
+                                        <select class="form-select form-select-sm column-filter mt-1" id="typeFilter">
+                                            <option value="" ${currentPtype === '' ? 'selected' : ''}>All</option>
+                                            ${createOptions(productTypes, currentPtype)}
+                                        </select>
+                                    </th>
+                                    <th>
+                                        Color
+                                        <select class="form-select form-select-sm column-filter mt-1" id="colorFilter">
+                                            <option value="" ${currentPcolor === '' ? 'selected' : ''}>All</option>
+                                            ${createOptions(productColors, currentPcolor)}
+                                        </select>
+                                    </th>
+                                    <th>
+                                        Design
+                                        <select class="form-select form-select-sm column-filter mt-1" id="designFilter">
+                                            <option value="" ${currentPdesign === '' ? 'selected' : ''}>All</option>
+                                            ${createOptions(productDesigns, currentPdesign)}
+                                        </select>
+                                    </th>
+                                    <th>
+                                        Finish
+                                        <select class="form-select form-select-sm column-filter mt-1" id="finishFilter">
+                                            <option value="" ${currentPfinish === '' ? 'selected' : ''}>All</option>
+                                            ${createOptions(productFinishes, currentPfinish)}
+                                        </select>
+                                    </th>
+                                    <th>
+                                        Size
+                                        <select class="form-select form-select-sm column-filter mt-1" id="sizeFilter">
+                                            <option value="" ${currentPsize === '' ? 'selected' : ''}>All</option>
+                                            ${createOptions(productSizes, currentPsize)}
+                                        </select>
+                                    </th>
+                                    <th>
+                                        Location
+                                        <select class="form-select form-select-sm column-filter mt-1" id="locationFilter">
+                                            <option value="" ${currentLocation === '' ? 'selected' : ''}>All</option>
+                                            ${createOptions(locations, currentLocation)}
+                                        </select>
+                                    </th>
                                     <th>Quantity</th>
                                 </tr>
                             </thead>
@@ -961,9 +916,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Build pagination HTML
                 const paginationHtml = buildPagination(api.currentPage, api.totalPages);
-                
+
+                const controlsHtml = `
+                    <div class="d-flex justify-content-between my-2">
+                        <button class="btn btn-outline-secondary btn-sm" id="resetFiltersBtn">Reset Filters</button>
+                        <button class="btn btn-outline-secondary btn-sm" id="refreshTableBtn"><i class="fas fa-sync-alt"></i> Refresh Data</button>
+                    </div>
+                `;
+
                 // Combine all HTML
-                contentDiv.innerHTML = filtersHtml + tableHtml + paginationHtml;
+                contentDiv.innerHTML = searchHtml + tableHtml + controlsHtml + paginationHtml;
                 
                 // Add event listeners for filters and pagination
                 setupFilterListeners();
@@ -1170,6 +1132,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     loadInventoryData();
                 });
             }
+
+            const refreshBtnInline = document.getElementById('refreshTableBtn');
+            if (refreshBtnInline) {
+                refreshBtnInline.addEventListener('click', loadInventoryData);
+            }
         }
         
         // Function to set up pagination event listeners
@@ -1297,7 +1264,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Cleaning up all event listeners...');
             
             // Clean up filter listeners
-            const filterSelects = document.querySelectorAll('.inventory-filters select');
+            const filterSelects = document.querySelectorAll('.column-filter');
             filterSelects.forEach(select => {
                 if (select && filterChangeHandler) {
                     select.removeEventListener('change', filterChangeHandler);
@@ -1322,6 +1289,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const refreshBtn = document.getElementById('refreshInventoryBtn');
             if (refreshBtn) {
                 refreshBtn.removeEventListener('click', loadInventoryData);
+            }
+            const refreshBtnInline = document.getElementById('refreshTableBtn');
+            if (refreshBtnInline) {
+                refreshBtnInline.removeEventListener('click', loadInventoryData);
             }
 
             // Clean up close button listeners
