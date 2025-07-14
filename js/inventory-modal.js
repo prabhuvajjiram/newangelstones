@@ -139,6 +139,37 @@ document.addEventListener('DOMContentLoaded', function() {
             .inventory-modal .inventory-filters {
                 margin-bottom: 1rem;
             }
+            .inventory-modal .sticky-filters {
+                position: sticky;
+                top: 0;
+                z-index: 9;
+                background-color: #212529;
+                padding-top: 0.5rem;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            }
+            .inventory-modal .scroll-buttons {
+                position: absolute;
+                bottom: 15px;
+                right: 15px;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                z-index: 11;
+            }
+            .inventory-modal .scroll-button {
+                background-color: rgba(0,0,0,0.6);
+                border: none;
+                border-radius: 50%;
+                color: #fff;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .inventory-modal .scroll-button:hover {
+                background-color: rgba(0,0,0,0.8);
+            }
             .inventory-modal .inventory-filters select {
                 background-color: #343a40;
                 border-color: #495057;
@@ -171,11 +202,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 height: 3rem;
                 color: #d4af37;
             }
+            .inventory-modal .modal-body::-webkit-scrollbar {
+                width: 12px;
+            }
+            .inventory-modal .modal-body::-webkit-scrollbar-track {
+                background: #343a40;
+            }
+            .inventory-modal .modal-body::-webkit-scrollbar-thumb {
+                background-color: #6c757d;
+                border-radius: 6px;
+                border: 3px solid #343a40;
+            }
             /* Responsive styles */
             @media (max-width: 767.98px) {
                 .inventory-modal .inventory-filters .row {
                     margin-right: -5px;
                     margin-left: -5px;
+                }
+                .inventory-modal .sticky-filters {
+                    position: static;
+                    box-shadow: none;
                 }
                 .inventory-modal .inventory-filters [class*="col-"] {
                     padding-right: 5px;
@@ -574,6 +620,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 scrollIndicator.appendChild(icon);
                 scrollIndicator.appendChild(document.createTextNode(' Scroll for more items'));
                 modalBody.appendChild(scrollIndicator);
+
+                // Scroll control buttons
+                const scrollBtnContainer = document.createElement('div');
+                scrollBtnContainer.className = 'scroll-buttons';
+                const upBtn = document.createElement('button');
+                upBtn.type = 'button';
+                upBtn.className = 'scroll-button scroll-up';
+                upBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+                const downBtn = document.createElement('button');
+                downBtn.type = 'button';
+                downBtn.className = 'scroll-button scroll-down';
+                downBtn.innerHTML = '<i class="fas fa-arrow-down"></i>';
+                scrollBtnContainer.appendChild(upBtn);
+                scrollBtnContainer.appendChild(downBtn);
+                modalBody.appendChild(scrollBtnContainer);
                 
                 // Create modal footer
                 const modalFooter = document.createElement('div');
@@ -762,7 +823,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Build the filters HTML with selected values
                 const filtersHtml = `
-                    <div class="inventory-filters">
+                    <div class="inventory-filters sticky-filters">
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="search-container">
@@ -1019,7 +1080,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Define reusable event handler functions for proper cleanup
-        let filterChangeHandler, paginationClickHandler, searchInputHandler;
+        let filterChangeHandler, paginationClickHandler, searchInputHandler, scrollUpHandler, scrollDownHandler;
         
         // Function to set up filter event listeners
         function setupFilterListeners() {
@@ -1126,7 +1187,9 @@ document.addEventListener('DOMContentLoaded', function() {
         function setupScrollIndicator() {
             const modalBody = document.querySelector('.inventory-modal .modal-body');
             const scrollIndicator = document.querySelector('.inventory-modal .scroll-indicator');
-            
+            const scrollUpBtn = document.querySelector('.inventory-modal .scroll-up');
+            const scrollDownBtn = document.querySelector('.inventory-modal .scroll-down');
+
             if (modalBody && scrollIndicator) {
                 // Show scroll indicator if content is scrollable
                 if (modalBody.scrollHeight > modalBody.clientHeight) {
@@ -1149,6 +1212,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         scrollIndicator.style.display = 'none';
                     }, 5000);
                 }
+            }
+
+            if (modalBody && scrollUpBtn && scrollDownBtn) {
+                scrollUpHandler = () => modalBody.scrollTo({ top: 0, behavior: 'smooth' });
+                scrollDownHandler = () => modalBody.scrollTo({ top: modalBody.scrollHeight, behavior: 'smooth' });
+
+                scrollUpBtn.removeEventListener('click', scrollUpHandler);
+                scrollDownBtn.removeEventListener('click', scrollDownHandler);
+
+                scrollUpBtn.addEventListener('click', scrollUpHandler);
+                scrollDownBtn.addEventListener('click', scrollDownHandler);
             }
             
             // Set up refresh button listener
@@ -1216,7 +1290,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     modalBody.removeEventListener('scroll', modalBody._scrollHandler);
                     delete modalBody._scrollHandler;
                 }
-                
+
+                const scrollUpBtn = document.querySelector('.inventory-modal .scroll-up');
+                const scrollDownBtn = document.querySelector('.inventory-modal .scroll-down');
+                if (scrollUpBtn && scrollUpHandler) {
+                    scrollUpBtn.removeEventListener('click', scrollUpHandler);
+                }
+                if (scrollDownBtn && scrollDownHandler) {
+                    scrollDownBtn.removeEventListener('click', scrollDownHandler);
+                }
+
                 // Clear any pending timeout
                 if (modalBody._scrollTimeout) {
                     clearTimeout(modalBody._scrollTimeout);
