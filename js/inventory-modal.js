@@ -67,25 +67,26 @@ document.addEventListener('DOMContentLoaded', function() {
             .inventory-modal .inventory-table {
                 width: 100%;
                 margin-bottom: 1rem;
-                color: #f8f9fa;
-                border-collapse: collapse;
+                color: #212529;
+                border-collapse: separate;
+                border-spacing: 0;
             }
             .inventory-modal .inventory-table th,
             .inventory-modal .inventory-table td {
                 padding: 0.75rem;
-                vertical-align: top;
-                border-top: 1px solid #343a40;
+                vertical-align: middle;
+                border-top: 1px solid #dee2e6;
             }
             .inventory-modal .inventory-table thead th {
                 vertical-align: bottom;
-                border-bottom: 2px solid #343a40;
-                background-color: #343a40;
+                border-bottom: 2px solid #dee2e6;
+                background-color: #f8f9fa;
                 position: sticky;
                 top: 0;
                 z-index: 5;
             }
             .inventory-modal .inventory-table tbody tr:hover {
-                background-color: #343a40;
+                background-color: #f1f1f1;
             }
             .inventory-modal .pagination {
                 justify-content: center;
@@ -550,6 +551,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const closeButton = document.createElement('button');
                 closeButton.type = 'button';
                 closeButton.className = 'btn-close';
+                closeButton.id = 'inventoryModalCloseBtn';
                 closeButton.setAttribute('data-bs-dismiss', 'modal');
                 closeButton.setAttribute('aria-label', 'Close');
                 modalHeader.appendChild(closeButton);
@@ -613,22 +615,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Function to add listeners to modal buttons
         function addModalButtonListeners() {
-            const closeBtn = document.getElementById('closeInventoryBtn');
-            if (closeBtn) {
-                // Ensure the close button triggers the Bootstrap dismissal
-                closeBtn.setAttribute('data-bs-dismiss', 'modal');
+            const footerBtn = document.getElementById('closeInventoryBtn');
+            const headerBtn = document.getElementById('inventoryModalCloseBtn');
 
-                // Remove any existing listener to avoid duplicates
-                closeBtn.removeEventListener('click', closeBtnHandler);
+            [footerBtn, headerBtn].forEach(btn => {
+                if (btn) {
+                    // Ensure button triggers the Bootstrap dismissal
+                    btn.setAttribute('data-bs-dismiss', 'modal');
+                    // Remove any existing listener to avoid duplicates
+                    btn.removeEventListener('click', closeBtnHandler);
+                }
+            });
 
-                closeBtnHandler = function() {
-                    if (inventoryModalInstance) {
-                        inventoryModalInstance.hide();
-                    }
-                };
+            closeBtnHandler = function() {
+                if (inventoryModalInstance) {
+                    inventoryModalInstance.hide();
+                }
+            };
 
-                closeBtn.addEventListener('click', closeBtnHandler);
-            }
+            [footerBtn, headerBtn].forEach(btn => {
+                if (btn) {
+                    btn.addEventListener('click', closeBtnHandler);
+                }
+            });
         }
 
         // Function to load and display inventory data
@@ -827,7 +836,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Build the table HTML
                 const tableHtml = `
                     <div class="table-responsive">
-                        <table class="inventory-table table table-striped">
+                        <table class="inventory-table table table-striped table-hover table-bordered align-middle">
                             <thead>
                                 <tr>
                                     <th>Product Code</th>
@@ -1184,11 +1193,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 refreshBtn.removeEventListener('click', loadInventoryData);
             }
 
-            // Clean up footer close button listener
-            const closeBtn = document.getElementById('closeInventoryBtn');
-            if (closeBtn && closeBtnHandler) {
-                closeBtn.removeEventListener('click', closeBtnHandler);
-            }
+            // Clean up close button listeners
+            const footerBtn = document.getElementById('closeInventoryBtn');
+            const headerBtn = document.getElementById('inventoryModalCloseBtn');
+            [footerBtn, headerBtn].forEach(btn => {
+                if (btn && closeBtnHandler) {
+                    btn.removeEventListener('click', closeBtnHandler);
+                }
+            });
             
             // Clean up retry button listener
             const retryBtn = document.getElementById('retryLoadBtn');
