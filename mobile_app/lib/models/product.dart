@@ -4,6 +4,7 @@ class Product {
   final String description;
   final String imageUrl;
   final double price;
+  final String? label;
 
   Product({
     required this.id,
@@ -11,6 +12,7 @@ class Product {
     required this.description,
     required this.imageUrl,
     required this.price,
+    this.label,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -33,12 +35,22 @@ class Product {
     final priceField =
         (data['offers'] is Map) ? (data['offers']['price']) : data['price'];
 
+    String? label;
+    if (data['label'] != null) {
+      label = data['label'].toString();
+    } else if (data['category'] is List && (data['category'] as List).isNotEmpty) {
+      label = (data['category'] as List).first.toString();
+    } else if (data['category'] is String) {
+      label = data['category'] as String;
+    }
+
     return Product(
       id: (data['sku'] ?? data['id'] ?? '').toString(),
       name: data['name'] ?? '',
       description: data['description'] ?? '',
       imageUrl: imageUrl,
       price: double.tryParse(priceField?.toString() ?? '') ?? 0.0,
+      label: label,
     );
   }
 }
