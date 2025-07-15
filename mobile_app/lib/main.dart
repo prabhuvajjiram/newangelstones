@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'services/api_service.dart';
 import 'services/storage_service.dart';
+import 'services/inventory_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/colors_screen.dart';
 import 'screens/inventory_screen.dart';
@@ -35,6 +36,7 @@ class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
   final ApiService _apiService = ApiService();
   final StorageService _storageService = StorageService();
+  final InventoryService _inventoryService = InventoryService();
 
   late final List<Widget> _pages;
 
@@ -46,6 +48,8 @@ class _MainNavigationState extends State<MainNavigation> {
         key: const PageStorageKey('home'),
         apiService: _apiService,
         storageService: _storageService,
+        inventoryService: _inventoryService,
+        onViewFullInventory: () => setState(() => _currentIndex = 2),
       ),
       ColorsScreen(
         key: const PageStorageKey('colors'),
@@ -53,7 +57,7 @@ class _MainNavigationState extends State<MainNavigation> {
       ),
       InventoryScreen(
         key: const PageStorageKey('inventory'),
-        apiService: _apiService,
+        inventoryService: _inventoryService,
       ),
       const ContactScreen(key: PageStorageKey('contact')),
     ];

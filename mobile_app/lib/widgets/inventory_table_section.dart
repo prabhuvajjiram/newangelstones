@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../models/product.dart';
+import '../models/inventory_item.dart';
 
 class InventoryTableSection extends StatelessWidget {
   final String title;
-  final Future<List<Product>> future;
+  final Future<List<InventoryItem>> future;
   const InventoryTableSection({super.key, required this.title, required this.future});
 
   @override
@@ -15,7 +15,7 @@ class InventoryTableSection extends StatelessWidget {
         children: [
           Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          FutureBuilder<List<Product>>(
+          FutureBuilder<List<InventoryItem>>(
             future: future,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -38,11 +38,11 @@ class InventoryTableSection extends StatelessWidget {
                   ],
                   rows: items.map((item) {
                     return DataRow(cells: [
-                      DataCell(Text(item.id)),
-                      DataCell(Text(item.name)),
-                      const DataCell(Text('N/A')),
-                      const DataCell(Text('N/A')),
-                      const DataCell(Text('In Stock')),
+                      DataCell(Text(item.code)),
+                      DataCell(Text(item.description)),
+                      DataCell(Text(item.color)),
+                      DataCell(Text(item.size)),
+                      DataCell(Text(item.status)),
                     ]);
                   }).toList(),
                 ),
