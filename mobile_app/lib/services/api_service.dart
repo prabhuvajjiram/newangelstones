@@ -9,8 +9,12 @@ class ApiService {
     final uri = Uri.parse('$_baseUrl/api/color.json');
     final response = await http.get(uri);
     if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((e) => Product.fromJson(e)).toList();
+      final Map<String, dynamic> jsonData = json.decode(response.body);
+      final List<dynamic> items = jsonData['itemListElement'] ?? [];
+      return items
+          .whereType<Map<String, dynamic>>()
+          .map((e) => Product.fromJson(e['item'] as Map<String, dynamic>))
+          .toList();
     } else {
       throw Exception('Failed to load products');
     }

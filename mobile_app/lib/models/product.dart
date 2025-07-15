@@ -14,12 +14,31 @@ class Product {
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
+    final Map<String, dynamic> data =
+        json.containsKey('item') ? json['item'] as Map<String, dynamic> : json;
+
+    String imageUrl = '';
+    final imageField = data['image'];
+    if (imageField is List && imageField.isNotEmpty) {
+      final first = imageField.first;
+      if (first is Map<String, dynamic>) {
+        imageUrl = first['url'] ?? '';
+      } else if (first is String) {
+        imageUrl = first;
+      }
+    } else if (imageField is String) {
+      imageUrl = imageField;
+    }
+
+    final priceField =
+        (data['offers'] is Map) ? (data['offers']['price']) : data['price'];
+
     return Product(
-      id: json['id'].toString(),
-      name: json['name'] ?? '',
-      description: json['description'] ?? '',
-      imageUrl: json['image'] ?? '',
-      price: double.tryParse(json['price'].toString()) ?? 0.0,
+      id: (data['sku'] ?? data['id'] ?? '').toString(),
+      name: data['name'] ?? '',
+      description: data['description'] ?? '',
+      imageUrl: imageUrl,
+      price: double.tryParse(priceField?.toString() ?? '') ?? 0.0,
     );
   }
 }
