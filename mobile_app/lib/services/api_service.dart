@@ -23,7 +23,17 @@ class ApiService {
 
   Future<List<Product>> loadLocalProducts(String assetPath) async {
     final data = await rootBundle.loadString(assetPath);
-    final List<dynamic> items = json.decode(data) as List<dynamic>;
+    final dynamic decoded = json.decode(data);
+    List<dynamic> items;
+    if (decoded is Map<String, dynamic> && decoded['itemListElement'] != null) {
+      items = (decoded['itemListElement'] as List)
+          .map((e) => e is Map<String, dynamic> ? e['item'] ?? e : e)
+          .toList();
+    } else if (decoded is List) {
+      items = decoded;
+    } else {
+      items = [];
+    }
     return items
         .whereType<Map<String, dynamic>>()
         .map((e) => Product.fromJson(e))
