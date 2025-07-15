@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
-import 'product_detail_screen.dart';
+import '../widgets/product_section.dart';
 import 'cart_screen.dart';
 import 'contact_screen.dart';
 
@@ -17,22 +17,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late Future<List<Product>> _futureProducts;
+  late Future<List<Product>> _futureFeatured;
+  late Future<List<Product>> _futureInventory;
 
   @override
   void initState() {
     super.initState();
-    _futureProducts = _loadProducts();
-  }
-
-  Future<List<Product>> _loadProducts() async {
-    final cached = await widget.storageService.loadProducts();
-    if (cached != null) {
-      return cached;
-    }
-    final products = await widget.apiService.fetchProducts();
-    await widget.storageService.saveProducts(products);
-    return products;
+    _futureFeatured =
+        widget.apiService.loadLocalProducts('assets/featured_products.json');
+    _futureInventory =
+        widget.apiService.loadLocalProducts('assets/inventory.json');
   }
 
   @override
@@ -55,56 +49,20 @@ class _HomeScreenState extends State<HomeScreen> {
           )
         ],
       ),
-      body: FutureBuilder<List<Product>>(
-        future: _futureProducts,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No products found'));
-          }
-          final products = snapshot.data!;
-          return GridView.builder(
-            padding: const EdgeInsets.all(8),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.75,
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ProductSection(
+              title: 'Featured Products',
+              future: _futureFeatured,
             ),
-            itemCount: products.length,
-            itemBuilder: (context, index) {
-              final product = products[index];
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ProductDetailScreen(product: product),
-                    ),
-                  );
-                },
-                child: Card(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        child: Image.network(
-                          product.imageUrl,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(product.name, style: const TextStyle(fontSize: 16)),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
+            ProductSection(
+              title: 'Current Inventory (Recently Updated)',
+              future: _futureInventory,
+            ),
+          ],
+        ),
       ),
     );
   }

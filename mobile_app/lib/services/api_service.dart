@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart' show rootBundle;
 import '../models/product.dart';
 
 class ApiService {
@@ -18,5 +19,14 @@ class ApiService {
     } else {
       throw Exception('Failed to load products');
     }
+  }
+
+  Future<List<Product>> loadLocalProducts(String assetPath) async {
+    final data = await rootBundle.loadString(assetPath);
+    final List<dynamic> items = json.decode(data) as List<dynamic>;
+    return items
+        .whereType<Map<String, dynamic>>()
+        .map((e) => Product.fromJson(e))
+        .toList();
   }
 }

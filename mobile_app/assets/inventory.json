@@ -1,0 +1,26 @@
+[
+  {
+    "id": "i1",
+    "name": "Black Granite Slab",
+    "description": "Polished slab ready for carving.",
+    "image": "https://via.placeholder.com/150/000000/FFFFFF?text=Black+Slab",
+    "price": 0,
+    "label": "In Stock"
+  },
+  {
+    "id": "i2",
+    "name": "Red Granite Vase",
+    "description": "Elegant vase design.",
+    "image": "https://via.placeholder.com/150/FF0000/FFFFFF?text=Vase",
+    "price": 0,
+    "label": "In Stock"
+  },
+  {
+    "id": "i3",
+    "name": "Angel Carving",
+    "description": "Beautiful angel statue.",
+    "image": "https://via.placeholder.com/150",
+    "price": 0,
+    "label": "In Stock"
+  }
+]
