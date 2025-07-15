@@ -3,8 +3,6 @@ import '../models/product.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import '../widgets/product_section.dart';
-import 'cart_screen.dart';
-import 'contact_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final ApiService apiService;
@@ -19,6 +17,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late Future<List<Product>> _futureFeatured;
   late Future<List<Product>> _futureInventory;
+  late Future<List<Product>> _futureSpecials;
 
   @override
   void initState() {
@@ -27,42 +26,29 @@ class _HomeScreenState extends State<HomeScreen> {
         widget.apiService.loadLocalProducts('assets/featured_products.json');
     _futureInventory =
         widget.apiService.loadLocalProducts('assets/inventory.json');
+    _futureSpecials =
+        widget.apiService.loadLocalProducts('assets/specials.json');
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Angel Stones'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
-            },
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ProductSection(
+            title: 'Flyers',
+            future: _futureSpecials,
           ),
-          IconButton(
-            icon: const Icon(Icons.contact_page),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const ContactScreen()));
-            },
-          )
+          ProductSection(
+            title: 'Featured Products',
+            future: _futureFeatured,
+          ),
+          ProductSection(
+            title: 'Current Inventory',
+            future: _futureInventory,
+          ),
         ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ProductSection(
-              title: 'Featured Products',
-              future: _futureFeatured,
-            ),
-            ProductSection(
-              title: 'Current Inventory (Recently Updated)',
-              future: _futureInventory,
-            ),
-          ],
-        ),
       ),
     );
   }

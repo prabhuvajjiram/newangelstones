@@ -1,26 +1,42 @@
 [
   {
-    "id": "f1",
-    "name": "Classic Monument",
-    "description": "Traditional monument style.",
-    "image": "https://via.placeholder.com/150",
+    "id": "MBNA_2025",
+    "name": "MBNA 2025",
+    "description": "Latest MBNA monument collection",
+    "image": "https://www.theangelstones.com/images/products/MBNA_2025/AG-116.jpg",
     "price": 0,
-    "label": "Featured"
+    "label": "26 Designs"
   },
   {
-    "id": "f2",
-    "name": "Blue Special Flyer",
-    "description": "Limited time flyer promotion.",
-    "image": "https://via.placeholder.com/150/0000FF/FFFFFF?text=Blue+Flyer",
+    "id": "Monuments",
+    "name": "In-stock, ready to ship special designs",
+    "description": "Special monument designs available",
+    "image": "https://www.theangelstones.com/images/products/Monuments/granite-monuments-project02.jpg",
     "price": 0,
-    "label": "Blue Special"
+    "label": "28 Designs"
   },
   {
-    "id": "f3",
-    "name": "Granite Bench",
-    "description": "Comfortable bench for memorial parks.",
-    "image": "https://via.placeholder.com/150",
+    "id": "columbarium",
+    "name": "Columbarium",
+    "description": "Columbarium options",
+    "image": "https://www.theangelstones.com/images/products/columbarium/customized-designs-project03.jpg",
     "price": 0,
-    "label": "Product Type"
+    "label": "1 Design"
+  },
+  {
+    "id": "Designs",
+    "name": "Designs",
+    "description": "Unique designs",
+    "image": "https://www.theangelstones.com/images/products/Designs/chess.jpg",
+    "price": 0,
+    "label": "1 Design"
+  },
+  {
+    "id": "Benches",
+    "name": "Benches",
+    "description": "Bench collection",
+    "image": "https://www.theangelstones.com/images/products/Benches/Founain2.png",
+    "price": 0,
+    "label": "3 Designs"
   }
 ]

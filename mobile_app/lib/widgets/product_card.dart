@@ -15,6 +15,7 @@ class ProductCard extends StatelessWidget {
             child: Image.network(
               product.imageUrl,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
             ),
           ),
           if (product.label != null && product.label!.isNotEmpty)
