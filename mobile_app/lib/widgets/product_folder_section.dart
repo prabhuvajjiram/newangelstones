@@ -1,0 +1,92 @@
+import 'package:flutter/material.dart';
+import '../models/product.dart';
+import '../screens/design_gallery_screen.dart';
+import '../services/api_service.dart';
+
+class ProductFolderSection extends StatelessWidget {
+  final String title;
+  final Future<List<Product>> future;
+  final ApiService apiService;
+  const ProductFolderSection({super.key, required this.title, required this.future, required this.apiService});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          FutureBuilder<List<Product>>(
+            future: future,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Text('No items found');
+              }
+              final categories = snapshot.data!;
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.75,
+                ),
+                itemCount: categories.length,
+                itemBuilder: (context, index) {
+                  final product = categories[index];
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => DesignGalleryScreen(
+                            categoryId: product.id,
+                            title: product.name,
+                            apiService: apiService,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Card(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: Image.network(
+                              product.imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stack) => const Icon(Icons.broken_image),
+                            ),
+                          ),
+                          if (product.label != null && product.label!.isNotEmpty)
+                            Container(
+                              color: Colors.blueAccent,
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                              child: Text(
+                                product.label!,
+                                style: const TextStyle(color: Colors.white, fontSize: 12),
+                              ),
+                            ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(product.name, style: const TextStyle(fontSize: 16)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
