@@ -90,6 +90,8 @@ class _MainNavigationState extends State<MainNavigation> {
       bottomNavigationBar: SafeArea(
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
+          selectedItemColor: Theme.of(context).colorScheme.primary,
+          type: BottomNavigationBarType.fixed,
           onTap: (index) => setState(() => _currentIndex = index),
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
