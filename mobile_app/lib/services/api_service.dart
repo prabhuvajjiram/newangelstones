@@ -6,6 +6,21 @@ import '../models/product.dart';
 class ApiService {
   static const _baseUrl = 'https://theangelstones.com';
 
+  Future<List<String>> fetchCategoryImages(String category) async {
+    final uri = Uri.parse('$_baseUrl/get_directory_files.php?directory=products/$category');
+    final response = await http.get(uri);
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> jsonData = json.decode(response.body);
+      final List<dynamic> files = jsonData['files'] ?? [];
+      return files
+          .whereType<Map<String, dynamic>>()
+          .map((e) => '$_baseUrl/' + (e['path'] ?? '').toString())
+          .toList();
+    } else {
+      throw Exception('Failed to load category images');
+    }
+  }
+
   Future<List<Product>> fetchProducts() async {
     final uri = Uri.parse('$_baseUrl/api/color.json');
     final response = await http.get(uri);

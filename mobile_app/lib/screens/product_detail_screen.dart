@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
-import 'cart_screen.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final Product product;
@@ -12,14 +11,7 @@ class ProductDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(product.name),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
-            },
-          )
-        ],
+        actions: const [],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -30,20 +22,11 @@ class ProductDetailScreen extends StatelessWidget {
             const SizedBox(height: 16),
             Text(product.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('''\$${product.price.toStringAsFixed(2)}''', style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 8),
             Text(product.description),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                // Add to cart logic would go here
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Added to cart')));
-              },
-              child: const Text('Add to Cart'),
-            ),
           ],
         ),
       ),
     );
   }
 }
+
