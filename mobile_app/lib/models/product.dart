@@ -5,6 +5,7 @@ class Product {
   final String imageUrl;
   final double price;
   final String? label;
+  final String? pdfUrl;
 
   Product({
     required this.id,
@@ -13,6 +14,7 @@ class Product {
     required this.imageUrl,
     required this.price,
     this.label,
+    this.pdfUrl,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -51,6 +53,7 @@ class Product {
       imageUrl: imageUrl,
       price: double.tryParse(priceField?.toString() ?? '') ?? 0.0,
       label: label,
+      pdfUrl: data['pdf']?.toString(),
     );
   }
 }

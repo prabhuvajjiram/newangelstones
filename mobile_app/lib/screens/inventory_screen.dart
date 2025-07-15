@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
-import '../widgets/product_section.dart';
+import '../widgets/inventory_table_section.dart';
 
 class InventoryScreen extends StatefulWidget {
   final ApiService apiService;
@@ -23,7 +23,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      child: ProductSection(
+      child: InventoryTableSection(
         title: 'Current Inventory',
         future: _futureInventory,
       ),
