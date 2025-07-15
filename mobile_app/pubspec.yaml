@@ -22,3 +22,5 @@ flutter:
   assets:
     - assets/featured_products.json
     - assets/inventory.json
+    - assets/colors.json
+    - assets/specials.json
