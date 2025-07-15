@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'services/api_service.dart';
 import 'services/storage_service.dart';
 import 'services/inventory_service.dart';
+import 'services/directory_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/colors_screen.dart';
 import 'screens/inventory_screen.dart';
@@ -37,6 +38,7 @@ class _MainNavigationState extends State<MainNavigation> {
   final ApiService _apiService = ApiService();
   final StorageService _storageService = StorageService();
   final InventoryService _inventoryService = InventoryService();
+  final DirectoryService _directoryService = DirectoryService();
 
   late final List<Widget> _pages;
 
@@ -49,6 +51,7 @@ class _MainNavigationState extends State<MainNavigation> {
         apiService: _apiService,
         storageService: _storageService,
         inventoryService: _inventoryService,
+        directoryService: _directoryService,
         onViewFullInventory: () => setState(() => _currentIndex = 2),
       ),
       ColorsScreen(

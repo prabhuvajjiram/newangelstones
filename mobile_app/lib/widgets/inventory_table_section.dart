@@ -4,7 +4,13 @@ import '../models/inventory_item.dart';
 class InventoryTableSection extends StatelessWidget {
   final String title;
   final Future<List<InventoryItem>> future;
-  const InventoryTableSection({super.key, required this.title, required this.future});
+  final VoidCallback onRetry;
+  const InventoryTableSection({
+    super.key,
+    required this.title,
+    required this.future,
+    required this.onRetry,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +27,21 @@ class InventoryTableSection extends StatelessWidget {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
+                debugPrint('Inventory load error: ${snapshot.error}');
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Unable to load inventory at the moment.',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                    const Text('Please check your internet connection or try again.'),
+                    TextButton(
+                      onPressed: onRetry,
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                );
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                 return const Text('No items found');
               }

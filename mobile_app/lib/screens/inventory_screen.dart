@@ -17,7 +17,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
   @override
   void initState() {
     super.initState();
-    _futureInventory = widget.inventoryService.fetchInventory(pageSize: 100);
+    _loadInventory();
+  }
+
+  void _loadInventory() {
+    setState(() {
+      _futureInventory = widget.inventoryService.fetchInventory(pageSize: 100);
+    });
   }
 
   @override
@@ -26,6 +32,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       child: InventoryTableSection(
         title: 'Current Inventory',
         future: _futureInventory,
+        onRetry: _loadInventory,
       ),
     );
   }
