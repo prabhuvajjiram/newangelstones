@@ -122,9 +122,10 @@
             
             // Create color item with schema.org attributes
             const item = `
-                <div class="color-item" 
-                     itemprop="itemListElement" 
-                     itemscope 
+                <div class="color-scroll-item variety-of-granites glowing-border"
+                     
+                     itemprop="itemListElement"
+                     itemscope
                      itemtype="https://schema.org/ListItem"
                      data-color-name="${color.name}">
                     <meta itemprop="position" content="${index + 1}" />

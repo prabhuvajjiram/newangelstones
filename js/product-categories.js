@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         Object.entries(categories).forEach(([category, images]) => {
             const categoryItem = document.createElement('div');
-            categoryItem.className = 'category-item';
+            categoryItem.className = 'category-item glowing-border';
 
             const link = document.createElement('a');
             link.href = `#${category.toLowerCase()}-collection`;
