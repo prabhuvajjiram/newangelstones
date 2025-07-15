@@ -31,6 +31,7 @@ class MainNavigation extends StatefulWidget {
 }
 
 class _MainNavigationState extends State<MainNavigation> {
+  final PageStorageBucket _bucket = PageStorageBucket();
   int _currentIndex = 0;
   final ApiService _apiService = ApiService();
   final StorageService _storageService = StorageService();
@@ -41,10 +42,20 @@ class _MainNavigationState extends State<MainNavigation> {
   void initState() {
     super.initState();
     _pages = [
-      HomeScreen(apiService: _apiService, storageService: _storageService),
-      ColorsScreen(apiService: _apiService),
-      InventoryScreen(apiService: _apiService),
-      const ContactScreen(),
+      HomeScreen(
+        key: const PageStorageKey('home'),
+        apiService: _apiService,
+        storageService: _storageService,
+      ),
+      ColorsScreen(
+        key: const PageStorageKey('colors'),
+        apiService: _apiService,
+      ),
+      InventoryScreen(
+        key: const PageStorageKey('inventory'),
+        apiService: _apiService,
+      ),
+      const ContactScreen(key: PageStorageKey('contact')),
     ];
   }
 
@@ -72,16 +83,27 @@ class _MainNavigationState extends State<MainNavigation> {
           ),
         ],
       ),
-      body: IndexedStack(index: _currentIndex, children: _pages),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.palette), label: 'Colors'),
-          BottomNavigationBarItem(icon: Icon(Icons.inventory), label: 'Inventory'),
-          BottomNavigationBarItem(icon: Icon(Icons.contact_mail), label: 'Contact'),
-        ],
+      body: PageStorage(
+        bucket: _bucket,
+        child: IndexedStack(index: _currentIndex, children: _pages),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.palette), label: 'Colors'),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.inventory),
+              label: 'Inventory',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.contact_mail),
+              label: 'Contact',
+            ),
+          ],
+        ),
       ),
     );
   }
