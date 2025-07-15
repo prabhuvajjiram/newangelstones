@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
-import '../widgets/product_section.dart';
+import '../widgets/flyer_section.dart';
+import '../widgets/product_folder_section.dart';
+import '../widgets/inventory_table_section.dart';
 
 class HomeScreen extends StatefulWidget {
   final ApiService apiService;
@@ -36,15 +38,16 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ProductSection(
+          FlyerSection(
             title: 'Flyers',
             future: _futureSpecials,
           ),
-          ProductSection(
+          ProductFolderSection(
             title: 'Featured Products',
             future: _futureFeatured,
+            apiService: widget.apiService,
           ),
-          ProductSection(
+          InventoryTableSection(
             title: 'Current Inventory',
             future: _futureInventory,
           ),
