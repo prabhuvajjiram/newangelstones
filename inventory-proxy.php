@@ -61,7 +61,14 @@ $pcolor = isset($params['pcolor']) ? $params['pcolor'] : '';
 $pdesign = isset($params['pdesign']) ? $params['pdesign'] : '';
 $pfinish = isset($params['pfinish']) ? $params['pfinish'] : '';
 $psize = isset($params['psize']) ? $params['psize'] : '';
-$locid = isset($params['locid']) ? $params['locid'] : '';  // Don't set a default, let the client specify
+$locid = isset($params['locid']) ? $params['locid'] : '';
+
+// Ensure required parameters are present
+if ($locid === '') {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Missing locid']);
+    exit;
+}
 
 // Request parameters for API call
 $api_params = [
@@ -90,6 +97,7 @@ function return_error($message, $code = 500, $additional_data = []) {
     $response = [
         'success' => false,
         'error' => $message,
+        'message' => $message,
         'error_code' => $code,
         'execution_time' => round($execution_time, 4) . 's',
         'debug' => array_merge($additional_data, [
@@ -129,6 +137,13 @@ curl_setopt_array($ch, [
 // Execute cURL request with error handling
 $response = curl_exec($ch);
 
+// Log raw response for debugging
+if ($response === false) {
+    error_log('cURL returned false for locid ' . $locid . ': ' . curl_error($ch));
+} else {
+    error_log('API response sample: ' . substr($response, 0, 200));
+}
+
 // Check for cURL errors
 if (curl_errno($ch)) {
     return_error(
@@ -162,9 +177,20 @@ curl_close($ch);
 $execution_time = microtime(true) - $start_time;
 
 // Process the response
-// First, check if the response is valid JSON
-$data = json_decode($response, true);
-$json_error = json_last_error();
+try {
+    $data = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+    $json_error = JSON_ERROR_NONE;
+} catch (JsonException $e) {
+    $json_error = $e->getCode();
+    error_log('JSON decode error: ' . $e->getMessage());
+    return_error(
+        'Failed to parse API response: ' . $e->getMessage(),
+        500,
+        [
+            'response_sample' => substr($response, 0, 1000) . (strlen($response) > 1000 ? '...' : ''),
+        ]
+    );
+}
 
 // Debug information
 $debug_info = [
@@ -177,17 +203,6 @@ $debug_info = [
     'request_timestamp' => date('Y-m-d H:i:s'),
     'api_params' => $api_params
 ];
-
-// Handle JSON parsing errors
-if ($json_error !== JSON_ERROR_NONE) {
-    return_error(
-        'Failed to parse API response: ' . json_last_error_msg(),
-        500,
-        [
-            'response_sample' => substr($response, 0, 1000) . (strlen($response) > 1000 ? '...' : '')
-        ]
-    );
-}
 
 // Check if data is properly structured
 if (!is_array($data)) {
