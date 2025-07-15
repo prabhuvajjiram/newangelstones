@@ -1,0 +1,1725 @@
+{
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "Angel Stones Granite Color Varieties",
+    "description": "Explore our premium granite colors for monuments and headstones. Choose from a wide variety of high-quality granites for your memorial needs.",
+    "itemListOrder": "Unordered",
+    "url": "https://www.theangelstones.com/colors",
+    "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://www.theangelstones.com/colors"
+    },
+    "itemListElement": [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "item": {
+                "@type": "Product",
+                "name": "Bahama Blue Granite",
+                "description": "Distinctive Bahama Blue granite with unique blue tones, perfect for creating striking monuments and memorials.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/Bahama-Blue.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Bahama Blue Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/bahama-blue-granite",
+                "sku": "GC-BAHBLU-001",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/bahama-blue-granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 2,
+            "item": {
+                "@type": "Product",
+                "name": "Baltic Green Granite",
+                "description": "Unique Baltic Green granite showcases deep forest green tones with black accents, creating distinctive memorial stones.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/Baltic Green.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Baltic Green Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/baltic-green-granite",
+                "sku": "GC-BALGRE-002",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/baltic-green-granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 3,
+            "item": {
+                "@type": "Product",
+                "name": "Dark Barre Gray Granite",
+                "description": "Classic Dark Barre Gray granite features consistent dark gray tones that provide an elegant and timeless appearance for monuments.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/Dark Barre Gray.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Dark Barre Gray Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/dark-barre-gray-granite",
+                "sku": "GC-DARBAR-003",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/dark-barre-gray-granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 4,
+            "item": {
+                "@type": "Product",
+                "name": "Forest Green Granite",
+                "description": "Elegant Forest Green granite features rich, deep green tones that create serene and dignified memorial monuments.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/Forest Green.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Forest Green Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/forest-green-granite",
+                "sku": "GC-FORGRE-004",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/forest-green-granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 5,
+            "item": {
+                "@type": "Product",
+                "name": "Georgia Gray Granite",
+                "description": "Premium Georgia Gray granite with a consistent, elegant gray tone, ideal for monuments and memorials.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/Georgia Gray.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Georgia Gray Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/georgia-gray-granite",
+                "sku": "GC-GEOGRA-005",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/georgia-gray-granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 6,
+            "item": {
+                "@type": "Product",
+                "name": "Green Breeze Granite",
+                "description": "Luxurious Green Breeze granite features gentle green hues with subtle patterns, creating an elegant and peaceful memorial.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/Green Breeze.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Green Breeze Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/green-breeze-granite",
+                "sku": "GC-GREBRE-006",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/green-breeze-granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 7,
+            "item": {
+                "@type": "Product",
+                "name": "Green Dream Granite",
+                "description": "Vibrant Green Dream granite offers rich emerald tones with unique patterns, making it perfect for distinctive memorials.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/Green Dream.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Green Dream Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/green-dream-granite",
+                "sku": "GC-GREDRE-007",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/green-dream-granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 8,
+            "item": {
+                "@type": "Product",
+                "name": "Green Pearl Granite",
+                "description": "Distinctive Green Pearl granite offers a light green background with pearl-like iridescence, creating sophisticated and elegant monuments.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/Green Pearl.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Green Pearl Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/green-pearl-granite",
+                "sku": "GC-GREPEA-008",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/green-pearl-granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 9,
+            "item": {
+                "@type": "Product",
+                "name": "Green Wave Quartzite",
+                "description": "Extraordinary Green Wave Quartzite features dramatic flowing patterns of green and white, creating spectacular, one-of-a-kind memorials.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/Green Wave Quartzite.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Green Wave Quartzite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Quartzite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/green-wave-quartzite",
+                "sku": "GC-GREWAV-009",
+                "material": "Quartzite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Quartzite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/green-wave-quartzite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 10,
+            "item": {
+                "@type": "Product",
+                "name": "Imperial Green Granite",
+                "description": "Majestic Imperial Green granite features rich forest green tones with black accents, perfect for creating impressive and enduring monuments.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/Imperial Green.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Imperial Green Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/imperial-green-granite",
+                "sku": "GC-IMPGRE-010",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/imperial-green-granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 11,
+            "item": {
+                "@type": "Product",
+                "name": "Jet Black Granite",
+                "description": "Premium Jet Black granite provides a deep, consistent black color that creates sophisticated, elegant, and timeless memorials.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/Jet-Black.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Jet Black Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/jet-black-granite",
+                "sku": "GC-JETBLA-011",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/jet-black-granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 12,
+            "item": {
+                "@type": "Product",
+                "name": "Medium Barre Gray Granite",
+                "description": "Classic Medium Barre Gray granite features a light to medium gray tone with subtle texture, providing an elegant and versatile option for memorials.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/Medium Barre Gray.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Medium Barre Gray Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/medium-barre-gray-granite",
+                "sku": "GC-MEDBAR-012",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/medium-barre-gray-granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 13,
+            "item": {
+                "@type": "Product",
+                "name": "NH Red Granite",
+                "description": "Vibrant NH Red granite features warm red and pink tones that create distinctive and memorable monuments with a unique character.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/NH-Red.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "NH Red Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/nh-red-granite",
+                "sku": "GC-NHRED-013",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/nh-red-granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 14,
+            "item": {
+                "@type": "Product",
+                "name": "Olive Green Granite",
+                "description": "Subtle Olive Green granite offers understated elegance with its muted green tones, perfect for creating harmonious and serene memorials.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/Olive Green.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Olive Green Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/olive-green-granite",
+                "sku": "GC-OLIGRE-014",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/olive-green-granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 15,
+            "item": {
+                "@type": "Product",
+                "name": "Granite",
+                "description": "High-quality granite perfect for memorials and monuments.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/Oriental Green.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/granite",
+                "sku": "GC-GRANIT-015",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 16,
+            "item": {
+                "@type": "Product",
+                "name": "Granite",
+                "description": "High-quality granite perfect for memorials and monuments.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/Pacific Gray.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/granite",
+                "sku": "GC-GRANIT-016",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 17,
+            "item": {
+                "@type": "Product",
+                "name": "Granite",
+                "description": "High-quality granite perfect for memorials and monuments.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/Queens Green.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/granite",
+                "sku": "GC-GRANIT-017",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 18,
+            "item": {
+                "@type": "Product",
+                "name": "Granite",
+                "description": "High-quality granite perfect for memorials and monuments.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/Rain Forest Green.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/granite",
+                "sku": "GC-GRANIT-018",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 19,
+            "item": {
+                "@type": "Product",
+                "name": "Granite",
+                "description": "High-quality granite perfect for memorials and monuments.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/Rustic Brown.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/granite",
+                "sku": "GC-GRANIT-019",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 20,
+            "item": {
+                "@type": "Product",
+                "name": "Granite",
+                "description": "High-quality granite perfect for memorials and monuments.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/Sanfrancisco Green.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/granite",
+                "sku": "GC-GRANIT-020",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 21,
+            "item": {
+                "@type": "Product",
+                "name": "Tropical Green Granite",
+                "description": "Striking Tropical Green granite offers vibrant green tones with dramatic black speckling, creating bold and memorable memorial monuments.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/Tropical Green.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Tropical Green Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/tropical-green-granite",
+                "sku": "GC-TROGRE-021",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/tropical-green-granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 22,
+            "item": {
+                "@type": "Product",
+                "name": "Granite",
+                "description": "High-quality granite perfect for memorials and monuments.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/aurora.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/granite",
+                "sku": "GC-GRANIT-022",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 23,
+            "item": {
+                "@type": "Product",
+                "name": "Blue Pearl Granite",
+                "description": "Premium Blue Pearl granite features a distinctive blue sheen with silver and black speckles, making it a stunning choice for elegant monuments and headstones.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/bluepearl.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Blue Pearl Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/blue-pearl-granite",
+                "sku": "GC-BLUPEA-023",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/blue-pearl-granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 24,
+            "item": {
+                "@type": "Product",
+                "name": "Granite",
+                "description": "High-quality granite perfect for memorials and monuments.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/galaxy.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/granite",
+                "sku": "GC-GRANIT-024",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 25,
+            "item": {
+                "@type": "Product",
+                "name": "Granite",
+                "description": "High-quality granite perfect for memorials and monuments.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/green.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/granite",
+                "sku": "GC-GRANIT-025",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 26,
+            "item": {
+                "@type": "Product",
+                "name": "Himalayan Blue Granite",
+                "description": "Striking Himalayan Blue granite features deep blue tones with white and gray veining, creating elegant and distinctive memorials.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/himalayan-blue.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Himalayan Blue Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/himalayan-blue-granite",
+                "sku": "GC-HIMBLU-026",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/himalayan-blue-granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 27,
+            "item": {
+                "@type": "Product",
+                "name": "Granite",
+                "description": "High-quality granite perfect for memorials and monuments.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/indian-black.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/granite",
+                "sku": "GC-GRANIT-027",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 28,
+            "item": {
+                "@type": "Product",
+                "name": "Paradiso Granite",
+                "description": "Exceptional Paradiso granite features deep brown and black tones with gold and burgundy accents, creating unique and luxurious memorials.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/paradiso.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Paradiso Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/paradiso-granite",
+                "sku": "GC-PARGRA-028",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/paradiso-granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 29,
+            "item": {
+                "@type": "Product",
+                "name": "Vizag Blue Granite",
+                "description": "Vizag Blue granite offers a beautiful blue-gray color with subtle grain patterns, perfect for elegant and timeless memorials.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/vizag-blue.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Vizag Blue Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/vizag-blue-granite",
+                "sku": "GC-VIZBLU-029",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/vizag-blue-granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 30,
+            "item": {
+                "@type": "Product",
+                "name": "Granite",
+                "description": "High-quality granite perfect for memorials and monuments.",
+                "image": [
+                    {
+                        "@type": "ImageObject",
+                        "url": "https://www.theangelstones.com/images/colors/white-and-red.jpg",
+                        "width": "800",
+                        "height": "800",
+                        "caption": "Granite Color Sample"
+                    }
+                ],
+                "category": [
+                    "Granite Colors",
+                    "Memorial Stones",
+                    "Granite Memorials"
+                ],
+                "url": "https://www.theangelstones.com/colors/granite",
+                "sku": "GC-GRANIT-030",
+                "material": "Granite",
+                "itemCondition": "https://schema.org/NewCondition",
+                "additionalProperty": [
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Material Type",
+                        "value": "Granite"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Finish",
+                        "value": "Polished"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "name": "Usage",
+                        "value": "Memorials, Monuments, Headstones"
+                    }
+                ],
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "USD",
+                    "price": "0",
+                    "priceValidUntil": "2026-06-07",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://www.theangelstones.com/colors/granite"
+                },
+                "brand": {
+                    "@type": "Brand",
+                    "name": "Angel Stones",
+                    "logo": "https://www.theangelstones.com/images/logo.png"
+                }
+            }
+        }
+    ],
+    "numberOfItems": 30
+}
