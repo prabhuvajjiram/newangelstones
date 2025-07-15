@@ -360,19 +360,34 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         // Create a timeout promise
                         const timeoutPromise = new Promise((_, reject) => {
-                            setTimeout(() => reject(new Error(`Request timeout for location ${locid} after ${timeout}ms`)), timeout);
+                            const timeoutId = setTimeout(() => reject(new Error(`Request timeout for location ${locid} after ${timeout}ms`)), timeout);
+                            
+                            // Store timeout ID for cleanup
+                            if (!window._inventoryTimeouts) {
+                                window._inventoryTimeouts = [];
+                            }
+                            window._inventoryTimeouts.push(timeoutId);
                         });
                         
                         // Use GET method instead of POST to avoid potential CORS issues
                         // Add timestamp to prevent caching by Cloudflare
                         locParams.timestamp = Date.now();
                         const queryString = new URLSearchParams(locParams).toString();
+                        
+                        // Create abort controller for this request
+                        const abortController = new AbortController();
+                        if (!window._inventoryAbortControllers) {
+                            window._inventoryAbortControllers = [];
+                        }
+                        window._inventoryAbortControllers.push(abortController);
+                        
                         const fetchPromise = fetch(`inventory-proxy.php?${queryString}`, {
                             method: 'GET',
                             headers: {
                                 'Cache-Control': 'no-cache',
                                 'X-Requested-With': 'XMLHttpRequest'
-                            }
+                            },
+                            signal: abortController.signal
                         })
                         .then(response => {
                             if (!response.ok) {
@@ -630,8 +645,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Keep a reference to the Bootstrap modal instance
         let inventoryModalInstance = null;
 
-        // Handler reference for the footer close button
+        // Handler references for event cleanup
         let closeBtnHandler;
+        let refreshDataHandler;
+        let searchInputHandler;
+        let filterChangeHandler;
+        let paginationClickHandler;
         
         // Function to create the modal HTML if it doesn't exist
         function createModal() {
@@ -1174,8 +1193,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return paginationHtml;
         }
         
-        // Define reusable event handler functions for proper cleanup
-        let filterChangeHandler, paginationClickHandler, searchInputHandler;
+        // Event handlers are now defined at the top level for proper cleanup
 
         // Utility to enable/disable reset button
         function updateResetButtonState() {
@@ -1550,6 +1568,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 window._inventoryTimeouts = [];
             }
+            
+            // Clean up any pending fetch requests
+            if (window._inventoryAbortControllers) {
+                window._inventoryAbortControllers.forEach(controller => {
+                    try {
+                        controller.abort();
+                    } catch (e) {
+                        console.error('Error aborting fetch request:', e);
+                    }
+                });
+                window._inventoryAbortControllers = [];
+            }
         }
 
         // Function to open the modal and load data
@@ -1586,6 +1616,13 @@ document.addEventListener('DOMContentLoaded', function() {
                             // Remove modal event listeners
                             modalElement.removeEventListener('shown.bs.modal', shownHandler);
                             modalElement.removeEventListener('hidden.bs.modal', hiddenHandler);
+                            
+                            // Reset handler references after cleanup
+                            closeBtnHandler = null;
+                            refreshDataHandler = null;
+                            searchInputHandler = null;
+                            filterChangeHandler = null;
+                            paginationClickHandler = null;
                             
                             console.log('All event listeners cleaned up successfully');
                         };
@@ -1680,6 +1717,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Function to initialize the inventory modal
         function init() {
             console.log('Initializing inventory modal...');
+            
+            // Initialize global arrays for tracking resources
+            window._inventoryTimeouts = [];
+            window._inventoryAbortControllers = [];
             
             // Set up inventory link handler
             setupInventoryLinkHandler();
