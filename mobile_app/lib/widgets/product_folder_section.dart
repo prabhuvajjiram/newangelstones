@@ -2,12 +2,20 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../screens/design_gallery_screen.dart';
 import '../services/api_service.dart';
+import '../services/directory_service.dart';
 
 class ProductFolderSection extends StatelessWidget {
   final String title;
   final Future<List<Product>> future;
   final ApiService apiService;
-  const ProductFolderSection({super.key, required this.title, required this.future, required this.apiService});
+  final DirectoryService directoryService;
+  const ProductFolderSection({
+    super.key,
+    required this.title,
+    required this.future,
+    required this.apiService,
+    required this.directoryService,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -57,21 +65,44 @@ class ProductFolderSection extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Expanded(
-                            child: Image.network(
-                              product.imageUrl,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stack) => const Icon(Icons.broken_image),
+                            child: Stack(
+                              children: [
+                                Positioned.fill(
+                                  child: Image.network(
+                                    product.imageUrl,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stack) => const Icon(Icons.broken_image),
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  left: 0,
+                                  right: 0,
+                                  child: FutureBuilder<int>(
+                                    future: directoryService.fetchDesignCount(product.id),
+                                    builder: (context, countSnapshot) {
+                                      if (countSnapshot.connectionState == ConnectionState.waiting) {
+                                        return const SizedBox.shrink();
+                                      }
+                                      if (countSnapshot.hasError) {
+                                        debugPrint('Failed to load count for \${product.id}: \${countSnapshot.error}');
+                                        return const SizedBox.shrink();
+                                      }
+                                      final count = countSnapshot.data ?? 0;
+                                      return Container(
+                                        color: Colors.blueAccent,
+                                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                        child: Text(
+                                          '\${count} Designs',
+                                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          if (product.label != null && product.label!.isNotEmpty)
-                            Container(
-                              color: Colors.blueAccent,
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                              child: Text(
-                                product.label!,
-                                style: const TextStyle(color: Colors.white, fontSize: 12),
-                              ),
-                            ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Text(product.name, style: const TextStyle(fontSize: 16)),

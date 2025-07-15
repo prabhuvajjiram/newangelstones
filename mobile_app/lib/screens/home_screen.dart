@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import '../widgets/flyer_section.dart';
 import '../widgets/product_folder_section.dart';
+import '../services/directory_service.dart';
 import '../models/inventory_item.dart';
 import '../services/inventory_service.dart';
 
@@ -11,6 +12,7 @@ class HomeScreen extends StatefulWidget {
   final ApiService apiService;
   final StorageService storageService;
   final InventoryService inventoryService;
+  final DirectoryService directoryService;
   final VoidCallback onViewFullInventory;
 
   const HomeScreen({
@@ -18,6 +20,7 @@ class HomeScreen extends StatefulWidget {
     required this.apiService,
     required this.storageService,
     required this.inventoryService,
+    required this.directoryService,
     required this.onViewFullInventory,
   });
 
@@ -29,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late Future<List<Product>> _futureFeatured;
   late Future<List<InventoryItem>> _futureInventorySummary;
   late Future<List<Product>> _futureSpecials;
+  late DirectoryService _directoryService;
 
   @override
   void initState() {
@@ -39,6 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
         widget.inventoryService.fetchInventory(pageSize: 3);
     _futureSpecials =
         widget.apiService.loadLocalProducts('assets/specials.json');
+    _directoryService = widget.directoryService;
   }
 
   @override
@@ -55,6 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
             title: 'Featured Products',
             future: _futureFeatured,
             apiService: widget.apiService,
+            directoryService: _directoryService,
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
