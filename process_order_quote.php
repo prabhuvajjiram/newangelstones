@@ -230,42 +230,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $emailContent .= "<table border='1' cellpadding='5' style='border-collapse: collapse; width: 100%;'>";
         $emailContent .= "<tr style='background-color: #f2f2f2;'><th>Field</th><th>Value</th></tr>";
         
+        // Enhanced shipping fields mapping (define outside conditional)
+        $shippingFields = [
+            'shipping_name' => 'Name',
+            'shipping_company' => 'Company',
+            'shipping_contact_person' => 'Contact Person',
+            'shipping_title' => 'Title',
+            'shipping_department' => 'Department',
+            'shipping_address' => 'Address',
+            'shipping_address1' => 'Address Line 1',
+            'shipping_address2' => 'Address Line 2',
+            'shipping_address3' => 'Address Line 3',
+            'shipping_city' => 'City',
+            'shipping_state' => 'State',
+            'shipping_zip' => 'ZIP',
+            'shipping_country' => 'Country',
+            'shipping_phone' => 'Phone',
+            'shipping_mobile' => 'Mobile',
+            'shipping_fax' => 'Fax',
+            'shipping_email' => 'Email',
+            'shipping_website' => 'Website',
+            'shipping_notes' => 'Shipping Notes',
+            'shipping_instructions' => 'Shipping Instructions',
+            'shipping_dock_hours' => 'Dock Hours',
+            'shipping_contact_hours' => 'Contact Hours',
+            'shipping_gate_code' => 'Gate Code',
+            'shipping_building_floor' => 'Building/Floor',
+            'shipping_suite_unit' => 'Suite/Unit',
+            'shipping_loading_dock' => 'Loading Dock',
+            'shipping_appointment_required' => 'Appointment Required',
+            'shipping_special_equipment' => 'Special Equipment Needed'
+        ];
+        
         // Check if same as billing
         if (isset($_POST['same_as_billing']) && ($_POST['same_as_billing'] === 'on' || $_POST['same_as_billing'] === '1')) {
             $emailContent .= "<tr><td colspan='2'><strong>Same as Customer Information</strong></td></tr>";
         } else {
-            // Enhanced shipping fields mapping
-            $shippingFields = [
-                'shipping_name' => 'Name',
-                'shipping_company' => 'Company',
-                'shipping_contact_person' => 'Contact Person',
-                'shipping_title' => 'Title',
-                'shipping_department' => 'Department',
-                'shipping_address' => 'Address',
-                'shipping_address1' => 'Address Line 1',
-                'shipping_address2' => 'Address Line 2',
-                'shipping_address3' => 'Address Line 3',
-                'shipping_city' => 'City',
-                'shipping_state' => 'State',
-                'shipping_zip' => 'ZIP',
-                'shipping_country' => 'Country',
-                'shipping_phone' => 'Phone',
-                'shipping_mobile' => 'Mobile',
-                'shipping_fax' => 'Fax',
-                'shipping_email' => 'Email',
-                'shipping_website' => 'Website',
-                'shipping_notes' => 'Shipping Notes',
-                'shipping_instructions' => 'Shipping Instructions',
-                'shipping_dock_hours' => 'Dock Hours',
-                'shipping_contact_hours' => 'Contact Hours',
-                'shipping_gate_code' => 'Gate Code',
-                'shipping_building_floor' => 'Building/Floor',
-                'shipping_suite_unit' => 'Suite/Unit',
-                'shipping_loading_dock' => 'Loading Dock',
-                'shipping_appointment_required' => 'Appointment Required',
-                'shipping_special_equipment' => 'Special Equipment Needed'
-            ];
-            
             // Process all shipping fields
             foreach ($shippingFields as $field => $label) {
                 if (isset($_POST[$field]) && !empty($_POST[$field])) {
