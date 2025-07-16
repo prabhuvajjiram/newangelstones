@@ -3,33 +3,21 @@ require_once(__DIR__ . '/../tcpdf/tcpdf.php');
 
 class MYPDF extends TCPDF {
     public function Header() {
-        // Get the current directory (crm folder)
-        $root_dir = dirname(dirname(__FILE__));
-        // Go up one level to find the images directory
-        $parent_dir = dirname($root_dir);
-        // Construct absolute path to image
-        $image_file = $parent_dir . '/images/logo03.png';
+        // Add black backdrop for the header
+        $this->SetFillColor(34, 40, 49);
+        $this->Rect(0, 0, $this->GetPageWidth(), 45, 'F');
         
-        // Check if image exists and add it
-        if (file_exists($image_file)) {
-            // Center the image
-            $pageWidth = $this->getPageWidth();
-            $imageWidth = 50; // Width of the image in mm
-            $imageHeight = $imageWidth * 0.65; // Maintain aspect ratio
-            $x = ($pageWidth - $imageWidth) / 2;
-            
-            // Add black backdrop for the header
-            $this->SetFillColor(34, 40, 49);
-            $this->Rect(0, 0, $pageWidth, 45, 'F');
-            
-            // Center the image vertically within the header space
-            $y = (45 - $imageHeight) / 2;
-            // Add the image with specified width and height
-            $this->Image($image_file, $x, $y, $imageWidth, $imageHeight);
-        } else {
-            $this->SetFillColor(34, 40, 49);
-            $this->Rect(0, 0, $this->GetPageWidth(), 45, 'F');
-        }
+        // Add company name as text instead of image to avoid PNG alpha issues
+        $this->SetTextColor(255, 255, 255); // White text
+        $this->SetFont('helvetica', 'B', 20);
+        
+        // Center the company name
+        $pageWidth = $this->getPageWidth();
+        $this->SetXY(0, 15);
+        $this->Cell($pageWidth, 15, 'ANGEL STONES', 0, 1, 'C');
+        
+        // Reset text color to black for content
+        $this->SetTextColor(0, 0, 0);
         
         // Move position below the header
         $this->SetY(50);
