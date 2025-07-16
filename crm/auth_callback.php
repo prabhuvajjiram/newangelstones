@@ -50,34 +50,47 @@ curl_close($ch);
 
 $token_data = json_decode($token_response, true);
 
-if (!isset($token_data['access_token'])) {
+if (!isset($token_data['access_token']) || !isset($token_data['id_token'])) {
     error_log('Token error: ' . print_r($token_response, true));
-    $_SESSION['error'] = "Failed to get access token";
+    $_SESSION['error'] = "Failed to get tokens";
     header('Location: ' . ADMIN_BASE_URL . 'login.php');
     exit();
 }
 
-// Get user info using the access token
-$user_info_url = 'https://www.googleapis.com/oauth2/v2/userinfo';
-$ch = curl_init($user_info_url);
-curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $token_data['access_token']));
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Only for development
-$user_info_response = curl_exec($ch);
+// Decode the ID token to extract user info
+function base64url_decode($data) {
+    return base64_decode(strtr($data, '-_', '+/'));
+}
 
-if (curl_errno($ch)) {
-    error_log('Curl error: ' . curl_error($ch));
-    $_SESSION['error'] = "Failed to get user information";
+function decode_jwt($jwt) {
+    $parts = explode('.', $jwt);
+    if (count($parts) !== 3) return null;
+    $payload = base64url_decode($parts[1]);
+    return json_decode($payload, true);
+}
+
+$claims = decode_jwt($token_data['id_token']);
+if (!$claims || !isset($claims['email'])) {
+    $_SESSION['error'] = "Invalid ID token";
     header('Location: ' . ADMIN_BASE_URL . 'login.php');
     exit();
 }
-curl_close($ch);
 
-$google_user = json_decode($user_info_response, true);
+$google_user = [
+    'id' => $claims['sub'] ?? '',
+    'email' => $claims['email'],
+    'hd' => $claims['hd'] ?? '',
+    'given_name' => $claims['given_name'] ?? '',
+    'family_name' => $claims['family_name'] ?? '',
+    'name' => $claims['name'] ?? '',
+    'picture' => $claims['picture'] ?? ''
+];
 
-if (!isset($google_user['email'])) {
-    error_log('User info error: ' . print_r($user_info_response, true));
-    $_SESSION['error'] = "Failed to get user email";
+// Validate allowed domains
+$allowed_domains = ['theangelstones.com', 'angelgranites.com'];
+$email_domain = substr(strrchr($google_user['email'], '@'), 1);
+if (!in_array($email_domain, $allowed_domains, true)) {
+    $_SESSION['error'] = "Unauthorized domain";
     header('Location: ' . ADMIN_BASE_URL . 'login.php');
     exit();
 }
