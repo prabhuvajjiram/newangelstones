@@ -1,49 +1,115 @@
 <?php
+// Production version - Angel Stones Contact Form Processing
+// Disable error display for production
+ini_set('display_errors', 0);
+error_reporting(0);
+
+// Define secure access for email config
+if (!defined('SECURE_ACCESS')) {
+    define('SECURE_ACCESS', true);
+}
+
+// Load email configuration
+$config_path = __DIR__ . '/email_config.php';
+if (!file_exists($config_path)) {
+    echo "error: Email configuration not found";
+    exit;
+}
+require_once $config_path;
+
+// Load PHPMailer for better Gmail integration
+$phpmailer_path = __DIR__ . '/crm/vendor/phpmailer/PHPMailer.php';
+$usePhpMailer = false;
+
+if (file_exists($phpmailer_path)) {
+    require_once $phpmailer_path;
+    require_once __DIR__ . '/crm/vendor/phpmailer/Exception.php';
+    $usePhpMailer = true;
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Sanitize inputs using modern PHP methods instead of deprecated FILTER_SANITIZE_STRING
+    // Enhanced input sanitization
     function sanitizeInput($data) {
+        if (is_array($data)) {
+            return array_map('sanitizeInput', $data);
+        }
         $data = trim($data);
         $data = stripslashes($data);
         $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
         return $data;
     }
     
-    // Get and sanitize POST data
+    // Enhanced validation function
+    function validateField($value, $type = 'text', $required = true) {
+        if ($required && empty($value)) {
+            return false;
+        }
+        
+        switch ($type) {
+            case 'email':
+                return filter_var($value, FILTER_VALIDATE_EMAIL);
+            case 'phone':
+                return preg_match('/^[\d\s\-\+\(\)\.]+$/', $value);
+            case 'text':
+                return strlen($value) <= 1000; // Reasonable length limit
+            default:
+                return true;
+        }
+    }
+    
+    // Get and sanitize POST data with enhanced validation - capture all dynamic fields
     $name = isset($_POST["name"]) ? sanitizeInput($_POST["name"]) : '';
     $email = isset($_POST["email"]) ? sanitizeInput($_POST["email"]) : '';
     $mobile = isset($_POST["mobile"]) ? sanitizeInput($_POST["mobile"]) : '';
     $subject = isset($_POST["subject"]) ? sanitizeInput($_POST["subject"]) : '';
     $messageContent = isset($_POST["message"]) ? $_POST["message"] : ''; // Allow HTML in message content
     
-    // Check if required fields are provided
-    if (empty($name) || empty($email) || empty($subject) || empty($messageContent)) {
-        echo "error: Required fields are missing";
-        exit;
+    // Capture additional dynamic fields that might be submitted
+    $additionalFields = [];
+    $standardFields = ['name', 'email', 'mobile', 'subject', 'message', 'submit', 'action', 'csrf_token'];
+    
+    foreach ($_POST as $key => $value) {
+        if (!in_array($key, $standardFields) && !empty($value)) {
+            $additionalFields[$key] = sanitizeInput($value);
+        }
     }
     
-    // Validate email format
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        echo "error: Invalid email format";
+    // Enhanced validation with specific error messages
+    $errors = [];
+    
+    if (!validateField($name, 'text', true)) {
+        $errors[] = "Name is required and must be valid";
+    }
+    
+    if (!validateField($email, 'email', true)) {
+        $errors[] = "Valid email address is required";
+    }
+    
+    if (!validateField($subject, 'text', true)) {
+        $errors[] = "Subject is required";
+    }
+    
+    if (!validateField($messageContent, 'text', true)) {
+        $errors[] = "Message is required";
+    }
+    
+    if (!empty($mobile) && !validateField($mobile, 'phone', false)) {
+        $errors[] = "Phone number format is invalid";
+    }
+    
+    // Return validation errors
+    if (!empty($errors)) {
+        echo "error: " . implode(", ", $errors);
         exit;
     }
     
     // Set recipient based on message type or use default
-    $to = "info@theangelstones.com"; // Default recipient
+    $to = "da@theangelstones.com";
     
     // Check if this is a payment confirmation email
     if (strpos($subject, 'Payment Confirmation') !== false) {
-        $to = "da@theangelstones.com, da@theangelstones.com";
+        $to = "da@theangelstones.com";
     }
-    
-    // Set email headers
-    $headers = "From: info@theangelstones.com\r\n"; // Always use a domain-matching From address
-    if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $headers .= "Reply-To: $email\r\n";
-    }
-    $headers .= "Return-Path: info@theangelstones.com\r\n";
-    $headers .= "X-Mailer: PHP/" . phpversion() . "\r\n";
-    $headers .= "MIME-Version: 1.0\r\n";
-    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
     
     // Create HTML message
     $message = "<html><body>";
@@ -52,7 +118,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (strpos($subject, 'Payment Confirmation') !== false) {
         $message .= "<h1>Angel Stones - Payment Confirmation</h1>";
     } else {
-        $message .= "<h1>Angel Stones - Website Enquiry Form</h1>";
+        $message .= "<h1>Angel Stones - Website Contact Form</h1>";
     }
     
     $message .= "<p><strong>Name:</strong> $name</p>";
@@ -72,35 +138,91 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $message .= "<p>" . nl2br(htmlspecialchars($messageContent, ENT_QUOTES, 'UTF-8')) . "</p>";
     }
     
+    // Add additional dynamic fields if any were submitted
+    if (!empty($additionalFields)) {
+        $message .= "<h2>Additional Information</h2>";
+        $message .= "<table border='1' cellpadding='5' style='border-collapse: collapse; width: 100%;'>";
+        $message .= "<tr style='background-color: #f2f2f2;'><th>Field</th><th>Value</th></tr>";
+        
+        foreach ($additionalFields as $key => $value) {
+            $label = ucwords(str_replace('_', ' ', $key));
+            $displayValue = is_array($value) ? implode(', ', array_filter($value)) : $value;
+            if (!empty($displayValue)) {
+                $message .= "<tr><td><strong>{$label}</strong></td><td>{$displayValue}</td></tr>";
+            }
+        }
+        
+        $message .= "</table>";
+    }
+    
+    // Add form submission details
+    $message .= "<h2>Form Submission Details</h2>";
+    $message .= "<table border='1' cellpadding='5' style='border-collapse: collapse; width: 100%;'>";
+    $message .= "<tr style='background-color: #f2f2f2;'><th>Field</th><th>Value</th></tr>";
+    $message .= "<tr><td><strong>Submission Time</strong></td><td>" . date('Y-m-d H:i:s') . "</td></tr>";
+    $message .= "<tr><td><strong>IP Address</strong></td><td>" . ($_SERVER['REMOTE_ADDR'] ?? 'Unknown') . "</td></tr>";
+    $message .= "<tr><td><strong>User Agent</strong></td><td>" . htmlspecialchars($_SERVER['HTTP_USER_AGENT'] ?? 'Unknown') . "</td></tr>";
+    if (isset($_SERVER['HTTP_REFERER'])) {
+        $message .= "<tr><td><strong>Referrer</strong></td><td>" . htmlspecialchars($_SERVER['HTTP_REFERER']) . "</td></tr>";
+    }
+    $message .= "</table>";
+    
     $message .= "</body></html>";
     
-    // Log email attempt for debugging
-    $logFile = fopen(__DIR__ . '/email_log.txt', 'a');
-    fwrite($logFile, "=== Email Send Attempt: " . date('Y-m-d H:i:s') . " ===\n");
-    fwrite($logFile, "To: $to\n");
-    fwrite($logFile, "Subject: $subject\n");
-    fwrite($logFile, "From Name: $name\n");
-    fwrite($logFile, "From Email: $email\n");
+    $mailResult = false;
     
-    // Send email and log result
-    $mailResult = mail($to, $subject, $message, $headers);
-    fwrite($logFile, "Mail Result: " . ($mailResult ? "Success" : "Failed") . "\n");
-    
-    if (!$mailResult) {
-        $error = error_get_last();
-        if ($error) {
-            fwrite($logFile, "PHP Error: " . print_r($error, true) . "\n");
+    // Try PHPMailer first for better Gmail integration
+    if ($usePhpMailer) {
+        try {
+            $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+            
+            // SMTP Configuration
+            $mail->isSMTP();
+            $mail->Host = SMTP_HOST;
+            $mail->SMTPAuth = true;
+            $mail->Username = SMTP_USERNAME;
+            $mail->Password = SMTP_PASSWORD;
+            $mail->SMTPSecure = SMTP_SECURE;
+            $mail->Port = SMTP_PORT;
+            
+            // Email settings
+            $mail->setFrom(SMTP_FROM_EMAIL, SMTP_FROM_NAME);
+            $mail->addAddress($to, 'Angel Stones Support');
+            // Note: This PHPMailer implementation doesn't have addReplyTo method
+            // Reply-To will be set in fallback headers
+            
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body = $message;
+            
+            // Send email
+            $mailResult = $mail->send();
+            
+        } catch (Exception $e) {
+            $mailResult = false;
         }
     }
     
-    fwrite($logFile, "=== End of Log Entry ===\n\n");
-    fclose($logFile);
+    // Fallback to PHP mail() function if PHPMailer fails or is not available
+    if (!$mailResult) {
+        // Set email headers for fallback
+        $headers = "From: " . SMTP_FROM_EMAIL . "\r\n";
+        if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $headers .= "Reply-To: $email\r\n";
+        }
+        $headers .= "Return-Path: " . SMTP_FROM_EMAIL . "\r\n";
+        $headers .= "X-Mailer: PHP/" . phpversion() . "\r\n";
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+        
+        $mailResult = mail($to, $subject, $message, $headers);
+    }
     
     // Return response to client
     if ($mailResult) {
         echo "success";
     } else {
-        echo "error: Failed to send email";
+        echo "error: Failed to send email. Please try again or contact support directly.";
     }
 } else {
     echo "error: Invalid request method";

@@ -150,13 +150,13 @@
                 <h4>Angel Stones - Order/Quote Form</h4>
             </div>
             
-            <form id="orderQuoteForm" action="process_order_quote.php" method="POST" enctype="multipart/form-data">
+            <form id="orderQuoteForm" action="../process_order_quote.php" method="POST" enctype="multipart/form-data">
                 <!-- Sales Rep & Type Section -->
                 <div class="form-section">
                     <div class="row g-2">
                         <div class="col-md-3">
                             <label for="salesRep" class="form-label required-field">Sales Rep</label>
-                            <select class="form-select form-select-sm" id="salesRep" name="sales_rep" required>
+                            <select class="form-select form-select-sm" id="salesRep" name="sales_person" required>
                                 <option value=""></option>
                                 <option value="Martha">Martha</option>
                                 <option value="Candiss">Candiss</option>
@@ -333,7 +333,7 @@
                                 </div>
                                 <div class="form-group mb-3">
                                     <label for="termsDetails" class="form-label required-field">Terms</label>
-                                    <textarea class="form-control form-control-sm" id="termsDetails" name="terms_details" rows="2" required></textarea>
+                                    <textarea class="form-control form-control-sm" id="termsDetails" name="terms" rows="2" required></textarea>
                                     <div class="invalid-feedback">
                                         Please provide terms details.
                                     </div>
@@ -373,30 +373,30 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="shippingName" class="form-label">Name</label>
-                                    <input type="text" class="form-control form-control-sm" id="shippingName">
+                                    <input type="text" class="form-control form-control-sm" id="shippingName" name="shipping_name">
                                 </div>
                                 <div class="mb-3">
                                     <label for="shippingCompany" class="form-label">Company</label>
-                                    <input type="text" class="form-control form-control-sm" id="shippingCompany">
+                                    <input type="text" class="form-control form-control-sm" id="shippingCompany" name="shipping_company">
                                 </div>
                                 <div class="mb-3">
                                     <label for="shippingAddress1" class="form-label">Address Line 1</label>
-                                    <input type="text" class="form-control form-control-sm" id="shippingAddress1">
+                                    <input type="text" class="form-control form-control-sm" id="shippingAddress1" name="shipping_address1">
                                 </div>
                                 <div class="mb-3">
                                     <label for="shippingAddress2" class="form-label">Address Line 2</label>
-                                    <input type="text" class="form-control form-control-sm" id="shippingAddress2">
+                                    <input type="text" class="form-control form-control-sm" id="shippingAddress2" name="shipping_address2">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="shippingCity" class="form-label">City</label>
-                                        <input type="text" class="form-control form-control-sm" id="shippingCity">
+                                        <input type="text" class="form-control form-control-sm" id="shippingCity" name="shipping_city">
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label for="shippingState" class="form-label">State</label>
-                                        <select class="form-select form-select-sm" id="shippingState">
+                                        <select class="form-select form-select-sm" id="shippingState" name="shipping_state">
                                             <option value="">Select State</option>
                                             <!-- States will be populated by JavaScript -->
                                         </select>
@@ -404,15 +404,15 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="shippingZip" class="form-label">ZIP Code</label>
-                                    <input type="text" class="form-control form-control-sm" id="shippingZip">
+                                    <input type="text" class="form-control form-control-sm" id="shippingZip" name="shipping_zip">
                                 </div>
                                 <div class="mb-3">
                                     <label for="shippingPhone" class="form-label">Phone</label>
-                                    <input type="tel" class="form-control form-control-sm" id="shippingPhone">
+                                    <input type="tel" class="form-control form-control-sm" id="shippingPhone" name="shipping_phone">
                                 </div>
                                 <div class="mb-3">
                                     <label for="shippingEmail" class="form-label">Email</label>
-                                    <input type="email" class="form-control form-control-sm" id="shippingEmail">
+                                    <input type="email" class="form-control form-control-sm" id="shippingEmail" name="shipping_email">
                                 </div>
                             </div>
                         </div>
@@ -810,60 +810,7 @@
                 return isValid;
             }
 
-            // Validate payment terms (at least one must be selected)
-            $('form').on('submit', function(e) {
-                let isValid = true;
-                
-                // Check payment terms
-                if ($('input[name="payment_terms"]:checked').length === 0) {
-                    e.preventDefault();
-                    $('.payment-term').addClass('is-invalid');
-                    $('html, body').animate({
-                        scrollTop: $('.payment-term').first().offset().top - 100
-                    }, 500);
-                    return false;
-                }
-                
-                // Validate trucker info if required
-                if ($('#truckerInfo').val().trim() === '') {
-                    e.preventDefault();
-                    $('#truckerInfo').addClass('is-invalid');
-                    $('html, body').animate({
-                        scrollTop: $('#truckerInfo').offset().top - 100
-                    }, 500);
-                    return false;
-                }
-                
-                // Validate Terms field (required)
-                if ($('#termsDetails').val().trim() === '') {
-                    e.preventDefault();
-                    $('#termsDetails').addClass('is-invalid');
-                    $('html, body').animate({
-                        scrollTop: $('#termsDetails').offset().top - 100
-                    }, 500);
-                    return false;
-                }
-                
-                // Validate each product row
-                $('.product-row').each(function() {
-                    if (!validateProductRow($(this))) {
-                        if (isValid) { // Only scroll to first error
-                            e.preventDefault();
-                            $('html, body').animate({
-                                scrollTop: $(this).offset().top - 100
-                            }, 500);
-                            isValid = false;
-                        }
-                    }
-                });
-                
-                if (!isValid) {
-                    e.preventDefault();
-                    return false;
-                }
-                
-                return true;
-            });
+            // Form validation is handled in the specific #orderQuoteForm submit handler
             
             // Remove invalid class when user interacts with required fields
             $('.payment-term').on('change', function() {
@@ -1522,8 +1469,6 @@ $(document).on('change', '.domestic-addon-toggle', function() {
             
             // Form submission
             $('#orderQuoteForm').on('submit', function(e) {
-                e.preventDefault();
-                
                 if (validateForm()) {
                     // Show loading state
                     const submitBtn = $(this).find('button[type="submit"]');
@@ -1534,32 +1479,12 @@ $(document).on('change', '.domestic-addon-toggle', function() {
                     submitBtnText.addClass('d-none');
                     spinner.removeClass('d-none');
                     
-                    // Simulate form submission (replace with actual AJAX call)
-                    setTimeout(function() {
-                        // Reset form state
-                        submitBtn.prop('disabled', false);
-                        submitBtnText.removeClass('d-none');
-                        spinner.addClass('d-none');
-                        
-                        // Show success message
-                        const alert = '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
-                                    '<i class="bi bi-check-circle-fill me-2"></i> ' + 
-                                    (document.getElementById('formType').value === 'Order' ? 'Order' : 'Quote') + 
-                                    ' submitted successfully!' +
-                                    '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
-                                    '</div>';
-                        
-                        $('.form-container').prepend(alert);
-                        
-                        // Auto-hide alert after 5 seconds
-                        setTimeout(function() {
-                            $('.alert').alert('close');
-                        }, 5000);
-                        
-                        // Reset form if needed
-                        // $('#orderQuoteForm')[0].reset();
-                        // calculateTotals();
-                    }, 1500);
+                    // Allow the form to submit normally
+                    return true;
+                } else {
+                    // Prevent submission if validation fails
+                    e.preventDefault();
+                    return false;
                 }
             });
             
@@ -2079,6 +2004,15 @@ $(document).on('change', '.domestic-addon-toggle', function() {
 
             // Handle Mark Crate checkbox toggle
             $('#markCrate').change(function() {
+                console.log('Mark Crate checkbox changed:', this.checked);
+                $('.mark-crate-details').toggle(this.checked);
+                if (!this.checked) {
+                    $('#markCrateDetails').val('');
+                }
+            });
+            
+            // Also handle it with direct event binding in case of timing issues
+            $(document).on('change', '#markCrate', function() {
                 $('.mark-crate-details').toggle(this.checked);
                 if (!this.checked) {
                     $('#markCrateDetails').val('');
