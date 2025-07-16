@@ -1,23 +1,91 @@
 <?php
 // Production version - Angel Stones Order/Quote Form Processing
-// Temporarily enable error display for debugging 500 error
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// Security hardened version
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+error_reporting(0);
 
 // Start output buffering to prevent any accidental output
 ob_start();
+
+// Security Headers
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+
+// Rate Limiting
+session_start();
+$current_time = time();
+$rate_limit_window = 300; // 5 minutes
+$max_submissions = 3; // Max 3 submissions per 5 minutes
+
+if (!isset($_SESSION['form_submissions'])) {
+    $_SESSION['form_submissions'] = [];
+}
+
+// Clean old submissions
+$_SESSION['form_submissions'] = array_filter($_SESSION['form_submissions'], function($timestamp) use ($current_time, $rate_limit_window) {
+    return ($current_time - $timestamp) < $rate_limit_window;
+});
+
+// Check rate limit
+if (count($_SESSION['form_submissions']) >= $max_submissions) {
+    ob_clean();
+    http_response_code(429);
+    ?>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Rate Limited - Angel Stones</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+            body { background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+            .error-card { background: white; border-radius: 20px; padding: 2rem; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        </style>
+    </head>
+    <body>
+        <div class="error-card">
+            <h2 class="text-warning">Rate Limited</h2>
+            <p>Too many submissions. Please wait 5 minutes before trying again.</p>
+            <a href="../forms/order_quote_form.php" class="btn btn-primary">Go Back</a>
+        </div>
+    </body>
+    </html>
+    <?php
+    exit;
+}
 
 // Add error handler to catch fatal errors
 register_shutdown_function(function() {
     $error = error_get_last();
     if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
         ob_clean();
-        header('Content-Type: application/json');
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'Fatal Error: ' . $error['message'] . ' in ' . $error['file'] . ' on line ' . $error['line']
-        ]);
+        http_response_code(500);
+        ?>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Server Error - Angel Stones</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+            <style>
+                body { background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+                .error-card { background: white; border-radius: 20px; padding: 2rem; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+            </style>
+        </head>
+        <body>
+            <div class="error-card">
+                <h2 class="text-danger">Server Error</h2>
+                <p>We're experiencing technical difficulties. Please try again later.</p>
+                <a href="../forms/order_quote_form.php" class="btn btn-primary">Go Back</a>
+            </div>
+        </body>
+        </html>
+        <?php
     }
 });
 
@@ -58,6 +126,217 @@ $salesEmails = [
 $response = ['status' => 'error', 'message' => 'An unknown error occurred'];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Add to rate limiting tracking
+    $_SESSION['form_submissions'][] = $current_time;
+    
+    // CSRF Protection
+    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'])) {
+        ob_clean();
+        http_response_code(403);
+        ?>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Security Error - Angel Stones</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+            <style>
+                body { background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+                .error-card { background: white; border-radius: 20px; padding: 2rem; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+            </style>
+        </head>
+        <body>
+            <div class="error-card">
+                <h2 class="text-danger">Security Error</h2>
+                <p>Invalid security token. Please refresh the page and try again.</p>
+                <a href="../forms/order_quote_form.php" class="btn btn-primary">Go Back</a>
+            </div>
+        </body>
+        </html>
+        <?php
+        exit;
+    }
+    
+    // Honeypot field check (anti-bot protection)
+    if (!empty($_POST['website']) || !empty($_POST['url'])) {
+        // Bot detected, silently fail
+        ob_clean();
+        http_response_code(200);
+        ?>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Submission Confirmed - Angel Stones</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        </head>
+        <body>
+            <div class="container-fluid d-flex align-items-center justify-content-center min-vh-100">
+                <div class="text-center">
+                    <h2>Thank you for your submission!</h2>
+                    <p>We'll be in touch soon.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        <?php
+        exit;
+    }
+    
+    // Input validation functions
+    function validateEmail($email) {
+        return filter_var($email, FILTER_VALIDATE_EMAIL) && strlen($email) <= 254;
+    }
+    
+    function validatePhone($phone) {
+        $phone = preg_replace('/[^0-9+\-\(\)\s\.]/', '', $phone);
+        return strlen($phone) >= 10 && strlen($phone) <= 20;
+    }
+    
+    function validateText($text, $maxLength = 1000) {
+        return strlen($text) <= $maxLength && !preg_match('/<script|javascript:|data:|vbscript:/i', $text);
+    }
+    
+    function validateNumeric($value, $min = 0, $max = 999999) {
+        $num = floatval($value);
+        return $num >= $min && $num <= $max;
+    }
+    
+    function sanitizeInput($input) {
+        if (is_array($input)) {
+            return array_map('sanitizeInput', $input);
+        }
+        return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
+    }
+    
+    // Validate required fields
+    $errors = [];
+    
+    // Validate customer name
+    if (empty($_POST['customer_name']) || !validateText($_POST['customer_name'], 100)) {
+        $errors[] = "Valid customer name is required (max 100 characters)";
+    }
+    
+    // Validate email
+    if (empty($_POST['customer_email']) || !validateEmail($_POST['customer_email'])) {
+        $errors[] = "Valid email address is required";
+    }
+    
+    // Validate phone if provided
+    if (!empty($_POST['customer_phone']) && !validatePhone($_POST['customer_phone'])) {
+        $errors[] = "Valid phone number format required";
+    }
+    
+    // Validate sales person selection
+    $validSalesPersons = array_keys($salesEmails);
+    if (!empty($_POST['sales_person']) && !in_array($_POST['sales_person'], $validSalesPersons)) {
+        $errors[] = "Invalid sales person selection";
+    }
+    
+    // Validate form type
+    $validFormTypes = ['Quote', 'Order'];
+    if (!empty($_POST['form_type']) && !in_array($_POST['form_type'], $validFormTypes)) {
+        $errors[] = "Invalid form type";
+    }
+    
+    // Validate numeric fields
+    if (!empty($_POST['subtotal']) && !validateNumeric($_POST['subtotal'], 0, 1000000)) {
+        $errors[] = "Invalid subtotal amount";
+    }
+    
+    if (!empty($_POST['discount_rate']) && !validateNumeric($_POST['discount_rate'], 0, 100)) {
+        $errors[] = "Invalid discount rate (must be 0-100%)";
+    }
+    
+    if (!empty($_POST['discount_amount']) && !validateNumeric($_POST['discount_amount'], 0, 1000000)) {
+        $errors[] = "Invalid discount amount";
+    }
+    
+    if (!empty($_POST['tax_rate']) && !validateNumeric($_POST['tax_rate'], 0, 100)) {
+        $errors[] = "Invalid tax rate";
+    }
+    
+    // Validate file uploads
+    if (isset($_FILES['attachments']) && !empty($_FILES['attachments']['name'][0])) {
+        $allowedMimes = [
+            'image/jpeg', 'image/png', 'image/gif',
+            'application/pdf',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ];
+        
+        $maxFileSize = 10 * 1024 * 1024; // 10MB
+        $totalSize = 0;
+        
+        foreach ($_FILES['attachments']['tmp_name'] as $index => $tmpName) {
+            if (!empty($tmpName)) {
+                $fileSize = $_FILES['attachments']['size'][$index];
+                $fileMime = mime_content_type($tmpName);
+                $fileName = $_FILES['attachments']['name'][$index];
+                
+                // Check file size
+                if ($fileSize > $maxFileSize) {
+                    $errors[] = "File '$fileName' exceeds 10MB limit";
+                }
+                
+                $totalSize += $fileSize;
+                
+                // Check MIME type
+                if (!in_array($fileMime, $allowedMimes)) {
+                    $errors[] = "File '$fileName' has invalid file type";
+                }
+                
+                // Check file extension
+                $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                $allowedExts = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'xls', 'xlsx'];
+                if (!in_array($fileExt, $allowedExts)) {
+                    $errors[] = "File '$fileName' has invalid extension";
+                }
+            }
+        }
+        
+        // Check total upload size
+        if ($totalSize > $maxFileSize) {
+            $errors[] = "Total file size exceeds 10MB limit";
+        }
+    }
+    
+    // If validation errors, show error page
+    if (!empty($errors)) {
+        ob_clean();
+        http_response_code(400);
+        ?>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Validation Error - Angel Stones</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+            <style>
+                body { background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+                .error-card { background: white; border-radius: 20px; padding: 2rem; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.1); max-width: 500px; }
+            </style>
+        </head>
+        <body>
+            <div class="error-card">
+                <h2 class="text-warning">Validation Error</h2>
+                <p>Please correct the following issues:</p>
+                <ul class="text-start">
+                    <?php foreach ($errors as $error): ?>
+                        <li><?php echo htmlspecialchars($error); ?></li>
+                    <?php endforeach; ?>
+                </ul>
+                <button onclick="history.back()" class="btn btn-primary">Go Back</button>
+            </div>
+        </body>
+        </html>
+        <?php
+        exit;
+    }
+    
     try {
         // Initialize PHPMailer with exception handling enabled
         $mail = new PHPMailer(true);
@@ -74,8 +353,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Set email content type
         $mail->isHTML(true);
         
+        // Set from name based on sales rep
+        $fromName = SMTP_FROM_NAME; // Default to Angel Stones
+        //if (isset($_POST['sales_person']) && !empty($_POST['sales_person']) && $_POST['sales_person'] !== 'Test') {
+        if (isset($_POST['sales_person']) && !empty($_POST['sales_person'])) {  
+            $fromName = $_POST['sales_person'] . ' - Angel Stones';
+        }
+        
         // Set from and to addresses
-        $mail->setFrom(SMTP_FROM_EMAIL, SMTP_FROM_NAME);
+        $mail->setFrom(SMTP_FROM_EMAIL, $fromName);
         $mail->addAddress('da@theangelstones.com', 'Angel Stones Support Team');
         
         // Then find the email sending section and add the CC
@@ -456,6 +742,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Add summary totals
             $subtotal = isset($_POST['subtotal']) ? floatval($_POST['subtotal']) : 0.00;
             $additionalChargesTotal = isset($_POST['additional_charges_total']) ? floatval($_POST['additional_charges_total']) : 0.00;
+            $discountRate = isset($_POST['discount_rate']) ? floatval($_POST['discount_rate']) : 0.00;
+            $discountAmount = isset($_POST['discount_amount']) ? floatval($_POST['discount_amount']) : ($subtotal * ($discountRate / 100));
             $taxRate = isset($_POST['tax_rate']) ? floatval($_POST['tax_rate']) : 0.00;
             $taxAmount = isset($_POST['tax_amount']) ? floatval($_POST['tax_amount']) : 0.00;
             $grandTotal = isset($_POST['grand_total']) ? floatval($_POST['grand_total']) : 0.00;
@@ -464,6 +752,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $emailContent .= "<td colspan='5' style='text-align: right;'><strong>Subtotal:</strong></td>";
             $emailContent .= "<td>$" . number_format(floatval($subtotal), 2) . "</td>";
             $emailContent .= "</tr>";
+        
+            // Add discount row if discount is applied
+            if ($discountRate > 0 || $discountAmount > 0) {
+                $emailContent .= "<tr>";
+                $emailContent .= "<td colspan='5' style='text-align: right;'><strong>Discount (" . number_format(floatval($discountRate), 2) . "%):</strong></td>";
+                $emailContent .= "<td style='color: #e53e3e;'>-$" . number_format(floatval($discountAmount), 2) . "</td>";
+                $emailContent .= "</tr>";
+            }
         
             $emailContent .= "<tr>";
             $emailContent .= "<td colspan='5' style='text-align: right;'><strong>Additional Charges:</strong></td>";
@@ -955,12 +1251,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             
             // Send email
             if ($mail->send()) {
-                // Email sent successfully
-                $response = [
-                    'status' => 'success',
-                    'message' => 'Your quote/order has been submitted successfully!'
-                ];
-                
                 // Clean up temporary files
                 foreach ($uploadedFiles as $file) {
                     if (file_exists($file)) {
@@ -971,16 +1261,132 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Clean up PDF file
                 if ($pdfPath && file_exists($pdfPath)) {
                     unlink($pdfPath);
-
                 }
-            } else {
-
-                // Email sending failed
-                $response = [
-                    'status' => 'error',
-                    'message' => 'Failed to send email. Please try again or contact support.'
-                ];
                 
+                // Show success confirmation page
+                $customerName = isset($_POST['customer_name']) ? htmlspecialchars($_POST['customer_name']) : 'Customer';
+                $formType = isset($_POST['form_type']) ? htmlspecialchars($_POST['form_type']) : 'Quote';
+                $salesPerson = isset($_POST['sales_person']) ? htmlspecialchars($_POST['sales_person']) : '';
+                
+                ob_clean(); // Clear any previous output
+                ?>
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Submission Confirmed - Angel Stones</title>
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+                    <style>
+                        body {
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            min-height: 100vh;
+                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        }
+                        .confirmation-card {
+                            background: white;
+                            border-radius: 20px;
+                            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                            overflow: hidden;
+                        }
+                        .success-icon {
+                            font-size: 4rem;
+                            color: #28a745;
+                            animation: checkmark 0.6s ease-in-out;
+                        }
+                        @keyframes checkmark {
+                            0% { transform: scale(0); }
+                            50% { transform: scale(1.2); }
+                            100% { transform: scale(1); }
+                        }
+                        .header-section {
+                            background: linear-gradient(135deg, #28a745, #20c997);
+                            color: white;
+                            padding: 2rem;
+                            text-align: center;
+                        }
+                        .content-section {
+                            padding: 2rem;
+                        }
+                        .info-item {
+                            background: #f8f9fa;
+                            border-left: 4px solid #28a745;
+                            padding: 1rem;
+                            margin: 0.5rem 0;
+                            border-radius: 0 8px 8px 0;
+                        }
+                        .btn-custom {
+                            background: linear-gradient(135deg, #667eea, #764ba2);
+                            border: none;
+                            border-radius: 25px;
+                            padding: 12px 30px;
+                            color: white;
+                            font-weight: 600;
+                            transition: all 0.3s ease;
+                        }
+                        .btn-custom:hover {
+                            transform: translateY(-2px);
+                            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+                            color: white;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container-fluid d-flex align-items-center justify-content-center min-vh-100 py-4">
+                        <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                            <div class="confirmation-card">
+                                <div class="header-section">
+                                    <i class="bi bi-check-circle-fill success-icon"></i>
+                                    <h1 class="h2 mt-3 mb-2">Submission Confirmed!</h1>
+                                    <p class="mb-0 opacity-90">Your <?php echo strtolower($formType); ?> request has been successfully submitted</p>
+                                </div>
+                                
+                                <div class="content-section">
+                                    <div class="text-center mb-4">
+                                        <h3 class="text-primary">Customer : <?php echo $customerName; ?>!</h3>
+                                        <p class="text-muted">Request of your <?php echo strtolower($formType); ?> sent to support team.</p>
+                                    </div>
+                                    
+                                    <div class="info-item">
+                                        <i class="bi bi-envelope-check text-success me-2"></i>
+                                        <strong>Email Confirmation:</strong> Please check your email for additional details and a copy of your submission.
+                                    </div>
+                                       
+                                    <div class="info-item">
+                                        <i class="bi bi-exclamation-triangle text-info me-2"></i>
+                                        <strong>Important Note:</strong> This information is not saved in our system other than the email record. Please keep your email confirmation for reference.
+                                    </div>
+                                    
+                                    <div class="text-center mt-4">
+                                        <a href="../" class="btn btn-custom me-3">
+                                            <i class="bi bi-house-fill me-2"></i>Return to Homepage
+                                        </a>
+                                        <a href="../order_quote_form.php" class="btn btn-outline-secondary">
+                                            <i class="bi bi-plus-circle me-2"></i>Submit Another Request
+                                        </a>
+                                    </div>
+                                    
+                                    <div class="text-center mt-4 pt-3 border-top">
+                                        <p class="text-muted small mb-2">Need immediate assistance?</p>
+                                        <p class="mb-0">
+                                            <i class="bi bi-telephone-fill text-primary me-1"></i>
+                                            <strong>Phone:</strong> 
+                                        </p>
+                                        <p class="mb-0">
+                                            <i class="bi bi-envelope-fill text-primary me-1"></i>
+                                            <strong>Email:</strong> assupport@theangelstones.com
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                <?php
+                exit;
+            } else {
                 // Clean up files even on failure
                 foreach ($uploadedFiles as $file) {
                     if (file_exists($file)) {
@@ -993,9 +1399,115 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     unlink($pdfPath);
                 }
                 
-                if ($pdfPath && file_exists($pdfPath)) {
-                    unlink($pdfPath);
-                }
+                // Show error page
+                $customerName = isset($_POST['customer_name']) ? htmlspecialchars($_POST['customer_name']) : 'Customer';
+                
+                ob_clean(); // Clear any previous output
+                ?>
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Submission Error - Angel Stones</title>
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+                    <style>
+                        body {
+                            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+                            min-height: 100vh;
+                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        }
+                        .error-card {
+                            background: white;
+                            border-radius: 20px;
+                            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                            overflow: hidden;
+                        }
+                        .error-icon {
+                            font-size: 4rem;
+                            color: #dc3545;
+                            animation: shake 0.6s ease-in-out;
+                        }
+                        @keyframes shake {
+                            0%, 100% { transform: translateX(0); }
+                            25% { transform: translateX(-5px); }
+                            75% { transform: translateX(5px); }
+                        }
+                        .header-section {
+                            background: linear-gradient(135deg, #dc3545, #c82333);
+                            color: white;
+                            padding: 2rem;
+                            text-align: center;
+                        }
+                        .content-section {
+                            padding: 2rem;
+                        }
+                        .btn-custom {
+                            background: linear-gradient(135deg, #667eea, #764ba2);
+                            border: none;
+                            border-radius: 25px;
+                            padding: 12px 30px;
+                            color: white;
+                            font-weight: 600;
+                            transition: all 0.3s ease;
+                        }
+                        .btn-custom:hover {
+                            transform: translateY(-2px);
+                            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+                            color: white;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container-fluid d-flex align-items-center justify-content-center min-vh-100 py-4">
+                        <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                            <div class="error-card">
+                                <div class="header-section">
+                                    <i class="bi bi-exclamation-triangle-fill error-icon"></i>
+                                    <h1 class="h2 mt-3 mb-2">Submission Failed</h1>
+                                    <p class="mb-0 opacity-90">We encountered an issue processing your request</p>
+                                </div>
+                                
+                                <div class="content-section">
+                                    <div class="text-center mb-4">
+                                        <h3 class="text-danger">Sorry, <?php echo $customerName; ?>!</h3>
+                                        <p class="text-muted">We were unable to process your submission at this time. Please try again or contact us directly.</p>
+                                    </div>
+                                    
+                                    <div class="alert alert-warning" role="alert">
+                                        <i class="bi bi-info-circle-fill me-2"></i>
+                                        <strong>What happened?</strong> There was a technical issue sending your request. Your information was not lost, but we need you to try again.
+                                    </div>
+                                    
+                                    <div class="text-center mt-4">
+                                        <button onclick="history.back()" class="btn btn-custom me-3">
+                                            <i class="bi bi-arrow-left me-2"></i>Go Back & Try Again
+                                        </button>
+                                        <a href="../forms/order_quote_form.php" class="btn btn-outline-secondary">
+                                            <i class="bi bi-arrow-clockwise me-2"></i>Start Over
+                                        </a>
+                                    </div>
+                                    
+                                    <div class="text-center mt-4 pt-3 border-top">
+                                        <p class="text-muted mb-2">Need immediate assistance? Contact us directly:</p>
+                                        <p class="mb-1">
+                                            <i class="bi bi-telephone-fill text-primary me-1"></i>
+                                            <strong>Phone:</strong> <a href="tel:919-535-7574" class="text-decoration-none">919-535-7574</a>
+                                        </p>
+                                        <p class="mb-0">
+                                            <i class="bi bi-envelope-fill text-primary me-1"></i>
+                                            <strong>Email:</strong> <a href="mailto:info@theangelstones.com" class="text-decoration-none">info@theangelstones.com</a>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                <?php
+                exit;
             }
         } catch (Exception $e) {
 

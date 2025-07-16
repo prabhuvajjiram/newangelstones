@@ -18,6 +18,8 @@ This implementation plan optimizes the Angel Stones website performance using on
 
 
 
+
+
   - Update existing `process_order_quote.php` to send to da@theangelstones.com instead of da@theangelstones.com
   - Add PDF generation to existing `process_order_quote.php` using existing `crm/includes/mypdf.php` (TCPDF)
   - Reuse existing TCPDF setup and MYPDF class with Angel Stones branding for form PDF generation
