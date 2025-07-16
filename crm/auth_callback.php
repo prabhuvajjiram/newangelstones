@@ -103,33 +103,36 @@ try {
 
     if ($user) {
         // Update existing user
-        $stmt = $pdo->prepare("
-            UPDATE users 
-            SET last_login = NOW(),
-                google_id = ?,
-                oauth_token = ?,
-                first_name = ?,
-                last_name = ?
-            WHERE id = ?
-        ");
+        $stmt = $pdo->prepare(
+            "UPDATE users
+             SET last_login = NOW(),
+                 google_id = ?,
+                 oauth_token = ?,
+                 refresh_token = COALESCE(?, refresh_token),
+                 first_name = ?,
+                 last_name = ?
+             WHERE id = ?"
+        );
         $stmt->execute([
             $google_user['id'],
             $token_data['access_token'],
+            $token_data['refresh_token'] ?? null,
             $google_user['given_name'] ?? '',
             $google_user['family_name'] ?? '',
             $user['id']
         ]);
     } else {
         // Create new user
-        $stmt = $pdo->prepare("
-            INSERT INTO users (username, email, google_id, oauth_provider, oauth_token, first_name, last_name, created_at)
-            VALUES (?, ?, ?, 'google', ?, ?, ?, NOW())
-        ");
+        $stmt = $pdo->prepare(
+            "INSERT INTO users (username, email, google_id, oauth_provider, oauth_token, refresh_token, first_name, last_name, created_at)
+             VALUES (?, ?, ?, 'google', ?, ?, ?, ?, NOW())"
+        );
         $stmt->execute([
             $google_user['email'],
             $google_user['email'],
             $google_user['id'],
             $token_data['access_token'],
+            $token_data['refresh_token'] ?? null,
             $google_user['given_name'] ?? '',
             $google_user['family_name'] ?? ''
         ]);
@@ -194,16 +197,4 @@ try {
     $_SESSION['error'] = "Authentication failed. Please try again.";
     header('Location: ' . ADMIN_BASE_URL . 'login.php');
     exit();
-}
-
-if (isset($token_data['access_token'])) {
-    // Update user's OAuth token in database
-    $stmt = $pdo->prepare("UPDATE users SET oauth_token = ? WHERE email = ?");
-    $stmt->execute([$token_data['access_token'], $_SESSION['email']]);
-}
-
-if (isset($token_data['refresh_token'])) {
-    // Update user's Gmail refresh token in database
-    $stmt = $pdo->prepare("UPDATE users SET gmail_refresh_token = ? WHERE email = ?");
-    $stmt->execute([$token_data['refresh_token'], $_SESSION['email']]);
 }
