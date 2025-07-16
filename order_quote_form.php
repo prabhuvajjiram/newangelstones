@@ -151,6 +151,13 @@
             </div>
             
             <form id="orderQuoteForm" action="../process_order_quote.php" method="POST" enctype="multipart/form-data">
+                <!-- Hidden fields for calculated totals -->
+                <input type="hidden" name="subtotal" value="0.00">
+                <input type="hidden" name="additional_charges_total" value="0.00">
+                <input type="hidden" name="tax_rate" value="0.00">
+                <input type="hidden" name="tax_amount" value="0.00">
+                <input type="hidden" name="grand_total" value="0.00">
+                
                 <!-- Sales Rep & Type Section -->
                 <div class="form-section">
                     <div class="row g-2">
@@ -1291,6 +1298,7 @@ function calculateOrderTotals() {
     // Also update any hidden fields for form submission
     $('input[name="subtotal"]').val(subtotal.toFixed(2));
     $('input[name="additional_charges_total"]').val(additionalCharges.toFixed(2));
+    $('input[name="tax_rate"]').val(taxRate.toFixed(2));
     $('input[name="tax_amount"]').val(tax.toFixed(2));
     $('input[name="grand_total"]').val(grandTotal.toFixed(2));
 }

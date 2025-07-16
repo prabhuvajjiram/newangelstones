@@ -188,10 +188,10 @@ class FormEnhancer {
         ];
     }
     
-    // Fix sales rep form to send to support@theangelstones.com
+    // Fix sales rep form to send to da@theangelstones.com
     public function fixSalesRepFormRecipient() {
         // Update existing process_order_quote.php recipient
-        // Change from 'da@theangelstones.com' to 'support@theangelstones.com'
+        // Change from 'da@theangelstones.com' to 'da@theangelstones.com'
     }
     
     // Enhance existing contact form in send_email.php
