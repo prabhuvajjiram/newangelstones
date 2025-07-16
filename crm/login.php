@@ -1,14 +1,13 @@
 <?php
 require_once 'includes/auth_config.php';
 
-// Generate OAuth parameters for GIS code flow with OpenID Connect
+// Generate OAuth parameters for manual OpenID Connect flow (fallback button)
 $oauth_params = [
     'client_id' => GOOGLE_CLIENT_ID,
     'redirect_uri' => GOOGLE_REDIRECT_URI,
     'response_type' => 'code',
     'scope' => 'openid email profile',
     'access_type' => 'offline',
-    'hd' => 'theangelstones.com',
     'prompt' => 'select_account consent'
 ];
 
@@ -91,41 +90,30 @@ $google_login_url = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build
                     <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
                 <?php endif; ?>
 
+                <p id="loadingMessage" class="text-muted">Signing you in...</p>
+
                 <a href="<?php echo htmlspecialchars($google_login_url); ?>" class="btn-google" id="googleBtn" style="display:none;">
                     <img src="../images/Google__G__logo.svg" alt="Google Logo">
                     Sign in with Google
                 </a>
-                <p class="domain-note">Use your @theangelstones.com account to sign in</p>
+                <p class="domain-note">Use your @theangelstones.com or @angelgranites.com account to sign in</p>
             </div>
         </div>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
-        const codeClient = google.accounts.oauth2.initCodeClient({
-            client_id: '<?php echo GOOGLE_CLIENT_ID; ?>',
-            scope: 'openid email profile',
-            redirect_uri: '<?php echo GOOGLE_REDIRECT_URI; ?>',
-            ux_mode: 'redirect',
-            hd: 'theangelstones.com'
-        });
-
-        function startOAuth() {
-            codeClient.requestCode();
-        }
-
         google.accounts.id.initialize({
             client_id: '<?php echo GOOGLE_CLIENT_ID; ?>',
             auto_select: true,
             ux_mode: 'redirect',
-            callback: startOAuth,
-            hd: 'theangelstones.com'
+            login_uri: '<?php echo GOOGLE_REDIRECT_URI; ?>'
         });
 
         google.accounts.id.prompt((notification) => {
             if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                document.getElementById('loadingMessage').style.display = 'none';
                 document.getElementById('googleBtn').style.display = 'flex';
-                document.getElementById('googleBtn').addEventListener('click', startOAuth);
             }
         });
     </script>
