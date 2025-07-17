@@ -1,0 +1,54 @@
+/* Enhanced Color Selector Styling - Simplified */
+
+/* Loading state for color dropdowns */
+.granite-color.loading {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23666' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 1v6l4 4'/%3e%3ccircle cx='8' cy='8' r='7' fill='none' stroke='%23666' stroke-width='2'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px 16px;
+}
+
+/* Enhanced dropdown styling */
+.granite-color {
+    transition: all 0.3s ease;
+}
+
+.granite-color:focus {
+    border-color: #4299e1;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+/* Custom color input styling */
+.custom-color-input {
+    transition: all 0.3s ease;
+    border-color: #e2e8f0;
+}
+
+.custom-color-input:focus {
+    border-color: #4299e1;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+/* Color option styling with better visual hierarchy */
+.granite-color option {
+    padding: 8px 12px;
+    font-weight: 500;
+}
+
+.granite-color option[value=""] {
+    color: #718096;
+    font-style: italic;
+}
+
+.granite-color option[value="other"] {
+    border-top: 1px solid #e2e8f0;
+    font-weight: 600;
+    color: #4299e1;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .granite-color {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+}
