@@ -916,6 +916,91 @@ if (!isset($_SESSION['csrf_token'])) {
             padding: var(--space-4) var(--space-6);
         }
         
+        /* Price Validation Styling */
+        .price-warning {
+            border-color: var(--warning-color) !important;
+            background: linear-gradient(135deg, rgba(214, 158, 46, 0.05) 0%, rgba(255, 255, 255, 1) 100%) !important;
+            box-shadow: 0 0 0 2px rgba(214, 158, 46, 0.2) !important;
+        }
+
+        .price-warning:focus {
+            border-color: var(--warning-color) !important;
+            box-shadow: 0 0 0 4px rgba(214, 158, 46, 0.3) !important;
+        }
+
+        .price-suggestion {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--white);
+            border: 2px solid var(--warning-color);
+            border-radius: var(--radius-lg);
+            padding: var(--space-3);
+            margin-top: var(--space-1);
+            font-size: 12px;
+            color: var(--warning-color);
+            font-weight: 600;
+            z-index: 1000;
+            box-shadow: var(--shadow-lg);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .price-suggestion .suggestion-text {
+            display: block;
+            margin-bottom: var(--space-2);
+        }
+
+        .price-suggestion .suggestion-actions {
+            display: flex;
+            gap: var(--space-2);
+        }
+
+        .price-suggestion .btn-accept {
+            background: var(--warning-gradient);
+            color: var(--white);
+            border: none;
+            padding: var(--space-1) var(--space-3);
+            border-radius: var(--radius-md);
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .price-suggestion .btn-accept:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .price-suggestion .btn-dismiss {
+            background: transparent;
+            color: var(--gray-500);
+            border: 1px solid var(--gray-300);
+            padding: var(--space-1) var(--space-3);
+            border-radius: var(--radius-md);
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .price-suggestion .btn-dismiss:hover {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
         /* Accessibility Improvements */
         
         /* Enhanced Radio Button and Checkbox Styling */
@@ -2358,6 +2443,11 @@ if (!isset($_SESSION['csrf_token'])) {
             // Calculate row total when quantity or price changes
             $(document).on('input', '.quantity, .price', function() {
                 calculateRowTotal.call(this);
+                
+                // Validate price if this is a price input
+                if ($(this).hasClass('price')) {
+                    validatePrice($(this));
+                }
             });
             
             function calculateRowTotal() {
@@ -2367,6 +2457,168 @@ if (!isset($_SESSION['csrf_token'])) {
                 const total = (quantity * price).toFixed(2);
                 row.find('.total').val(total);
                 calculateOrderTotals();
+            }
+            
+            // Price validation function with soft warnings
+            function validatePrice($priceInput) {
+                const price = parseFloat($priceInput.val()) || 0;
+                const row = $priceInput.closest('tr');
+                const quantity = parseFloat(row.find('.quantity').val()) || 1;
+                
+                // Remove existing validation states and suggestions
+                $priceInput.removeClass('price-warning');
+                row.find('.price-suggestion').remove();
+                
+                // Skip validation if price is 0 or empty
+                if (price <= 0) {
+                    return;
+                }
+                
+                // Get product type information for context-aware validation
+                const productTypes = [];
+                row.find('.product-type:checked').each(function() {
+                    productTypes.push($(this).val());
+                });
+                
+                const manufacturingTypes = [];
+                row.find('.manufacturing-type:checked').each(function() {
+                    manufacturingTypes.push($(this).val());
+                });
+                
+                // Define price ranges based on product and manufacturing types
+                const priceRanges = getPriceRanges(productTypes, manufacturingTypes);
+                
+                // Check if price falls outside expected ranges
+                let suggestion = null;
+                let warningType = null;
+                
+                if (price < priceRanges.min) {
+                    warningType = 'low';
+                    suggestion = {
+                        message: `Price seems low for this product type. Suggested minimum: $${priceRanges.min}`,
+                        suggestedPrice: priceRanges.min
+                    };
+                } else if (price > priceRanges.max) {
+                    warningType = 'high';
+                    suggestion = {
+                        message: `Price seems high for this product type. Suggested maximum: $${priceRanges.max}`,
+                        suggestedPrice: priceRanges.max
+                    };
+                } else if (price < priceRanges.typical.min || price > priceRanges.typical.max) {
+                    warningType = 'atypical';
+                    const suggestedPrice = price < priceRanges.typical.min ? priceRanges.typical.min : priceRanges.typical.max;
+                    suggestion = {
+                        message: `Price is outside typical range ($${priceRanges.typical.min}-$${priceRanges.typical.max}). Consider: $${suggestedPrice}`,
+                        suggestedPrice: suggestedPrice
+                    };
+                }
+                
+                // Show warning and suggestion if needed
+                if (suggestion) {
+                    showPriceWarning($priceInput, suggestion, warningType);
+                }
+            }
+            
+            // Get price ranges based on product and manufacturing types
+            function getPriceRanges(productTypes, manufacturingTypes) {
+                // Default ranges
+                let ranges = {
+                    min: 50,
+                    max: 5000,
+                    typical: { min: 100, max: 1500 }
+                };
+                
+                // Adjust ranges based on product types
+                if (productTypes.includes('monument')) {
+                    ranges = {
+                        min: 200,
+                        max: 8000,
+                        typical: { min: 500, max: 3000 }
+                    };
+                } else if (productTypes.includes('headstone')) {
+                    ranges = {
+                        min: 150,
+                        max: 4000,
+                        typical: { min: 300, max: 1500 }
+                    };
+                } else if (productTypes.includes('marker')) {
+                    ranges = {
+                        min: 75,
+                        max: 2000,
+                        typical: { min: 150, max: 800 }
+                    };
+                } else if (productTypes.includes('memorial')) {
+                    ranges = {
+                        min: 100,
+                        max: 6000,
+                        typical: { min: 250, max: 2000 }
+                    };
+                }
+                
+                // Adjust for manufacturing complexity
+                if (manufacturingTypes.includes('custom') || manufacturingTypes.includes('engraving')) {
+                    ranges.min *= 1.2;
+                    ranges.max *= 1.5;
+                    ranges.typical.min *= 1.3;
+                    ranges.typical.max *= 1.4;
+                }
+                
+                // Round to nearest 25
+                ranges.min = Math.round(ranges.min / 25) * 25;
+                ranges.max = Math.round(ranges.max / 25) * 25;
+                ranges.typical.min = Math.round(ranges.typical.min / 25) * 25;
+                ranges.typical.max = Math.round(ranges.typical.max / 25) * 25;
+                
+                return ranges;
+            }
+            
+            // Show price warning with suggestion
+            function showPriceWarning($priceInput, suggestion, warningType) {
+                // Add warning styling to input
+                $priceInput.addClass('price-warning');
+                
+                // Create suggestion popup
+                const $inputGroup = $priceInput.closest('.input-group');
+                $inputGroup.css('position', 'relative');
+                
+                const $suggestion = $(`
+                    <div class="price-suggestion">
+                        <span class="suggestion-text">${suggestion.message}</span>
+                        <div class="suggestion-actions">
+                            <button type="button" class="btn-accept" data-price="${suggestion.suggestedPrice}">
+                                Use $${suggestion.suggestedPrice}
+                            </button>
+                            <button type="button" class="btn-dismiss">
+                                Keep Current
+                            </button>
+                        </div>
+                    </div>
+                `);
+                
+                $inputGroup.append($suggestion);
+                
+                // Handle suggestion actions
+                $suggestion.find('.btn-accept').on('click', function() {
+                    const suggestedPrice = $(this).data('price');
+                    $priceInput.val(suggestedPrice).trigger('input');
+                    $suggestion.remove();
+                    $priceInput.removeClass('price-warning');
+                });
+                
+                $suggestion.find('.btn-dismiss').on('click', function() {
+                    $suggestion.remove();
+                    $priceInput.removeClass('price-warning');
+                });
+                
+                // Auto-hide after 10 seconds
+                setTimeout(function() {
+                    if ($suggestion.length) {
+                        $suggestion.fadeOut(300, function() {
+                            $(this).remove();
+                            $priceInput.removeClass('price-warning');
+                        });
+                    }
+                }, 10000);
             }
             
             function calculateTotals() {
