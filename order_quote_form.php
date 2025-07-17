@@ -20,6 +20,8 @@ if (!isset($_SESSION['csrf_token'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Color Selector CSS -->
+    <link rel="stylesheet" href="css/color-selector.css">
     <style>
         /* Ultra-Modern Colorful Design for Angel Stones */
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
@@ -1134,12 +1136,13 @@ if (!isset($_SESSION['csrf_token'])) {
                             <label for="salesRep" class="form-label required-field">Sales Rep</label>
                             <select class="form-select form-select-sm" id="salesRep" name="sales_person" required>
                                 <option value=""></option>
-                                <option value="Martha">Martha</option>
-                                <option value="Candiss">Candiss</option>
-                                <option value="Mike">Mike</option>
-                                <option value="Jeremy">Jeremy</option>
                                 <option value="Angel">Angel</option>
+                                <option value="Candiss">Candiss</option>
+                                <option value="Jeremy">Jeremy</option>
                                 <option value="Jim">Jim</option>
+                                <option value="Martha">Martha</option>
+                                <option value="Mike">Mike</option>
+                                <option value="Jim">Tiffany</option>
                                 <option value="Test">Test</option>
                             </select>
                         </div>
@@ -1417,16 +1420,12 @@ if (!isset($_SESSION['csrf_token'])) {
                                 <td>
                                     <input type="text" class="form-control form-control-sm product-name mb-1" name="products[0][name]" placeholder="Product Name" required>
                                     
-                                    <!-- Granite Color Dropdown -->
+                                    <!-- Enhanced Granite Color Dropdown -->
                                     <div class="mb-1">
+                                        <label class="form-label small mb-1 required-field">Granite Color</label>
                                         <select class="form-select form-select-sm granite-color" name="products[0][color]" required>
                                             <option value="">Select Granite Color</option>
-                                            <option value="Absolute Black">Absolute Black</option>
-                                            <option value="Alaska White">Alaska White</option>
-                                            <option value="Black Galaxy">Black Galaxy</option>
-                                            <option value="Blue Pearl">Blue Pearl</option>
-                                            <option value="Colonial White">Colonial White</option>
-                                            <option value="Costa Esmeralda">Costa Esmeralda</option>
+                                            <!-- Dynamic colors will be populated here -->
                                             <option value="other">Other (Specify)</option>
                                         </select>
                                         <input type="text" class="form-control form-control-sm mt-1 d-none" name="products[0][custom_color]" placeholder="Enter custom color">
@@ -1653,6 +1652,8 @@ if (!isset($_SESSION['csrf_token'])) {
     <!-- jQuery and Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Color Selector JS -->
+    <script src="js/color-selector.js"></script>
     
     <script>
         // US States array for shipping state dropdown
@@ -1723,13 +1724,132 @@ if (!isset($_SESSION['csrf_token'])) {
             // Handle same as billing address checkbox changes
             $('#sameAsBilling').change(updateShippingAddressVisibility);
 
+            // Dynamic Color Loading Functionality
+            let colorCache = null;
+            let fallbackColors = [
+                'Absolute Black',
+                'Alaska White', 
+                'Black Galaxy',
+                'Blue Pearl',
+                'Colonial White',
+                'Costa Esmeralda'
+            ];
+
+            // Load colors from service
+            async function loadColors() {
+                try {
+                    console.log('Loading colors from service...');
+                    const response = await fetch('get_color_images.php');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.success && data.colors && Array.isArray(data.colors)) {
+                        console.log(`Successfully loaded ${data.colors.length} colors from service`);
+                        colorCache = data.colors;
+                        return data.colors;
+                    } else {
+                        throw new Error(data.error || 'Invalid response format');
+                    }
+                } catch (error) {
+                    console.error('Error loading colors from service:', error);
+                    console.log('Falling back to hardcoded colors');
+                    
+                    // Return fallback colors in the expected format
+                    colorCache = fallbackColors.map(name => ({ name: name }));
+                    return colorCache;
+                }
+            }
+
+            // Populate color dropdown with dynamic colors
+            function populateColorDropdown($select, colors) {
+                if (!$select || !colors) return;
+                
+                // Store current value to preserve selection
+                const currentValue = $select.val();
+                
+                // Clear existing options except placeholder and "Other"
+                $select.find('option').not(':first').not('[value="other"]').remove();
+                
+                // Add dynamic colors before "Other" option
+                const $otherOption = $select.find('option[value="other"]');
+                
+                colors.forEach(color => {
+                    const $option = $('<option></option>')
+                        .attr('value', color.name)
+                        .text(color.name);
+                    
+                    if ($otherOption.length > 0) {
+                        $option.insertBefore($otherOption);
+                    } else {
+                        $select.append($option);
+                    }
+                });
+                
+                // If "Other" option doesn't exist, add it
+                if ($otherOption.length === 0) {
+                    $select.append('<option value="other">Other (Specify)</option>');
+                }
+                
+                // Restore previous selection if it still exists
+                if (currentValue && $select.find(`option[value="${currentValue}"]`).length > 0) {
+                    $select.val(currentValue);
+                }
+            }
+
+            // Initialize colors for all existing dropdowns
+            async function initializeColors() {
+                console.log('Initializing dynamic colors...');
+                
+                // Add loading state to all color dropdowns
+                $('.granite-color').each(function() {
+                    const $select = $(this);
+                    const originalHtml = $select.html();
+                    $select.html('<option value="">Loading colors...</option>');
+                    $select.data('original-html', originalHtml);
+                    $select.addClass('loading');
+                });
+                
+                try {
+                    const colors = await loadColors();
+                    
+                    // Update all existing color dropdowns
+                    $('.granite-color').each(function() {
+                        populateColorDropdown($(this), colors);
+                        $(this).removeClass('loading').addClass('loaded');
+                    });
+                    
+                    console.log('Color initialization complete');
+                } catch (error) {
+                    console.error('Failed to initialize colors:', error);
+                    
+                    // Restore original HTML on error
+                    $('.granite-color').each(function() {
+                        const $select = $(this);
+                        const originalHtml = $select.data('original-html');
+                        if (originalHtml) {
+                            $select.html(originalHtml);
+                        }
+                        $select.removeClass('loading').addClass('error');
+                    });
+                }
+            }
+
+            // Initialize colors when page loads
+            $(document).ready(function() {
+                initializeColors();
+            });
+
             // Handle granite color selection (show/hide custom color input)
             $(document).on('change', '.granite-color', function() {
                 const $customColorInput = $(this).closest('tr').find('input[name$="[custom_color]"]');
                 if ($(this).val() === 'other') {
-                    $customColorInput.removeClass('d-none').prop('required', true);
+                    $customColorInput.removeClass('d-none').prop('required', true).addClass('active');
                 } else {
-                    $customColorInput.addClass('d-none').prop('required', false).val('');
+                    $customColorInput.addClass('d-none').prop('required', false).val('').removeClass('active');
                 }
             });
 
@@ -1986,16 +2106,12 @@ if (!isset($_SESSION['csrf_token'])) {
                         <td>
                             <input type="text" class="form-control form-control-sm product-name mb-1" name="products[${productCount-1}][name]" placeholder="Product Name" required>
                             
-                            <!-- Granite Color Dropdown -->
+                            <!-- Enhanced Granite Color Dropdown -->
                             <div class="mb-1">
+                                <label class="form-label small mb-1 required-field">Granite Color</label>
                                 <select class="form-select form-select-sm granite-color" name="products[${productCount-1}][color]" required>
                                     <option value="">Select Granite Color</option>
-                                    <option value="Absolute Black">Absolute Black</option>
-                                    <option value="Alaska White">Alaska White</option>
-                                    <option value="Black Galaxy">Black Galaxy</option>
-                                    <option value="Blue Pearl">Blue Pearl</option>
-                                    <option value="Colonial White">Colonial White</option>
-                                    <option value="Costa Esmeralda">Costa Esmeralda</option>
+                                    <!-- Dynamic colors will be populated here -->
                                     <option value="other">Other (Specify)</option>
                                 </select>
                                 <input type="text" class="form-control form-control-sm mt-1 d-none" name="products[${productCount-1}][custom_color]" placeholder="Enter custom color">
@@ -2155,13 +2271,18 @@ if (!isset($_SESSION['csrf_token'])) {
                 // Add event listeners to the new row
                 $newRow.find('.quantity, .price').on('input', calculateRowTotal);
                 
+                // Populate colors for the new row
+                if (colorCache) {
+                    populateColorDropdown($newRow.find('.granite-color'), colorCache);
+                }
+                
                 // Initialize granite color change handler
                 $newRow.find('.granite-color').on('change', function() {
                     const $customColorInput = $(this).closest('tr').find('input[name$="[custom_color]"]');
                     if ($(this).val() === 'other') {
-                        $customColorInput.removeClass('d-none').prop('required', true);
+                        $customColorInput.removeClass('d-none').prop('required', true).addClass('active');
                     } else {
-                        $customColorInput.addClass('d-none').prop('required', false).val('');
+                        $customColorInput.addClass('d-none').prop('required', false).val('').removeClass('active');
                     }
                 });
                 

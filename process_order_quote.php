@@ -113,12 +113,13 @@ use PHPMailer\PHPMailer\SMTP;
 
 // Sales email configuration with corrected addresses
 $salesEmails = [
-    'Martha' => 'mruker@angelgranites.com',
+    'Martha' => 'mrucker@angelgranites.com',
     'Candiss' => 'cgetter@angelgranites.com', 
     'Mike' => 'mscoggins@angelgranites.com',
     'Jeremy' => 'jowens@angelgranites.com',
     'Angel' => 'adove@angelgranites.com',
     'Jim' => 'janderson@angelgranites.com',
+    'Tiffany' => 'tsmith@angelgranites.com',
     'Test' => 'info@angelstones.com'
 ];
 
@@ -620,6 +621,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 
                 if (isset($product['manufacturing_option']) && !empty($product['manufacturing_option'])) {
                     $productDetails .= " - " . htmlspecialchars($product['manufacturing_option']);
+                }
+                
+                // Add Granite Color if available
+                if (isset($product['color']) && !empty($product['color'])) {
+                    if ($product['color'] === 'other' && isset($product['custom_color']) && !empty($product['custom_color'])) {
+                        $productDetails .= "<br><strong>Granite Color:</strong> " . htmlspecialchars($product['custom_color']) . " (Custom)";
+                    } else {
+                        $productDetails .= "<br><strong>Granite Color:</strong> " . htmlspecialchars($product['color']);
+                    }
                 }
         
                 // Calculate additional charges and add side details to email
@@ -1183,6 +1193,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     
                     if (isset($product['manufacturing_details']) && !empty($product['manufacturing_details'])) {
                         $productDetails[] = "Details: " . $product['manufacturing_details'];
+                    }
+                    
+                    // Add Granite Color if available
+                    if (isset($product['color']) && !empty($product['color'])) {
+                        if ($product['color'] === 'other' && isset($product['custom_color']) && !empty($product['custom_color'])) {
+                            $productDetails[] = "Color: " . $product['custom_color'] . " (Custom)";
+                        } else {
+                            $productDetails[] = "Color: " . $product['color'];
+                        }
                     }
                     
                     if (!empty($productDetails)) {
