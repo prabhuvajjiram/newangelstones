@@ -1,6 +1,6 @@
-name: angel_stones_app
-description: Mobile app for Angel Stones.
-version: 0.1.0
+name: angel_granites_app
+description: Mobile app for Angel Granites.
+version: 1.0.0+1  # Format: versionName+versionCode
 
 environment:
   sdk: '>=2.19.0 <4.0.0'
@@ -12,15 +12,49 @@ dependencies:
   http: ^1.1.0
   shared_preferences: ^2.2.0
   url_launcher: ^6.1.7
+  intl: ^0.20.2
+  google_fonts: ^6.1.0
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.3.10
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
 
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/icon.png"
+  min_sdk_android: 21
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: "assets/icon/icon.png"
+  windows:
+    generate: true
+    image_path: "assets/icon/icon.png"
+  macos:
+    generate: true
+    image_path: "assets/icon/icon.png"
+
+flutter_native_splash:
+  color: "#121212"
+  image: "assets/icon/icon.png"
+  android: true
+  ios: true
+  web: true
+  image_dark: "assets/icon/icon.png"
+  color_dark: "#000000"
+  android_12:
+    image: "assets/icon/icon.png"
+    icon_background_color: "#121212"
+
 flutter:
   uses-material-design: true
   assets:
+    - assets/logo.png
+    - assets/icon/icon.png
     - assets/featured_products.json
     - assets/inventory.json
     - assets/colors.json
