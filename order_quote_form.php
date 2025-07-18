@@ -22,6 +22,8 @@ if (!isset($_SESSION['csrf_token'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- Color Selector CSS -->
     <link rel="stylesheet" href="css/color-selector.css">
+    <!-- Mobile Responsive CSS -->
+    <link rel="stylesheet" href="css/mobile-responsive.css">
     <style>
         /* Ultra-Modern Colorful Design for Angel Stones */
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
@@ -1501,8 +1503,8 @@ if (!isset($_SESSION['csrf_token'])) {
                                 </thead>
                                 <tbody id="productContainer">
                                     <tr class="product-row">
-                                <td class="text-center align-middle">1</td>
-                                <td>
+                                <td class="text-center align-middle" data-label="#">1</td>
+                                <td data-label="Product">
                                     <input type="text" class="form-control form-control-sm product-name mb-1" name="products[0][name]" placeholder="Product Name" required>
                                     
                                     <!-- Enhanced Granite Color Dropdown -->
@@ -1615,22 +1617,22 @@ if (!isset($_SESSION['csrf_token'])) {
                                         </div>
                                     </div>
                                 </td>
-                                <td class="text-center align-middle">
+                                <td class="text-center align-middle" data-label="Quantity">
                                     <input type="number" class="form-control form-control-sm quantity text-center" name="products[0][quantity]" min="1" value="1" required>
                                 </td>
-                                <td class="align-middle">
+                                <td class="align-middle" data-label="Price">
                                     <div class="input-group input-group-sm">
                                         <span class="input-text">$</span>
                                         <input type="number" step="0.01" class="form-control form-control-sm price text-end" name="products[0][price]">
                                     </div>
                                 </td>
-                                <td class="align-middle">
+                                <td class="align-middle" data-label="Total">
                                     <div class="input-group input-group-sm">
                                         <span class="input-text">$</span>
                                         <input type="text" class="form-control form-control-sm total text-end" name="products[0][total]" value="0.00" readonly>
                                     </div>
                                 </td>
-                                <td class="text-center align-middle">
+                                <td class="text-center align-middle" data-label="Remove">
                                     <button type="button" class="btn btn-link btn-sm text-danger remove-product p-0" title="Remove">
                                         <i class="bi bi-trash"></i>
                                     </button>
@@ -1739,6 +1741,9 @@ if (!isset($_SESSION['csrf_token'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Color Selector JS -->
     <script src="js/color-selector.js"></script>
+    
+    <!-- Mobile Table Enhancements JS -->
+    <script src="js/mobile-table-enhancements.js"></script>
     
     <script>
         // US States array for shipping state dropdown
@@ -2187,8 +2192,8 @@ if (!isset($_SESSION['csrf_token'])) {
                 productCount++;
                 const newRow = `
                     <tr class="product-row">
-                        <td class="text-center align-middle">${productCount}</td>
-                        <td>
+                        <td class="text-center align-middle" data-label="#">${productCount}</td>
+                        <td data-label="Product">
                             <input type="text" class="form-control form-control-sm product-name mb-1" name="products[${productCount-1}][name]" placeholder="Product Name" required>
                             
                             <!-- Enhanced Granite Color Dropdown -->
@@ -2328,22 +2333,22 @@ if (!isset($_SESSION['csrf_token'])) {
                                 </div>
                             </div>
                         </td>
-                        <td class="text-center align-middle">
+                        <td class="text-center align-middle" data-label="Quantity">
                             <input type="number" class="form-control form-control-sm quantity text-center" name="products[${productCount-1}][quantity]" min="1" value="1" required>
                         </td>
-                        <td class="align-middle">
+                        <td class="align-middle" data-label="Price">
                             <div class="input-group input-group-sm">
                                 <span class="input-text">$</span>
                                 <input type="number" step="0.01" class="form-control form-control-sm price text-end" name="products[${productCount-1}][price]" required>
                             </div>
                         </td>
-                        <td class="align-middle">
+                        <td class="align-middle" data-label="Total">
                             <div class="input-group input-group-sm">
                                 <span class="input-text">$</span>
                                 <input type="text" class="form-control form-control-sm total text-end" name="products[${productCount-1}][total]" value="0.00" readonly>
                             </div>
                         </td>
-                        <td class="text-center align-middle">
+                        <td class="text-center align-middle" data-label="Remove">
                             <button type="button" class="btn btn-link btn-sm text-danger remove-product p-0" title="Remove">
                                 <i class="bi bi-trash"></i>
                             </button>

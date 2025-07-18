@@ -52,3 +52,110 @@
         font-size: 16px; /* Prevents zoom on iOS */
     }
 }
+/* Accessi
+bility Improvements */
+.sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .granite-color {
+        border: 2px solid;
+    }
+    
+    .granite-color:focus {
+        outline: 3px solid;
+        outline-offset: 2px;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .custom-color-input {
+        transition: none;
+    }
+    
+    .granite-color.loading {
+        background-image: none;
+    }
+    
+    .granite-color.loading::after {
+        content: "Loading...";
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 12px;
+        color: #666;
+    }
+}
+
+/* Enhanced focus indicators for better accessibility */
+.granite-color:focus {
+    outline: 2px solid #0066cc;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.2);
+}
+
+/* Loading state accessibility */
+.granite-color[aria-busy="true"] {
+    cursor: wait;
+}
+
+/* Error state styling */
+.granite-color.error {
+    border-color: #dc3545;
+    background-color: #fff5f5;
+}
+
+.granite-color.error:focus {
+    outline-color: #dc3545;
+    box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.2);
+}
+
+/* Success state styling */
+.granite-color.success {
+    border-color: #28a745;
+}
+
+.granite-color.success:focus {
+    outline-color: #28a745;
+    box-shadow: 0 0 0 4px rgba(40, 167, 69, 0.2);
+}
+
+/* Performance optimizations for mobile */
+@media (max-width: 768px) {
+    .granite-color {
+        /* Optimize for touch */
+        min-height: 44px;
+        font-size: 16px; /* Prevents zoom on iOS */
+        -webkit-appearance: none;
+        appearance: none;
+    }
+    
+    /* Reduce animations on mobile for better performance */
+    .granite-color,
+    .custom-color-input {
+        transition-duration: 0.15s;
+    }
+}
+
+/* Print styles */
+@media print {
+    .granite-color.loading {
+        background-image: none;
+    }
+    
+    .granite-color.loading::after {
+        content: " (Loading)";
+    }
+}

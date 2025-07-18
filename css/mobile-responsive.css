@@ -1,0 +1,1344 @@
+/* Mobile-Responsive CSS Improvements for Order Quote Form */
+
+/* Mobile-first approach with progressive enhancement */
+
+/* Medium mobile devices (577px - 768px) - Enhanced horizontal scroll */
+@media screen and (min-width: 577px) and (max-width: 768px) {
+    
+    /* Enhanced table responsive with better horizontal scrolling */
+    .table-responsive {
+        border-radius: 12px;
+        overflow-x: auto;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+        position: relative;
+        scroll-snap-type: x proximity;
+        overscroll-behavior-x: contain;
+        /* Improved performance */
+        will-change: scroll-position;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+    }
+    
+    /* Add enhanced scroll indicators with better visibility */
+    .table-responsive::before,
+    .table-responsive::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 30px;
+        pointer-events: none;
+        z-index: 10;
+        transition: opacity 0.3s ease;
+        opacity: 0;
+    }
+    
+    .table-responsive::before {
+        left: 0;
+        background: linear-gradient(to right, rgba(26, 32, 44, 0.1), transparent);
+        border-radius: 12px 0 0 12px;
+    }
+    
+    .table-responsive::after {
+        right: 0;
+        background: linear-gradient(to left, rgba(26, 32, 44, 0.1), transparent);
+        border-radius: 0 12px 12px 0;
+    }
+    
+    /* Show scroll indicators when content is scrollable */
+    .table-responsive.has-horizontal-scroll::before,
+    .table-responsive.has-horizontal-scroll::after {
+        opacity: 1;
+    }
+    
+    /* Hide left indicator when scrolled to start */
+    .table-responsive.scrolled-left::before {
+        opacity: 0;
+    }
+    
+    /* Hide right indicator when scrolled to end */
+    .table-responsive:not(.can-scroll-right)::after {
+        opacity: 0;
+    }
+    
+    /* Enhanced table styling for horizontal scroll */
+    .table {
+        min-width: 900px; /* Ensures horizontal scroll */
+        font-size: 14px;
+        margin-bottom: 0;
+    }
+    
+    .table th,
+    .table td {
+        padding: 14px 10px;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+    
+    .table th {
+        font-size: 13px;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+    
+    /* Enhanced product table column widths */
+    #productsTable th:first-child,
+    #productsTable td:first-child {
+        min-width: 50px;
+        position: sticky;
+        left: 0;
+        background: inherit;
+        z-index: 1;
+    }
+    
+    #productsTable th:nth-child(2),
+    #productsTable td:nth-child(2) {
+        min-width: 350px;
+        max-width: 400px;
+    }
+    
+    #productsTable th:nth-child(3),
+    #productsTable td:nth-child(3) {
+        min-width: 120px;
+    }
+    
+    #productsTable th:nth-child(4),
+    #productsTable td:nth-child(4),
+    #productsTable th:nth-child(5),
+    #productsTable td:nth-child(5) {
+        min-width: 140px;
+    }
+    
+    #productsTable th:last-child,
+    #productsTable td:last-child {
+        min-width: 80px;
+        position: sticky;
+        right: 0;
+        background: inherit;
+        z-index: 1;
+    }
+    
+    /* Product row content adjustments */
+    .product-row td:nth-child(2) {
+        white-space: normal;
+        padding: 12px;
+    }
+    
+    /* Enhanced form elements within table cells */
+    .table .form-control,
+    .table .form-select {
+        font-size: 15px;
+        min-height: 42px;
+        padding: 10px 12px;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+    }
+    
+    .table .form-control-sm,
+    .table .form-select-sm {
+        font-size: 14px;
+        min-height: 40px;
+        padding: 8px 12px;
+    }
+    
+    /* Enhanced touch interactions */
+    .table .form-control:focus,
+    .table .form-select:focus {
+        transform: scale(1.02);
+        z-index: 10;
+        position: relative;
+        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+    }
+    
+    /* Enhanced button interactions */
+    .table .btn {
+        transition: all 0.3s ease;
+        position: relative;
+        touch-action: manipulation;
+    }
+    
+    .table .btn:hover,
+    .table .btn:active {
+        transform: scale(1.05);
+        z-index: 10;
+    }
+    
+    .table .remove-product {
+        min-height: 44px;
+        width: 44px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        touch-action: manipulation;
+    }
+    
+    .table .remove-product:hover,
+    .table .remove-product:active {
+        background: rgba(229, 62, 62, 0.1);
+        transform: scale(1.1);
+    }
+    
+    /* Improve touch scrolling */
+    .table-responsive {
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+    }
+    
+    /* Add visual feedback for scrollable areas */
+    .table-responsive::-webkit-scrollbar {
+        height: 8px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: rgba(66, 153, 225, 0.6);
+        border-radius: 4px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: rgba(66, 153, 225, 0.8);
+    }
+}
+
+/* Base mobile styles (320px - 768px) */
+@media screen and (max-width: 768px) {
+    
+    /* Touch-friendly input sizes - minimum 44px height */
+    .form-control,
+    .form-select,
+    .btn {
+        min-height: 44px;
+        font-size: 16px; /* Prevents zoom on iOS */
+        padding: 12px 16px;
+    }
+    
+    .form-control-sm,
+    .form-select-sm {
+        min-height: 44px;
+        font-size: 16px;
+        padding: 10px 14px;
+    }
+    
+    .btn-sm {
+        min-height: 44px;
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+    
+    /* Form container adjustments */
+    .form-container {
+        margin: 10px;
+        border-radius: 16px;
+    }
+    
+    .form-section-inner {
+        padding: 20px 16px;
+    }
+    
+    .form-header {
+        padding: 24px 16px;
+    }
+    
+    .form-header h4 {
+        font-size: 24px;
+        line-height: 1.3;
+    }
+    
+    .form-header p {
+        font-size: 16px;
+    }
+    
+    /* Form labels and spacing */
+    .form-label {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    
+    .mb-1 {
+        margin-bottom: 12px !important;
+    }
+    
+    .mb-2 {
+        margin-bottom: 16px !important;
+    }
+    
+    .mb-3 {
+        margin-bottom: 20px !important;
+    }
+    
+    /* Input groups for mobile */
+    .input-group-sm .input-group-text {
+        min-height: 44px;
+        padding: 10px 14px;
+        font-size: 16px;
+    }
+    
+    .input-group-sm .form-control {
+        min-height: 44px;
+        font-size: 16px;
+    }
+    
+    /* Checkbox and radio adjustments */
+    .form-check {
+        margin-bottom: 12px;
+    }
+    
+    .form-check-input {
+        width: 20px;
+        height: 20px;
+        margin-top: 2px;
+    }
+    
+    .form-check-label {
+        font-size: 14px;
+        padding-left: 8px;
+    }
+    
+    /* Product type checkboxes in grid */
+    .product-row .row.g-2 {
+        margin: 0 -4px;
+    }
+    
+    .product-row .row.g-2 > .col-6,
+    .product-row .row.g-2 > .col-md-4 {
+        padding: 0 4px;
+        margin-bottom: 8px;
+    }
+    
+    /* Manufacturing type radio buttons */
+    .form-check-inline {
+        margin-right: 16px;
+        margin-bottom: 8px;
+    }
+    
+    /* Sides section */
+    .sides-container {
+        margin-bottom: 12px;
+    }
+    
+    /* Button adjustments */
+    .btn-link {
+        min-height: 44px;
+        padding: 12px;
+    }
+    
+    .remove-product {
+        min-height: 44px;
+        width: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .remove-product i {
+        font-size: 18px;
+    }
+    
+    /* Add product button */
+    #addProduct {
+        width: 100%;
+        margin-bottom: 12px;
+    }
+    
+    /* Total row adjustments */
+    .total-row td {
+        font-size: 16px;
+        font-weight: 700;
+        padding: 16px 8px;
+    }
+    
+    /* Form sections spacing */
+    .form-section {
+        margin-bottom: 20px;
+    }
+    
+    .form-section h5 {
+        font-size: 18px;
+        padding: 16px;
+    }
+    
+    /* Alert and validation messages */
+    .invalid-feedback {
+        font-size: 13px;
+        margin-top: 4px;
+    }
+    
+    .alert {
+        font-size: 14px;
+        padding: 12px 16px;
+        margin: 12px 0;
+    }
+    
+    /* Badge adjustments */
+    .badge {
+        font-size: 11px;
+        padding: 4px 8px;
+    }
+    
+    .side-count {
+        font-size: 12px;
+    }
+    
+    /* Loading states */
+    .granite-color.loading {
+        background-size: 14px 14px;
+        background-position: right 10px center;
+    }
+}
+
+/* Small mobile devices (320px - 576px) - Enhanced Card-style layout */
+@media screen and (max-width: 576px) {
+    
+    /* Even more compact spacing */
+    .form-container {
+        margin: 5px;
+        border-radius: 12px;
+    }
+    
+    .form-section-inner {
+        padding: 16px 12px;
+    }
+    
+    .form-header {
+        padding: 20px 12px;
+    }
+    
+    .form-header h4 {
+        font-size: 22px;
+    }
+    
+    .form-header p {
+        font-size: 15px;
+    }
+    
+    /* Enhanced card-style table layout with improved accessibility */
+    .table-responsive {
+        overflow: visible;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 0;
+        /* Add scroll padding for better navigation */
+        scroll-padding: 16px;
+        /* Ensure proper spacing between cards */
+        margin-bottom: 20px;
+    }
+    
+    /* Transform table structure to card layout */
+    .table,
+    .table thead,
+    .table tbody,
+    .table th,
+    .table td,
+    .table tr {
+        display: block;
+    }
+    
+    /* Hide table headers completely */
+    .table thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+        visibility: hidden;
+        opacity: 0;
+    }
+    
+    .table thead th {
+        display: none;
+    }
+    
+    /* Enhanced card styling for table rows */
+    .table tbody tr {
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        margin-bottom: 20px;
+        padding: 0;
+        background: white;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        touch-action: manipulation;
+    }
+    
+    .table tbody tr:hover,
+    .table tbody tr:active {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        background: white;
+    }
+    
+    /* Add visual feedback for touch interactions */
+    .table tbody tr:active {
+        transform: translateY(-1px) scale(0.98);
+        transition: all 0.1s ease;
+    }
+    
+    /* Enhanced table cell styling with better data labels */
+    .table tbody td {
+        border: none;
+        padding: 12px 16px;
+        text-align: left !important;
+        position: relative;
+        min-height: 48px;
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+        border-bottom: 1px solid #f7fafc;
+        transition: all 0.3s ease;
+    }
+    
+    .table tbody td:last-child {
+        border-bottom: none;
+    }
+    
+    /* Enhanced data labels with better styling and animations */
+    .table tbody td:before {
+        content: attr(data-label);
+        display: block;
+        font-weight: 700;
+        font-size: 12px;
+        color: #4a5568;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 8px;
+        padding: 6px 12px;
+        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        border-radius: 8px;
+        width: fit-content;
+        min-width: 90px;
+        text-align: center;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+        transform: translateY(0);
+    }
+    
+    /* Enhanced data label hover effects */
+    .table tbody tr:hover td:before {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Special styling for different data label types */
+    .table tbody td[data-label="#"]:before {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 800;
+    }
+    
+    .table tbody td[data-label="Product"]:before {
+        background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        color: white;
+    }
+    
+    .table tbody td[data-label="Quantity"]:before,
+    .table tbody td[data-label="Price"]:before,
+    .table tbody td[data-label="Total"]:before {
+        background: linear-gradient(135deg, #38a169 0%, #48bb78 100%);
+        color: white;
+    }
+    
+    .table tbody td[data-label="Remove"]:before {
+        background: linear-gradient(135deg, #e53e3e 0%, #f56565 100%);
+        color: white;
+    }
+    
+    /* Product number cell - special header styling */
+    .table tbody tr td:nth-child(1) {
+        background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        color: white;
+        font-weight: 800;
+        font-size: 20px;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        padding: 16px;
+        border-radius: 0;
+        flex-direction: row;
+        min-height: 60px;
+        border-bottom: 2px solid #2b6cb0;
+    }
+    
+    .table tbody tr td:nth-child(1):before {
+        display: none;
+    }
+    
+    /* Product details cell - enhanced layout */
+    .table tbody tr td:nth-child(2) {
+        padding: 16px;
+        background: #fafafa;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .table tbody tr td:nth-child(2):before {
+        background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        color: white;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+    
+    /* Quantity, Price, Total cells with consistent styling */
+    .table tbody tr td:nth-child(3),
+    .table tbody tr td:nth-child(4),
+    .table tbody tr td:nth-child(5) {
+        padding: 16px;
+        background: white;
+    }
+    
+    .table tbody tr td:nth-child(3):before,
+    .table tbody tr td:nth-child(4):before,
+    .table tbody tr td:nth-child(5):before {
+        background: linear-gradient(135deg, #38a169 0%, #48bb78 100%);
+        color: white;
+    }
+    
+    /* Remove button - enhanced positioning */
+    .table tbody tr td:nth-child(6) {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        padding: 0;
+        width: auto;
+        background: transparent;
+        z-index: 10;
+    }
+    
+    .table tbody tr td:nth-child(6):before {
+        display: none;
+    }
+    
+    .table tbody tr td:nth-child(6) .remove-product {
+        background: rgba(229, 62, 62, 0.1);
+        color: #e53e3e;
+        border-radius: 8px;
+        padding: 8px;
+        min-height: 40px;
+        width: 40px;
+        transition: all 0.3s ease;
+    }
+    
+    .table tbody tr td:nth-child(6) .remove-product:hover {
+        background: #e53e3e;
+        color: white;
+        transform: scale(1.1);
+    }
+    
+    /* Enhanced form controls in card layout */
+    .table tbody tr .form-control,
+    .table tbody tr .form-select {
+        width: 100%;
+        margin-bottom: 8px;
+        border-radius: 8px;
+        border: 2px solid #e2e8f0;
+        font-size: 16px;
+        min-height: 44px;
+        transition: all 0.3s ease;
+    }
+    
+    .table tbody tr .form-control:focus,
+    .table tbody tr .form-select:focus {
+        border-color: #4299e1;
+        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        transform: none;
+    }
+    
+    /* Enhanced input groups */
+    .table tbody tr .input-group {
+        width: 100%;
+    }
+    
+    .table tbody tr .input-group-text {
+        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        border: 2px solid #e2e8f0;
+        border-right: none;
+        font-weight: 600;
+        color: #4a5568;
+        min-height: 44px;
+    }
+    
+    /* Product type checkboxes - enhanced grid layout */
+    .table tbody tr .row.g-2 {
+        margin: 12px -6px 0 -6px;
+    }
+    
+    .table tbody tr .row.g-2 > .col-6,
+    .table tbody tr .row.g-2 > .col-md-4 {
+        padding: 0 6px;
+        margin-bottom: 12px;
+    }
+    
+    .table tbody tr .form-check {
+        background: #f7fafc;
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin-bottom: 8px;
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+    
+    .table tbody tr .form-check:hover {
+        background: #edf2f7;
+        border-color: #cbd5e0;
+    }
+    
+    .table tbody tr .form-check-input:checked + .form-check-label {
+        color: #3182ce;
+        font-weight: 600;
+    }
+    
+    /* Manufacturing options - enhanced inline layout */
+    .table tbody tr .form-check-inline {
+        display: block;
+        margin-right: 0;
+        margin-bottom: 12px;
+        background: #f7fafc;
+        border-radius: 8px;
+        padding: 8px 12px;
+        border: 1px solid #e2e8f0;
+    }
+    
+    /* Sides section - enhanced styling */
+    .table tbody tr .border-top {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 2px solid #e2e8f0 !important;
+    }
+    
+    /* Enhanced table footer */
+    .table tfoot tr {
+        border: none;
+        padding: 0;
+        margin-bottom: 16px;
+        background: transparent;
+        box-shadow: none;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .table tfoot td {
+        padding: 16px;
+        text-align: center !important;
+        border: none;
+        background: white;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .table tfoot td:before {
+        display: none;
+    }
+    
+    /* Enhanced total rows */
+    .total-row {
+        background: linear-gradient(135deg, #38a169 0%, #48bb78 100%) !important;
+        color: white !important;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        box-shadow: 0 4px 6px rgba(56, 161, 105, 0.3);
+    }
+    
+    .total-row td {
+        color: white !important;
+        padding: 20px !important;
+        text-align: center !important;
+        font-size: 18px;
+        font-weight: 800;
+        background: transparent !important;
+        box-shadow: none !important;
+        margin-bottom: 0 !important;
+    }
+    
+    .total-row td:before {
+        display: none;
+    }
+    
+    /* Add Product button enhancement */
+    .table tfoot tr:first-child td {
+        background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        color: white;
+    }
+    
+    .table tfoot tr:first-child td .btn {
+        color: white;
+        border-color: white;
+        font-weight: 600;
+        width: 100%;
+        min-height: 48px;
+    }
+    
+    .table tfoot tr:first-child td .btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: white;
+        color: white;
+    }
+}
+
+/* Landscape orientation adjustments */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+    .form-header {
+        padding: 16px;
+    }
+    
+    .form-header h4 {
+        font-size: 20px;
+    }
+    
+    .form-section-inner {
+        padding: 16px;
+    }
+}
+
+/* High DPI displays */
+@media screen and (max-width: 768px) and (-webkit-min-device-pixel-ratio: 2) {
+    .form-control,
+    .form-select,
+    .btn {
+        border-width: 1px;
+    }
+}
+
+/* Focus improvements for mobile */
+@media screen and (max-width: 768px) {
+    .form-control:focus,
+    .form-select:focus {
+        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.3);
+        border-color: #4299e1;
+        transform: none;
+    }
+    
+    .btn:focus {
+        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.3);
+        transform: none;
+    }
+}
+
+/* Accessibility improvements */
+@media screen and (max-width: 768px) {
+    /* Larger touch targets */
+    .form-check-input {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .form-check-label {
+        padding-left: 12px;
+        line-height: 1.5;
+    }
+    
+    /* Better contrast for small screens */
+    .form-label {
+        color: #2d3748;
+        font-weight: 600;
+    }
+    
+    /* Improved error states */
+    .is-invalid {
+        border-color: #e53e3e;
+        box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.2);
+    }
+    
+    .invalid-feedback {
+        color: #e53e3e;
+        font-weight: 500;
+    }
+}
+
+/* Print styles for mobile */
+@media print {
+    .table tbody tr {
+        display: table-row !important;
+        border: 1px solid #000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+    }
+    
+    .table tbody td {
+        display: table-cell !important;
+        padding: 8px !important;
+        border: 1px solid #000 !important;
+        text-align: left !important;
+        padding-left: 8px !important;
+    }
+    
+    .table tbody td:before {
+        display: none !important;
+    }
+    
+    .table thead tr {
+        position: static !important;
+        display: table-row !important;
+    }
+}
+/* Additional Mobile Table Responsiveness Enhancements */
+
+/* Enhanced mobile table interactions for better touch experience */
+@media screen and (max-width: 576px) {
+    /* Enhanced mobile table interactions */
+    .table tbody tr {
+        cursor: pointer;
+        /* Add subtle animation for better perceived performance */
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        /* Improve touch target accessibility */
+        position: relative;
+        isolation: isolate;
+    }
+    
+    /* Enhanced data label positioning for complex form elements */
+    .table tbody td[data-label="Product"] {
+        padding: 20px 18px;
+        background: #fafafa;
+        border-bottom: 3px solid #e2e8f0;
+    }
+    
+    .table tbody td[data-label="Product"]:before {
+        background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        color: white;
+        font-weight: 800;
+        margin-bottom: 16px;
+        padding: 8px 16px;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(66, 153, 225, 0.3);
+    }
+    
+    /* Enhanced form element spacing within product cells */
+    .table tbody td[data-label="Product"] .form-control,
+    .table tbody td[data-label="Product"] .form-select {
+        margin-bottom: 12px;
+        border-radius: 12px;
+        border: 2px solid #e2e8f0;
+        transition: all 0.3s ease;
+        background: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .table tbody td[data-label="Product"] .form-control:focus,
+    .table tbody td[data-label="Product"] .form-select:focus {
+        border-color: #4299e1;
+        box-shadow: 0 0 0 4px rgba(66, 153, 225, 0.1);
+        transform: translateY(-1px);
+    }
+    
+    /* Enhanced label styling within product cells */
+    .table tbody td[data-label="Product"] .form-label {
+        font-weight: 700;
+        color: #2d3748;
+        font-size: 13px;
+        margin-bottom: 6px;
+        display: block;
+    }
+    
+    .table tbody td[data-label="Product"] .required-field:after {
+        content: " *";
+        color: #e53e3e;
+        font-weight: 800;
+    }
+    
+    /* Improve form element spacing in mobile cards */
+    .table tbody tr .form-control,
+    .table tbody tr .form-select {
+        margin-bottom: 4px;
+        /* Enhanced border radius for better mobile aesthetics */
+        border-radius: 10px;
+        /* Improved touch target size */
+        min-height: 48px;
+    }
+    
+    .table tbody tr .form-control:last-child,
+    .table tbody tr .form-select:last-child {
+        margin-bottom: 0;
+    }
+    
+    /* Enhanced mobile scrolling for horizontal overflow */
+    .table-responsive {
+        scroll-padding: 16px;
+        scroll-snap-align: start;
+        /* Improved scroll behavior */
+        scroll-behavior: smooth;
+        overscroll-behavior: contain;
+    }
+    
+    /* Better visual feedback for mobile interactions */
+    .table tbody tr:focus-within {
+        outline: 3px solid #4299e1;
+        outline-offset: 3px;
+        border-radius: 16px;
+        /* Add glow effect */
+        box-shadow: 0 0 0 6px rgba(66, 153, 225, 0.1);
+    }
+    
+    /* Optimize mobile performance */
+    .table tbody tr,
+    .table tbody td,
+    .table .form-control,
+    .table .form-select,
+    .table .btn {
+        will-change: transform;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        /* GPU acceleration */
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+    }
+    
+    /* Enhanced touch feedback for interactive elements */
+    .table tbody tr .form-control:active,
+    .table tbody tr .form-select:active {
+        transform: scale(0.98) translateZ(0);
+        transition: transform 0.1s ease;
+        /* Add subtle shadow feedback */
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Improved accessibility for mobile */
+    .table tbody tr .form-control:focus,
+    .table tbody tr .form-select:focus {
+        outline: 3px solid #4299e1;
+        outline-offset: 2px;
+        border-color: #4299e1;
+        /* Enhanced focus shadow */
+        box-shadow: 0 0 0 4px rgba(66, 153, 225, 0.2);
+        /* Slight scale for better visibility */
+        transform: scale(1.02) translateZ(0);
+    }
+    
+    /* Better spacing for mobile card content */
+    .table tbody tr td:not(:first-child):not(:last-child) {
+        padding: 14px 18px;
+    }
+    
+    /* Enhanced remove button positioning and interaction */
+    .table tbody tr td:nth-child(6) .remove-product {
+        box-shadow: 0 3px 6px rgba(229, 62, 62, 0.2);
+        border: 2px solid rgba(229, 62, 62, 0.3);
+        /* Improved touch target */
+        min-width: 48px;
+        min-height: 48px;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+    }
+    
+    .table tbody tr td:nth-child(6) .remove-product:active {
+        transform: scale(0.95) translateZ(0);
+        box-shadow: 0 1px 3px rgba(229, 62, 62, 0.4);
+        background: rgba(229, 62, 62, 0.1);
+    }
+    
+    /* Enhanced data label animations with improved performance */
+    .table tbody td:before {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        /* Add subtle hover effect with better performance */
+        will-change: transform, box-shadow;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+    }
+    
+    .table tbody tr:hover td:before {
+        transform: translateY(-1px) scale(1.02) translateZ(0);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Enhanced mobile table scroll snap for better UX */
+    @media screen and (max-width: 576px) {
+        .table-responsive {
+            scroll-snap-type: y mandatory;
+            scroll-padding: 20px;
+        }
+        
+        .table tbody tr {
+            scroll-snap-align: start;
+            scroll-margin: 20px;
+        }
+    }
+    
+    /* Improved input group styling for mobile */
+    .table tbody tr .input-group {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .table tbody tr .input-group-text {
+        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        border: 2px solid #e2e8f0;
+        border-right: none;
+        font-weight: 700;
+        color: #4a5568;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Enhanced checkbox and radio styling for mobile cards */
+    .table tbody tr .form-check {
+        background: rgba(247, 250, 252, 0.8);
+        border-radius: 10px;
+        padding: 10px 14px;
+        margin-bottom: 10px;
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+    
+    .table tbody tr .form-check:hover {
+        background: rgba(237, 242, 247, 0.9);
+        border-color: #cbd5e0;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .table tbody tr .form-check-input {
+        width: 22px;
+        height: 22px;
+        margin-top: 0;
+        border-width: 2px;
+    }
+    
+    .table tbody tr .form-check-input:checked {
+        background-color: #4299e1;
+        border-color: #4299e1;
+        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+    }
+    
+    .table tbody tr .form-check-label {
+        font-weight: 500;
+        color: #2d3748;
+        margin-left: 8px;
+    }
+    
+    /* Enhanced manufacturing options styling */
+    .table tbody tr .form-check-inline {
+        display: block;
+        margin-right: 0;
+        margin-bottom: 12px;
+        background: rgba(247, 250, 252, 0.8);
+        border-radius: 10px;
+        padding: 10px 14px;
+        border: 1px solid #e2e8f0;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+    
+    /* Enhanced sides section styling */
+    .table tbody tr .border-top {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 3px solid #e2e8f0 !important;
+        background: rgba(247, 250, 252, 0.5);
+        border-radius: 12px;
+        padding: 20px 16px;
+    }
+    
+    /* Enhanced add side button */
+    .table tbody tr .add-side {
+        background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 16px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(66, 153, 225, 0.3);
+    }
+    
+    .table tbody tr .add-side:hover {
+        transform: translateY(-1px) scale(1.02);
+        box-shadow: 0 4px 8px rgba(66, 153, 225, 0.4);
+    }
+    
+    .table tbody tr .add-side:active {
+        transform: translateY(0) scale(0.98);
+        box-shadow: 0 1px 2px rgba(66, 153, 225, 0.3);
+    }
+}
+
+/* Medium mobile devices - Enhanced horizontal scrolling */
+@media screen and (min-width: 577px) and (max-width: 768px) {
+    /* Improved horizontal scroll performance */
+    .table-responsive {
+        scroll-behavior: smooth;
+        overscroll-behavior-x: contain;
+    }
+    
+    /* Enhanced sticky column shadows */
+    #productsTable th:first-child,
+    #productsTable td:first-child {
+        box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    #productsTable th:last-child,
+    #productsTable td:last-child {
+        box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Better touch scrolling indicators */
+    .table-responsive::before {
+        opacity: 0.8;
+        z-index: 3;
+    }
+    
+    .table-responsive::after {
+        opacity: 0.8;
+        z-index: 3;
+    }
+}
+
+/* Performance optimizations for all mobile devices */
+@media screen and (max-width: 768px) {
+    /* GPU acceleration for smooth animations */
+    .table tbody tr,
+    .table .form-control,
+    .table .form-select,
+    .table .btn {
+        will-change: transform;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+    }
+    
+    /* Enhanced accessibility for mobile screen readers */
+    .table tbody td:before {
+        /* Ensure screen readers can access data labels */
+        speak: literal-punctuation;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+    }
+    
+    /* Improved loading states for mobile */
+    .table tbody tr.loading {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+    
+    .table tbody tr.loading::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 20px;
+        height: 20px;
+        margin: -10px 0 0 -10px;
+        border: 2px solid #4299e1;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        z-index: 100;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* Enhanced error states for mobile */
+    .table tbody tr.error {
+        border-color: #e53e3e;
+        background: rgba(229, 62, 62, 0.05);
+        animation: shake 0.5s ease-in-out;
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+    
+    /* Improved focus management for mobile navigation */
+    .table tbody tr:focus-within {
+        outline: 3px solid #4299e1;
+        outline-offset: 2px;
+        border-radius: 16px;
+        z-index: 10;
+        position: relative;
+    }
+    
+    /* Enhanced mobile keyboard navigation */
+    .table tbody tr[tabindex]:focus {
+        outline: 3px solid #4299e1;
+        outline-offset: 2px;
+        background: rgba(66, 153, 225, 0.05);
+    }
+    
+    /* Better mobile form validation feedback */
+    .table .form-control.is-invalid,
+    .table .form-select.is-invalid {
+        border-color: #e53e3e;
+        box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.2);
+        animation: pulse-error 0.5s ease-in-out;
+    }
+    
+    @keyframes pulse-error {
+        0% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.4); }
+        70% { box-shadow: 0 0 0 6px rgba(229, 62, 62, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0); }
+    }
+    
+    /* Enhanced mobile success states */
+    .table .form-control.is-valid,
+    .table .form-select.is-valid {
+        border-color: #38a169;
+        box-shadow: 0 0 0 2px rgba(56, 161, 105, 0.2);
+    }
+    
+    /* Improved mobile drag and drop feedback (if applicable) */
+    .table tbody tr.dragging {
+        opacity: 0.5;
+        transform: rotate(5deg) scale(0.95);
+        z-index: 1000;
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Enhanced mobile table footer */
+    .table tfoot tr td {
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .table tfoot tr td:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+}
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+    }
+    
+    /* Reduce motion for users who prefer it */
+    @media (prefers-reduced-motion: reduce) {
+        .table tbody tr,
+        .table .form-control,
+        .table .form-select,
+        .table .btn {
+            transition: none !important;
+            animation: none !important;
+            transform: none !important;
+        }
+    }
+    
+    /* High contrast mode support */
+    @media (prefers-contrast: high) {
+        .table tbody tr {
+            border: 3px solid #000;
+        }
+        
+        .table tbody td:before {
+            background: #000;
+            color: #fff;
+            border: 1px solid #fff;
+        }
+    }
+}
