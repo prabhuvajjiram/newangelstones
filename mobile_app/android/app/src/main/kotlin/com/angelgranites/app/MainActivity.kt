@@ -1,4 +1,4 @@
-package com.example.angel_stones_app
+package com.angelgranites.app
 
 import io.flutter.embedding.android.FlutterActivity
 
