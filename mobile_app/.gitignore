@@ -43,3 +43,47 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Keys and sensitive files
+**/*.jks
+**/*.keystore
+**/*.p12
+**/*.key
+**/*.pem
+**/*.pfx
+**/*.properties
+
+# Local configuration files
+**/local.properties
+**/gradle.properties
+**/key.properties
+
+# Flutter/Dart
+.flutter-plugins-dependencies
+.flutter-plugins
+.dart_tool/
+.pub-cache/
+.pub/
+/build/
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/launch.json
+
+# IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Environment variables
+.env
+.env.*
+!.env.example
