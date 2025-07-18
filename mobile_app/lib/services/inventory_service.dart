@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart' show Client;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import '../models/inventory_item.dart';
 
 class InventoryService {
@@ -12,6 +14,23 @@ class InventoryService {
 
   // List of location IDs to fetch inventory from
   final List<String> _locationIds = ['45587', '45555'];
+
+  // Load inventory data from local asset file
+  Future<List<InventoryItem>> loadLocalInventory() async {
+    try {
+      debugPrint('📂 Loading inventory from local assets');
+      final jsonString = await rootBundle.loadString('assets/inventory.json');
+      final List<dynamic> jsonData = json.decode(jsonString);
+      final items = jsonData
+          .map((item) => InventoryItem.fromJson(item))
+          .toList();
+      debugPrint('✅ Successfully loaded ${items.length} items from local assets');
+      return items;
+    } catch (e) {
+      debugPrint('⚠️ Error loading local inventory: $e');
+      return [];
+    }
+  }
 
   Future<List<InventoryItem>> fetchInventory({
     int page = 1,
@@ -130,7 +149,8 @@ class InventoryService {
       }
       
       if (allItems.isEmpty) {
-        throw Exception('Failed to load inventory from any location');
+        debugPrint('⚠️ Failed to load inventory from API, falling back to local data');
+        return loadLocalInventory();
       }
       
       debugPrint('🎉 Successfully loaded ${allItems.length} total items from all locations');
