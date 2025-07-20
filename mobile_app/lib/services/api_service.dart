@@ -6,6 +6,44 @@ import 'package:flutter/foundation.dart';
 import '../models/product.dart';
 
 class ApiService {
+  bool _isInitialized = false;
+  
+  /// Initialize the API service with error handling and timeout
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+    
+    try {
+      // Preload essential assets
+      await Future.wait([
+        _preloadAsset('assets/featured_products.json'),
+        _preloadAsset('assets/colors.json'),
+      ]).timeout(
+        const Duration(seconds: 2),
+        onTimeout: () {
+          debugPrint('⚠️ Asset preloading timed out');
+          return [];
+        },
+      );
+      
+      _isInitialized = true;
+      debugPrint('✅ ApiService initialized successfully');
+    } catch (e) {
+      debugPrint('⚠️ ApiService initialization error: $e');
+      // Mark as initialized anyway to prevent repeated init attempts
+      _isInitialized = true;
+    }
+  }
+  
+  /// Preload an asset to ensure it's available
+  Future<void> _preloadAsset(String assetPath) async {
+    try {
+      await rootBundle.loadString(assetPath);
+      debugPrint('✅ Successfully preloaded $assetPath');
+    } catch (e) {
+      debugPrint('⚠️ Failed to preload $assetPath: $e');
+      // Don't rethrow - we want to continue even if one asset fails
+    }
+  }
   static const _baseUrl = 'https://theangelstones.com';
 
   Future<List<String>> fetchCategoryImages(String category) async {
@@ -23,7 +61,7 @@ class ApiService {
         final List<dynamic> files = jsonData['files'] ?? [];
         final imageUrls = files
             .whereType<Map<String, dynamic>>()
-            .map((e) => '$_baseUrl/' + (e['path'] ?? '').toString())
+            .map((e) => '$_baseUrl/${e['path'] ?? ''}')
             .toList();
         debugPrint('✅ Successfully loaded ${imageUrls.length} category images');
         return imageUrls;

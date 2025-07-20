@@ -18,18 +18,16 @@ class ProductCard extends StatelessWidget {
               errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
             ),
           ),
-          if (product.label != null && product.label!.isNotEmpty)
-            Container(
-              color: Colors.blueAccent,
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              child: Text(
-                product.label!,
-                style: const TextStyle(color: Colors.white, fontSize: 12),
-              ),
-            ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Text(product.name, style: const TextStyle(fontSize: 16)),
+            child: Text(
+              product.name,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
           ),
         ],
       ),
