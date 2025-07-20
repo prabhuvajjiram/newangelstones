@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../widgets/full_screen_image.dart';
+import '../utils/error_utils.dart';
 
 class DesignGalleryScreen extends StatelessWidget {
   final String categoryId;
@@ -20,7 +21,10 @@ class DesignGalleryScreen extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              showErrorSnackBar(context, 'Failed to load designs');
+            });
+            return const Center(child: Text('Unable to load designs'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('No designs found'));
           }
@@ -52,10 +56,13 @@ class DesignGalleryScreen extends StatelessWidget {
                 },
                 child: Hero(
                   tag: 'image_$index',
-                  child: Image.network(
-                    url,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stack) => const Icon(Icons.broken_image),
+                  child: Semantics(
+                    label: 'Design image',
+                    child: Image.network(
+                      url,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stack) => const Icon(Icons.broken_image),
+                    ),
                   ),
                 ),
               );

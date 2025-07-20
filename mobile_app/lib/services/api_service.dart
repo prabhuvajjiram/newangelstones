@@ -7,6 +7,8 @@ import '../models/product.dart';
 
 class ApiService {
   bool _isInitialized = false;
+  final Map<String, List<String>> _categoryCache = {};
+  List<Product>? _productCache;
   
   /// Initialize the API service with error handling and timeout
   Future<void> initialize() async {
@@ -47,6 +49,9 @@ class ApiService {
   static const _baseUrl = 'https://theangelstones.com';
 
   Future<List<String>> fetchCategoryImages(String category) async {
+    if (_categoryCache.containsKey(category)) {
+      return _categoryCache[category]!;
+    }
     try {
       final uri = Uri.parse('$_baseUrl/get_directory_files.php?directory=products/$category');
       debugPrint('🌐 Fetching category images from: $uri');
@@ -64,6 +69,7 @@ class ApiService {
             .map((e) => '$_baseUrl/${e['path'] ?? ''}')
             .toList();
         debugPrint('✅ Successfully loaded ${imageUrls.length} category images');
+        _categoryCache[category] = imageUrls;
         return imageUrls;
       } else {
         debugPrint('❌ Failed to load category images: ${response.statusCode}');
@@ -77,6 +83,7 @@ class ApiService {
   }
 
   Future<List<Product>> fetchProducts() async {
+    if (_productCache != null) return _productCache!;
     try {
       final uri = Uri.parse('$_baseUrl/api/color.json');
       debugPrint('🌐 Fetching products from: $uri');
@@ -94,16 +101,19 @@ class ApiService {
             .map((e) => Product.fromJson(e['item'] as Map<String, dynamic>))
             .toList();
         debugPrint('✅ Successfully loaded ${products.length} products');
+        _productCache = products;
         return products;
       } else {
         debugPrint('❌ Failed to load products: ${response.statusCode}');
         // Fall back to local data
-        return loadLocalProducts('assets/colors.json');
+        _productCache = await loadLocalProducts('assets/colors.json');
+        return _productCache!;
       }
     } catch (e) {
       debugPrint('⚠️ Error fetching products: $e');
       // Fall back to local data
-      return loadLocalProducts('assets/colors.json');
+      _productCache = await loadLocalProducts('assets/colors.json');
+      return _productCache!;
     }
   }
 

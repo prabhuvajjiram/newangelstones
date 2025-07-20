@@ -13,6 +13,7 @@ import 'screens/inventory_screen.dart';
 import 'screens/contact_screen.dart';
 import 'theme/app_theme.dart';
 import 'widgets/cart_icon.dart';
+import 'navigation/app_router.dart';
 
 void main() async {
   // Ensure Flutter is initialized
@@ -122,6 +123,7 @@ class MyApp extends StatelessWidget {
           type: BottomNavigationBarType.fixed,
         ),
       ),
+      onGenerateRoute: AppRouter.generateRoute,
       home: const MainNavigation(),
     );
   }
@@ -300,15 +302,7 @@ class _MainNavigationState extends State<MainNavigation> {
         actions: [
           CartIcon(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Cart coming soon'),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              );
+              Navigator.pushNamed(context, AppRoutePaths.cart);
             },
           ),
           IconButton(
@@ -458,15 +452,7 @@ class _MainNavigationState extends State<MainNavigation> {
         actions: [
           CartIcon(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Cart coming soon'),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              );
+              Navigator.pushNamed(context, AppRoutePaths.cart);
             },
           ),
           IconButton(

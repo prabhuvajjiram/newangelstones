@@ -11,10 +11,13 @@ class CartIcon extends StatelessWidget {
     final count = context.watch<CartState>().count;
     return Stack(
       children: [
-        IconButton(
-          icon: const Icon(Icons.shopping_cart_outlined),
-          tooltip: 'Cart',
-          onPressed: onPressed,
+        Semantics(
+          label: 'Shopping cart, $count items',
+          child: IconButton(
+            icon: const Icon(Icons.shopping_cart_outlined),
+            tooltip: 'Cart',
+            onPressed: onPressed,
+          ),
         ),
         if (count > 0)
           Positioned(
