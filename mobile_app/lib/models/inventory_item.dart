@@ -3,12 +3,14 @@ class InventoryItem {
   final String description;
   final String color;
   final String size;
+  final String location;
 
   InventoryItem({
     required this.code,
     required this.description,
     required this.color,
     required this.size,
+    this.location = '',
   });
 
   factory InventoryItem.fromJson(Map<String, dynamic> json) {
@@ -36,6 +38,7 @@ class InventoryItem {
       description: getField(['EndProductDescription', 'description']),
       color: getField(['PColor', 'color']),
       size: getField(['Size', 'size']),
+      location: getField(['Location', 'LocName', 'location']),
     );
   }
 }

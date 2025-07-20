@@ -1,6 +1,7 @@
 name: angel_granites_app
 description: Mobile app for Angel Granites.
-version: 1.0.0+1  # Format: versionName+versionCode
+version: 1.0.3+4  # format is versionName+versionCode
+
 
 environment:
   sdk: '>=2.19.0 <4.0.0'

@@ -135,13 +135,18 @@ class _MainNavigationState extends State<MainNavigation> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(4),
               margin: const EdgeInsets.only(right: 12),
               decoration: BoxDecoration(
-                color: AppTheme.accentColor.withOpacity(0.2),
-                shape: BoxShape.circle,
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.star, color: AppTheme.accentColor, size: 20),
+              child: Image.asset(
+                'assets/logo.png',
+                width: 28,
+                height: 28,
+                fit: BoxFit.contain,
+              ),
             ),
             const Text('Angel Granites'),
           ],
