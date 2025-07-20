@@ -925,10 +925,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 const locations = api.getUniqueValues({ Data: inventoryItems }, 'Locationname');
                 
                 // Helper function to create option elements with selected state
+                const escapeHtml = (str) => {
+                    return String(str)
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;');
+                };
+
                 const createOptions = (items, selectedValue) => {
                     return items.map(item => {
                         const selected = item === selectedValue ? 'selected' : '';
-                        return `<option value="${item}" ${selected}>${item}</option>`;
+                        const escapedVal = escapeHtml(item);
+                        const escapedText = escapeHtml(item);
+                        return `<option value="${escapedVal}" ${selected}>${escapedText}</option>`;
                     }).join('');
                 };
                 
