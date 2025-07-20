@@ -300,7 +300,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ],
                                 ),
-                              )).toList(),
+                              )),
                               const SizedBox(height: 12),
                               SizedBox(
                                 width: double.infinity,

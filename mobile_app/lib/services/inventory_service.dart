@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
 import 'package:http/http.dart' as http;
-import 'package:http/http.dart' show Client;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/inventory_item.dart';
@@ -15,6 +14,83 @@ class InventoryService {
   // Sets to store unique filter values from API responses
   final Set<String> _availableTypes = {};
   final Set<String> _availableColors = {};
+  bool _isInitialized = false;
+  
+  /// Initialize the inventory service with error handling and timeout
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+    
+    try {
+      // Preload local inventory data
+      await _loadLocalInventory().timeout(
+        const Duration(seconds: 2),
+        onTimeout: () {
+          debugPrint('⚠️ Local inventory loading timed out');
+          return [];
+        },
+      );
+      
+      // Test API connectivity with a lightweight request (but don't block app startup on this)
+      _testApiConnection();
+      
+      _isInitialized = true;
+      debugPrint('✅ InventoryService initialized successfully');
+    } catch (e) {
+      debugPrint('⚠️ InventoryService initialization error: $e');
+      // Mark as initialized anyway to prevent repeated init attempts
+      _isInitialized = true;
+    }
+  }
+  
+  /// Load inventory data from local assets
+  Future<List<InventoryItem>> _loadLocalInventory() async {
+    try {
+      final jsonString = await rootBundle.loadString('assets/inventory.json');
+      final List<dynamic> jsonData = json.decode(jsonString);
+      final items = jsonData.map((item) => InventoryItem.fromJson(item)).toList();
+      
+      // Extract filter values from local data
+      for (final item in items) {
+        // Use description field to extract type information
+        final description = item.description.toLowerCase();
+        for (final type in _defaultTypes) {
+          if (description.contains(type.toLowerCase())) {
+            _availableTypes.add(type);
+            break;
+          }
+        }
+        
+        // Color is directly available in the InventoryItem class
+        if (item.color.isNotEmpty) {
+          _availableColors.add(item.color);
+        }
+      }
+      
+      return items;
+    } catch (e) {
+      debugPrint('⚠️ Error loading local inventory: $e');
+      return [];
+    }
+  }
+  
+  /// Test API connection without blocking app startup
+  Future<void> _testApiConnection() async {
+    try {
+      final uri = Uri.parse('$_baseUrl/GV/GVOBPInventory/ShowInventoryAll/$_token');
+      final response = await http.get(
+        uri,
+        headers: {'Referer': _referer},
+      ).timeout(const Duration(seconds: 3));
+      
+      if (response.statusCode == 200) {
+        debugPrint('✅ Inventory API connection successful');
+      } else {
+        debugPrint('⚠️ Inventory API returned status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Inventory API connection test failed: $e');
+    }
+  }
 
   // Fallback filter options when API data is unavailable
   final List<String> _defaultTypes = [
@@ -143,7 +219,7 @@ class InventoryService {
           if (response.statusCode == 200) {
             // Log the raw response body for debugging
             final responseBody = utf8.decode(response.bodyBytes);
-            debugPrint('📦 Raw response from location $locationId (first 500 chars): ${responseBody.length > 500 ? responseBody.substring(0, 500) + '...' : responseBody}');
+            debugPrint('📦 Raw response from location $locationId (first 500 chars): ${responseBody.length > 500 ? '${responseBody.substring(0, 500)}...' : responseBody}');
             
             try {
               final dynamic data = json.decode(responseBody);
