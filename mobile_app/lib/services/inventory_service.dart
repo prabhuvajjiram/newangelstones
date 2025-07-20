@@ -92,20 +92,34 @@ class InventoryService {
     }
   }
 
-  // Fallback filter options when API data is unavailable
+  // Complete list of filter options based on the screenshot
   final List<String> _defaultTypes = [
+    'All',
     'Base',
-    'Monument',
-    'Design',
+    'Bench Seat',
+    'Bevel Marker',
+    'Cap',
+    'Ledger',
+    'Legs',
+    'Marker',
+    'Panel',
+    'Pedestal',
+    'Piece',
+    'Slab',
     'Slant',
-    'Vase'
+    'Support',
+    'Tablet',
+    'Vase',
+    'Design',
+    'Monument'
   ];
   final List<String> _defaultColors = [
     'Gray',
     'Black',
     'Red',
     'Brown',
-    'Green'
+    'Green',
+    'Blue Pearl'
   ];
 
   // List of location IDs to fetch inventory from
@@ -158,12 +172,16 @@ class InventoryService {
     }
   }
 
+  // Maximum number of retries for API requests
+  static const int _maxRetries = 2;
+  
   Future<List<InventoryItem>> fetchInventory({
     int page = 1,
     int pageSize = 1000,
     String? searchQuery,
     String? type,
     String? color,
+    int retryCount = 0,
   }) async {
     // Convert search query to lowercase for case-insensitive search
     final String? normalizedSearchQuery = searchQuery?.toLowerCase().trim();
@@ -173,29 +191,29 @@ class InventoryService {
       // Create a list to hold inventory items from all locations
       List<InventoryItem> allItems = [];
       
-      // Fetch inventory from each location
+      // Fetch inventory from each location - API only accepts one location at a time
       for (final locationId in _locationIds) {
         try {
           final uri = Uri.parse('$_baseUrl/GV/GVOBPInventory/GetAllStockdetailsSummaryforall');
           
           debugPrint('🌐 Fetching inventory for location $locationId');
           
-          // Create form data with filters
+          // Create form data with filters - API only accepts one locid parameter
           final Map<String, String> formData = {
             'sort': '',
             'page': page.toString(),
             'pageSize': pageSize.toString(),
             'group': '',
-            'filter': searchQuery?.isNotEmpty == true ? searchQuery! : '',
+            'filter': '',  // Don't use the filter parameter as it may cause issues
             'token': _token,
-            'hasdesc': 'true',
+            'hasdesc': type != null && type.isNotEmpty ? 'false' : 'true',  // Set to false for type filters
             'description': searchQuery ?? '',
             'ptype': type ?? '',
             'pcolor': color ?? '',
             'pdesign': '',
             'pfinish': '',
             'psize': '',
-            'locid': locationId,
+            'locid': locationId,  // Only one location ID per request
           };
           
           debugPrint('🔍 Applying filters - Search: $searchQuery, Type: $type, Color: $color');
@@ -220,6 +238,12 @@ class InventoryService {
             // Log the raw response body for debugging
             final responseBody = utf8.decode(response.bodyBytes);
             debugPrint('📦 Raw response from location $locationId (first 500 chars): ${responseBody.length > 500 ? '${responseBody.substring(0, 500)}...' : responseBody}');
+            
+            // Check for empty response body before attempting to parse
+            if (responseBody.trim().isEmpty) {
+              debugPrint('⚠️ Empty response body from location $locationId');
+              continue; // Skip this location and try the next one
+            }
             
             try {
               final dynamic data = json.decode(responseBody);
@@ -297,7 +321,60 @@ class InventoryService {
                 }
               }
             } catch (e) {
-              debugPrint('⚠️ Error processing response from location $locationId: $e');
+              debugPrint('! Error processing response from location $locationId: $e');
+              // Don't immediately continue - try to handle common error cases
+              
+              // If it's a format exception, try to handle empty or malformed JSON
+              if (e is FormatException) {
+                debugPrint('⚠️ JSON parsing error. Checking if response is usable in any way...');
+                
+                // Check if response contains any useful text that might be parseable
+                if (responseBody.contains('{') && responseBody.contains('}')) {
+                  debugPrint('🔄 Attempting to clean and parse malformed JSON');
+                  try {
+                    // Try to extract valid JSON by finding the first { and last }
+                    final startIndex = responseBody.indexOf('{');
+                    final endIndex = responseBody.lastIndexOf('}') + 1;
+                    if (startIndex >= 0 && endIndex > startIndex) {
+                      final cleanedJson = responseBody.substring(startIndex, endIndex);
+                      final data = json.decode(cleanedJson);
+                      
+                      // Process the cleaned JSON
+                      if (data is Map) {
+                        if (data.containsKey('Data') || data.containsKey('data')) {
+                          final itemsData = data['Data'] ?? data['data'];
+                          if (itemsData is List) {
+                            debugPrint('📊 Found ${itemsData.length} items in cleaned JSON');
+                            final items = itemsData.map((item) {
+                              // Add location name to each item
+                              final Map<String, dynamic> itemWithLocation = {...item as Map<String, dynamic>};
+                              itemWithLocation['Location'] = _locationNames[locationId] ?? 'Unknown';
+                              
+                              // Extract type and color for filter options
+                              if (itemWithLocation.containsKey('PColor') && itemWithLocation['PColor'] != null) {
+                                final color = itemWithLocation['PColor'].toString().trim();
+                                if (color.isNotEmpty) _availableColors.add(color);
+                              }
+                              
+                              if (itemWithLocation.containsKey('PType') && itemWithLocation['PType'] != null) {
+                                final type = itemWithLocation['PType'].toString().trim();
+                                if (type.isNotEmpty) _availableTypes.add(type);
+                              }
+                              
+                              return InventoryItem.fromJson(itemWithLocation);
+                            }).toList();
+                            allItems.addAll(items);
+                            debugPrint('✅ Successfully recovered ${items.length} items from cleaned JSON');
+                          }
+                        }
+                      }
+                    }
+                  } catch (cleaningError) {
+                    debugPrint('⚠️ Failed to clean malformed JSON: $cleaningError');
+                  }
+                }
+              }
+              
               continue; // Skip this location and try the next one
             }
           } else {
@@ -333,8 +410,86 @@ class InventoryService {
         debugPrint('📊 Returning ${filteredItems.length} items from API');
         return filteredItems;
       } else {
+        // If this is a search or type filter and we got no results, try a retry with modified parameters
+        if (retryCount < _maxRetries && (searchQuery?.isNotEmpty == true || type?.isNotEmpty == true)) {
+          debugPrint('🔄 Retry attempt ${retryCount + 1} for search/type filter');
+          
+          // For search queries, try with different parameters
+          if (searchQuery?.isNotEmpty == true) {
+            // Try with just the color filter if both search and color are specified
+            if (color?.isNotEmpty == true) {
+              debugPrint('🔄 Retrying with only color filter: $color');
+              return fetchInventory(
+                page: page,
+                pageSize: pageSize,
+                searchQuery: null,  // Remove search query
+                type: type,
+                color: color,
+                retryCount: retryCount + 1,
+              );
+            }
+            // Try with a simpler search query (first word only)
+            else if (searchQuery!.contains(' ')) {
+              final simpleQuery = searchQuery.split(' ').first;
+              debugPrint('🔄 Retrying with simplified search query: $simpleQuery');
+              return fetchInventory(
+                page: page,
+                pageSize: pageSize,
+                searchQuery: simpleQuery,
+                type: type,
+                color: color,
+                retryCount: retryCount + 1,
+              );
+            }
+          }
+          
+          // For type filters, try with just the type
+          else if (type?.isNotEmpty == true && color?.isNotEmpty == true) {
+            debugPrint('🔄 Retrying with only type filter: $type');
+            return fetchInventory(
+              page: page,
+              pageSize: pageSize,
+              searchQuery: searchQuery,
+              type: type,
+              color: null,  // Remove color filter
+              retryCount: retryCount + 1,
+            );
+          }
+        }
+        
         debugPrint('⚠️ Failed to load inventory from API, falling back to local data');
-        return loadLocalInventory();
+        final localItems = await loadLocalInventory();
+        
+        // Apply client-side filtering to local items
+        List<InventoryItem> filteredLocalItems = localItems;
+        
+        if (normalizedSearchQuery != null && normalizedSearchQuery.isNotEmpty) {
+          filteredLocalItems = localItems.where((item) {
+            return item.description.toLowerCase().contains(normalizedSearchQuery) ||
+                   item.code.toLowerCase().contains(normalizedSearchQuery) ||
+                   item.color.toLowerCase().contains(normalizedSearchQuery) ||
+                   item.size.toLowerCase().contains(normalizedSearchQuery);
+          }).toList();
+          debugPrint('📊 Found ${filteredLocalItems.length} local items matching search query');
+        }
+        
+        if (type != null && type.isNotEmpty) {
+          final normalizedType = type.toLowerCase();
+          filteredLocalItems = filteredLocalItems.where((item) {
+            return item.description.toLowerCase().contains(normalizedType);
+          }).toList();
+          debugPrint('📊 Found ${filteredLocalItems.length} local items matching type filter');
+        }
+        
+        if (color != null && color.isNotEmpty) {
+          final normalizedColor = color.toLowerCase();
+          filteredLocalItems = filteredLocalItems.where((item) {
+            return item.color.toLowerCase().contains(normalizedColor);
+          }).toList();
+          debugPrint('📊 Found ${filteredLocalItems.length} local items matching color filter');
+        }
+        
+        return filteredLocalItems;
       }
     } on SocketException catch (e) {
       debugPrint('SocketException while loading inventory: $e');

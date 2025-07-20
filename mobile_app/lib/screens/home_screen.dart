@@ -235,11 +235,89 @@ class _HomeScreenState extends State<HomeScreen> {
                         future: _futureInventorySummary,
                         builder: (context, snapshot) {
                           if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const Center(child: CircularProgressIndicator());
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 24.0),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    'Latest Inventory',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                  SizedBox(height: 24),
+                                  CircularProgressIndicator(),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'Loading inventory items...',
+                                    style: TextStyle(color: AppTheme.textSecondary),
+                                  ),
+                                ],
+                              ),
+                            );
                           } else if (snapshot.hasError) {
-                            return Text('Error: ${snapshot.error}');
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 24.0),
+                              child: Column(
+                                children: [
+                                  const Text(
+                                    'Latest Inventory',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  Icon(Icons.error_outline, size: 40, color: Colors.red[300]),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Failed to load inventory',
+                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    snapshot.error.toString(),
+                                    style: TextStyle(color: Colors.red[300], fontSize: 14),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        _futureInventorySummary = widget.inventoryService.fetchInventory(pageSize: 3);
+                                      });
+                                    },
+                                    child: const Text('Retry'),
+                                  ),
+                                ],
+                              ),
+                            );
                           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                            return const Text('No inventory found');
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 24.0),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    'Latest Inventory',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                  SizedBox(height: 24),
+                                  Icon(Icons.inventory_2_outlined, size: 40, color: Colors.grey),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'No inventory items available',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                ],
+                              ),
+                            );
                           }
                           final items = snapshot.data!;
                           return Column(
@@ -254,78 +332,158 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              ...items.map((item) => Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 6),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 8,
-                                      height: 8,
-                                      margin: const EdgeInsets.only(right: 12),
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.accentColor,
-                                        shape: BoxShape.circle,
+                              ...List.generate(items.length, (index) {
+                                final item = items[index];
+                                return AnimatedOpacity(
+                                  opacity: 1.0,
+                                  duration: Duration(milliseconds: 300 + (index * 100)),
+                                  curve: Curves.easeInOut,
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(vertical: 6),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: Colors.grey.shade200),
+                                      color: Colors.white.withOpacity(0.6),
+                                    ),
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(8),
+                                        onTap: () {
+                                          // Navigate to inventory detail or show more info
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Selected: ${item.description}'))
+                                          );
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                                          child: Row(
+                                            children: [
+                                              Container(
+                                                width: 10,
+                                                height: 10,
+                                                margin: const EdgeInsets.only(right: 12),
+                                                decoration: BoxDecoration(
+                                                  color: AppTheme.accentColor,
+                                                  shape: BoxShape.circle,
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: AppTheme.accentColor.withOpacity(0.3),
+                                                      blurRadius: 4,
+                                                      spreadRadius: 1,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              Expanded(
+                                                child: Text(
+                                                  item.description.isNotEmpty 
+                                                      ? item.description 
+                                                      : 'Untitled Item',
+                                                  style: const TextStyle(
+                                                    color: AppTheme.textPrimary,
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 10,
+                                                  vertical: 5,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  gradient: LinearGradient(
+                                                    colors: [
+                                                      AppTheme.accentColor.withOpacity(0.7),
+                                                      AppTheme.accentColor,
+                                                    ],
+                                                    begin: Alignment.topLeft,
+                                                    end: Alignment.bottomRight,
+                                                  ),
+                                                  borderRadius: BorderRadius.circular(12),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: AppTheme.accentColor.withOpacity(0.2),
+                                                      blurRadius: 4,
+                                                      offset: const Offset(0, 2),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Text(
+                                                  item.size,
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w600,
+                                                    letterSpacing: 0.3,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                    Expanded(
-                                      child: Text(
-                                        item.description.isNotEmpty 
-                                            ? item.description 
-                                            : 'Untitled Item',
-                                        style: const TextStyle(
-                                          color: AppTheme.textPrimary,
-                                          fontSize: 15,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.accentColor.withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        item.size,
-                                        style: const TextStyle(
-                                          color: AppTheme.accentColor,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
+                                  ),
+                                );
+                              }),
+                              const SizedBox(height: 16),
+                              // View Full Inventory Button
+                              Container(
+                                width: double.infinity,
+                                margin: const EdgeInsets.only(top: 8),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppTheme.accentColor.withOpacity(0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
                                     ),
                                   ],
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      AppTheme.accentColor,
+                                      AppTheme.accentColor.withBlue(AppTheme.accentColor.blue + 20),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
                                 ),
-                              )),
-                              const SizedBox(height: 12),
-                              SizedBox(
-                                width: double.infinity,
                                 child: ElevatedButton(
                                   onPressed: widget.onViewFullInventory,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppTheme.accentColor,
-                                    foregroundColor: AppTheme.primaryColor,
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    backgroundColor: Colors.transparent,
+                                    foregroundColor: Colors.white,
+                                    shadowColor: Colors.transparent,
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
-                                  child: const Text(
-                                    'View Full Inventory',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: const [
+                                      Text(
+                                        'View Full Inventory',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Icon(Icons.arrow_forward, size: 18),
+                                    ],
                                   ),
                                 ),
                               ),
                             ],
                           );
-                        },
+                        }
                       ),
                     ),
                   ),
