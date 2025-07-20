@@ -39,11 +39,37 @@ class _InventoryScreenState extends State<InventoryScreen> {
     // First load inventory to populate filter options
     await widget.inventoryService.fetchInventory();
     
-    // Then get the available options
+    // Directly set the types from the inventory service's default types
+    // This ensures we always have all the types regardless of API response
     setState(() {
-      _availableTypes = widget.inventoryService.availableTypes;
+      // Force use of the default types list
+      _availableTypes = [
+        'Base',
+        'Bench Seat',
+        'Bevel Marker',
+        'Cap',
+        'Ledger',
+        'Legs',
+        'Marker',
+        'Panel',
+        'Pedestal',
+        'Piece',
+        'Slab',
+        'Slant',
+        'Support',
+        'Tablet',
+        'Vase',
+        'Design',
+        'Monument'
+      ];
+      
+      // Get colors from the service
       _availableColors = widget.inventoryService.availableColors;
     });
+    
+    // Debug log to verify types are loaded
+    debugPrint('📋 Available types: ${_availableTypes.join(', ')}');
+    debugPrint('🎨 Available colors: ${_availableColors.join(', ')}');
   }
 
   @override

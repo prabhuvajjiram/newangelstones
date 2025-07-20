@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/foundation.dart';
 import '../models/product.dart';
+import '../models/product_image.dart';
 
 class ApiService {
   bool _isInitialized = false;
@@ -48,9 +49,30 @@ class ApiService {
   }
   static const _baseUrl = 'https://theangelstones.com';
 
+  // Map to cache product images with their codes
+  final Map<String, List<ProductImage>> _productImageCache = {};
+  
+  // Extract product code from fullname by removing extension
+  String _extractProductCode(String fullname) {
+    if (fullname.isEmpty) return '';
+    // Remove extension (.jpg, .png, etc.)
+    final lastDotIndex = fullname.lastIndexOf('.');
+    if (lastDotIndex != -1) {
+      return fullname.substring(0, lastDotIndex);
+    }
+    return fullname;
+  }
+
   Future<List<String>> fetchCategoryImages(String category) async {
-    if (_categoryCache.containsKey(category)) {
-      return _categoryCache[category]!;
+    // Get product images with codes first
+    final productImages = await fetchProductImagesWithCodes(category);
+    // Then extract just the URLs for backward compatibility
+    return productImages.map((img) => img.imageUrl).toList();
+  }
+  
+  Future<List<ProductImage>> fetchProductImagesWithCodes(String category) async {
+    if (_productImageCache.containsKey(category)) {
+      return _productImageCache[category]!;
     }
     try {
       final uri = Uri.parse('$_baseUrl/get_directory_files.php?directory=products/$category');
@@ -64,19 +86,22 @@ class ApiService {
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonData = json.decode(response.body);
         final List<dynamic> files = jsonData['files'] ?? [];
-        final imageUrls = files
+        final productImages = files
             .whereType<Map<String, dynamic>>()
-            .map((e) => '$_baseUrl/${e['path'] ?? ''}')
+            .map((e) => ProductImage(
+                  imageUrl: '$_baseUrl/${e['path'] ?? ''}',
+                  productCode: _extractProductCode(e['fullname'] ?? e['name'] ?? ''),
+                ))
             .toList();
-        debugPrint('✅ Successfully loaded ${imageUrls.length} category images');
-        _categoryCache[category] = imageUrls;
-        return imageUrls;
+        debugPrint('✅ Successfully loaded ${productImages.length} product images with codes');
+        _productImageCache[category] = productImages;
+        return productImages;
       } else {
-        debugPrint('❌ Failed to load category images: ${response.statusCode}');
-        throw Exception('Failed to load category images: ${response.statusCode}');
+        debugPrint('❌ Failed to load product images: ${response.statusCode}');
+        throw Exception('Failed to load product images: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('⚠️ Error fetching category images: $e');
+      debugPrint('⚠️ Error fetching product images: $e');
       // Return empty list instead of throwing to prevent app crashes
       return [];
     }
