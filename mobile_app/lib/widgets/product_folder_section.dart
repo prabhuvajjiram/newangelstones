@@ -335,6 +335,7 @@ class ProductFolderSection extends StatelessWidget {
         ],
       ),
     );
+    );
   }
 }
 
