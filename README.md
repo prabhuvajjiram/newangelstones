@@ -174,3 +174,4 @@ The application is designed to work with modern browsers including:
 - Firefox
 - Edge
 - Safari
+\nSee [docs/git-conflict-resolution.md](docs/git-conflict-resolution.md) for help resolving merge conflicts.
