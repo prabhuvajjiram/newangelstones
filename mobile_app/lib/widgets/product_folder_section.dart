@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
-import '../screens/design_gallery_screen.dart';
 import '../services/api_service.dart';
 import '../services/directory_service.dart';
+import '../navigation/app_router.dart';
+import '../utils/error_utils.dart';
 
 class ProductFolderSection extends StatelessWidget {
   final String title;
@@ -32,7 +33,10 @@ class ProductFolderSection extends StatelessWidget {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  showErrorSnackBar(context, 'Failed to load categories');
+                });
+                return const Text('Failed to load categories');
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                 return const Text('No items found');
               }
@@ -49,14 +53,13 @@ class ProductFolderSection extends StatelessWidget {
                   final product = categories[index];
                   return GestureDetector(
                     onTap: () {
-                      Navigator.push(
+                      Navigator.pushNamed(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => DesignGalleryScreen(
-                            categoryId: product.id,
-                            title: product.name,
-                            apiService: apiService,
-                          ),
+                        AppRoutePaths.designGallery,
+                        arguments: DesignGalleryArgs(
+                          categoryId: product.id,
+                          title: product.name,
+                          apiService: apiService,
                         ),
                       );
                     },

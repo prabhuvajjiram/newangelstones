@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
-import '../screens/product_detail_screen.dart';
 import 'product_card.dart';
+import '../navigation/app_router.dart';
+import '../utils/error_utils.dart';
 
 class ProductSection extends StatelessWidget {
   final String title;
@@ -24,7 +25,10 @@ class ProductSection extends StatelessWidget {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  showErrorSnackBar(context, 'Failed to load products');
+                });
+                return const Text('Failed to load products');
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                 return const Text('No items found');
               }
@@ -41,11 +45,10 @@ class ProductSection extends StatelessWidget {
                   final product = products[index];
                   return GestureDetector(
                     onTap: () {
-                      Navigator.push(
+                      Navigator.pushNamed(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => ProductDetailScreen(product: product),
-                        ),
+                        AppRoutePaths.productDetail,
+                        arguments: product,
                       );
                     },
                     child: ProductCard(product: product),
