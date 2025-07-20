@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
 import '../services/directory_service.dart';
-import '../navigation/app_router.dart';
+import 'package:go_router/go_router.dart';
 import '../utils/error_utils.dart';
 
 class ProductFolderSection extends StatelessWidget {
@@ -53,14 +53,8 @@ class ProductFolderSection extends StatelessWidget {
                   final product = categories[index];
                   return GestureDetector(
                     onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        AppRoutePaths.designGallery,
-                        arguments: DesignGalleryArgs(
-                          categoryId: product.id,
-                          title: product.name,
-                          apiService: apiService,
-                        ),
+                      context.push(
+                        '/gallery/${product.id}?title=${Uri.encodeComponent(product.name)}',
                       );
                     },
                     child: Card(
