@@ -1,53 +1,97 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
 import '../models/product.dart';
+import '../screens/cart_screen.dart';
+import '../screens/colors_screen.dart';
+import '../screens/contact_screen.dart';
 import '../screens/design_gallery_screen.dart';
+import '../screens/flyer_viewer_screen.dart';
+import '../screens/home_screen.dart';
+import '../screens/inventory_screen.dart';
 import '../screens/product_detail_screen.dart';
 import '../services/api_service.dart';
-import '../screens/cart_screen.dart';
+import '../services/directory_service.dart';
+import '../services/inventory_service.dart';
+import '../services/storage_service.dart';
+import 'main_navigation.dart';
 
-class DesignGalleryArgs {
-  final String categoryId;
-  final String title;
-  final ApiService apiService;
-  const DesignGalleryArgs({
-    required this.categoryId,
-    required this.title,
-    required this.apiService,
-  });
-}
-
-class AppRoutePaths {
-  static const String productDetail = '/product';
-  static const String designGallery = '/gallery';
-  static const String cart = '/cart';
-}
-
+/// Holds all application routes using [GoRouter].
 class AppRouter {
-  static Route<dynamic>? generateRoute(RouteSettings settings) {
-    switch (settings.name) {
-      case AppRoutePaths.productDetail:
-        final product = settings.arguments as Product?;
-        if (product != null) {
-          return MaterialPageRoute(
-            builder: (_) => ProductDetailScreen(product: product),
+  AppRouter({
+    required this.apiService,
+    required this.storageService,
+    required this.inventoryService,
+    required this.directoryService,
+  });
+
+  /// API helper for loading data.
+  final ApiService apiService;
+
+  /// Local storage handler.
+  final StorageService storageService;
+
+  /// Inventory backend helper.
+  final InventoryService inventoryService;
+
+  /// Directory helper for fetching design counts.
+  final DirectoryService directoryService;
+
+  /// Returns the configured router.
+  late final GoRouter router = GoRouter(
+    routes: <GoRoute>[
+      GoRoute(
+        path: '/',
+        builder: (context, state) => MainNavigation(
+          apiService: apiService,
+          storageService: storageService,
+          inventoryService: inventoryService,
+          directoryService: directoryService,
+        ),
+      ),
+      GoRoute(
+        path: '/colors',
+        builder: (context, state) => ColorsScreen(apiService: apiService),
+      ),
+      GoRoute(
+        path: '/inventory',
+        builder: (context, state) =>
+            InventoryScreen(inventoryService: inventoryService),
+      ),
+      GoRoute(
+        path: '/contact',
+        builder: (context, state) => const ContactScreen(),
+      ),
+      GoRoute(
+        path: '/gallery/:categoryId',
+        builder: (context, state) {
+          final categoryId = state.pathParameters['categoryId']!;
+          final title = state.uri.queryParameters['title'] ?? 'Gallery';
+          return DesignGalleryScreen(
+            categoryId: categoryId,
+            title: title,
+            apiService: apiService,
           );
-        }
-        break;
-      case AppRoutePaths.designGallery:
-        final args = settings.arguments as DesignGalleryArgs?;
-        if (args != null) {
-          return MaterialPageRoute(
-            builder: (_) => DesignGalleryScreen(
-              categoryId: args.categoryId,
-              title: args.title,
-              apiService: args.apiService,
-            ),
-          );
-        }
-        break;
-      case AppRoutePaths.cart:
-        return MaterialPageRoute(builder: (_) => const CartScreen());
-    }
-    return null;
-  }
+        },
+      ),
+      GoRoute(
+        path: '/product',
+        builder: (context, state) {
+          final product = state.extra as Product;
+          return ProductDetailScreen(product: product);
+        },
+      ),
+      GoRoute(
+        path: '/flyer',
+        builder: (context, state) {
+          final product = state.extra as Product;
+          return FlyerViewerScreen(flyer: product);
+        },
+      ),
+      GoRoute(
+        path: '/cart',
+        builder: (context, state) => const CartScreen(),
+      ),
+    ],
+  );
 }
