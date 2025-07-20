@@ -16,6 +16,22 @@ class InventoryService {
   final Set<String> _availableTypes = {};
   final Set<String> _availableColors = {};
 
+  // Fallback filter options when API data is unavailable
+  final List<String> _defaultTypes = [
+    'Base',
+    'Monument',
+    'Design',
+    'Slant',
+    'Vase'
+  ];
+  final List<String> _defaultColors = [
+    'Gray',
+    'Black',
+    'Red',
+    'Brown',
+    'Green'
+  ];
+
   // List of location IDs to fetch inventory from
   final List<String> _locationIds = ['45587', '45555'];
   
@@ -26,8 +42,19 @@ class InventoryService {
   };
   
   // Getter methods for available filter options
-  List<String> get availableTypes => _availableTypes.toList()..sort();
-  List<String> get availableColors => _availableColors.toList()..sort();
+  List<String> get availableTypes {
+    if (_availableTypes.isEmpty) {
+      _availableTypes.addAll(_defaultTypes);
+    }
+    return _availableTypes.toList()..sort();
+  }
+
+  List<String> get availableColors {
+    if (_availableColors.isEmpty) {
+      _availableColors.addAll(_defaultColors);
+    }
+    return _availableColors.toList()..sort();
+  }
 
   // Load inventory data from local asset file
   Future<List<InventoryItem>> loadLocalInventory() async {
@@ -39,6 +66,15 @@ class InventoryService {
           .map((item) => InventoryItem.fromJson(item))
           .toList();
       debugPrint('✅ Successfully loaded ${items.length} items from local assets');
+
+      // Populate default filter options if none have been collected
+      if (_availableTypes.isEmpty) {
+        _availableTypes.addAll(_defaultTypes);
+      }
+      if (_availableColors.isEmpty) {
+        _availableColors.addAll(_defaultColors);
+      }
+
       return items;
     } catch (e) {
       debugPrint('⚠️ Error loading local inventory: $e');
@@ -212,6 +248,9 @@ class InventoryService {
         }).toList();
         debugPrint('📊 Found ${filteredItems.length} items matching search query');
       }
+
+      // Sort results by description for consistent ordering
+      filteredItems.sort((a, b) => a.description.compareTo(b.description));
       
       // If we have any items, return them
       if (filteredItems.isNotEmpty) {
