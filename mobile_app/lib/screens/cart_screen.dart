@@ -8,9 +8,9 @@ class CartScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Cart')),
       body: Center(
-        child: const Semantics(
+        child: Semantics(
           label: 'Cart is currently empty',
-          child: Text('Cart items will appear here'),
+          child: const Text('Cart items will appear here'),
         ),
       ),
     );
