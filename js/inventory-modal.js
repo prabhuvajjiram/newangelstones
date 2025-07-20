@@ -651,6 +651,13 @@ document.addEventListener('DOMContentLoaded', function() {
         let searchInputHandler;
         let filterChangeHandler;
         let paginationClickHandler;
+
+        // Utility to decode HTML entities
+        function decodeHtml(str) {
+            const txt = document.createElement('textarea');
+            txt.innerHTML = str;
+            return txt.value;
+        }
         
         // Function to create the modal HTML if it doesn't exist
         function createModal() {
@@ -1242,15 +1249,15 @@ document.addEventListener('DOMContentLoaded', function() {
             filterChangeHandler = function() {
                 // Update API filters - don't include locid as it's handled separately
                 const filterValues = {
-                    ptype: typeFilter ? typeFilter.value : '',
-                    pcolor: colorFilter ? colorFilter.value : '',
-                    pdesign: designFilter ? designFilter.value : '',
-                    pfinish: finishFilter ? finishFilter.value : '',
-                    psize: sizeFilter ? sizeFilter.value : ''
+                    ptype: typeFilter ? decodeHtml(typeFilter.value) : '',
+                    pcolor: colorFilter ? decodeHtml(colorFilter.value) : '',
+                    pdesign: designFilter ? decodeHtml(designFilter.value) : '',
+                    pfinish: finishFilter ? decodeHtml(finishFilter.value) : '',
+                    psize: sizeFilter ? decodeHtml(sizeFilter.value) : ''
                 };
                 
                 // Store the selected location in a separate property
-                api.selectedLocation = locationFilter ? locationFilter.value : '';
+                api.selectedLocation = locationFilter ? decodeHtml(locationFilter.value) : '';
                 
                 console.log('Setting filters:', filterValues);
                 console.log('Selected location:', api.selectedLocation);
@@ -1370,7 +1377,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 selects.forEach(select => {
                     const colIndex = parseInt(select.dataset.colIndex, 10);
-                    const filterVal = select.value.toLowerCase();
+                    const filterVal = decodeHtml(select.value).toLowerCase();
                     if (filterVal && !row.cells[colIndex].textContent.toLowerCase().includes(filterVal)) {
                         show = false;
                     }
