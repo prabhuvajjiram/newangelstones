@@ -11,9 +11,23 @@ class InventoryService {
   static const _baseUrl = 'https://monument.business';
   static const _token = '097EE598BBACB8A8182BC9D4D7D5CFE609E4DB2AF4A3F1950738C927ECF05B6A';
   static const _referer = 'https://monument.business/GV/GVOBPInventory/ShowInventoryAll/$_token';
+  
+  // Sets to store unique filter values from API responses
+  final Set<String> _availableTypes = {};
+  final Set<String> _availableColors = {};
 
   // List of location IDs to fetch inventory from
   final List<String> _locationIds = ['45587', '45555'];
+  
+  // Map of location IDs to names
+  final Map<String, String> _locationNames = {
+    '45587': 'Main Warehouse',
+    '45555': 'Secondary Location',
+  };
+  
+  // Getter methods for available filter options
+  List<String> get availableTypes => _availableTypes.toList()..sort();
+  List<String> get availableColors => _availableColors.toList()..sort();
 
   // Load inventory data from local asset file
   Future<List<InventoryItem>> loadLocalInventory() async {
@@ -39,6 +53,8 @@ class InventoryService {
     String? type,
     String? color,
   }) async {
+    // Convert search query to lowercase for case-insensitive search
+    final String? normalizedSearchQuery = searchQuery?.toLowerCase().trim();
     try {
       debugPrint('🔍 Fetching inventory from direct API endpoints');
       
@@ -118,15 +134,49 @@ class InventoryService {
               // Process successful response - handle different response formats
               if (data is List) {
                 // Direct array response
-                final items = data.map((item) => InventoryItem.fromJson(item)).toList();
+                final items = data.map((item) {
+                  // Add location name to each item
+                  final Map<String, dynamic> itemWithLocation = {...item as Map<String, dynamic>};
+                  itemWithLocation['Location'] = _locationNames[locationId] ?? 'Unknown';
+                  
+                  // Extract type and color for filter options
+                  if (itemWithLocation.containsKey('PColor') && itemWithLocation['PColor'] != null) {
+                    final color = itemWithLocation['PColor'].toString().trim();
+                    if (color.isNotEmpty) _availableColors.add(color);
+                  }
+                  
+                  if (itemWithLocation.containsKey('PType') && itemWithLocation['PType'] != null) {
+                    final type = itemWithLocation['PType'].toString().trim();
+                    if (type.isNotEmpty) _availableTypes.add(type);
+                  }
+                  
+                  return InventoryItem.fromJson(itemWithLocation);
+                }).toList();
                 allItems.addAll(items);
-                debugPrint('✅ Successfully loaded ${items.length} items from direct array response');
+                debugPrint('✅ Successfully loaded ${items.length} items from direct array response for location ${_locationNames[locationId]}');
               } else if (data is Map && (data['Data'] is List || data['data'] is List)) {
                 // Response with Data/data array
                 final itemsData = (data['Data'] ?? data['data']) as List;
-                final items = itemsData.map((item) => InventoryItem.fromJson(item)).toList();
+                final items = itemsData.map((item) {
+                  // Add location name to each item
+                  final Map<String, dynamic> itemWithLocation = {...item as Map<String, dynamic>};
+                  itemWithLocation['Location'] = _locationNames[locationId] ?? 'Unknown';
+                  
+                  // Extract type and color for filter options
+                  if (itemWithLocation.containsKey('PColor') && itemWithLocation['PColor'] != null) {
+                    final color = itemWithLocation['PColor'].toString().trim();
+                    if (color.isNotEmpty) _availableColors.add(color);
+                  }
+                  
+                  if (itemWithLocation.containsKey('PType') && itemWithLocation['PType'] != null) {
+                    final type = itemWithLocation['PType'].toString().trim();
+                    if (type.isNotEmpty) _availableTypes.add(type);
+                  }
+                  
+                  return InventoryItem.fromJson(itemWithLocation);
+                }).toList();
                 allItems.addAll(items);
-                debugPrint('✅ Successfully loaded ${items.length} items from Data/data array');
+                debugPrint('✅ Successfully loaded ${items.length} items from Data/data array for location ${_locationNames[locationId]}');
               } else {
                 debugPrint('⚠️ Unexpected response format from location $locationId');
                 debugPrint('Response type: ${data.runtimeType}');
@@ -148,13 +198,29 @@ class InventoryService {
         }
       }
       
-      if (allItems.isEmpty) {
+      // Apply client-side filtering for search query if needed
+      List<InventoryItem> filteredItems = allItems;
+      
+      if (normalizedSearchQuery != null && normalizedSearchQuery.isNotEmpty) {
+        debugPrint('🔍 Applying client-side search filter for: $normalizedSearchQuery');
+        filteredItems = allItems.where((item) {
+          // Check multiple fields for the search term
+          return item.description.toLowerCase().contains(normalizedSearchQuery) ||
+                 item.code.toLowerCase().contains(normalizedSearchQuery) ||
+                 item.color.toLowerCase().contains(normalizedSearchQuery) ||
+                 item.size.toLowerCase().contains(normalizedSearchQuery);
+        }).toList();
+        debugPrint('📊 Found ${filteredItems.length} items matching search query');
+      }
+      
+      // If we have any items, return them
+      if (filteredItems.isNotEmpty) {
+        debugPrint('📊 Returning ${filteredItems.length} items from API');
+        return filteredItems;
+      } else {
         debugPrint('⚠️ Failed to load inventory from API, falling back to local data');
         return loadLocalInventory();
       }
-      
-      debugPrint('🎉 Successfully loaded ${allItems.length} total items from all locations');
-      return allItems;
     } on SocketException catch (e) {
       debugPrint('SocketException while loading inventory: $e');
       throw Exception('Unable to load inventory');

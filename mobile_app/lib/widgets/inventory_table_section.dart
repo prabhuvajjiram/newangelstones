@@ -89,18 +89,41 @@ class InventoryTableSection extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        item.description.isNotEmpty ? item.description : 'No description',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.description.isNotEmpty ? item.description : 'No description',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          if (item.code.isNotEmpty)
+                            Text(
+                              'Product Code: ${item.code}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: theme.hintColor,
+                              ),
+                            ),
+                          if (item.description.toLowerCase().contains('design') && !item.description.toLowerCase().contains('vase') && item.code.isNotEmpty)
+                            Text(
+                              'Type: Vase',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: theme.hintColor,
+                              ),
+                            ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       if (item.color.isNotEmpty) 
                         _buildInfoRow('Color', item.color),
                       if (item.size.isNotEmpty)
                         _buildInfoRow('Size', item.size),
+                      if (item.location.isNotEmpty)
+                        _buildInfoRow('Location', item.location),
                     ],
                   ),
                 ),
@@ -138,6 +161,11 @@ class InventoryTableSection extends StatelessWidget {
                         style: TextStyle(fontWeight: FontWeight.bold)),
                       numeric: true,
                     ),
+                    DataColumn(
+                      label: const Text('Location', 
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                      numeric: false,
+                    ),
                   ],
                   rows: items.map((item) {
                     return DataRow(
@@ -154,7 +182,7 @@ class InventoryTableSection extends StatelessWidget {
                         ),
                         DataCell(Text(item.color)),
                         DataCell(Text(item.size)),
-
+                        DataCell(Text(item.location)),
                       ],
                     );
                   }).toList(),

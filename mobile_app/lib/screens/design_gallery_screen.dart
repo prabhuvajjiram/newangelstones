@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../widgets/full_screen_image.dart';
 
 class DesignGalleryScreen extends StatelessWidget {
   final String categoryId;
@@ -35,10 +36,28 @@ class DesignGalleryScreen extends StatelessWidget {
             itemCount: images.length,
             itemBuilder: (context, index) {
               final url = images[index];
-              return Image.network(
-                url,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stack) => const Icon(Icons.broken_image),
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => FullScreenImage(
+                        imageUrl: url,
+                        tag: 'image_$index',
+                        galleryImages: images,
+                        initialIndex: index,
+                      ),
+                    ),
+                  );
+                },
+                child: Hero(
+                  tag: 'image_$index',
+                  child: Image.network(
+                    url,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stack) => const Icon(Icons.broken_image),
+                  ),
+                ),
               );
             },
           );
