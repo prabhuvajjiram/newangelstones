@@ -941,6 +941,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         .replace(/'/g, '&#39;');
                 };
 
+                const decodeHtml = (str) => {
+                    const txt = document.createElement('textarea');
+                    txt.innerHTML = str;
+                    return txt.value;
+                };
                 const createOptions = (items, selectedValue) => {
                     return items.map(item => {
                         const selected = item === selectedValue ? 'selected' : '';
