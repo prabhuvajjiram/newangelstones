@@ -103,7 +103,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
           child: Column(
             children: [
               // Search bar
-              TextField(
+              Semantics(
+                label: 'Search inventory',
+                textField: true,
+                child: TextField(
                 controller: _searchController,
                 focusNode: _searchFocusNode,
                 decoration: InputDecoration(
@@ -131,6 +134,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 onSubmitted: (_) {
                   _searchFocusNode.unfocus();
                 },
+              ),
               ),
               const SizedBox(height: 8),
               // Filter chips

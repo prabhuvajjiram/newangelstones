@@ -20,7 +20,14 @@ class ProductDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Image.network(product.imageUrl, height: 200, fit: BoxFit.cover),
+            Semantics(
+              label: product.name,
+              child: Image.network(
+                product.imageUrl,
+                height: 200,
+                fit: BoxFit.cover,
+              ),
+            ),
             const SizedBox(height: 16),
           Text(product.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
