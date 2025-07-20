@@ -939,7 +939,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     txt.innerHTML = str;
                     return txt.value;
                 };
-
                 const createOptions = (items, selectedValue) => {
                     return items.map(item => {
                         const selected = item === selectedValue ? 'selected' : '';
