@@ -194,7 +194,7 @@ class _MainNavigationState extends State<MainNavigation> {
         actions: [
           CartIcon(
             onPressed: () {
-              context.go('/cart');
+              context.push('/cart');
             },
           ),
           IconButton(

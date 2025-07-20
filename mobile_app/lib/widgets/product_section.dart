@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 import 'product_card.dart';
 import 'package:go_router/go_router.dart';
+import 'package:go_router/go_router.dart';
 import '../utils/error_utils.dart';
 
 class ProductSection extends StatelessWidget {
@@ -45,7 +46,7 @@ class ProductSection extends StatelessWidget {
                   final product = products[index];
                   return GestureDetector(
                     onTap: () {
-                      context.go('/product', extra: product);
+                      context.push('/product', extra: product);
                     },
                     child: ProductCard(product: product),
                   );

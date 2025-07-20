@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../models/product.dart';
-import '../state/cart_state.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final Product product;
@@ -28,24 +26,20 @@ class ProductDetailScreen extends StatelessWidget {
                 fit: BoxFit.cover,
               ),
             ),
-            const SizedBox(height: 16),
-          Text(product.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Text(product.description),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              context.read<CartState>().addProduct(product);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${product.name} added to cart')),
-              );
-            },
-            child: const Text('Add to Cart'),
+              const SizedBox(height: 16),
+              Text(
+                product.name,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(product.description),
+            ],
           ),
-          ],
         ),
-      ),
-    );
+      );
   }
 }
 

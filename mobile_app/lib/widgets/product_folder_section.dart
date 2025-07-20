@@ -3,6 +3,7 @@ import '../models/product.dart';
 import '../services/api_service.dart';
 import '../services/directory_service.dart';
 import 'package:go_router/go_router.dart';
+import 'package:go_router/go_router.dart';
 import '../utils/error_utils.dart';
 
 class ProductFolderSection extends StatelessWidget {
@@ -53,7 +54,7 @@ class ProductFolderSection extends StatelessWidget {
                   final product = categories[index];
                   return GestureDetector(
                     onTap: () {
-                      context.go(
+                      context.push(
                         '/gallery/${product.id}?title=${Uri.encodeComponent(product.name)}',
                       );
                     },
