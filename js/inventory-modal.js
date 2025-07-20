@@ -975,42 +975,42 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <th>Description</th>
                                     <th>
                                         Type
-                                        <select class="form-select form-select-sm column-filter mt-1" id="typeFilter" data-col-index="2">
+                                        <select class="form-select form-select-sm column-filter mt-1" id="typeFilter" data-col-index="1">
                                             <option value="" ${currentPtype === '' ? 'selected' : ''}>All</option>
                                             ${createOptions(productTypes, currentPtype)}
                                         </select>
                                     </th>
                                     <th>
                                         Color
-                                        <select class="form-select form-select-sm column-filter mt-1" id="colorFilter" data-col-index="3">
+                                        <select class="form-select form-select-sm column-filter mt-1" id="colorFilter" data-col-index="2">
                                             <option value="" ${currentPcolor === '' ? 'selected' : ''}>All</option>
                                             ${createOptions(productColors, currentPcolor)}
                                         </select>
                                     </th>
                                     <th>
                                         Design
-                                        <select class="form-select form-select-sm column-filter mt-1" id="designFilter" data-col-index="4">
+                                        <select class="form-select form-select-sm column-filter mt-1" id="designFilter" data-col-index="3">
                                             <option value="" ${currentPdesign === '' ? 'selected' : ''}>All</option>
                                             ${createOptions(productDesigns, currentPdesign)}
                                         </select>
                                     </th>
                                     <th>
                                         Finish
-                                        <select class="form-select form-select-sm column-filter mt-1" id="finishFilter" data-col-index="5">
+                                        <select class="form-select form-select-sm column-filter mt-1" id="finishFilter" data-col-index="4">
                                             <option value="" ${currentPfinish === '' ? 'selected' : ''}>All</option>
                                             ${createOptions(productFinishes, currentPfinish)}
                                         </select>
                                     </th>
                                     <th>
                                         Size
-                                        <select class="form-select form-select-sm column-filter mt-1" id="sizeFilter" data-col-index="6">
+                                        <select class="form-select form-select-sm column-filter mt-1" id="sizeFilter" data-col-index="5">
                                             <option value="" ${currentPsize === '' ? 'selected' : ''}>All</option>
                                             ${createOptions(productSizes, currentPsize)}
                                         </select>
                                     </th>
                                     <th>
                                         Location
-                                        <select class="form-select form-select-sm column-filter mt-1" id="locationFilter" data-col-index="7">
+                                        <select class="form-select form-select-sm column-filter mt-1" id="locationFilter" data-col-index="6">
                                             <option value="" ${currentLocation === '' ? 'selected' : ''}>All</option>
                                             ${createOptions(locations, currentLocation)}
                                         </select>
