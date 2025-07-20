@@ -5,11 +5,15 @@ import 'services/api_service.dart';
 import 'services/storage_service.dart';
 import 'services/inventory_service.dart';
 import 'services/directory_service.dart';
+import 'package:provider/provider.dart';
+import 'state/cart_state.dart';
 import 'screens/home_screen.dart';
 import 'screens/colors_screen.dart';
 import 'screens/inventory_screen.dart';
 import 'screens/contact_screen.dart';
 import 'theme/app_theme.dart';
+import 'widgets/cart_icon.dart';
+import 'navigation/app_router.dart';
 
 void main() async {
   // Ensure Flutter is initialized
@@ -45,7 +49,12 @@ void main() async {
     // Continue with app startup anyway
   }
   
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => CartState(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -114,6 +123,7 @@ class MyApp extends StatelessWidget {
           type: BottomNavigationBarType.fixed,
         ),
       ),
+      onGenerateRoute: AppRouter.generateRoute,
       home: const MainNavigation(),
     );
   }
@@ -290,19 +300,9 @@ class _MainNavigationState extends State<MainNavigation> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined),
-            tooltip: 'Cart',
+          CartIcon(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Cart coming soon'),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              );
+              Navigator.pushNamed(context, AppRoutePaths.cart);
             },
           ),
           IconButton(
@@ -450,19 +450,9 @@ class _MainNavigationState extends State<MainNavigation> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined),
-            tooltip: 'Cart',
+          CartIcon(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Cart coming soon'),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              );
+              Navigator.pushNamed(context, AppRoutePaths.cart);
             },
           ),
           IconButton(
