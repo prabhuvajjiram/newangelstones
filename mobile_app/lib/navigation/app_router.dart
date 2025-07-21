@@ -16,6 +16,16 @@ import 'main_navigation.dart';
 
 /// Holds all application routes using [GoRouter].
 class AppRouter {
+  /// Route names for navigation
+  static const String home = 'home';
+  static const String colors = 'colors';
+  static const String inventory = 'inventory';
+  static const String contact = 'contact';
+  static const String productDetail = 'product-detail';
+  static const String designGallery = 'design-gallery';
+  static const String flyerViewer = 'flyer-viewer';
+  static const String cart = 'cart';
+
   AppRouter({
     required this.apiService,
     required this.storageService,
@@ -37,9 +47,11 @@ class AppRouter {
 
   /// Returns the configured router.
   late final GoRouter router = GoRouter(
+    initialLocation: '/',
     routes: <GoRoute>[
       GoRoute(
         path: '/',
+        name: home,
         builder: (context, state) => MainNavigation(
           apiService: apiService,
           storageService: storageService,

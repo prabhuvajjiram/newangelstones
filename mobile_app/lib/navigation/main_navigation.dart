@@ -173,22 +173,33 @@ class _MainNavigationState extends State<MainNavigation> {
       appBar: AppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(4),
-              margin: const EdgeInsets.only(right: 12),
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
+              constraints: const BoxConstraints(
+                maxWidth: 32,
+                maxHeight: 32,
               ),
+              padding: const EdgeInsets.all(2),
+              margin: const EdgeInsets.only(right: 8),
               child: Image.asset(
                 'assets/logo.png',
                 width: 28,
                 height: 28,
                 fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => 
+                    const Icon(Icons.star, size: 28, color: Colors.white),
               ),
             ),
-            const Text('Angel Granites'),
+            Flexible(
+              child: Text(
+                'Angel Granites',
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontSize: 18,
+                ),
+              ),
+            ),
           ],
         ),
         actions: [

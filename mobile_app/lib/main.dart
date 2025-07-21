@@ -1,6 +1,4 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'services/api_service.dart';
 import 'services/storage_service.dart';
 import 'services/inventory_service.dart';
@@ -27,22 +25,8 @@ void main() async {
     return true;
   };
   
-  // Preload critical assets with timeout safety
-  try {
-    await Future.wait([
-      // Preload any critical assets here
-      rootBundle.load('assets/logo.png'),
-    ]).timeout(
-      const Duration(seconds: 3),
-      onTimeout: () {
-        debugPrint('Asset preloading timed out, continuing with app startup');
-        return [];
-      },
-    );
-  } catch (e) {
-    debugPrint('Error during asset preloading: $e');
-    // Continue with app startup anyway
-  }
+  // No need to preload assets for splash screen
+  // Native splash screen will handle the initial display
   
   runApp(
     ChangeNotifierProvider(

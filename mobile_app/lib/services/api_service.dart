@@ -48,7 +48,12 @@ class ApiService {
       // Don't rethrow - we want to continue even if one asset fails
     }
   }
-  final SecureHttpClient _secureClient = SecureHttpClient();
+  late final SecureHttpClient _secureClient;
+  
+  ApiService() {
+    _secureClient = SecureHttpClient();
+    _secureClient.initialize();
+  }
 
   // Map to cache product images with their codes
   final Map<String, List<ProductImage>> _productImageCache = {};

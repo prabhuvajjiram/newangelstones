@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background color that matches your app's theme -->
+    <item android:drawable="@android:color/black" />
+    
+    <!-- Logo centered with proper scaling -->
     <item>
-        <bitmap android:gravity="fill" android:src="@drawable/background"/>
-    </item>
-    <item>
-        <bitmap android:gravity="center" android:src="@drawable/splash"/>
+        <bitmap
+            android:gravity="center"
+            android:src="@drawable/splash"
+            android:width="200dp"
+            android:height="200dp"
+            android:scaleType="fitCenter" />
     </item>
 </layer-list>
