@@ -47,6 +47,7 @@ node_modules/
 .idea/
 *.swp
 *.swo
+*.kiro
 
 # OS generated files
 .DS_Store
@@ -58,3 +59,40 @@ ehthumbs.db
 Thumbs.db
 # Prevent nested repositories
 /newangelstones/
+# Android heap dumps
+*.hprof
+
+# Flutter/Dart
+**/build/
+**/.dart_tool/
+**/.packages
+**/.pub/
+**/pubspec.lock
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Flutter/app.flx
+**/ios/Flutter/app.zip
+**/ios/Flutter/flutter_assets/
+**/ios/Flutter/Flutter.framework/
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/FlutterPluginRegistrant/
+**/ios/Flutter/Generated.xcconfig
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.*
+
+# Android build files
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+**/android/app/src/profile/
+**/android/app/src/debug/
+**/android/app/build/
+**/android/build/
+**/android/captures/
+**/android/gradlew
+**/android/gradlew.bat
+**/android/local.properties
+**/android/settings.gradle
+**/android/gradle/
+**/android/*.iml
+**/android/*.properties
