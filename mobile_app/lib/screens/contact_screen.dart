@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
+import '../services/mautic_service.dart';
 
 class ContactScreen extends StatefulWidget {
   const ContactScreen({super.key});
@@ -18,6 +19,18 @@ class _ContactScreenState extends State<ContactScreen> {
   final _messageController = TextEditingController();
   bool _isSubmitting = false;
   
+  // Email validation method
+  bool _isValidEmail(String email) {
+    final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    return emailRegExp.hasMatch(email);
+  }
+
+  // Phone validation method
+  bool _isValidPhone(String phone) {
+    final phoneRegExp = RegExp(r'^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$');
+    return phoneRegExp.hasMatch(phone) && phone.length >= 10;
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -61,33 +74,82 @@ class _ContactScreenState extends State<ContactScreen> {
   }
   
   Future<void> _submitForm() async {
+    // Close keyboard before submission
+    FocusScope.of(context).unfocus();
+    
     if (_formKey.currentState!.validate()) {
+      // Trim all input values
+      _nameController.text = _nameController.text.trim();
+      _emailController.text = _emailController.text.trim();
+      _phoneController.text = _phoneController.text.trim();
+      _messageController.text = _messageController.text.trim();
+      
+      // Re-validate after trimming
+      if (!_formKey.currentState!.validate()) {
+        return;
+      }
       setState(() {
         _isSubmitting = true;
       });
       
-      // Simulate API call with a delay
-      await Future.delayed(const Duration(seconds: 2));
-      
-      setState(() {
-        _isSubmitting = false;
-      });
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Message sent successfully!'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.green.shade800,
-            duration: const Duration(seconds: 3),
-          ),
+      try {
+        final success = await MauticService.submitContactForm(
+          name: _nameController.text.trim(),
+          email: _emailController.text.trim(),
+          phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
+          message: _messageController.text.trim(),
         );
         
-        // Clear form
-        _nameController.clear();
-        _emailController.clear();
-        _phoneController.clear();
-        _messageController.clear();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                success 
+                  ? 'Message sent successfully! We\'ll get back to you soon.'
+                  : 'Failed to send message. Please try again later.',
+              ),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: success ? Colors.green.shade800 : Colors.red.shade800,
+              duration: const Duration(seconds: 4),
+              action: SnackBarAction(
+                label: 'DISMISS',
+                textColor: Colors.white,
+                onPressed: () {},
+              ),
+            ),
+          );
+          
+          if (success) {
+            // Clear form only on successful submission
+            _nameController.clear();
+            _emailController.clear();
+            _phoneController.clear();
+            _messageController.clear();
+            _formKey.currentState?.reset();
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('An error occurred. Please try again later.'),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.red.shade800,
+              duration: const Duration(seconds: 4),
+              action: SnackBarAction(
+                label: 'DISMISS',
+                textColor: Colors.white,
+                onPressed: () {},
+              ),
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+          });
+        }
       }
     }
   }
@@ -104,18 +166,29 @@ class _ContactScreenState extends State<ContactScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
+      elevation: 4,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          decoration: AppTheme.cardGradient,
+          decoration: BoxDecoration(
+            color: AppTheme.cardColor,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.accentColor.withValues(alpha: 0.2),
+                  color: AppTheme.accentColor.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: AppTheme.accentColor, size: 24),
@@ -129,18 +202,26 @@ class _ContactScreenState extends State<ContactScreen> {
                       title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: AppTheme.accentColor,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
                           ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       subtitle,
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.white.withValues(alpha: 0.9),
+                            fontSize: 14,
+                            height: 1.4,
+                          ),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: AppTheme.textSecondary),
+              Icon(Icons.chevron_right, 
+                color: AppTheme.accentColor.withValues(alpha: 0.7),
+                size: 24,
+              ),
             ],
           ),
         ),
@@ -266,19 +347,37 @@ class _ContactScreenState extends State<ContactScreen> {
                               controller: _nameController,
                               decoration: InputDecoration(
                                 labelText: 'Name',
-                                prefixIcon: const Icon(Icons.person_outline),
+                                prefixIcon: const Icon(Icons.person_outline, color: AppTheme.textSecondary),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(color: Colors.grey.shade700),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(color: Colors.grey.shade700),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: const BorderSide(color: AppTheme.accentColor, width: 2),
                                 ),
                                 filled: true,
-                                fillColor: Colors.white.withValues(alpha: 0.9),
+                                fillColor: Colors.grey.shade900,
+                                labelStyle: const TextStyle(color: AppTheme.textSecondary, fontSize: 15),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                               ),
+                              style: const TextStyle(color: Colors.white, fontSize: 16),
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
+                                if (value == null || value.trim().isEmpty) {
                                   return 'Please enter your name';
+                                }
+                                if (value.trim().length < 2) {
+                                  return 'Name is too short';
                                 }
                                 return null;
                               },
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')), // Only letters and spaces
+                              ],
                             ),
                             const SizedBox(height: 16),
                             
@@ -287,19 +386,31 @@ class _ContactScreenState extends State<ContactScreen> {
                               controller: _emailController,
                               decoration: InputDecoration(
                                 labelText: 'Email',
-                                prefixIcon: const Icon(Icons.email_outlined),
+                                prefixIcon: const Icon(Icons.email_outlined, color: AppTheme.textSecondary),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(color: Colors.grey.shade700),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(color: Colors.grey.shade700),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: const BorderSide(color: AppTheme.accentColor, width: 2),
                                 ),
                                 filled: true,
-                                fillColor: Colors.white.withValues(alpha: 0.9),
+                                fillColor: Colors.grey.shade900,
+                                labelStyle: const TextStyle(color: AppTheme.textSecondary, fontSize: 15),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                               ),
+                              style: const TextStyle(color: Colors.white, fontSize: 16),
                               keyboardType: TextInputType.emailAddress,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter your email';
                                 }
-                                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                                if (!_isValidEmail(value)) {
                                   return 'Please enter a valid email';
                                 }
                                 return null;
@@ -312,17 +423,36 @@ class _ContactScreenState extends State<ContactScreen> {
                               controller: _phoneController,
                               decoration: InputDecoration(
                                 labelText: 'Phone (optional)',
-                                prefixIcon: const Icon(Icons.phone_outlined),
+                                prefixIcon: const Icon(Icons.phone_outlined, color: AppTheme.textSecondary),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(color: Colors.grey.shade700),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(color: Colors.grey.shade700),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: const BorderSide(color: AppTheme.accentColor, width: 2),
                                 ),
                                 filled: true,
-                                fillColor: Colors.white.withValues(alpha: 0.9),
+                                fillColor: Colors.grey.shade900,
+                                labelStyle: const TextStyle(color: AppTheme.textSecondary, fontSize: 15),
+                                hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                               ),
+                              style: const TextStyle(color: Colors.white, fontSize: 16),
                               keyboardType: TextInputType.phone,
+                              validator: (value) {
+                                if (value != null && value.isNotEmpty && !_isValidPhone(value)) {
+                                  return 'Please enter a valid phone number';
+                                }
+                                return null;
+                              },
                               inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(10),
+                                FilteringTextInputFormatter.allow(RegExp(r'[0-9\s\-()]')), // Allow digits, spaces, hyphens, and parentheses
+                                LengthLimitingTextInputFormatter(15),
                               ],
                             ),
                             const SizedBox(height: 16),
@@ -332,17 +462,37 @@ class _ContactScreenState extends State<ContactScreen> {
                               controller: _messageController,
                               decoration: InputDecoration(
                                 labelText: 'Message',
-                                prefixIcon: const Icon(Icons.message_outlined),
+                                alignLabelWithHint: true,
+                                prefixIcon: const Padding(
+                                  padding: EdgeInsets.only(bottom: 60),
+                                  child: Icon(Icons.message_outlined, color: AppTheme.textSecondary),
+                                ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(color: Colors.grey.shade700),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(color: Colors.grey.shade700),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: const BorderSide(color: AppTheme.accentColor, width: 2),
                                 ),
                                 filled: true,
-                                fillColor: Colors.white.withValues(alpha: 0.9),
+                                fillColor: Colors.grey.shade900,
+                                labelStyle: const TextStyle(color: AppTheme.textSecondary, fontSize: 15),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                               ),
-                              maxLines: 4,
+                              style: const TextStyle(color: Colors.white, fontSize: 16),
+                              textAlignVertical: TextAlignVertical.top,
+                              maxLines: 5,
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
+                                if (value == null || value.trim().isEmpty) {
                                   return 'Please enter your message';
+                                }
+                                if (value.trim().length < 10) {
+                                  return 'Message is too short (min 10 characters)';
                                 }
                                 return null;
                               },
@@ -350,26 +500,35 @@ class _ContactScreenState extends State<ContactScreen> {
                             const SizedBox(height: 24),
                             
                             // Submit button
-                            ElevatedButton(
-                              onPressed: _isSubmitting ? null : _submitForm,
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                backgroundColor: AppTheme.accentColor,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: _isSubmitting ? null : _submitForm,
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 18),
+                                  backgroundColor: AppTheme.accentColor,
+                                  foregroundColor: AppTheme.primaryColor,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  elevation: 2,
+                                  textStyle: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.5,
+                                  ),
                                 ),
+                                child: _isSubmitting
+                                    ? const Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+                                          SizedBox(width: 12),
+                                          Text('Sending...'),
+                                        ],
+                                      )
+                                    : const Text('SEND MESSAGE'),
                               ),
-                              child: _isSubmitting
-                                  ? const Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
-                                        SizedBox(width: 12),
-                                        Text('Sending...'),
-                                      ],
-                                    )
-                                  : const Text('SEND MESSAGE'),
                             ),
                           ],
                         ),

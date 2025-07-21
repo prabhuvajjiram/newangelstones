@@ -1315,30 +1315,153 @@
                         <div class="col-md-6 mb-5">
                             <h2 class="section-contitle">Feel free to write</h2>
                             <p>We would like to hear from you</p>
-                            <form id="contactForm" class="contact__form">
-                                <!-- Form elements -->
+                            <form id="contactForm" class="contact__form" action="https://theangelstones.com/mautic/form/submit?formId=1" method="post" autocomplete="false" role="form">
+                                <input type="hidden" name="mauticform[formId]" value="1" />
+                                <input type="hidden" name="mauticform[return]" value="" />
+                                <input type="hidden" name="mauticform[formName]" value="contact_us" />
+                                
                                 <div class="row">
                                     <div class="col-md-6 form-group">
-                                        <input name="name" id="name" type="text" placeholder="Name *" required> 
+                                        <input name="mauticform[f_name]" id="f_name" type="text" 
+                                               class="form-control" placeholder="Name *" required>
                                     </div>
                                     <div class="col-md-6 form-group">
-                                        <input name="email" id="email" type="email" placeholder="e-Mail *" required> 
+                                        <input name="mauticform[email]" id="email" type="email" 
+                                               class="form-control" placeholder="e-Mail *" required>
                                     </div>
                                     <div class="col-md-6 form-group">
-                                        <input name="mobile" id="mobile" type="text" placeholder="Mobile *" required> 
-                                    </div>
-                                    <div class="col-md-6 form-group">
-                                        <input name="subject" id="subject" type="text" placeholder="Subject *" required> 
+                                        <input name="mauticform[phone]" id="phone" type="tel" 
+                                               class="form-control" placeholder="Phone *" required>
                                     </div>
                                     <div class="col-md-12 form-group">
-                                        <textarea name="message" id="message" cols="30" rows="4" placeholder="Message *" required></textarea>
+                                        <textarea name="mauticform[f_message]" id="f_message" 
+                                                  class="form-control" cols="30" rows="4" 
+                                                  placeholder="Message *" required></textarea>
+                                    </div>
+                                    <!-- Hidden honeypot field for spam protection -->
+                                    <div style="position: absolute; left: -5000px;" aria-hidden="true">
+                                        <input type="text" name="mauticform[email2]" tabindex="-1" value="" />
                                     </div>
                                     <div class="col-md-12 mt-2">
-                                        <input name="submit" type="submit" value="Send Message">
+                                        <button type="submit" id="form-submit">Send Message</button>
                                         <div id="response"></div>
                                     </div>
                                 </div>
                             </form>
+                            
+                            <!-- Mautic Form Tracking -->
+                            <script type="text/javascript">
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const form = document.getElementById('contactForm');
+                                const submitBtn = document.getElementById('form-submit');
+                                const submitText = submitBtn.querySelector('.submit-text');
+                                const spinner = submitBtn.querySelector('.spinner-border');
+                                const formMessages = document.getElementById('form-messages');
+                                
+                                // Form validation
+                                function validateForm() {
+                                    let isValid = true;
+                                    const requiredFields = form.querySelectorAll('[required]');
+                                    
+                                    requiredFields.forEach(field => {
+                                        if (!field.value.trim()) {
+                                            isValid = false;
+                                            field.classList.add('is-invalid');
+                                        } else {
+                                            field.classList.remove('is-invalid');
+                                            
+                                            // Email validation
+                                            if (field.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value)) {
+                                                isValid = false;
+                                                field.classList.add('is-invalid');
+                                                showMessage('Please enter a valid email address', 'error');
+                                            }
+                                        }
+                                    });
+                                    
+                                    return isValid;
+                                }
+                                
+                                // Show form messages
+                                function showMessage(message, type = 'success') {
+                                    formMessages.innerHTML = `
+                                        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                                            ${message}
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </div>
+                                    `;
+                                }
+                                
+                                // Form submission
+                                form.addEventListener('submit', function(e) {
+                                    e.preventDefault();
+                                    
+                                    if (!validateForm()) {
+                                        showMessage('Please fill in all required fields correctly.', 'danger');
+                                        return false;
+                                    }
+                                    
+                                    // Disable submit button
+                                    submitBtn.disabled = true;
+                                    submitText.textContent = 'Sending...';
+                                    spinner.classList.remove('d-none');
+                                    
+                                    // Submit form via AJAX
+                                    const formData = new FormData(form);
+                                    
+                                    fetch(form.action, {
+                                        method: 'POST',
+                                        body: formData,
+                                        headers: {
+                                            'Accept': 'application/json'
+                                        }
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            showMessage('Thank you for your message! We will get back to you soon.', 'success');
+                                            form.reset();
+                                        } else {
+                                            showMessage('There was a problem sending your message. Please try again later.', 'danger');
+                                            console.error('Form submission error:', data);
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error:', error);
+                                        showMessage('An error occurred. Please try again later.', 'danger');
+                                    })
+                                    .finally(() => {
+                                        submitBtn.disabled = false;
+                                        submitText.textContent = 'Send Message';
+                                        spinner.classList.add('d-none');
+                                    });
+                                });
+                                
+                                // Real-time validation
+                                form.querySelectorAll('input, textarea').forEach(input => {
+                                    input.addEventListener('input', function() {
+                                        if (this.value.trim()) {
+                                            this.classList.remove('is-invalid');
+                                        }
+                                    });
+                                });
+                            });
+                            </script>
+                            
+                            <style>
+                            .is-invalid {
+                                border-color: #dc3545 !important;
+                                padding-right: calc(1.5em + 0.75rem);
+                                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+                                background-repeat: no-repeat;
+                                background-position: right calc(0.375em + 0.1875rem) center;
+                                background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+                            }
+                            .is-invalid:focus {
+                                border-color: #dc3545;
+                                box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+                            }
+                            </style>
                         </div>
                     </div>
                     <div class="map-section map">
