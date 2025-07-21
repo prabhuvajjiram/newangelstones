@@ -13,14 +13,14 @@ class AppTheme {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            cardColor.withOpacity(0.8),
-            cardColor.withOpacity(0.6),
+            cardColor.withValues(alpha: 0.8),
+            cardColor.withValues(alpha: 0.6),
           ],
         ),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -117,7 +117,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: cardColor.withOpacity(0.5),
+        fillColor: cardColor.withValues(alpha: 0.5),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide.none,
@@ -128,7 +128,7 @@ class AppTheme {
         ),
         labelStyle: bodyMedium,
         hintStyle: bodyMedium.copyWith(
-          color: textSecondary.withOpacity(0.7),
+          color: textSecondary.withValues(alpha: 0.7),
         ),
       ),
     );

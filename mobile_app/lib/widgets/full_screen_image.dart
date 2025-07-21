@@ -48,7 +48,7 @@ class _FullScreenImageState extends State<FullScreenImage> {
       backgroundColor: Colors.black,
       appBar: _showControls
           ? AppBar(
-              backgroundColor: Colors.black.withOpacity(0.7),
+              backgroundColor: Colors.black.withValues(alpha: 0.7),
               title: Text('${_currentIndex + 1} / ${widget.galleryImages.length}'),
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),

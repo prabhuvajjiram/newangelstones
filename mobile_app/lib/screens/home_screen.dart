@@ -63,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   end: Alignment.bottomRight,
                   colors: [
                     AppTheme.primaryColor,
-                    AppTheme.primaryColor.withOpacity(0.9),
+                    AppTheme.primaryColor.withValues(alpha: 0.9),
                   ],
                 ),
                 borderRadius: const BorderRadius.only(
@@ -86,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderRadius: BorderRadius.circular(30),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
+                              color: Colors.black.withValues(alpha: 0.2),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),
@@ -343,7 +343,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(color: Colors.grey.shade200),
-                                      color: Colors.white.withOpacity(0.6),
+                                      color: Colors.white.withValues(alpha: 0.6),
                                     ),
                                     child: Material(
                                       color: Colors.transparent,
@@ -368,7 +368,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   shape: BoxShape.circle,
                                                   boxShadow: [
                                                     BoxShadow(
-                                                      color: AppTheme.accentColor.withOpacity(0.3),
+                                                      color: AppTheme.accentColor.withValues(alpha: 0.3),
                                                       blurRadius: 4,
                                                       spreadRadius: 1,
                                                     ),
@@ -397,7 +397,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 decoration: BoxDecoration(
                                                   gradient: LinearGradient(
                                                     colors: [
-                                                      AppTheme.accentColor.withOpacity(0.7),
+                                                      AppTheme.accentColor.withValues(alpha: 0.7),
                                                       AppTheme.accentColor,
                                                     ],
                                                     begin: Alignment.topLeft,
@@ -406,7 +406,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   borderRadius: BorderRadius.circular(12),
                                                   boxShadow: [
                                                     BoxShadow(
-                                                      color: AppTheme.accentColor.withOpacity(0.2),
+                                                      color: AppTheme.accentColor.withValues(alpha: 0.2),
                                                       blurRadius: 4,
                                                       offset: const Offset(0, 2),
                                                     ),
@@ -439,7 +439,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppTheme.accentColor.withOpacity(0.3),
+                                      color: AppTheme.accentColor.withValues(alpha: 0.3),
                                       blurRadius: 8,
                                       offset: const Offset(0, 3),
                                     ),

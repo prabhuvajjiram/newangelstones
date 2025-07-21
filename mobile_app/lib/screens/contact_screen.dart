@@ -115,7 +115,7 @@ class _ContactScreenState extends State<ContactScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.accentColor.withOpacity(0.2),
+                  color: AppTheme.accentColor.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: AppTheme.accentColor, size: 24),
@@ -163,7 +163,7 @@ class _ContactScreenState extends State<ContactScreen> {
                 gradient: LinearGradient(
                   colors: [
                     AppTheme.primaryColor,
-                    AppTheme.primaryColor.withOpacity(0.8),
+                    AppTheme.primaryColor.withValues(alpha: 0.8),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -271,7 +271,7 @@ class _ContactScreenState extends State<ContactScreen> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 filled: true,
-                                fillColor: Colors.white.withOpacity(0.9),
+                                fillColor: Colors.white.withValues(alpha: 0.9),
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
@@ -292,7 +292,7 @@ class _ContactScreenState extends State<ContactScreen> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 filled: true,
-                                fillColor: Colors.white.withOpacity(0.9),
+                                fillColor: Colors.white.withValues(alpha: 0.9),
                               ),
                               keyboardType: TextInputType.emailAddress,
                               validator: (value) {
@@ -317,7 +317,7 @@ class _ContactScreenState extends State<ContactScreen> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 filled: true,
-                                fillColor: Colors.white.withOpacity(0.9),
+                                fillColor: Colors.white.withValues(alpha: 0.9),
                               ),
                               keyboardType: TextInputType.phone,
                               inputFormatters: [
@@ -337,7 +337,7 @@ class _ContactScreenState extends State<ContactScreen> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 filled: true,
-                                fillColor: Colors.white.withOpacity(0.9),
+                                fillColor: Colors.white.withValues(alpha: 0.9),
                               ),
                               maxLines: 4,
                               validator: (value) {
@@ -461,7 +461,7 @@ class _ContactScreenState extends State<ContactScreen> {
                 leading: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppTheme.accentColor.withOpacity(0.2),
+                    color: AppTheme.accentColor.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.location_on, color: AppTheme.accentColor),

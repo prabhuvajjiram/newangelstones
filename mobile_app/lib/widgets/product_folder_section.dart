@@ -109,7 +109,7 @@ class ProductFolderSection extends StatelessWidget {
                                         color: Colors.blueAccent,
                                         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                                         child: Text(
-                                          '${count} Designs',
+                                          '$count Designs',
                                           style: const TextStyle(color: Colors.white, fontSize: 12),
                                         ),
                                       );
