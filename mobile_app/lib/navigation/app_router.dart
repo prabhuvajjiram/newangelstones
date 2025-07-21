@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../models/product.dart';
@@ -7,7 +6,6 @@ import '../screens/colors_screen.dart';
 import '../screens/contact_screen.dart';
 import '../screens/design_gallery_screen.dart';
 import '../screens/flyer_viewer_screen.dart';
-import '../screens/home_screen.dart';
 import '../screens/inventory_screen.dart';
 import '../screens/product_detail_screen.dart';
 import '../services/api_service.dart';

@@ -3,7 +3,6 @@ import '../models/product.dart';
 import '../services/api_service.dart';
 import '../services/directory_service.dart';
 import 'package:go_router/go_router.dart';
-import 'package:go_router/go_router.dart';
 import '../utils/error_utils.dart';
 
 class ProductFolderSection extends StatelessWidget {
@@ -69,7 +68,26 @@ class ProductFolderSection extends StatelessWidget {
                                   child: Image.network(
                                     product.imageUrl,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stack) => const Icon(Icons.broken_image),
+                                    cacheWidth: 300,
+                                    cacheHeight: 300,
+                                    loadingBuilder: (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Container(
+                                        color: Colors.grey.shade200,
+                                        child: Center(
+                                          child: CircularProgressIndicator(
+                                            value: loadingProgress.expectedTotalBytes != null
+                                                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                                : null,
+                                            strokeWidth: 2,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stack) => Container(
+                                      color: Colors.grey.shade200,
+                                      child: const Icon(Icons.broken_image, color: Colors.grey),
+                                    ),
                                   ),
                                 ),
                                 Positioned(
@@ -91,7 +109,7 @@ class ProductFolderSection extends StatelessWidget {
                                         color: Colors.blueAccent,
                                         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                                         child: Text(
-                                          '\${count} Designs',
+                                          '${count} Designs',
                                           style: const TextStyle(color: Colors.white, fontSize: 12),
                                         ),
                                       );

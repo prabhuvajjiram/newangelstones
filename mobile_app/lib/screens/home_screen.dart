@@ -447,7 +447,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   gradient: LinearGradient(
                                     colors: [
                                       AppTheme.accentColor,
-                                      AppTheme.accentColor.withBlue(AppTheme.accentColor.blue + 20),
+                                      AppTheme.accentColor.withBlue(
+                                        ((AppTheme.accentColor.b * 255.0).round() + 20).clamp(0, 255).toInt(),
+                                      ),
                                     ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,

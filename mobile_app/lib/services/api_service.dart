@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
-import 'package:http/http.dart' as http;
+import '../utils/secure_http_client.dart';
+import '../config/security_config.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/foundation.dart';
 import '../models/product.dart';
@@ -47,7 +48,7 @@ class ApiService {
       // Don't rethrow - we want to continue even if one asset fails
     }
   }
-  static const _baseUrl = 'https://theangelstones.com';
+  final SecureHttpClient _secureClient = SecureHttpClient();
 
   // Map to cache product images with their codes
   final Map<String, List<ProductImage>> _productImageCache = {};
@@ -64,24 +65,31 @@ class ApiService {
   }
 
   Future<List<String>> fetchCategoryImages(String category) async {
-    // Get product images with codes first
-    final productImages = await fetchProductImagesWithCodes(category);
-    // Then extract just the URLs for backward compatibility
-    return productImages.map((img) => img.imageUrl).toList();
+  // ✅ Use cache if available
+  if (_categoryCache.containsKey(category)) {
+    debugPrint('📦 Using cached category images for: $category');
+    return _categoryCache[category]!;
   }
+
+  // ⏬ Fetch from network
+  final productImages = await fetchProductImagesWithCodes(category);
+  final imageUrls = productImages.map((img) => img.imageUrl).toList();
+
+  // 🧠 Save to cache
+  _categoryCache[category] = imageUrls;
+  return imageUrls;
+}
+
   
   Future<List<ProductImage>> fetchProductImagesWithCodes(String category) async {
     if (_productImageCache.containsKey(category)) {
       return _productImageCache[category]!;
     }
     try {
-      final uri = Uri.parse('$_baseUrl/get_directory_files.php?directory=products/$category');
-      debugPrint('🌐 Fetching category images from: $uri');
+      final url = '${SecurityConfig.angelStonesBaseUrl}/get_directory_files.php?directory=products/${SecurityConfig.sanitizeInput(category)}';
+      debugPrint('🌐 Fetching category images from: $url');
       
-      final response = await http.get(uri).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () => throw TimeoutException('Connection timed out'),
-      );
+      final response = await _secureClient.secureGet(url);
       
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonData = json.decode(response.body);
@@ -89,7 +97,7 @@ class ApiService {
         final productImages = files
             .whereType<Map<String, dynamic>>()
             .map((e) => ProductImage(
-                  imageUrl: '$_baseUrl/${e['path'] ?? ''}',
+                  imageUrl: '${SecurityConfig.angelStonesBaseUrl}/${e['path'] ?? ''}',
                   productCode: _extractProductCode(e['fullname'] ?? e['name'] ?? ''),
                 ))
             .toList();
@@ -110,13 +118,10 @@ class ApiService {
   Future<List<Product>> fetchProducts() async {
     if (_productCache != null) return _productCache!;
     try {
-      final uri = Uri.parse('$_baseUrl/api/color.json');
-      debugPrint('🌐 Fetching products from: $uri');
+      final url = '${SecurityConfig.angelStonesBaseUrl}/api/color.json';
+      debugPrint('🌐 Fetching products from: $url');
       
-      final response = await http.get(uri).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () => throw TimeoutException('Connection timed out'),
-      );
+      final response = await _secureClient.secureGet(url);
       
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonData = json.decode(response.body);

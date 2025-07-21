@@ -54,7 +54,26 @@ class FlyerSection extends StatelessWidget {
                             child: Image.network(
                               flyer.imageUrl,
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stack) => const Icon(Icons.broken_image),
+                              cacheWidth: 400,
+                              cacheHeight: 300,
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Container(
+                                  color: Colors.grey.shade200,
+                                  child: Center(
+                                    child: CircularProgressIndicator(
+                                      value: loadingProgress.expectedTotalBytes != null
+                                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                          : null,
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                );
+                              },
+                              errorBuilder: (context, error, stack) => Container(
+                                color: Colors.grey.shade200,
+                                child: const Icon(Icons.broken_image, color: Colors.grey),
+                              ),
                             ),
                           ),
                           Padding(
