@@ -1,30 +1,29 @@
 import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/product.dart';
 
 class StorageService {
   static const _cacheKey = 'cached_products';
   bool _isInitialized = false;
+  final _storage = const FlutterSecureStorage();
   
   /// Initialize the storage service with error handling and timeout
   Future<void> initialize() async {
     if (_isInitialized) return;
     
     try {
-      // Test SharedPreferences access
-      final prefs = await SharedPreferences.getInstance()
+      // Test FlutterSecureStorage access
+      await _storage.write(key: 'init_test', value: 'ok')
           .timeout(const Duration(seconds: 2), 
-          onTimeout: () => throw TimeoutException('SharedPreferences initialization timed out'));
+          onTimeout: () => throw TimeoutException('FlutterSecureStorage initialization timed out'));
       
-      // Verify we can read/write
-      await prefs.setString('init_test', 'ok')
-          .timeout(const Duration(seconds: 1));
-      final testValue = prefs.getString('init_test');
+      // Verify we can read
+      final testValue = await _storage.read(key: 'init_test');
       
       if (testValue != 'ok') {
-        throw Exception('SharedPreferences verification failed');
+        throw Exception('FlutterSecureStorage verification failed');
       }
       
       _isInitialized = true;
@@ -37,7 +36,6 @@ class StorageService {
   }
 
   Future<void> saveProducts(List<Product> products) async {
-    final prefs = await SharedPreferences.getInstance();
     final jsonData = json.encode(products.map((p) => {
           'id': p.id,
           'name': p.name,
@@ -45,12 +43,11 @@ class StorageService {
           'image': p.imageUrl,
           'price': p.price,
         }).toList());
-    await prefs.setString(_cacheKey, jsonData);
+    await _storage.write(key: _cacheKey, value: jsonData);
   }
 
   Future<List<Product>?> loadProducts() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonData = prefs.getString(_cacheKey);
+    final jsonData = await _storage.read(key: _cacheKey);
     if (jsonData != null) {
       final List<dynamic> data = json.decode(jsonData);
       return data.map((e) => Product.fromJson(e)).toList();

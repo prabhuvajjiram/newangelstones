@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:go_router/go_router';
 
+import 'app_router.dart';
 import '../screens/home_screen.dart';
 import '../screens/colors_screen.dart';
 import '../screens/inventory_screen.dart';
@@ -203,21 +204,31 @@ class _MainNavigationState extends State<MainNavigation> {
           ],
         ),
         actions: [
-          CartIcon(
+          // Saved Items Button
+          IconButton(
+            icon: const Icon(Icons.bookmark_border),
+            tooltip: 'Saved Items',
             onPressed: () {
-              context.push('/cart');
+              GoRouter.of(context).pushNamed(AppRouter.savedItems);
             },
           ),
+          // Cart Button
+          CartIcon(
+            onPressed: () {
+              GoRouter.of(context).pushNamed(AppRouter.cart);
+            },
+          ),
+          // Login Button
           IconButton(
             icon: const Icon(Icons.person_outline),
             tooltip: 'Login',
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Login coming soon'),
+                const SnackBar(
+                  content: Text('Login coming soon'),
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.all(Radius.circular(8)),
                   ),
                 ),
               );

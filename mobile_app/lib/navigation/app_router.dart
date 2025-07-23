@@ -8,6 +8,8 @@ import '../screens/design_gallery_screen.dart';
 import '../screens/flyer_viewer_screen.dart';
 import '../screens/inventory_screen.dart';
 import '../screens/product_detail_screen.dart';
+import '../screens/saved_items_screen.dart';
+import '../screens/quote_request_screen.dart';
 import '../services/api_service.dart';
 import '../services/directory_service.dart';
 import '../services/inventory_service.dart';
@@ -25,6 +27,8 @@ class AppRouter {
   static const String designGallery = 'design-gallery';
   static const String flyerViewer = 'flyer-viewer';
   static const String cart = 'cart';
+  static const String savedItems = 'saved-items';
+  static const String quoteRequest = 'quote-request';
 
   AppRouter({
     required this.apiService,
@@ -101,6 +105,24 @@ class AppRouter {
       GoRoute(
         path: '/cart',
         builder: (context, state) => const CartScreen(),
+      ),
+      GoRoute(
+        path: '/saved-items',
+        name: savedItems,
+        builder: (context, state) => const SavedItemsScreen(),
+      ),
+      GoRoute(
+        path: '/quote-request',
+        name: quoteRequest,
+        builder: (context, state) {
+          final cartItems = state.extra as List<Map<String, dynamic>>? ?? [];
+          final totalQuantity = cartItems.fold<int>(
+              0, (sum, item) => sum + (item['quantity'] as int? ?? 1));
+          return QuoteRequestScreen(
+            cartItems: cartItems,
+            totalQuantity: totalQuantity,
+          );
+        },
       ),
     ],
   );

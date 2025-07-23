@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/inventory_item.dart';
+import 'enhanced_product_card.dart';
 
 class InventoryTableSection extends StatelessWidget {
   final String title;
@@ -76,57 +77,40 @@ class InventoryTableSection extends StatelessWidget {
 
         final items = snapshot.data!;
         
-        // For small screens, show a card-based layout
+        // For small screens, show a grid of EnhancedProductCards
         if (isSmallScreen) {
-          return ListView.builder(
+          return GridView.builder(
+            padding: const EdgeInsets.all(8),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2, // 2 columns
+              childAspectRatio: 0.75, // Adjust the aspect ratio as needed
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+            ),
             itemCount: items.length,
             itemBuilder: (context, index) {
               final item = items[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.description.isNotEmpty ? item.description : 'No description',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          if (item.code.isNotEmpty)
-                            Text(
-                              'Product Code: ${item.code}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: theme.hintColor,
-                              ),
-                            ),
-                          if (item.description.toLowerCase().contains('design') && !item.description.toLowerCase().contains('vase') && item.code.isNotEmpty)
-                            Text(
-                              'Type: Vase',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: theme.hintColor,
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      if (item.color.isNotEmpty) 
-                        _buildInfoRow('Color', item.color),
-                      if (item.size.isNotEmpty)
-                        _buildInfoRow('Size', item.size),
-                      if (item.location.isNotEmpty)
-                        _buildInfoRow('Location', item.location),
-                    ],
-                  ),
-                ),
+              // Create a product map with available fields from InventoryItem
+              final productData = {
+                'id': item.code, // Using code as ID since InventoryItem doesn't have an id field
+                'name': item.description.isNotEmpty ? item.description : 'No description',
+                'code': item.code,
+                'color': item.color,
+                'size': item.size,
+                'location': item.location,
+                'type': item.description.toLowerCase().contains('design') && 
+                         !item.description.toLowerCase().contains('vase') ? 'Vase' : 'Other',
+                'imageUrl': 'https://via.placeholder.com/150?text=${Uri.encodeComponent(item.code)}',
+              };
+              
+              return EnhancedProductCard(
+                product: productData,
+                onTap: () {
+                  // Handle product tap
+                  // You can navigate to a product detail screen here
+                },
+                showQuickView: true,
+                showSaveForLater: true,
               );
             },
           );
