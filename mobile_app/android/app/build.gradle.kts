@@ -50,3 +50,9 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // Add missing annotation dependencies
+    implementation("com.google.errorprone:error_prone_annotations:2.23.0")
+    implementation("javax.annotation:javax.annotation-api:1.3.2")
+}
