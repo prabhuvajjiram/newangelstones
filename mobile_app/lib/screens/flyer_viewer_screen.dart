@@ -12,7 +12,8 @@ class FlyerViewerScreen extends StatefulWidget {
 }
 
 class _FlyerViewerScreenState extends State<FlyerViewerScreen> {
-  bool _showPdfViewer = false;
+  // Default to showing PDF viewer if PDF URL is available
+  bool _showPdfViewer = true;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +51,7 @@ class _FlyerViewerScreenState extends State<FlyerViewerScreen> {
                       color: Theme.of(context).cardColor,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),  // Using double value for opacity
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 4,
                           offset: const Offset(0, -2),
                         ),
@@ -62,11 +63,11 @@ class _FlyerViewerScreenState extends State<FlyerViewerScreen> {
                           child: ElevatedButton.icon(
                             onPressed: () {
                               setState(() {
-                                _showPdfViewer = true;
+                                _showPdfViewer = false;
                               });
                             },
-                            icon: const Icon(Icons.picture_as_pdf),
-                            label: const Text('View PDF in App'),
+                            icon: const Icon(Icons.image),
+                            label: const Text('View Image'),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                             ),

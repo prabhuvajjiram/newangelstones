@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:pdfx/pdfx.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 
@@ -19,7 +19,8 @@ class _PdfViewerWidgetState extends State<PdfViewerWidget> {
   String? errorMessage;
   int currentPage = 0;
   int totalPages = 0;
-  PDFViewController? pdfController;
+  late PdfControllerPinch pdfController;
+  bool _controllerInitialized = false;
 
   @override
   void initState() {
@@ -51,10 +52,23 @@ class _PdfViewerWidgetState extends State<PdfViewerWidget> {
         }
       }
 
-      setState(() {
-        localPath = file.path;
-        isLoading = false;
-      });
+      // Initialize the controller here
+      try {
+        pdfController = PdfControllerPinch(
+          document: PdfDocument.openFile(file.path),
+        );
+        _controllerInitialized = true;
+        
+        setState(() {
+          localPath = file.path;
+          isLoading = false;
+        });
+      } catch (e) {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'Error initializing PDF controller: $e';
+        });
+      }
     } catch (e) {
       setState(() {
         isLoading = false;
@@ -125,7 +139,7 @@ class _PdfViewerWidgetState extends State<PdfViewerWidget> {
               IconButton(
                 onPressed: currentPage > 0
                     ? () {
-                        pdfController?.setPage(currentPage - 1);
+                        pdfController.jumpToPage(currentPage - 1);
                       }
                     : null,
                 icon: const Icon(Icons.navigate_before),
@@ -138,7 +152,7 @@ class _PdfViewerWidgetState extends State<PdfViewerWidget> {
               IconButton(
                 onPressed: currentPage < totalPages - 1
                     ? () {
-                        pdfController?.setPage(currentPage + 1);
+                        pdfController.jumpToPage(currentPage + 1);
                       }
                     : null,
                 icon: const Icon(Icons.navigate_next),
@@ -147,47 +161,38 @@ class _PdfViewerWidgetState extends State<PdfViewerWidget> {
             ],
           ),
         ),
-        // PDF Viewer
-        Expanded(
-          child: PDFView(
-            filePath: localPath!,
-            enableSwipe: true,
-            swipeHorizontal: false,
-            autoSpacing: false,
-            pageFling: true,
-            pageSnap: true,
-            defaultPage: currentPage,
-            fitPolicy: FitPolicy.BOTH,
-            preventLinkNavigation: false,
-            onRender: (pages) {
-              setState(() {
-                totalPages = pages ?? 0;
-              });
-            },
-            onError: (error) {
-              setState(() {
-                errorMessage = 'Error rendering PDF: $error';
-              });
-            },
-            onPageError: (page, error) {
-              setState(() {
-                errorMessage = 'Error on page $page: $error';
-              });
-            },
-            onViewCreated: (PDFViewController controller) {
-              pdfController = controller;
-            },
-            onLinkHandler: (String? uri) {
-              // Handle PDF links if needed
-            },
-            onPageChanged: (int? page, int? total) {
-              setState(() {
-                currentPage = page ?? 0;
-                totalPages = total ?? 0;
-              });
-            },
+        if (localPath != null && _controllerInitialized) 
+          Expanded(
+            child: Stack(
+              children: [
+                PdfViewPinch(
+                  controller: pdfController,
+                  onDocumentLoaded: (document) {
+                    setState(() {
+                      totalPages = document.pagesCount;
+                    });
+                  },
+                  onPageChanged: (page) {
+                    setState(() {
+                      currentPage = page;
+                    });
+                  },
+                  builders: PdfViewPinchBuilders<DefaultBuilderOptions>(
+                    options: const DefaultBuilderOptions(),
+                    documentLoaderBuilder: (_) => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                    pageLoaderBuilder: (_) => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                    errorBuilder: (_, error) => Center(
+                      child: Text('Error loading PDF: $error'),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
       ],
     );
   }

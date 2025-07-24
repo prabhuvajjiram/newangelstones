@@ -16,7 +16,7 @@ class EnhancedProductCard extends StatefulWidget {
   });
 
   @override
-  _EnhancedProductCardState createState() => _EnhancedProductCardState();
+  State<EnhancedProductCard> createState() => _EnhancedProductCardState();
 }
 
 class _EnhancedProductCardState extends State<EnhancedProductCard> {

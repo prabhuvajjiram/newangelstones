@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import '../widgets/enhanced_product_card.dart';
+import 'package:go_router/go_router.dart';
 import '../services/saved_items_service.dart';
+import '../models/inventory_item.dart';
+import '../screens/inventory_item_details_screen.dart';
 
 class SavedItemsScreen extends StatefulWidget {
   const SavedItemsScreen({super.key});
 
   @override
-  _SavedItemsScreenState createState() => _SavedItemsScreenState();
+  State<SavedItemsScreen> createState() => _SavedItemsScreenState();
 }
 
 class _SavedItemsScreenState extends State<SavedItemsScreen> {
@@ -85,26 +87,126 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
   }
 
   Widget _buildSavedItemsList() {
+    final theme = Theme.of(context);
+    final isSmallScreen = MediaQuery.of(context).size.width < 600;
+    
     return RefreshIndicator(
       onRefresh: _loadSavedItems,
-      child: GridView.builder(
+      child: ListView.builder(
         padding: const EdgeInsets.all(8),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.7,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-        ),
         itemCount: _savedItems.length,
         itemBuilder: (context, index) {
           final item = _savedItems[index];
-          return EnhancedProductCard(
-            product: item,
-            showSaveForLater: false, // Hide save button in saved items screen
-            onTap: () {
-              // Navigate to product detail screen
-              // Navigator.push(...);
-            },
+          
+          // Helper function to safely get string values
+          String getStringValue(String key) {
+            try {
+              final value = item[key];
+              return value != null ? value.toString() : '';
+            } catch (e) {
+              return '';
+            }
+          }
+          
+          return Card(
+            margin: const EdgeInsets.only(bottom: 8),
+            child: InkWell(
+              onTap: () {
+                // Navigate to inventory item details
+                try {
+                  // Convert saved item to InventoryItem
+                  final inventoryItem = InventoryItem.fromJson(item);
+                  
+                  // Use Navigator.push with MaterialPageRoute for better context preservation
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => InventoryItemDetailsScreen(item: inventoryItem),
+                    ),
+                  );
+                } catch (e) {
+                  debugPrint('Error navigating to item details: $e');
+                  // Fallback to GoRouter if Navigator fails
+                  try {
+                    final inventoryItemForRouter = InventoryItem.fromJson(item);
+                    GoRouter.of(context).pushNamed('inventory-item-details', extra: inventoryItemForRouter);
+                  } catch (routerError) {
+                    debugPrint('Error with GoRouter navigation: $routerError');
+                    // Try to show error message
+                    try {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Could not open item details')),
+                      );
+                    } catch (scaffoldError) {
+                      debugPrint('Error showing snackbar: $scaffoldError');
+                    }
+                  }
+                }
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            getStringValue('description').isNotEmpty 
+                                ? getStringValue('description') 
+                                : 'No description',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        // Remove button
+                        IconButton(
+                          icon: const Icon(
+                            Icons.bookmark,
+                            color: Colors.amber,
+                          ),
+                          onPressed: () => _removeItem(item),
+                          tooltip: 'Remove from saved items',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    // Item details
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildInfoRow('Code', getStringValue('code')),
+                              _buildInfoRow('Type', getStringValue('type')),
+                              _buildInfoRow('Color', getStringValue('color')),
+                            ],
+                          ),
+                        ),
+                        if (!isSmallScreen) const SizedBox(width: 16),
+                        if (!isSmallScreen)
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildInfoRow('Size', getStringValue('size')),
+                                _buildInfoRow('Design', getStringValue('design')),
+                                _buildInfoRow('Finish', getStringValue('finish')),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
           );
         },
       ),
@@ -161,5 +263,70 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
         );
       }
     }
+  }
+  
+  // Remove a single saved item
+  Future<void> _removeItem(Map<String, dynamic> item) async {
+    String? itemId;
+    try {
+      itemId = item['id']?.toString();
+    } catch (e) {
+      debugPrint('Error getting item ID: $e');
+    }
+    
+    if (itemId == null || itemId.isEmpty) {
+      debugPrint('Cannot remove item: ID is null or empty');
+      return;
+    }
+    
+    try {
+      debugPrint('Removing item with ID: $itemId');
+      final success = await SavedItemsService.removeItem(itemId);
+      if (mounted) {
+        if (success) {
+          setState(() {
+            _savedItems.removeWhere((savedItem) => 
+                savedItem['id']?.toString() == itemId);
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Item removed from saved items')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to remove item')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error removing item: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error removing item: ${e.toString()}')),
+        );
+      }
+    }
+  }
+  
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$label: ',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          ),
+          Expanded(
+            child: Text(
+              value.isEmpty ? 'N/A' : value,
+              style: const TextStyle(fontSize: 12),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

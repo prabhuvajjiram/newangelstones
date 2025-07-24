@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../services/mautic_service.dart';
 import '../models/quote_request.dart';
 import '../widgets/app_button.dart';
+import '../state/cart_state.dart';
 
 class QuoteRequestScreen extends StatefulWidget {
   final List<Map<String, dynamic>> cartItems;
@@ -14,7 +17,7 @@ class QuoteRequestScreen extends StatefulWidget {
   });
 
   @override
-  _QuoteRequestScreenState createState() => _QuoteRequestScreenState();
+  State<QuoteRequestScreen> createState() => _QuoteRequestScreenState();
 }
 
 class _QuoteRequestScreenState extends State<QuoteRequestScreen> {
@@ -61,24 +64,35 @@ class _QuoteRequestScreenState extends State<QuoteRequestScreen> {
 
       setState(() => _isSuccess = success);
       
+      // Capture context before potential async gap
+      final currentContext = context;
+      
       if (success) {
         // Reset form on success
         _formKey.currentState?.reset();
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Quote request submitted successfully!')),
-        );
+        // Show success message if context is still valid
+        if (currentContext.mounted) {
+          ScaffoldMessenger.of(currentContext).showSnackBar(
+            const SnackBar(content: Text('Quote request submitted successfully!')),
+          );
+        }
       } else {
-        // Show error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to submit quote request. Please try again.')),
-        );
+        // Show error message if context is still valid
+        if (currentContext.mounted) {
+          ScaffoldMessenger.of(currentContext).showSnackBar(
+            const SnackBar(content: Text('Failed to submit quote request. Please try again.')),
+          );
+        }
       }
     } catch (e) {
       setState(() => _isSuccess = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('An error occurred. Please try again.')),
-      );
+      // Capture context before potential async gap
+      final errorContext = context;
+      if (errorContext.mounted) {
+        ScaffoldMessenger.of(errorContext).showSnackBar(
+          const SnackBar(content: Text('An error occurred. Please try again.')),
+        );
+      }
     } finally {
       setState(() => _isSubmitting = false);
     }
@@ -209,7 +223,14 @@ class _QuoteRequestScreenState extends State<QuoteRequestScreen> {
             ),
             const SizedBox(height: 32),
             AppButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {
+                // Clear the cart
+                final cartState = Provider.of<CartState>(context, listen: false);
+                cartState.clearCart();
+                
+                // Navigate to inventory screen
+                context.go('/inventory');
+              },
               child: const Text('Back to Products'),
             ),
           ],

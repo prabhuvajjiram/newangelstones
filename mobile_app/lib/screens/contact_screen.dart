@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:map_launcher/map_launcher.dart';
 import '../theme/app_theme.dart';
 import '../services/mautic_service.dart';
 
@@ -65,6 +68,98 @@ class _ContactScreenState extends State<ContactScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: ${e.toString()}'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red.shade800,
+          ),
+        );
+      }
+    }
+  }
+  
+  Future<void> _openMap(String address, BuildContext context) async {
+    try {
+      // Capture context before async gap
+      final currentContext = context;
+      
+      // For web or non-iOS platforms, use Google Maps directly
+      if (kIsWeb || !(Platform.isIOS)) {
+        final googleMapsUrl = 'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(address)}';
+        if (currentContext.mounted) {
+          await _launchUrl(googleMapsUrl, currentContext);
+        }
+        return;
+      }
+      
+      // For iOS, check available map apps and show options
+      final availableMaps = await MapLauncher.installedMaps;
+      
+      if (availableMaps.isEmpty) {
+        // Fallback to Google Maps URL if no map apps are available
+        final googleMapsUrl = 'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(address)}';
+        if (currentContext.mounted) {
+          await _launchUrl(googleMapsUrl, currentContext);
+        }
+        return;
+      }
+      
+      if (currentContext.mounted) {
+        showModalBottomSheet(
+          context: context,
+          backgroundColor: AppTheme.primaryColor,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          builder: (BuildContext context) {
+            return SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      'Open with Maps',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const Divider(color: Colors.grey),
+                  ...availableMaps.map((map) => ListTile(
+                    leading: CircleAvatar(
+                      radius: 15,
+                      backgroundColor: Colors.grey.shade800,
+                      child: Text(
+                        map.mapName.substring(0, 1).toUpperCase(),
+                        style: const TextStyle(color: Colors.white, fontSize: 14),
+                      ),
+                    ),
+                    title: Text(
+                      map.mapName,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      map.showMarker(
+                        coords: Coords(0, 0), // These will be ignored with the address parameter
+                        title: 'Angel Stones',
+                        description: address,
+                        extraParams: {'q': address},
+                      );
+                    },
+                  )),
+                ],
+              ),
+            );
+          },
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error opening maps: ${e.toString()}'),
             behavior: SnackBarBehavior.floating,
             backgroundColor: Colors.red.shade800,
           ),
@@ -297,7 +392,7 @@ class _ContactScreenState extends State<ContactScreen> {
                     icon: Icons.mail,
                     title: 'Mailing Address',
                     subtitle: 'P.O. Box 370, Elberton, GA 30635',
-                    onTap: () => _launchUrl('https://www.google.com/maps/search/?api=1&query=P.O.+Box+370,+Elberton,+GA+30635', context),
+                    onTap: () => _openMap('P.O. Box 370, Elberton, GA 30635', context),
                   ),
                 ],
               ),
@@ -639,7 +734,7 @@ class _ContactScreenState extends State<ContactScreen> {
                     style: const TextStyle(color: AppTheme.textSecondary),
                   ),
                 ),
-                onTap: () => _launchUrl(mapUrl, context),
+                onTap: () => _openMap(address, context),
                 trailing: const Icon(Icons.arrow_forward_ios, 
                   size: 16, 
                   color: AppTheme.textSecondary

@@ -162,6 +162,15 @@ class _CartScreenState extends State<CartScreen> {
               ),
               const SizedBox(height: 16),
 
+              // Back to Inventory Button
+              OutlinedButton(
+                onPressed: () {
+                  GoRouter.of(context).go('/inventory');
+                },
+                child: const Text('Back to Inventory'),
+              ),
+              const SizedBox(height: 8),
+              
               // Request Quote Button
               AppButton(
                 onPressed: () => _navigateToQuoteRequest(context, items),
@@ -187,7 +196,7 @@ class _CartScreenState extends State<CartScreen> {
               // Proceed to Checkout Button (disabled for now)
               AppButton(
                 onPressed: null, // Disabled for now
-                child: const Text('Proceed to Checkout'),
+                child: const Text('Proceed to Checkout (coming soon)'),
               ),
             ],
           ),
@@ -199,8 +208,7 @@ class _CartScreenState extends State<CartScreen> {
   Widget _buildCartItem(
       BuildContext context, Map<String, dynamic> item, CartState cart) {
     final quantity = item['quantity'] as int;
-    final price = (item['price'] as num?)?.toDouble() ?? 0.0;
-    final total = price * quantity;
+    // Price calculation removed as it's not displayed
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -252,14 +260,8 @@ class _CartScreenState extends State<CartScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Price
-                      Text(
-                        '\$${total.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                        ),
-                      ),
+                      // Price placeholder - hidden until API provides prices
+                      const SizedBox(),
                       
                       // Quantity Selector
                       Container(

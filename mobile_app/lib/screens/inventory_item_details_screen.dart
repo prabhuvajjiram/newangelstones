@@ -4,14 +4,15 @@ import 'package:provider/provider.dart';
 import '../models/inventory_item.dart';
 import '../services/saved_items_service.dart';
 import '../state/cart_state.dart';
+import '../screens/cart_screen.dart';
 
 class InventoryItemDetailsScreen extends StatefulWidget {
   final InventoryItem item;
 
   const InventoryItemDetailsScreen({
-    Key? key,
+    super.key,
     required this.item,
-  }) : super(key: key);
+  });
 
   @override
   State<InventoryItemDetailsScreen> createState() => _InventoryItemDetailsScreenState();
@@ -113,8 +114,24 @@ class _InventoryItemDetailsScreenState extends State<InventoryItemDetailsScreen>
       ),
     );
     
-    // Navigate to cart screen
-    GoRouter.of(context).pushNamed('cart');
+    // Navigate to cart screen and ensure proper context
+    try {
+      // Use Navigator.of(context) to ensure proper context handling
+      // This will maintain the widget tree and prevent Material widget errors
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const CartScreen(),
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error navigating to cart: $e');
+      // Fallback to GoRouter if Navigator fails
+      try {
+        GoRouter.of(context).go('/cart');
+      } catch (routerError) {
+        debugPrint('Error with GoRouter navigation: $routerError');
+      }
+    }
   }
 
   @override
