@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../models/product.dart';
@@ -72,8 +73,10 @@ class AppRouter {
       ),
       GoRoute(
         path: '/inventory',
-        builder: (context, state) =>
-            InventoryScreen(inventoryService: inventoryService),
+        builder: (context, state) => Scaffold(
+          appBar: AppBar(title: const Text('Inventory')),
+          body: InventoryScreen(inventoryService: inventoryService),
+        ),
       ),
       GoRoute(
         path: '/contact',
