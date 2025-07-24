@@ -55,4 +55,14 @@ class SavedItemsService {
     final savedItems = await getSavedItems();
     return savedItems.any((item) => item['id'] == itemId);
   }
+  
+  // Clear all saved items
+  static Future<bool> clearAllItems() async {
+    try {
+      await _storage.delete(key: savedItemsKey);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }

@@ -43,12 +43,16 @@ class MauticService {
   }) async {
     try {
       final url = Uri.parse('$_baseUrl?formId=$_quoteFormId');
+      
+      // Combine project details and cart items as requested
+      final combinedDetails = "PROJECT DETAILS:\n$projectDetails\n\nITEMS REQUESTED:\n$cartItems";
+      
       final body = {
         'mauticform[f_name]': name,
         'mauticform[email]': email,
         'mauticform[phone]': phone,
-        'mauticform[project_details]': projectDetails,
-        'mauticform[cart_items]': cartItems,
+        'mauticform[project_details]': combinedDetails,  // Combined details and items
+        'mauticform[cart_items]': cartItems,  // Keep this for backward compatibility
         'mauticform[total_quantity]': totalQuantity.toString(),
         'mauticform[formId]': _quoteFormId.toString(),
         'mauticform[return]': '',

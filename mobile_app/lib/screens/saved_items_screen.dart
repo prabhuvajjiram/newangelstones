@@ -33,9 +33,6 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
     }
   }
 
-  void _onItemRemoved() {
-    _loadSavedItems(); // Refresh the list when an item is removed
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -142,18 +139,25 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
 
   Future<void> _clearAllSavedItems() async {
     try {
-      final prefs = await SavedItemsService.prefs;
-      await prefs.remove(SavedItemsService.savedItemsKey);
+      // Use the new clearAllItems method from SavedItemsService
+      final success = await SavedItemsService.clearAllItems();
+      
       if (mounted) {
-        setState(() => _savedItems = []);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('All saved items have been removed')),
-        );
+        if (success) {
+          setState(() => _savedItems = []);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('All saved items have been removed')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to clear saved items')),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to clear saved items')),
+          SnackBar(content: Text('Error clearing saved items: ${e.toString()}')),
         );
       }
     }

@@ -37,6 +37,23 @@ class CartState extends ChangeNotifier {
     
     notifyListeners();
   }
+  
+  /// Add an item to the cart with a specific quantity.
+  void addItemWithQuantity(Map<String, dynamic> item, int quantity) {
+    if (quantity <= 0) return; // Don't add items with zero or negative quantity
+    
+    final index = _items.indexWhere((e) => e['id'] == item['id']);
+    
+    if (index >= 0) {
+      // Item exists, update quantity
+      _items[index]['quantity'] = (_items[index]['quantity'] as int) + quantity;
+    } else {
+      // Add new item with specified quantity
+      _items.add({...item, 'quantity': quantity});
+    }
+    
+    notifyListeners();
+  }
 
   /// Remove an item from the cart.
   void removeItem(Map<String, dynamic> item) {

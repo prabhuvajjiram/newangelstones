@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../models/inventory_item.dart';
-import 'enhanced_product_card.dart';
+import '../services/saved_items_service.dart';
 
-class InventoryTableSection extends StatelessWidget {
+class InventoryTableSection extends StatefulWidget {
   final String title;
   final Future<List<InventoryItem>> future;
   final VoidCallback onRetry;
@@ -13,6 +14,81 @@ class InventoryTableSection extends StatelessWidget {
     required this.future,
     required this.onRetry,
   });
+  
+  @override
+  State<InventoryTableSection> createState() => _InventoryTableSectionState();
+}
+
+class _InventoryTableSectionState extends State<InventoryTableSection> {
+  // Map to track saved status of items
+  final Map<String, bool> _savedItems = {};
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedItems();
+  }
+  
+  // Load saved items status
+  Future<void> _loadSavedItems() async {
+    final items = await SavedItemsService.getSavedItems();
+    if (mounted) {
+      setState(() {
+        for (final item in items) {
+          _savedItems[item['id'] as String] = true;
+        }
+      });
+    }
+  }
+  
+  // Toggle save status for an item
+  Future<void> _toggleSaveItem(InventoryItem item) async {
+    final itemId = item.code;
+    final isSaved = _savedItems[itemId] ?? false;
+    
+    if (isSaved) {
+      await SavedItemsService.removeItem(itemId);
+      if (mounted) {
+        setState(() {
+          _savedItems[itemId] = false;
+        });
+      }
+    } else {
+      // Convert InventoryItem to Map<String, dynamic>
+      final itemMap = {
+        'id': item.code,
+        'code': item.code,
+        'description': item.description,
+        'color': item.color,
+        'type': item.type,
+        'size': item.size,
+        'quantity': item.quantity,
+        'location': item.location,
+        'design': item.design,
+        'finish': item.finish,
+        'weight': item.weight,
+        'productId': item.productId,
+      };
+      
+      await SavedItemsService.saveItem(itemMap);
+      if (mounted) {
+        setState(() {
+          _savedItems[itemId] = true;
+        });
+      }
+    }
+    
+    // Show feedback
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isSaved ? 'Item removed from saved items' : 'Item saved!'),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +96,7 @@ class InventoryTableSection extends StatelessWidget {
     final isSmallScreen = MediaQuery.of(context).size.width < 600;
 
     return FutureBuilder<List<InventoryItem>>(
-      future: future,
+      future: widget.future,
       builder: (context, snapshot) {
         // Loading state
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -45,7 +121,7 @@ class InventoryTableSection extends StatelessWidget {
                 const Text('Please check your connection and try again.'),
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
-                  onPressed: onRetry,
+                  onPressed: widget.onRetry,
                   icon: const Icon(Icons.refresh),
                   label: const Text('Retry'),
                 ),
@@ -77,40 +153,62 @@ class InventoryTableSection extends StatelessWidget {
 
         final items = snapshot.data!;
         
-        // For small screens, show a grid of EnhancedProductCards
+        // For small screens, show a list view with compact rows
         if (isSmallScreen) {
-          return GridView.builder(
+          return ListView.builder(
             padding: const EdgeInsets.all(8),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, // 2 columns
-              childAspectRatio: 0.75, // Adjust the aspect ratio as needed
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-            ),
             itemCount: items.length,
             itemBuilder: (context, index) {
               final item = items[index];
-              // Create a product map with available fields from InventoryItem
-              final productData = {
-                'id': item.code, // Using code as ID since InventoryItem doesn't have an id field
-                'name': item.description.isNotEmpty ? item.description : 'No description',
-                'code': item.code,
-                'color': item.color,
-                'size': item.size,
-                'location': item.location,
-                'type': item.description.toLowerCase().contains('design') && 
-                         !item.description.toLowerCase().contains('vase') ? 'Vase' : 'Other',
-                'imageUrl': 'https://via.placeholder.com/150?text=${Uri.encodeComponent(item.code)}',
-              };
               
-              return EnhancedProductCard(
-                product: productData,
-                onTap: () {
-                  // Handle product tap
-                  // You can navigate to a product detail screen here
-                },
-                showQuickView: true,
-                showSaveForLater: true,
+              final isSaved = _savedItems[item.code] ?? false;
+              
+              return Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: InkWell(
+                  onTap: () {
+                    // Show detailed dialog when item is tapped
+                    _showItemDetailsDialog(context, item);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                item.description.isNotEmpty ? item.description : 'No description',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            // Save button
+                            IconButton(
+                              icon: Icon(
+                                isSaved ? Icons.bookmark : Icons.bookmark_border,
+                                color: isSaved ? Colors.amber : null,
+                              ),
+                              onPressed: () => _toggleSaveItem(item),
+                              tooltip: isSaved ? 'Remove from saved items' : 'Save item',
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        _buildInfoRow('Code', item.code),
+                        _buildInfoRow('Color', item.color),
+                        _buildInfoRow('Size', item.size),
+                        _buildInfoRow('Location', item.location),
+                      ],
+                    ),
+                  ),
+                ),
               );
             },
           );
@@ -150,9 +248,20 @@ class InventoryTableSection extends StatelessWidget {
                         style: TextStyle(fontWeight: FontWeight.bold)),
                       numeric: false,
                     ),
+                    DataColumn(
+                      label: const Text('Save', 
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                      numeric: false,
+                    ),
                   ],
                   rows: items.map((item) {
+                    final isSaved = _savedItems[item.code] ?? false;
+                    
                     return DataRow(
+                      onSelectChanged: (_) {
+                        // Show detailed dialog when row is tapped
+                        _showItemDetailsDialog(context, item);
+                      },
                       cells: [
                         DataCell(
                           SizedBox(
@@ -167,6 +276,18 @@ class InventoryTableSection extends StatelessWidget {
                         DataCell(Text(item.color)),
                         DataCell(Text(item.size)),
                         DataCell(Text(item.location)),
+                        DataCell(
+                          IconButton(
+                            icon: Icon(
+                              isSaved ? Icons.bookmark : Icons.bookmark_border,
+                              color: isSaved ? Colors.amber : null,
+                            ),
+                            onPressed: () => _toggleSaveItem(item),
+                            tooltip: isSaved ? 'Remove from saved items' : 'Save item',
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ),
                       ],
                     );
                   }).toList(),
@@ -192,14 +313,25 @@ class InventoryTableSection extends StatelessWidget {
               color: Colors.grey,
             ),
           ),
-          Text(
-            value,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+  
+  // Navigate to detailed item page instead of showing dialog
+  void _showItemDetailsDialog(BuildContext context, InventoryItem item) {
+    // Use GoRouter to navigate to the details page
+    GoRouter.of(context).pushNamed(
+      'inventory-item-details',
+      extra: item,
     );
   }
 }

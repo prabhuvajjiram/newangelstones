@@ -20,8 +20,26 @@ class QuoteRequest {
   // Convert cart items to a formatted string for the form
   String get formattedCartItems {
     return cartItems.map((item) {
-      return '${item['quantity']}x ${item['name']} (${item['code']})';
+      final itemName = item['description'] ?? item['name'] ?? item['code'] ?? 'Unknown Item';
+      final itemCode = item['code'] ?? '';
+      final itemColor = item['color'] ?? '';
+      final itemSize = item['size'] ?? '';
+      
+      return '${item['quantity']}x $itemName${itemCode.isNotEmpty ? ' (Code: $itemCode)' : ''}${itemColor.isNotEmpty ? ' (Color: $itemColor)' : ''}${itemSize.isNotEmpty ? ' (Size: $itemSize)' : ''}';
     }).join('\n');
+  }
+  
+  // Combine project details and cart items for Mautic form
+  String get combinedProjectDetails {
+    final itemsList = cartItems.map((item) {
+      final itemName = item['description'] ?? item['name'] ?? item['code'] ?? 'Unknown Item';
+      final itemCode = item['code'] ?? '';
+      final itemQty = item['quantity'] ?? 1;
+      
+      return '$itemQty x $itemName${itemCode.isNotEmpty ? ' (Code: $itemCode)' : ''}';
+    }).join('\n');
+    
+    return "PROJECT DETAILS:\n$projectDetails\n\nITEMS REQUESTED:\n$itemsList";
   }
 
   // Convert to map for form submission

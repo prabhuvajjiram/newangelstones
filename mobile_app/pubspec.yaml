@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.6
-  go_router: 5.2.0  # Using an older but more stable version
+  go_router: ^16.0.0 
   http: ^1.2.0
   # Storage solution changed to flutter_secure_storage
   flutter_secure_storage: ^8.0.0  # Alternative storage solution

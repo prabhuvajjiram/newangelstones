@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router';
+import 'package:go_router/go_router.dart';
 
 import '../state/cart_state.dart';
 import '../navigation/app_router.dart';
@@ -125,7 +125,7 @@ class _CartScreenState extends State<CartScreen> {
             color: Theme.of(context).cardColor,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 8,
                 offset: const Offset(0, -2),
               ),
@@ -158,23 +158,6 @@ class _CartScreenState extends State<CartScreen> {
                 children: [
                   const Text('Total Items:', style: TextStyle(fontSize: 16)),
                   Text('$totalQuantity', style: const TextStyle(fontSize: 16)),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Total Amount:',
-                      style: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
-                  Text(
-                    '\$${totalPrice.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(height: 16),

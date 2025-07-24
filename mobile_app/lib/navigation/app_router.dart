@@ -1,12 +1,14 @@
 import 'package:go_router/go_router.dart';
 
 import '../models/product.dart';
+import '../models/inventory_item.dart';
 import '../screens/cart_screen.dart';
 import '../screens/colors_screen.dart';
 import '../screens/contact_screen.dart';
 import '../screens/design_gallery_screen.dart';
 import '../screens/flyer_viewer_screen.dart';
 import '../screens/inventory_screen.dart';
+import '../screens/inventory_item_details_screen.dart';
 import '../screens/product_detail_screen.dart';
 import '../screens/saved_items_screen.dart';
 import '../screens/quote_request_screen.dart';
@@ -29,6 +31,7 @@ class AppRouter {
   static const String cart = 'cart';
   static const String savedItems = 'saved-items';
   static const String quoteRequest = 'quote-request';
+  static const String inventoryItemDetails = 'inventory-item-details';
 
   AppRouter({
     required this.apiService,
@@ -104,6 +107,7 @@ class AppRouter {
       ),
       GoRoute(
         path: '/cart',
+        name: cart,
         builder: (context, state) => const CartScreen(),
       ),
       GoRoute(
@@ -122,6 +126,14 @@ class AppRouter {
             cartItems: cartItems,
             totalQuantity: totalQuantity,
           );
+        },
+      ),
+      GoRoute(
+        path: '/inventory-item-details',
+        name: inventoryItemDetails,
+        builder: (context, state) {
+          final item = state.extra as InventoryItem;
+          return InventoryItemDetailsScreen(item: item);
         },
       ),
     ],

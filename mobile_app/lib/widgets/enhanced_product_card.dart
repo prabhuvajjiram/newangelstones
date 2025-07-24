@@ -285,7 +285,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                     top: 8,
                     right: 8,
                     child: Material(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(20),
                       child: IconButton(
                         icon: const Icon(Icons.visibility_outlined, size: 20),
@@ -303,7 +303,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                     top: 8,
                     left: 8,
                     child: Material(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(20),
                       child: IconButton(
                         icon: Icon(

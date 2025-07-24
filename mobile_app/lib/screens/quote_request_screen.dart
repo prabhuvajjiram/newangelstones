@@ -162,7 +162,7 @@ class _QuoteRequestScreenState extends State<QuoteRequestScreen> {
                       ...widget.cartItems.map((item) => Padding(
                             padding: const EdgeInsets.symmetric(vertical: 4.0),
                             child: Text(
-                              '• ${item['name']} (Qty: ${item['quantity']})',
+                              '• ${item['description'] ?? item['name'] ?? item['code'] ?? 'Unknown Item'} (Qty: ${item['quantity']})',
                             ),
                           )),
                       const SizedBox(height: 16),
