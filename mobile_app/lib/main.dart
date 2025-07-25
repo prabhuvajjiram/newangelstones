@@ -3,16 +3,22 @@ import 'services/api_service.dart';
 import 'services/storage_service.dart';
 import 'services/inventory_service.dart';
 import 'services/directory_service.dart';
-import 'package:provider/provider.dart';
-import 'state/cart_state.dart';
-import 'theme/app_theme.dart';
 import 'navigation/app_router.dart';
+import 'theme/app_theme.dart';
+import 'state/cart_state.dart';
+import 'package:provider/provider.dart';
+import 'services/firebase_service.dart';
+import 'services/analytics_wrapper.dart';
 
 void main() async {
   // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Initialize Firebase
+  await FirebaseService.instance.initialize();
+  
   // Set up global error handling
+  // Note: Firebase Crashlytics will handle error reporting in production
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
     debugPrint('Flutter error caught: ${details.exception}');
@@ -50,6 +56,10 @@ class _MyAppState extends State<MyApp> {
   late final DirectoryService _directoryService;
   late final AppRouter _router;
 
+  // Analytics observer is created but not currently used with GoRouter
+  // Uncomment if needed for MaterialApp navigation
+  // final _analyticsObserver = AnalyticsNavigatorObserver();
+  
   @override
   void initState() {
     super.initState();
@@ -63,6 +73,12 @@ class _MyAppState extends State<MyApp> {
       inventoryService: _inventoryService,
       directoryService: _directoryService,
     );
+    
+    // Log app start event
+    FirebaseService.instance.logEvent(name: 'app_start');
+    
+    // Initialize analytics wrapper
+    AnalyticsWrapper();
   }
 
   @override

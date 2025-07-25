@@ -1,6 +1,6 @@
 name: angel_granites_app
 description: Mobile app for Angel Granites.
-version: 2.0.1+11 # versionName + versionCode
+version: 2.1.0+13 # versionName + versionCode
 
 
 environment:
@@ -13,7 +13,7 @@ dependencies:
   go_router: ^16.0.0 
   http: ^1.2.0
   # Storage solution changed to flutter_secure_storage
-  flutter_secure_storage: ^8.0.0  # Alternative storage solution
+  flutter_secure_storage: ^9.2.4  # Alternative storage solution
   url_launcher: ^6.2.5
   intl: ^0.20.2
   provider: ^6.1.1
@@ -21,9 +21,20 @@ dependencies:
   pdfx: ^2.9.2  # Modern PDF viewer with better maintenance and features
   path_provider: ^2.1.1
 
+  # Firebase packages
+  firebase_storage: ^12.4.10   # ← correct
+  # keep the rest of your FlutterFire packages aligned
+  firebase_core: ^3.15.2
+  firebase_auth: ^5.7.0
+  cloud_firestore: ^5.6.12
+  firebase_analytics: ^11.6.0
+  firebase_messaging: ^15.2.10
+  firebase_crashlytics: ^4.3.10
+
   # Removed shared_preferences dependency
   collection: any
   map_launcher: ^3.5.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -52,6 +52,19 @@ flutter {
 }
 
 dependencies {
+    // Import the Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:34.0.0"))
+    
+    // Add Firebase Analytics without specifying version
+    implementation("com.google.firebase:firebase-analytics")
+    
+    // Add other Firebase dependencies without specifying versions
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-crashlytics")
+    
     // Add missing annotation dependencies
     implementation("com.google.errorprone:error_prone_annotations:2.23.0")
     implementation("javax.annotation:javax.annotation-api:1.3.2")

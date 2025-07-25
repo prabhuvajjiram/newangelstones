@@ -1,0 +1,100 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'dev.flutter.flutter-gradle-plugin'
+}
+
+// Apply the Google Services plugin
+apply plugin: 'com.google.gms.google-services'
+
+// Load properties file if it exists
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+
+// Read version from pubspec.yaml
+def flutterRoot = localProperties.getProperty('flutter.sdk')
+def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
+def flutterVersionName = localProperties.getProperty('flutter.versionName')
+
+if (flutterVersionCode == null) {
+    // Read from pubspec.yaml directly
+    def pubspecFile = new File(project.projectDir.parentFile.parentFile, 'pubspec.yaml')
+    def pubspecContent = pubspecFile.text
+    def versionPattern = ~/version:\s+([0-9]+\.[0-9]+\.[0-9]+)\+([0-9]+)/
+    def matcher = versionPattern.matcher(pubspecContent)
+    if (matcher.find()) {
+        flutterVersionName = matcher.group(1)
+        flutterVersionCode = matcher.group(2)
+    } else {
+        // Default values if pattern not found
+        flutterVersionCode = '1'
+        flutterVersionName = '1.0.0'
+    }
+}
+
+android {
+    namespace "com.angelgranites.app"
+    compileSdkVersion flutter.compileSdkVersion
+    ndkVersion "27.0.12077973"
+    
+    signingConfigs {
+        release {
+            storeFile file("../upload-keystore.jks")
+            storePassword "AngelStones@2025"
+            keyAlias "upload"
+            keyPassword "AngelStones@2025"
+        }
+    }
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+    
+    kotlinOptions {
+        jvmTarget = '21'
+    }
+    
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+    
+    defaultConfig {
+        applicationId "com.angelgranites.app"
+        minSdkVersion 23 // Updated to 23 for Firebase Auth compatibility
+        targetSdkVersion flutter.targetSdkVersion
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
+    }
+    
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+flutter {
+    source '../..'
+}
+
+dependencies {
+    // Import the Firebase BoM
+    implementation platform('com.google.firebase:firebase-bom:32.7.2')
+    
+    // Firebase SDK dependencies
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-storage'
+    implementation 'com.google.firebase:firebase-messaging'
+    implementation 'com.google.firebase:firebase-crashlytics'
+}

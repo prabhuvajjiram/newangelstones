@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+// Analytics wrapper import removed - not directly used in router
+// import '../services/analytics_wrapper.dart';
 
 import '../models/product.dart';
 import '../models/inventory_item.dart';
