@@ -10,6 +10,15 @@ android {
     compileSdk = 35
     ndkVersion = "27.0.12077973"
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("../upload-keystore.jks")
+            storePassword = "AngelStones@2025"
+            keyAlias = "upload"
+            keyPassword = "AngelStones@2025"
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
@@ -24,17 +33,25 @@ android {
         applicationId = "com.angelgranites.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 30
+        minSdk = 23
         targetSdk = 35
-        versionCode = 13
-        versionName = "2.0.1"
+        
+        // Read version from pubspec.yaml
+        val pubspecFile = File(project.projectDir.parentFile.parentFile, "pubspec.yaml")
+        val pubspecContent = pubspecFile.readText()
+        val versionMatch = Regex("""version:\s+([0-9]+\.[0-9]+\.[0-9]+)\+([0-9]+)""").find(pubspecContent)
+        
+        if (versionMatch != null) {
+            versionName = versionMatch.groupValues[1]
+            versionCode = versionMatch.groupValues[2].toInt()
+        } 
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
+            isShrinkResources = true
         }
     }
 }
@@ -42,3 +59,5 @@ android {
 flutter {
     source = "../.."
 }
+
+
