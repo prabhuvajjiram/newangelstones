@@ -165,7 +165,14 @@ class _CartScreenState extends State<CartScreen> {
               // Back to Inventory Button
               OutlinedButton(
                 onPressed: () {
-                  GoRouter.of(context).go('/inventory');
+                  // Use Navigator.pop to go back to previous screen instead of GoRouter
+                  // This preserves the navigation stack and back button
+                  if (Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop();
+                  } else {
+                    // Fallback to GoRouter if Navigator stack is empty
+                    GoRouter.of(context).go('/inventory');
+                  }
                 },
                 child: const Text('Back to Inventory'),
               ),
