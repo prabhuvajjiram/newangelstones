@@ -1,34 +1,16 @@
-# Angel Stones Mobile App
+# angelgranites_app
 
-This folder contains a Flutter project that provides a basic mobile application for Angel Stones. The code is intentionally lightweight so it can be edited without a full Flutter installation.
+A new Flutter project.
 
-## Project Structure
+## Getting Started
 
-- `lib/` – Dart source files
-  - `main.dart` – entry point with route setup
-  - `models/` – data models used in the app
-  - `services/` – API and local storage helpers
-  - `screens/` – UI screens such as home, detail, cart, and contact
-- `test/` – example widget test
+This project is a starting point for a Flutter application.
 
-## Running the App
+A few resources to get you started if this is your first Flutter project:
 
-1. Install Flutter on your development machine.
-2. From the `mobile_app` directory run:
-   ```bash
-   flutter pub get
-   flutter run
-   ```
+- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-## Building for Release
-
-To generate an APK for Android:
-```bash
-flutter build apk --release
-```
-
-To generate an IPA for iOS (requires macOS):
-```bash
-flutter build ios --release
-```
-
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.

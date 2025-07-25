@@ -1,0 +1,21 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:mobile_app/navigation/app_router.dart';
+import 'package:mobile_app/services/api_service.dart';
+import 'package:mobile_app/services/storage_service.dart';
+import 'package:mobile_app/services/inventory_service.dart';
+import 'package:mobile_app/services/directory_service.dart';
+
+void main() {
+  test('router initializes with routes', () {
+    final router = AppRouter(
+      apiService: ApiService(),
+      storageService: StorageService(),
+      inventoryService: InventoryService(),
+      directoryService: DirectoryService(),
+    ).router;
+
+    expect(router, isA<GoRouter>());
+    expect(router.configuration.routes.length, greaterThanOrEqualTo(1));
+  });
+}

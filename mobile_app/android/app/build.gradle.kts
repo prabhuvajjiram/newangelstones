@@ -7,17 +7,8 @@ plugins {
 
 android {
     namespace = "com.angelgranites.app"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 35
     ndkVersion = "27.0.12077973"
-    
-    signingConfigs {
-        create("release") {
-            storeFile = file("../upload-keystore.jks")
-            storePassword = "AngelStones@2025"
-            keyAlias = "upload"
-            keyPassword = "AngelStones@2025"
-        }
-    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
@@ -29,43 +20,25 @@ android {
     }
 
     defaultConfig {
+        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.angelgranites.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        minSdk = 30
+        targetSdk = 35
+        versionCode = 13
+        versionName = "2.0.1"
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
-            isMinifyEnabled = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // TODO: Add your own signing config for the release build.
+            // Signing with the debug keys for now, so `flutter run --release` works.
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 }
 
 flutter {
     source = "../.."
-}
-
-dependencies {
-    // Import the Firebase BoM
-    implementation(platform("com.google.firebase:firebase-bom:34.0.0"))
-    
-    // Add Firebase Analytics without specifying version
-    implementation("com.google.firebase:firebase-analytics")
-    
-    // Add other Firebase dependencies without specifying versions
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-firestore")
-    implementation("com.google.firebase:firebase-storage")
-    implementation("com.google.firebase:firebase-messaging")
-    implementation("com.google.firebase:firebase-crashlytics")
-    
-    // Add missing annotation dependencies
-    implementation("com.google.errorprone:error_prone_annotations:2.23.0")
-    implementation("javax.annotation:javax.annotation-api:1.3.2")
 }

@@ -1,6 +1,6 @@
 {
-    "name": "angel_stones_app",
-    "short_name": "angel_stones_app",
+    "name": "angelgranites_app",
+    "short_name": "angelgranites_app",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

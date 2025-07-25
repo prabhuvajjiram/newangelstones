@@ -1,0 +1,42 @@
+[
+  {
+    "id": "AG-396",
+    "name": "AG-396",
+    "description": "In-stock design AG-396",
+    "image": "https://www.theangelstones.com/images/products/Monuments/AG-396.jpg",
+    "price": 0,
+    "label": "Inventory"
+  },
+  {
+    "id": "AG-539",
+    "name": "AG-539",
+    "description": "In-stock design AG-539",
+    "image": "https://www.theangelstones.com/images/products/Monuments/AG-539.jpg",
+    "price": 0,
+    "label": "Inventory"
+  },
+  {
+    "id": "AG-544",
+    "name": "AG-544",
+    "description": "In-stock design AG-544",
+    "image": "https://www.theangelstones.com/images/products/Monuments/AG-544.jpg",
+    "price": 0,
+    "label": "Inventory"
+  },
+  {
+    "id": "AG-547",
+    "name": "AG-547",
+    "description": "In-stock design AG-547",
+    "image": "https://www.theangelstones.com/images/products/Monuments/AG-547.jpg",
+    "price": 0,
+    "label": "Inventory"
+  },
+  {
+    "id": "AG-550",
+    "name": "AG-550",
+    "description": "In-stock design AG-550",
+    "image": "https://www.theangelstones.com/images/products/Monuments/AG-550.jpg",
+    "price": 0,
+    "label": "Inventory"
+  }
+]

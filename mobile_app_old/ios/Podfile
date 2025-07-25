@@ -1,0 +1,57 @@
+# ------------------------------------------------------------
+#  Flutter + Firebase compatible Podfile  (static frameworks)
+# ------------------------------------------------------------
+
+platform :ios, '13.0'          # Cloud Firestore & friends need ≥ 13
+
+# Disable CocoaPods analytics to speed up flutter build
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', {
+  'Debug'   => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+# ----------  Flutter helper  ----------
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(
+    File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
+
+  raise "#{generated_xcode_build_settings_path} missing – run `flutter pub get`" \
+    unless File.exist?(generated_xcode_build_settings_path)
+
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    return $1.strip if line =~ /FLUTTER_ROOT\=(.*)/
+  end
+  raise 'FLUTTER_ROOT not found in Generated.xcconfig'
+end
+
+require File.expand_path(
+  File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+flutter_ios_podfile_setup
+# -------------------------------------
+
+target 'Runner' do
+  # ==> CRITICAL Firebase‑safe settings
+  use_frameworks! :linkage => :static     # link pods as static frameworks
+  use_modular_headers!                    # generate module maps for Obj‑C deps
+
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
+  target 'RunnerTests' do
+    inherit! :search_paths
+  end
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+
+    # Optional: speed up Apple‑silicon simulator builds
+    target.build_configurations.each do |config|
+      config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+    end
+  end
+end

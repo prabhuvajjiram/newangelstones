@@ -1,6 +1,3 @@
-// Apply the buildscript that contains the Google Services plugin
-apply(from = "buildscript.gradle.kts")
-
 allprojects {
     repositories {
         google()
