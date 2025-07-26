@@ -56,4 +56,16 @@ class Product {
       pdfUrl: data['pdf']?.toString(),
     );
   }
+  
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'imageUrl': imageUrl,
+      'price': price,
+      'label': label,
+      'pdfUrl': pdfUrl,
+    };
+  }
 }

@@ -38,8 +38,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _futureFeatured =
-        widget.apiService.loadLocalProducts('assets/featured_products.json');
+    // Try to fetch featured products from server, fall back to local if needed
+    _futureFeatured = widget.apiService.fetchFeaturedProducts();
     _futureInventorySummary =
         widget.inventoryService.fetchInventory(pageSize: 3);
     _futureSpecials =
@@ -47,11 +47,24 @@ class _HomeScreenState extends State<HomeScreen> {
     _directoryService = widget.directoryService;
   }
 
+  Future<void> _refreshData() async {
+    setState(() {
+      // Fetch featured products dynamically from server with force refresh
+      _futureFeatured = widget.apiService.fetchFeaturedProducts(forceRefresh: true);
+      // Fetch inventory summary from API
+      _futureInventorySummary = widget.inventoryService.fetchInventory(pageSize: 3);
+      // Refresh specials
+      _futureSpecials = widget.apiService.loadLocalProducts('assets/specials.json');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: AppTheme.gradientBackground,
-      child: SingleChildScrollView(
+      child: RefreshIndicator(
+        onRefresh: _refreshData,
+        child: SingleChildScrollView(
         child: Column(
           children: [
             // Header with Logo and Welcome
@@ -495,6 +508,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 }

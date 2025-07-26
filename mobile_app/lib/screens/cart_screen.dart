@@ -23,6 +23,13 @@ class _CartScreenState extends State<CartScreen> {
     super.dispose();
   }
 
+  Future<void> _refreshCart() async {
+    // This will trigger a rebuild of the Consumer widget
+    // which will fetch the latest cart data from the CartState
+    setState(() {});
+    return Future.delayed(const Duration(milliseconds: 300));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<CartState>(
@@ -44,25 +51,34 @@ class _CartScreenState extends State<CartScreen> {
                 ),
             ],
           ),
-          body: isEmpty
-              ? _buildEmptyState()
-              : _buildCartContent(
-                  context,
-                  items: items,
-                  totalQuantity: totalQuantity,
-                  totalPrice: totalPrice,
-                  cart: cart,
-                ),
+          body: RefreshIndicator(
+            onRefresh: _refreshCart,
+            child: isEmpty
+                ? _buildEmptyStateWithScrollView()
+                : _buildCartContent(
+                    context,
+                    items: items,
+                    totalQuantity: totalQuantity,
+                    totalPrice: totalPrice,
+                    cart: cart,
+                  ),
+          ),
         );
       },
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+  Widget _buildEmptyStateWithScrollView() {
+    // Wrap in SingleChildScrollView to support pull-to-refresh
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: SizedBox(
+        // Set minimum height to ensure pull-to-refresh works even when content is small
+        height: MediaQuery.of(context).size.height * 0.8,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
           Icon(
             Icons.shopping_cart_outlined,
             size: 64,
@@ -92,7 +108,9 @@ class _CartScreenState extends State<CartScreen> {
             },
             child: const Text('Continue Shopping'),
           ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }

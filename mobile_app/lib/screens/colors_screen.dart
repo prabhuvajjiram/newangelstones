@@ -17,15 +17,26 @@ class _ColorsScreenState extends State<ColorsScreen> {
   @override
   void initState() {
     super.initState();
-    _futureColors = widget.apiService.loadLocalProducts('assets/colors.json');
+    // Try to fetch colors from server, fall back to local if needed
+    _futureColors = widget.apiService.fetchColors();
+  }
+
+  Future<void> _refreshData() async {
+    setState(() {
+      // Force refresh colors from server
+      _futureColors = widget.apiService.fetchColors(forceRefresh: true);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: ProductSection(
-        title: 'Granite Varieties',
-        future: _futureColors,
+    return RefreshIndicator(
+      onRefresh: _refreshData,
+      child: SingleChildScrollView(
+        child: ProductSection(
+          title: 'Granite Varieties',
+          future: _futureColors,
+        ),
       ),
     );
   }

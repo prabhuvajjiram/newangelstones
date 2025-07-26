@@ -141,12 +141,19 @@ class _ContactScreenState extends State<ContactScreen> {
                     ),
                     onTap: () {
                       Navigator.pop(context);
-                      map.showMarker(
-                        coords: Coords(0, 0), // These will be ignored with the address parameter
-                        title: 'Angel Stones',
-                        description: address,
-                        extraParams: {'q': address},
-                      );
+                      if (map.mapType == MapType.apple) {
+                        // For Apple Maps, use the launchUrl approach to avoid coordinate issues
+                        final appleMapsUrl = 'https://maps.apple.com/?q=${Uri.encodeComponent(address)}&address=${Uri.encodeComponent(address)}'; 
+                        launchUrl(Uri.parse(appleMapsUrl), mode: LaunchMode.externalApplication);
+                      } else {
+                        // For other map types, use the standard approach
+                        map.showMarker(
+                          coords: Coords(34.1083, -82.8665), // Default to Elberton, GA if geocoding fails
+                          title: 'Angel Stones',
+                          description: address,
+                          extraParams: {'q': address},
+                        );
+                      }
                     },
                   )),
                 ],

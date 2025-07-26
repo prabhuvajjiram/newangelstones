@@ -80,7 +80,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     super.dispose();
   }
 
-  void _loadInventory() {
+  Future<void> _loadInventory() async {
     setState(() {
       _futureInventory = widget.inventoryService.fetchInventory(
         pageSize: 100,
@@ -89,6 +89,20 @@ class _InventoryScreenState extends State<InventoryScreen> {
         color: _selectedColor,
       );
     });
+  }
+  
+  Future<void> _refreshData() async {
+    // Reset filters on pull-to-refresh for a clean reload
+    _searchController.clear();
+    _searchQuery = '';
+    _selectedType = null;
+    _selectedColor = null;
+    
+    // Reload inventory data
+    await _loadInventory();
+    
+    // Refresh filter options
+    _fetchFilterOptions();
   }
 
   void _onSearchChanged(String query) {
@@ -121,7 +135,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
         // Dismiss keyboard when tapping outside of text fields
         FocusScope.of(context).unfocus();
       },
-      child: Column(
+      child: RefreshIndicator(
+        onRefresh: _refreshData,
+        child: Column(
       children: [
         // Search and filter section
         Padding(
@@ -226,6 +242,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
           ),
         ),
       ],
+    ),
     ),
     );
   }

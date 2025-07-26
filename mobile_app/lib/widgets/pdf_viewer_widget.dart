@@ -54,6 +54,7 @@ class _PdfViewerWidgetState extends State<PdfViewerWidget> {
 
       // Initialize the controller here
       try {
+        // Use File object directly instead of file path string to avoid URI parsing issues
         pdfController = PdfControllerPinch(
           document: PdfDocument.openFile(file.path),
         );

@@ -47,9 +47,15 @@ class DirectoryService {
     if (_countCache.containsKey(folder)) {
       return _countCache[folder]!;
     }
-    final uri = Uri.parse('\$_baseUrl/get_directory_files.php?dir=$folder');
+    final uri = Uri.parse('$_baseUrl/get_directory_files.php?dir=$folder');
     try {
-      final response = await http.get(uri);
+      final response = await http.get(uri).timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          debugPrint('⚠️ Timeout fetching design count for $folder');
+          throw TimeoutException('Directory API request timed out');
+        },
+      );
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         final List<dynamic> files = data['files'] ?? [];

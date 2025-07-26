@@ -90,32 +90,9 @@ class ProductFolderSection extends StatelessWidget {
                                     ),
                                   ),
                                 ),
-                                Positioned(
-                                  bottom: 0,
-                                  left: 0,
-                                  right: 0,
-                                  child: FutureBuilder<int>(
-                                    future: directoryService.fetchDesignCount(product.id),
-                                    builder: (context, countSnapshot) {
-                                      if (countSnapshot.connectionState == ConnectionState.waiting) {
-                                        return const SizedBox.shrink();
-                                      }
-                                      if (countSnapshot.hasError) {
-                                        debugPrint('Failed to load count for \${product.id}: \${countSnapshot.error}');
-                                        return const SizedBox.shrink();
-                                      }
-                                      final count = countSnapshot.data ?? 0;
-                                      return Container(
-                                        color: Colors.blueAccent,
-                                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                        child: Text(
-                                          '$count Designs',
-                                          style: const TextStyle(color: Colors.white, fontSize: 12),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
+                                // Design count banner removed as requested
+                                // The API doesn't consistently provide accurate counts
+                                // and showing '0 Designs' is confusing
                               ],
                             ),
                           ),
