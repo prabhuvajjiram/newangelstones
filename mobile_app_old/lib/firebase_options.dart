@@ -53,6 +53,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '539498050706',
     projectId: 'angel-granites',
     storageBucket: 'angel-granites.firebasestorage.app',
-    iosBundleId: 'com.angelgranites.com',
+    iosBundleId: 'com.angelgranites.app',
   );
 }

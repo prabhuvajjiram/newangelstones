@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.angelgranites.com</string>
+	<string>com.angelgranites.app</string>
 	<key>PROJECT_ID</key>
 	<string>angel-granites</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:539498050706:ios:ad7565c92d3bbb5b12624b</string>
+	<string>1:539498050706:ios:0770c785bea0bc6a12624b</string>
 </dict>
 </plist>
