@@ -7,7 +7,13 @@ import '../widgets/inventory_table_section.dart';
 
 class InventoryScreen extends StatefulWidget {
   final InventoryService inventoryService;
-  const InventoryScreen({super.key, required this.inventoryService});
+  final String? initialColorFilter;
+  
+  const InventoryScreen({
+    super.key, 
+    required this.inventoryService,
+    this.initialColorFilter,
+  });
 
   @override
   State<InventoryScreen> createState() => _InventoryScreenState();
@@ -29,6 +35,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
   @override
   void initState() {
     super.initState();
+    
+    // Apply initial color filter if provided
+    if (widget.initialColorFilter != null) {
+      _selectedColor = widget.initialColorFilter;
+    }
+    
     _loadInventory();
     
     // Load initial filter options

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
+import '../utils/image_utils.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -14,10 +15,10 @@ class ProductCard extends StatelessWidget {
           Expanded(
             child: Semantics(
               label: product.name,
-              child: Image.network(
-                product.imageUrl,
+              child: ImageUtils.buildImage(
+                imageUrl: product.imageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
+                errorWidget: const Icon(Icons.broken_image),
               ),
             ),
           ),

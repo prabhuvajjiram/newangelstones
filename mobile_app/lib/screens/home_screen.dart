@@ -87,81 +87,56 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Logo and App Name
-                  Row(
-                    children: [
-                      Container(
-                        width: 60,
-                        height: 60,
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(26),
-                          child: Image.asset(
-                            'assets/logo.png',
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) => const Icon(
-                              Icons.star,
-                              color: AppTheme.accentColor,
-                              size: 32,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  // Centered branding content with styled first line
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+                    child: Center(
+                      child: Column(
                         children: [
-                          Text(
-                            'Angel Granites',
+                          // First line in gold with italic style
+                          const Text(
+                            'Crafted by Angel Stones',
+                            textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Montserrat',
+                              color: Color(0xFFFFD700),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              fontStyle: FontStyle.italic,
                             ),
                           ),
-                          Text(
-                            'Eternal Memories in Stone',
+                          const Text(
+                            'Elevating Granite, Preserving Memories',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Discover our handcrafted monuments',
+                            textAlign: TextAlign.center,
                             style: TextStyle(
                               color: AppTheme.textSecondary,
                               fontSize: 14,
+                              fontWeight: FontWeight.w400,
                             ),
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  // Welcome Message
-                  const Text(
-                    'Welcome to Angel Granites',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Montserrat',
+                          const Text(
+                            'and timeless memorial stones.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Discover our beautiful collection of memorial stones and monuments',
-                    style: TextStyle(
-                      color: AppTheme.textSecondary,
-                      fontSize: 16,
-                      height: 1.4,
-                    ),
-                  ),
+                ),
+                  // Welcome section removed as requested
                 ],
               ),
             ),
@@ -459,10 +434,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ],
                                   gradient: LinearGradient(
                                     colors: [
-                                      AppTheme.accentColor,
-                                      AppTheme.accentColor.withBlue(
-                                        ((AppTheme.accentColor.b * 255.0).round() + 20).clamp(0, 255).toInt(),
-                                      ),
+                                      const Color(0xFFD4AF37), // Subtle gold color
+                                      const Color(0xFFFFD700).withValues(alpha: 0.9), // Softer gold
                                     ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
@@ -509,6 +482,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     ),
-    );
+  );
   }
 }

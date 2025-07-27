@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../models/product.dart';
 import '../models/inventory_item.dart';
-import '../screens/cart_screen.dart';
+import '../screens/enhanced_cart_screen.dart';
 import '../screens/colors_screen.dart';
 import '../screens/contact_screen.dart';
 import '../screens/design_gallery_screen.dart';
@@ -15,6 +15,7 @@ import '../screens/inventory_item_details_screen.dart';
 import '../screens/product_detail_screen.dart';
 import '../screens/saved_items_screen.dart';
 import '../screens/quote_request_screen.dart';
+import '../screens/search_screen_v2.dart';
 import '../services/api_service.dart';
 import '../services/directory_service.dart';
 import '../services/inventory_service.dart';
@@ -35,6 +36,7 @@ class AppRouter {
   static const String savedItems = 'saved-items';
   static const String quoteRequest = 'quote-request';
   static const String inventoryItemDetails = 'inventory-item-details';
+  static const String search = 'search';
 
   AppRouter({
     required this.apiService,
@@ -75,10 +77,20 @@ class AppRouter {
       ),
       GoRoute(
         path: '/inventory',
-        builder: (context, state) => Scaffold(
-          appBar: AppBar(title: const Text('Inventory')),
-          body: InventoryScreen(inventoryService: inventoryService),
-        ),
+        name: inventory,
+        builder: (context, state) {
+          // Extract color filter from extra if provided
+          final Map<String, dynamic>? extraParams = state.extra as Map<String, dynamic>?;
+          final String? colorFilter = extraParams?['color'];
+          
+          return Scaffold(
+            appBar: AppBar(title: const Text('Inventory')),
+            body: InventoryScreen(
+              inventoryService: inventoryService,
+              initialColorFilter: colorFilter,
+            ),
+          );
+        },
       ),
       GoRoute(
         path: '/contact',
@@ -113,7 +125,7 @@ class AppRouter {
       GoRoute(
         path: '/cart',
         name: cart,
-        builder: (context, state) => const CartScreen(),
+        builder: (context, state) => const EnhancedCartScreen(),
       ),
       GoRoute(
         path: '/saved-items',
@@ -140,6 +152,15 @@ class AppRouter {
           final item = state.extra as InventoryItem;
           return InventoryItemDetailsScreen(item: item);
         },
+      ),
+      GoRoute(
+        path: '/search',
+        name: search,
+        builder: (context, state) => SearchScreenV2(
+          inventoryService: inventoryService,
+          apiService: apiService,
+          storageService: storageService,
+        ),
       ),
     ],
   );

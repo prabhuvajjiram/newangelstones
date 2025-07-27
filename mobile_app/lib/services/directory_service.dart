@@ -8,6 +8,9 @@ class DirectoryService {
   final Map<String, int> _countCache = {};
   bool _isInitialized = false;
   
+  // Public getter for base URL
+  static String get baseUrl => _baseUrl;
+  
   /// Initialize the directory service with error handling and timeout
   Future<void> initialize() async {
     if (_isInitialized) return;

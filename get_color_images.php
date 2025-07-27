@@ -32,7 +32,7 @@ $colorDescriptions = [
     ],
     'baltic-green' => [
         'name' => 'Baltic Green',
-        'description' => 'Unique Baltic Green granite showcases deep forest green tones with black accents, creating distinctive memorial stones.',
+        'description' => 'Unique Baltic Green granite showcases deep forest green tones with nice accents, creating distinctive memorial stones.',
     ],
     'dark-barre-gray' => [
         'name' => 'Dark Barre Gray',
@@ -64,7 +64,7 @@ $colorDescriptions = [
     ],
     'imperial-green' => [
         'name' => 'Imperial Green',
-        'description' => 'Majestic Imperial Green granite features rich forest green tones with black accents, perfect for creating impressive and enduring monuments.',
+        'description' => 'Majestic Imperial Green granite features rich forest green tones with elegant accents, perfect for creating impressive and enduring monuments.',
     ],
     'jet-black' => [
         'name' => 'Jet Black',
@@ -108,7 +108,7 @@ $colorDescriptions = [
     ],
     'tropical-green' => [
         'name' => 'Tropical Green',
-        'description' => 'Striking Tropical Green granite offers vibrant green tones with dramatic black speckling, creating bold and memorable memorial monuments.',
+        'description' => 'Striking Tropical Green granite offers vibrant green tones with dramatic speckling, creating bold and memorable memorial monuments.',
     ],
     'aurora' => [
         'name' => 'Aurora',
@@ -116,7 +116,7 @@ $colorDescriptions = [
     ],
     'blue-pearl' => [
         'name' => 'Blue Pearl',
-        'description' => 'Premium Blue Pearl granite features a distinctive blue sheen with silver and black speckles, making it a stunning choice for elegant monuments and headstones.',
+        'description' => 'Premium Blue Pearl granite features a distinctive blue sheen with silver speckles, making it a stunning choice for elegant monuments and headstones.',
     ],
     'galaxy' => [
         'name' => 'Galaxy',
@@ -136,7 +136,7 @@ $colorDescriptions = [
     ],
     'paradiso' => [
         'name' => 'Paradiso',
-        'description' => 'Exceptional Paradiso granite features deep brown and black tones with gold and burgundy accents, creating unique and luxurious memorials.',
+        'description' => 'Exceptional Paradiso granite features deep brown tones with gold and burgundy accents, creating unique and luxurious memorials.',
     ],
     'vizag-blue' => [
         'name' => 'Vizag Blue',

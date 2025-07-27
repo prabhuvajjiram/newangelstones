@@ -10,11 +10,13 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/product.dart';
 import '../models/product_image.dart';
+import 'storage_service.dart';
 
 class ApiService {
   bool _isInitialized = false;
   final Map<String, List<String>> _categoryCache = {};
   List<Product>? _productCache;
+  StorageService? _storageService;
   
   /// Initialize the API service with error handling and timeout
   Future<void> initialize() async {
@@ -54,9 +56,15 @@ class ApiService {
   }
   late final SecureHttpClient _secureClient;
   
-  ApiService() {
+  ApiService({StorageService? storageService}) {
     _secureClient = SecureHttpClient();
     _secureClient.initialize();
+    _storageService = storageService;
+  }
+  
+  /// Set the storage service instance
+  void setStorageService(StorageService storageService) {
+    _storageService = storageService;
   }
 
   // Map to cache product images with their codes
@@ -68,7 +76,19 @@ class ApiService {
     final withoutExtension = fullname.split('.').first;
     // Extract product code (usually last part after slash or backslash)
     final parts = withoutExtension.split(RegExp(r'[/\\]'));
-    return parts.last;
+    final code = parts.last;
+    
+    // List of known product code prefixes
+    final List<String> knownPrefixes = ['AG', 'AS'];
+    
+    // Normalize the code format for any known prefix (e.g., ensure PREFIX-XXX format is consistent)
+    for (final prefix in knownPrefixes) {
+      if (code.startsWith(prefix) && !code.startsWith('$prefix-') && code.length > prefix.length) {
+        return '$prefix-${code.substring(prefix.length)}';
+      }
+    }
+    
+    return code;
   }
   
   /// Update the local featured_products.json file with the latest data
@@ -111,11 +131,28 @@ class ApiService {
 }
 
   
-  Future<List<ProductImage>> fetchProductImagesWithCodes(String category) async {
-    if (_productImageCache.containsKey(category)) {
+  Future<List<ProductImage>> fetchProductImagesWithCodes(String category, {String? searchQuery}) async {
+    // If search query is provided, we'll filter the results later
+    final bool isSearching = searchQuery != null && searchQuery.isNotEmpty;
+    final String normalizedSearchQuery = isSearching ? searchQuery.toLowerCase() : '';
+    
+    // Use cache if available and not searching
+    if (!isSearching && _productImageCache.containsKey(category)) {
+      debugPrint('📦 Using cached product images for category: $category');
       return _productImageCache[category]!;
     }
+    
     try {
+      List<ProductImage> productImages;
+      
+      // If searching but we have the category cached, filter from cache
+      if (isSearching && _productImageCache.containsKey(category)) {
+        debugPrint('🔍 Filtering cached products for query: "$searchQuery"');
+        productImages = _filterProductImages(_productImageCache[category]!, normalizedSearchQuery);
+        return productImages;
+      }
+      
+      // Otherwise fetch from network
       final url = '${SecurityConfig.angelStonesBaseUrl}/get_directory_files.php?directory=products/${SecurityConfig.sanitizeInput(category)}';
       debugPrint('🌐 Fetching category images from: $url');
       
@@ -124,15 +161,52 @@ class ApiService {
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonData = json.decode(response.body);
         final List<dynamic> files = jsonData['files'] ?? [];
-        final productImages = files
+        productImages = files
             .whereType<Map<String, dynamic>>()
             .map((e) => ProductImage(
                   imageUrl: '${SecurityConfig.angelStonesBaseUrl}/${e['path'] ?? ''}',
                   productCode: _extractProductCode(e['fullname'] ?? e['name'] ?? ''),
                 ))
             .toList();
+            
+        // Save product images as products to secure storage
+        if (_storageService != null && productImages.isNotEmpty) {
+          try {
+            // Convert ProductImage objects to Product objects for storage
+            final products = productImages.map((image) => Product(
+                  id: image.productCode,
+                  name: 'Product ${image.productCode}',
+                  description: 'Product ${image.productCode} from ${category} category',
+                  imageUrl: image.imageUrl,
+                  price: 0.0,
+                )).toList();
+                
+            await _storageService!.initialize();
+            await _storageService!.saveProducts(products);
+            debugPrint('✅ Saved ${products.length} product images to secure storage');
+            
+            // Debug log for products with codes 946 or 948
+            for (var product in products) {
+              if (product.id.contains('946') || product.id.contains('948')) {
+                debugPrint('🎯 Found target product in API response: ${product.id}');
+                debugPrint('  Image URL: ${product.imageUrl}');
+              }
+            }
+          } catch (e) {
+            debugPrint('⚠️ Error saving product images to secure storage: $e');
+          }
+        }
         debugPrint('✅ Successfully loaded ${productImages.length} product images with codes');
+        
+        // Cache the full results
         _productImageCache[category] = productImages;
+        
+        // If searching, filter the results
+        if (isSearching) {
+          debugPrint('🔍 Filtering products for query: "$searchQuery"');
+          return _filterProductImages(productImages, normalizedSearchQuery);
+        }
+        
         return productImages;
       } else {
         debugPrint('❌ Failed to load product images: ${response.statusCode}');
@@ -143,6 +217,68 @@ class ApiService {
       // Return empty list instead of throwing to prevent app crashes
       return [];
     }
+  }
+  
+  /// Filter product images based on a search query
+  List<ProductImage> _filterProductImages(List<ProductImage> images, String searchQuery) {
+    if (searchQuery.isEmpty) return images;
+    
+    // Normalize the search query by removing spaces and dashes
+    final normalizedQuery = searchQuery.toLowerCase().replaceAll(RegExp(r'[-\s]'), '');
+    debugPrint('🔍 Searching with normalized query: "$normalizedQuery" (original: "$searchQuery")');
+    
+    return images.where((image) {
+      final code = image.productCode.toLowerCase();
+      // Normalize the product code by removing spaces and dashes
+      final normalizedCode = code.replaceAll(RegExp(r'[-\s]'), '');
+      
+      // Case 1: Direct match (e.g., "ag950" matches normalized "AG-950")
+      if (normalizedCode == normalizedQuery) {
+        debugPrint('✅ Direct normalized match: $code → $normalizedCode for query "$searchQuery"');
+        return true;
+      }
+      
+      // Case 2: Normalized code contains query (e.g., "950" matches within normalized "AG950")
+      if (normalizedCode.contains(normalizedQuery)) {
+        debugPrint('✅ Normalized contains match: $code → $normalizedCode contains "$normalizedQuery"');
+        return true;
+      }
+      
+      // Case 3: Query contains normalized code (e.g., "ag950x" contains "ag950")
+      if (normalizedQuery.contains(normalizedCode)) {
+        debugPrint('✅ Query contains code match: "$normalizedQuery" contains $normalizedCode');
+        return true;
+      }
+      
+      // Case 4: Match without prefix (e.g., "950" matches "AG-950")
+      if (code.contains('-')) {
+        final parts = code.split('-');
+        for (final part in parts) {
+          if (part == searchQuery || normalizedQuery.contains(part)) {
+            debugPrint('✅ Part match: $code (part: $part) for query "$searchQuery"');
+            return true;
+          }
+        }
+      }
+      
+      // Case 5: Numeric-only match (for queries like "950")
+      if (RegExp(r'^\d+$').hasMatch(searchQuery)) {
+        // Extract numeric part from product code
+        final numericPart = code.replaceAll(RegExp(r'[^0-9]'), '');
+        if (numericPart.contains(searchQuery) || searchQuery.contains(numericPart)) {
+          debugPrint('✅ Numeric match: $code (numeric: $numericPart) for query "$searchQuery"');
+          return true;
+        }
+      }
+      
+      // Case 6: Original contains match (for backward compatibility)
+      if (code.contains(searchQuery)) {
+        debugPrint('✅ Original contains match: $code contains "$searchQuery"');
+        return true;
+      }
+      
+      return false;
+    }).toList();
   }
 
   Future<List<Product>> fetchProducts() async {
@@ -190,10 +326,24 @@ class ApiService {
     } else {
       items = [];
     }
-    return items
+    
+    final products = items
         .whereType<Map<String, dynamic>>()
         .map((e) => Product.fromJson(e))
         .toList();
+    
+    // Save products to secure storage if available
+    if (_storageService != null) {
+      try {
+        await _storageService!.initialize();
+        await _storageService!.saveProducts(products);
+        debugPrint('✅ Saved ${products.length} products to secure storage');
+      } catch (e) {
+        debugPrint('⚠️ Error saving products to secure storage: $e');
+      }
+    }
+    
+    return products;
   }
   
   // Cache for featured products
@@ -201,6 +351,33 @@ class ApiService {
   
   // Cache for colors products
   List<Product>? _colorsCache;
+  
+  /// Get product directory paths from featured_products.json
+  /// Returns a list of directory paths that should be searched for products
+  Future<List<String>> getProductDirectories() async {
+    try {
+      // Get featured products which contain the category information
+      final featuredProducts = await fetchFeaturedProducts();
+      
+      // Extract directory paths from product IDs
+      // Convert IDs to lowercase for consistency in directory paths
+      final List<String> directories = featuredProducts
+          .map((product) => 'products/${product.id.toLowerCase()}')
+          .toList();
+      
+      // Add special case for mbna_2025 which contains products like AG-946
+      if (!directories.contains('products/mbna_2025')) {
+        directories.add('products/mbna_2025');
+      }
+      
+      debugPrint('📂 Found ${directories.length} product directories: ${directories.join(', ')}');
+      return directories;
+    } catch (e) {
+      debugPrint('❌ Error getting product directories: $e');
+      // Fallback to default directories if there's an error
+      return ['products', 'products/benches', 'products/mbna_2025'];
+    }
+  }
   
   /// Fetch featured products from the server and update local JSON
   /// Returns the list of products (either from server or local fallback)

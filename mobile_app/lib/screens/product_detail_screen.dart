@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
+import '../utils/image_utils.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final Product product;
@@ -20,8 +21,8 @@ class ProductDetailScreen extends StatelessWidget {
           children: [
             Semantics(
               label: product.name,
-              child: Image.network(
-                product.imageUrl,
+              child: ImageUtils.buildImage(
+                imageUrl: product.imageUrl,
                 height: 200,
                 fit: BoxFit.cover,
               ),

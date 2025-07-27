@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../models/inventory_item.dart';
-import '../services/saved_items_service.dart';
+import '../services/unified_saved_items_service.dart';
+import '../state/saved_items_state.dart';
 import '../state/cart_state.dart';
-import '../screens/cart_screen.dart';
+import '../screens/enhanced_cart_screen.dart';
 
 class InventoryItemDetailsScreen extends StatefulWidget {
   final InventoryItem item;
@@ -28,35 +29,34 @@ class _InventoryItemDetailsScreenState extends State<InventoryItemDetailsScreen>
     _checkIfItemIsSaved();
   }
   
-  Future<void> _checkIfItemIsSaved() async {
-    final saved = await SavedItemsService.isItemSaved(widget.item.code);
-    if (mounted) {
-      setState(() {
-        isSaved = saved;
-      });
-    }
+  void _checkIfItemIsSaved() {
+    final savedItemsState = Provider.of<SavedItemsState>(context, listen: false);
+    setState(() {
+      isSaved = savedItemsState.hasItem(widget.item.code);
+    });
   }
   
   Future<void> _toggleSaveItem() async {
+    // Convert InventoryItem to Map<String, dynamic>
+    final itemMap = {
+      'id': widget.item.code,
+      'code': widget.item.code,
+      'description': widget.item.description,
+      'color': widget.item.color,
+      'type': widget.item.type,
+      'size': widget.item.size,
+      'quantity': widget.item.quantity,
+      'location': widget.item.location,
+      'design': widget.item.design,
+      'finish': widget.item.finish,
+      'weight': widget.item.weight,
+      'productId': widget.item.productId,
+    };
+    
     if (isSaved) {
-      await SavedItemsService.removeItem(widget.item.code);
+      await UnifiedSavedItemsService.removeItem(context, widget.item.code);
     } else {
-      // Convert InventoryItem to Map<String, dynamic>
-      final itemMap = {
-        'id': widget.item.code,
-        'code': widget.item.code,
-        'description': widget.item.description,
-        'color': widget.item.color,
-        'type': widget.item.type,
-        'size': widget.item.size,
-        'quantity': widget.item.quantity,
-        'location': widget.item.location,
-        'design': widget.item.design,
-        'finish': widget.item.finish,
-        'weight': widget.item.weight,
-        'productId': widget.item.productId,
-      };
-      await SavedItemsService.saveItem(itemMap);
+      await UnifiedSavedItemsService.saveItem(context, itemMap);
     }
     
     if (mounted) {
@@ -120,7 +120,7 @@ class _InventoryItemDetailsScreenState extends State<InventoryItemDetailsScreen>
       // This will maintain the widget tree and prevent Material widget errors
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => const CartScreen(),
+          builder: (context) => const EnhancedCartScreen(),
         ),
       );
     } catch (e) {
@@ -199,7 +199,7 @@ class _InventoryItemDetailsScreenState extends State<InventoryItemDetailsScreen>
             // Inventory information section
             _buildSectionHeader(context, 'Inventory Information'),
             const SizedBox(height: 8),
-            _buildInfoRow(context, 'Quantity', widget.item.quantity.toString()),
+            _buildInfoRow(context, 'Available', widget.item.quantity.toString()),
             _buildInfoRow(context, 'Location', widget.item.location),
             _buildInfoRow(context, 'Status', 'In-Stock'),
             // Removed Last Updated field

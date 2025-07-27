@@ -193,23 +193,47 @@ class _MainNavigationState extends State<MainNavigation> {
               ),
             ),
             Flexible(
-              child: Text(
-                'Angel Granites',
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontSize: 18,
+              child: ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return const LinearGradient(
+                    colors: [
+                      Color(0xFFD4AF37),  // Rich gold
+                      Color(0xFFFFD700),  // Bright gold
+                      Color(0xFFD4AF37),  // Back to rich gold
+                    ],
+                    stops: [0.0, 0.5, 1.0],
+                  ).createShader(bounds);
+                },
+                child: Text(
+                  'ANGEL GRANITES',
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Poppins',
+                    letterSpacing: 0.5,
+                    color: Colors.white,  // This will be replaced by the gradient
+                    shadows: [
+                      Shadow(
+                        color: Color(0xFFFFD700),
+                        blurRadius: 8.0,
+                        offset: Offset(0, 0),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ],
         ),
         actions: [
-          // Saved Items Button
+          // Search Button
           IconButton(
-            icon: const Icon(Icons.bookmark_border),
-            tooltip: 'Saved Items',
+            icon: const Icon(Icons.search),
+            tooltip: 'Search',
             onPressed: () {
-              GoRouter.of(context).pushNamed(AppRouter.savedItems);
+              // Navigate to the new search screen using GoRouter
+              GoRouter.of(context).pushNamed(AppRouter.search);
             },
           ),
           // Cart Button

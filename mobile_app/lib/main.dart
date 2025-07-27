@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+//import 'package:go_router/go_router.dart';
 import 'services/api_service.dart';
 import 'services/storage_service.dart';
 import 'services/inventory_service.dart';
 import 'services/directory_service.dart';
+// Unified service not directly used in main.dart anymore
+import 'services/saved_items_service.dart';
 import 'navigation/app_router.dart';
 import 'theme/app_theme.dart';
 import 'state/cart_state.dart';
+import 'state/saved_items_state.dart';
 import 'package:provider/provider.dart';
 import 'services/firebase_service.dart';
 import 'services/analytics_wrapper.dart';
@@ -35,8 +39,13 @@ void main() async {
   // Native splash screen will handle the initial display
   
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => CartState(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => CartState()),
+        ChangeNotifierProvider(create: (_) => SavedItemsState()),
+        // Add InventoryService provider at the app level
+        Provider(create: (_) => InventoryService()),
+      ],
       child: const MyApp(),
     ),
   );
@@ -50,10 +59,11 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  // Initialize services
+  late final StorageService _storageService = StorageService();
   late final ApiService _apiService;
-  late final StorageService _storageService;
-  late final InventoryService _inventoryService;
-  late final DirectoryService _directoryService;
+  final InventoryService _inventoryService = InventoryService();
+  final DirectoryService _directoryService = DirectoryService();
   late final AppRouter _router;
 
   // Analytics observer is created but not currently used with GoRouter
@@ -63,10 +73,11 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _apiService = ApiService();
-    _storageService = StorageService();
-    _inventoryService = InventoryService();
-    _directoryService = DirectoryService();
+    
+    // Initialize services in the correct order
+    _apiService = ApiService(storageService: _storageService);
+    
+    // Initialize router
     _router = AppRouter(
       apiService: _apiService,
       storageService: _storageService,
@@ -74,15 +85,75 @@ class _MyAppState extends State<MyApp> {
       directoryService: _directoryService,
     );
     
-    // Log app start event
-    FirebaseService.instance.logEvent(name: 'app_start');
-    
-    // Initialize analytics wrapper
-    AnalyticsWrapper();
+    // Initialize services
+    _initializeServices();
+  }
+  
+  Future<void> _initializeServices() async {
+    try {
+      // Initialize API service
+      await _apiService.initialize();
+      
+      // Initialize storage service
+      await _storageService.initialize();
+      
+      // Initialize inventory service
+      await _inventoryService.initialize();
+      
+      // Initialize directory service
+      await _directoryService.initialize();
+      
+      // Initialize saved items from storage (after widget is built)
+      // We need to wait for the first frame to be built before accessing context
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          // This ensures context is available for Provider access
+          _initializeSavedItems();
+        }
+      });
+      
+      debugPrint('All services initialized successfully');
+    } catch (e) {
+      debugPrint('Error initializing services: $e');
+    }
+  }
+  
+  Future<void> _initializeSavedItems() async {
+    try {
+      // Safety check to ensure we have a valid context
+      if (!mounted) {
+        debugPrint('Context not mounted, skipping saved items initialization');
+        return;
+      }
+      
+      // Get the saved items from storage directly
+      final savedItems = await SavedItemsService.getSavedItems();
+      
+      // Update the provider with the saved items
+      if (mounted) {
+        final savedItemsState = Provider.of<SavedItemsState>(context, listen: false);
+        savedItemsState.clearSavedItems();
+        for (var item in savedItems) {
+          savedItemsState.addItem(item);
+        }
+        debugPrint('Saved items initialized from storage: ${savedItems.length} items');
+      }
+      
+      // Log app start event
+      FirebaseService.instance.logEvent(name: 'app_start');
+      
+      // Initialize analytics wrapper
+      AnalyticsWrapper();
+    } catch (e) {
+      debugPrint('Error initializing saved items: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Check if router is initialized, use a placeholder if not
+    final routerConfig = _router.router;
+    
     return MaterialApp.router(
       title: 'Angel Granites',
       debugShowCheckedModeBanner: false,
@@ -100,15 +171,35 @@ class _MyAppState extends State<MyApp> {
               bodyColor: AppTheme.textPrimary,
               displayColor: AppTheme.textPrimary,
             ),
-        appBarTheme: const AppBarTheme(
+        appBarTheme: AppBarTheme(
           backgroundColor: Colors.transparent,
           elevation: 0,
           centerTitle: true,
           titleTextStyle: TextStyle(
-            color: AppTheme.textPrimary,
             fontSize: 24,
             fontWeight: FontWeight.bold,
             fontFamily: 'Poppins',
+            letterSpacing: 1.2,
+            foreground: Paint()
+              ..shader = const LinearGradient(
+                colors: [
+                  Color(0xFFD4AF37),  // Rich gold
+                  Color(0xFFFFD700),  // Bright gold
+                  Color(0xFFD4AF37),  // Back to rich gold
+                ],
+              ).createShader(const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
+            shadows: [
+              Shadow(
+                color: AppTheme.accentColor.withValues(alpha: 0.7),
+                blurRadius: 10.0,
+                offset: const Offset(0, 0),
+              ),
+              Shadow(
+                color: AppTheme.accentColor.withValues(alpha: 0.3),
+                blurRadius: 5.0,
+                offset: const Offset(0, 0),
+              ),
+            ],
           ),
           iconTheme: IconThemeData(color: AppTheme.accentColor),
         ),
@@ -144,7 +235,7 @@ class _MyAppState extends State<MyApp> {
           type: BottomNavigationBarType.fixed,
         ),
       ),
-      routerConfig: _router.router,
+      routerConfig: routerConfig,
     );
   }
 }
