@@ -36,7 +36,19 @@ class StorageService {
   }
 
   Future<void> saveProducts(List<Product> products) async {
-    final jsonData = json.encode(products.map((p) => {
+        // Load any existing products so we don't overwrite previously saved data
+    final existingProducts = await loadProducts() ?? [];
+
+    // Use a map to merge by product ID and avoid duplicates
+    final Map<String, Product> mergedMap = {
+      for (var product in existingProducts) product.id: product,
+    };
+
+    for (var product in products) {
+      mergedMap[product.id] = product;
+    }
+
+    final jsonData = json.encode(mergedMap.values.map((p) => {
           'id': p.id,
           'name': p.name,
           'description': p.description,

@@ -53,38 +53,34 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_searchFocusNode);
       
-      // Load MBNA products to ensure they're in storage
-      _loadMbnaProducts();
+      // Load all product directories to ensure they're in storage
+      _loadAllProductDirectories();
     });
-    
-    // Debug: Print storage contents
-    _debugPrintAllSecureStorageContents();
   }
   
-  // Load products from MBNA_2025 directory
-  Future<void> _loadMbnaProducts() async {
-    debugPrint('🔄 Loading MBNA products from directory...');
+  // Load products from all available directories
+  Future<void> _loadAllProductDirectories() async {
     final apiService = _getApiService();
-    
-    if (apiService == null) {
-      debugPrint('❌ ApiService not available, cannot load MBNA products');
-      return;
-    }
+    if (apiService == null) return;
     
     try {
-      // Fetch product images from MBNA_2025 directory
-      final productImages = await apiService.fetchProductImagesWithCodes('MBNA_2025');
-      debugPrint('✅ Loaded ${productImages.length} products from MBNA_2025 directory');
+      // Get all available product directories
+      final directories = await apiService.getProductDirectories();
       
-      // Check for specific products
-      for (var image in productImages) {
-        if (image.productCode.contains('946') || image.productCode.contains('948')) {
-          debugPrint('🎯 Found target product in MBNA directory: ${image.productCode}');
-          debugPrint('  Image URL: ${image.imageUrl}');
+      // Load products from each directory
+      for (final directory in directories) {
+        // Extract the directory name from the path (e.g., 'products/mbna_2025' -> 'mbna_2025')
+        final dirName = directory.split('/').last;
+        if (dirName.isNotEmpty) {
+          try {
+            await apiService.fetchProductImagesWithCodes(dirName);
+          } catch (e) {
+            debugPrint('Error loading products from $dirName: $e');
+          }
         }
       }
     } catch (e) {
-      debugPrint('❌ Error loading MBNA products: $e');
+      debugPrint('Error loading product directories: $e');
     }
   }
 
@@ -123,19 +119,13 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
         _isSearching = true;
       });
       
-      // If searching for target products, ensure MBNA products are loaded first
-      if (trimmedQuery.contains('946') || trimmedQuery.contains('948')) {
-        debugPrint('🔍 Target product search detected: "$trimmedQuery"');
-        _loadMbnaProducts().then((_) {
-          // Reload all products to ensure we have the latest from storage
-          _loadAllLocalProducts().then((products) {
-            debugPrint('🔄 Reloaded ${products.length} products after MBNA load');
-            _performSearch(trimmedQuery);
-          });
+      // For any search, ensure all product directories are loaded first
+      _loadAllProductDirectories().then((_) {
+        // Reload all products to ensure we have the latest from storage
+        _loadAllLocalProducts().then((products) {
+          _performSearch(trimmedQuery);
         });
-      } else {
-        _performSearch(trimmedQuery);
-      }
+      });
     });
   }
   
@@ -165,85 +155,6 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
     }
   }
   
-  // Debug method to print all secure storage contents
-  Future<void> _debugPrintAllSecureStorageContents() async {
-    debugPrint('\n🔍 DEBUG: Inspecting secure storage contents...');
-    
-    final storageService = _getStorageService();
-    if (storageService == null) {
-      debugPrint('❌ DEBUG: StorageService not available');
-      return;
-    }
-    
-    try {
-      // Access the FlutterSecureStorage directly
-      final storage = const FlutterSecureStorage();
-      
-      // Try to read all values
-      debugPrint('📋 DEBUG: Reading all secure storage keys...');
-      final allValues = await storage.readAll();
-      
-      if (allValues.isEmpty) {
-        debugPrint('⚠️ DEBUG: Secure storage is empty');
-      } else {
-        debugPrint('✅ DEBUG: Found ${allValues.length} items in secure storage');
-        debugPrint('🔑 DEBUG: Keys: ${allValues.keys.join(', ')}');
-        
-        // Check for cached products
-        if (allValues.containsKey('cached_products')) {
-          debugPrint('\n📦 DEBUG: Found cached_products key');
-          final productsJson = allValues['cached_products'];
-          debugPrint('📄 DEBUG: cached_products value: $productsJson');
-          
-          // Try to parse the JSON
-          if (productsJson != null && productsJson.isNotEmpty) {
-            try {
-              final jsonData = json.decode(productsJson);
-              debugPrint('🔢 DEBUG: Parsed ${jsonData.length} products from JSON');
-              
-              // Check for specific products
-              for (var item in jsonData) {
-                final id = item['id']?.toString() ?? '';
-                if (id.contains('946') || id.contains('948')) {
-                  debugPrint('\n🎯 DEBUG: FOUND TARGET PRODUCT: $id');
-                  debugPrint('  Name: ${item['name']}');
-                  debugPrint('  Description: ${item['description']}');
-                  debugPrint('  Image: ${item['image']}');
-                }
-              }
-            } catch (e) {
-              debugPrint('❌ DEBUG: Error parsing JSON: $e');
-            }
-          }
-        } else {
-          debugPrint('⚠️ DEBUG: No cached_products key found');
-        }
-      }
-      
-      // Try loading products through the service
-      debugPrint('\n🔄 DEBUG: Loading products through StorageService...');
-      final products = await storageService.loadProducts();
-      
-      if (products == null || products.isEmpty) {
-        debugPrint('⚠️ DEBUG: No products loaded through StorageService');
-      } else {
-        debugPrint('✅ DEBUG: Loaded ${products.length} products through StorageService');
-        
-        // Check for specific products
-        for (var product in products) {
-          if (product.id.contains('946') || product.id.contains('948')) {
-            debugPrint('\n🎯 DEBUG: FOUND TARGET PRODUCT: ${product.id}');
-            debugPrint('  Name: ${product.name}');
-            debugPrint('  Description: ${product.description}');
-            debugPrint('  Image URL: ${product.imageUrl}');
-          }
-        }
-      }
-    } catch (e) {
-      debugPrint('❌ DEBUG: Error accessing secure storage: $e');
-    }
-  }
-  
   // Load all products from local storage
   Future<List<Product>> _loadAllLocalProducts() async {
     List<Product> allProducts = [];
@@ -264,37 +175,14 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
         try {
           final secureStorageProducts = await storageService.loadProducts();
           if (secureStorageProducts != null && secureStorageProducts.isNotEmpty) {
-            debugPrint('✅ Found ${secureStorageProducts.length} products in secure storage');
-            
-            // Print detailed information about each product
-            debugPrint('🔍 SECURE STORAGE PRODUCTS DETAILS:');
-            for (var product in secureStorageProducts) {
-              debugPrint('-----------------------------------');
-              debugPrint('ID: ${product.id}');
-              debugPrint('Name: ${product.name}');
-              debugPrint('Description: ${product.description}');
-              debugPrint('Image URL: ${product.imageUrl}');
-              debugPrint('Price: ${product.price}');
-              
-              // Check if this product contains '946' or '948' in its ID
-              if (product.id.contains('946') || product.id.contains('948')) {
-                debugPrint('🎯 FOUND TARGET PRODUCT: ${product.id}');
-              }
-            }
-            debugPrint('-----------------------------------');
-            
             allProducts.addAll(secureStorageProducts);
-          } else {
-            debugPrint('⚠️ No products found in secure storage (null or empty list)');
           }
         } catch (storageError) {
-          debugPrint('⚠️ Error accessing secure storage: $storageError');
+          debugPrint('Error accessing secure storage: $storageError');
         }
-      } else {
-        debugPrint('⚠️ StorageService is not available, skipping secure storage products');
       }
       
-      debugPrint('✅ Loaded ${allProducts.length} total products from all sources');
+      // All products loaded successfully
     } catch (e) {
       debugPrint('❌ Error loading local products: $e');
     }
@@ -324,13 +212,8 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
     bool hasAnyResults = false;
     final normalizedQuery = query.toLowerCase().trim();
     
-    // Special debug for target product codes
+    // Check if this is a search for special product codes
     bool isTargetSearch = query.contains('946') || query.contains('948');
-    
-    debugPrint('🔍 Performing search for: "$query" (normalized: "${query.toLowerCase().trim()}")');
-    
-    debugPrint('🔎 SEARCH QUERY: "$normalizedQuery"');
-    debugPrint('🔍 Performing search for: "$query" (normalized: "$normalizedQuery")');
     
     // STEP 1: Search for products in local storage
     try {
@@ -344,13 +227,8 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
         final id = product.id?.toLowerCase() ?? '';
         String numericId = '';
         
-        // Debug specific products we're looking for
+        // Check if this is a target product we're specifically looking for
         bool isTargetProduct = id.contains('946') || id.contains('948');
-        if (isTargetProduct) {
-          debugPrint('\n🔍 CHECKING TARGET PRODUCT: $id');
-          debugPrint('  Name: ${product.name}');
-          debugPrint('  Description: ${product.description}');
-        }
         
         // Extract numeric part from ID if possible
         if (id.isNotEmpty) {
@@ -358,9 +236,6 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
           final Match? numericMatch = numericRegex.firstMatch(id);
           if (numericMatch != null) {
             numericId = numericMatch.group(0) ?? "";
-            if (isTargetProduct) {
-              debugPrint('  Extracted numeric ID: $numericId');
-            }
           }
         }
         
@@ -369,42 +244,26 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
                       description.contains(normalizedQuery) || 
                       id.contains(normalizedQuery);
         
-        if (isTargetProduct) {
-          debugPrint('  Basic match result: $matches');
-          debugPrint('    - name.contains("$normalizedQuery"): ${name.contains(normalizedQuery)}');
-          debugPrint('    - description.contains("$normalizedQuery"): ${description.contains(normalizedQuery)}');
-          debugPrint('    - id.contains("$normalizedQuery"): ${id.contains(normalizedQuery)}');
-        }
+        // No debug logs needed here
         
         // Direct match for product codes (case insensitive)
         if (!matches) {
           // Check if product ID equals the search query (ignoring case and with/without prefix)
           String normalizedId = id.toLowerCase().replaceAll(RegExp(r'[\s-]'), '');
           
-          if (isTargetProduct) {
-            debugPrint('  Normalized ID: $normalizedId');
-          }
+          // No debug logs needed
           
           // Handle AG prefix in query or product ID
           if (normalizedId.startsWith("ag") && !normalizedQuery.startsWith("ag")) {
             // Query doesn't have prefix but product does - compare without prefix
             if (normalizedId.substring(2) == normalizedQuery) {
               matches = true;
-              if (isTargetProduct) {
-                debugPrint('  ✅ Matched without AG prefix: ${normalizedId.substring(2)} == $normalizedQuery');
-              }
-            } else if (isTargetProduct) {
-              debugPrint('  ❌ No match without AG prefix: ${normalizedId.substring(2)} != $normalizedQuery');
+              // Match found without AG prefix
             }
           } else if (!normalizedId.startsWith("ag") && normalizedQuery.startsWith("ag")) {
             // Query has prefix but product doesn't - compare without prefix
             if (normalizedId == normalizedQuery.substring(2)) {
               matches = true;
-              if (isTargetProduct) {
-                debugPrint('  ✅ Matched with AG prefix: $normalizedId == ${normalizedQuery.substring(2)}');
-              }
-            } else if (isTargetProduct) {
-              debugPrint('  ❌ No match with AG prefix: $normalizedId != ${normalizedQuery.substring(2)}');
             }
           }
         }
@@ -413,16 +272,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
         if (!matches && numericId.isNotEmpty && normalizedQuery.isNotEmpty) {
           if (numericId.contains(normalizedQuery) || normalizedQuery.contains(numericId)) {
             matches = true;
-            if (isTargetProduct) {
-              debugPrint('  ✅ Matched by numeric part: $numericId contains/is contained in $normalizedQuery');
-            }
-          } else if (isTargetProduct) {
-            debugPrint('  ❌ No numeric match: $numericId not related to $normalizedQuery');
           }
-        }
-        
-        if (isTargetProduct) {
-          debugPrint('  FINAL MATCH RESULT: $matches\n');
         }
         
         return matches;
@@ -432,11 +282,10 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
         setState(() {
           _productResults = matchingProducts;
         });
-        debugPrint('✅ Found ${matchingProducts.length} matching products');
-        hasAnyResults = true;
+        hasAnyResults = hasAnyResults || matchingProducts.isNotEmpty;
       }
     } catch (e) {
-      debugPrint('❌ Error searching products: $e');
+      debugPrint('Error during search: $e');
     }
     
     // STEP 2: Search inventory items
@@ -478,11 +327,10 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
           _typeGroupedResults = typeGroups;
         });
         
-        debugPrint('✅ Found ${inventoryResults.length} matching inventory items');
-        hasAnyResults = true;
+        hasAnyResults = hasAnyResults || typeGroups.isNotEmpty;
       }
     } catch (e) {
-      debugPrint('❌ Error searching inventory: $e');
+      debugPrint('Error searching inventory: $e');
     }
     
     // Update UI state based on search results
@@ -490,9 +338,6 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       _hasResults = hasAnyResults;
       _searchQuery = query;
     });
-    
-    // Log search completion
-    debugPrint(hasAnyResults ? '✅ Search complete with results' : '⚠️ Search complete with no results');
   }
   
   @override
