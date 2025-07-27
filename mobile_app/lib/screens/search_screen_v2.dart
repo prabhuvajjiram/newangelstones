@@ -43,6 +43,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
   List<Product> _productResults = [];
   List<String> _colorResults = [];
   Map<String, List<InventoryItem>> _typeGroupedResults = {};
+  List<InventoryItem> _inventoryResults = [];
   
   Timer? _searchDebounce;
   
@@ -106,13 +107,14 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
         _productResults = [];
         _colorResults = [];
         _typeGroupedResults = {};
+        _inventoryResults = [];
         _hasResults = false;
       });
       return;
     }
     
     // Start a new debounce timer
-    _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+    _searchDebounce = Timer(const Duration(milliseconds: 300), () {
       final trimmedQuery = query.trim();
       setState(() {
         _searchQuery = trimmedQuery;
@@ -325,9 +327,10 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
         setState(() {
           _colorResults = colors.toList();
           _typeGroupedResults = typeGroups;
+          _inventoryResults = inventoryResults;
         });
-        
-        hasAnyResults = hasAnyResults || typeGroups.isNotEmpty;
+
+        hasAnyResults = hasAnyResults || inventoryResults.isNotEmpty;
       }
     } catch (e) {
       debugPrint('Error searching inventory: $e');
@@ -391,20 +394,23 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       );
     }
     
-    return ListView(
-      children: [
-        // Products Section
-        if (_productResults.isNotEmpty)
-          _buildProductSection('Products', _productResults),
-        
-        // Colors Section
-        if (_colorResults.isNotEmpty)
-          _buildColorsSection(),
-        
-        // Inventory by Type Section
-        if (_typeGroupedResults.isNotEmpty)
-          _buildInventoryTypeSection(),
-      ],
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_productResults.isNotEmpty)
+            _buildProductSection('Products', _productResults),
+
+          if (_colorResults.isNotEmpty)
+            _buildColorsSection(),
+
+          if (_typeGroupedResults.isNotEmpty)
+            _buildInventoryTypeSection(),
+
+          if (_inventoryResults.isNotEmpty)
+            _buildInventoryItemsSection(),
+        ],
+      ),
     );
   }
   
@@ -413,67 +419,25 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Text(
-            title,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            '$title (${products.length})',
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
-        SizedBox(
-          height: 200,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: products.length,
-            itemBuilder: (context, index) {
-              final product = products[index];
-              return GestureDetector(
-                onTap: () => _navigateToProductDetail(product),
-                child: Container(
-                  width: 160,
-                  margin: const EdgeInsets.only(left: 16.0, bottom: 16.0),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ClipRRect(
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(8.0),
-                          topRight: Radius.circular(8.0),
-                        ),
-                        child: ImageUtils.buildImage(
-                          imageUrl: product.imageUrl,
-                          height: 120,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              product.name,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            Text(
-                              product.id,
-                              style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
+        ExpansionTile(
+          title: const Text('View Products'),
+          initiallyExpanded: true,
+          children: [
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: products.length,
+              itemBuilder: (context, index) {
+                return _buildProductTile(products[index]);
+              },
+            ),
+          ],
         ),
       ],
     );
@@ -490,20 +454,15 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Wrap(
-            spacing: 8.0,
-            runSpacing: 8.0,
-            children: _colorResults.map((color) {
-              return GestureDetector(
-                onTap: () => _navigateToInventoryWithColorFilter(color),
-                child: Chip(
-                  label: Text(color),
-                  backgroundColor: Colors.grey[200],
-                ),
-              );
-            }).toList(),
+        SizedBox(
+          height: 50,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            itemCount: _colorResults.length,
+            itemBuilder: (context, index) {
+              return _buildColorChip(_colorResults[index]);
+            },
           ),
         ),
         const SizedBox(height: 16),
@@ -544,6 +503,96 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildInventoryItemsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Text(
+            'Inventory Items (${_inventoryResults.length})',
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ),
+        ExpansionTile(
+          title: const Text('View Results'),
+          initiallyExpanded: false,
+          children: [
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _inventoryResults.length,
+              itemBuilder: (context, index) {
+                return _buildInventoryItemTile(_inventoryResults[index]);
+              },
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProductTile(Product product) {
+    return ListTile(
+      leading: product.imageUrl.isNotEmpty
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: ImageUtils.buildImage(
+                imageUrl: product.imageUrl,
+                width: 50,
+                height: 50,
+                fit: BoxFit.cover,
+              ),
+            )
+          : Container(
+              width: 50,
+              height: 50,
+              color: Colors.grey[300],
+              child: const Icon(Icons.image_not_supported, color: Colors.grey),
+            ),
+      title: Text(product.name),
+      subtitle: Text(product.description),
+      onTap: () => _navigateToProductDetail(product),
+    );
+  }
+
+  Widget _buildColorChip(String color) {
+    return GestureDetector(
+      onTap: () => _navigateToInventoryWithColorFilter(color),
+      child: Container(
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey[300]!),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 2,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Text(
+          color,
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInventoryItemTile(InventoryItem item) {
+    return ListTile(
+      title: Text(item.description),
+      subtitle: Text('${item.code} • ${item.size} • ${item.color}'),
+      onTap: () => _navigateToInventoryItemDetail(item),
     );
   }
   
