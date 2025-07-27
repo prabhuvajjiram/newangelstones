@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 // Analytics wrapper import removed - not directly used in router
 // import '../services/analytics_wrapper.dart';
+import '../services/navigation_service.dart';
 
 import '../models/product.dart';
 import '../models/inventory_item.dart';
@@ -58,7 +59,11 @@ class AppRouter {
   final DirectoryService directoryService;
 
   /// Returns the configured router.
-  late final GoRouter router = GoRouter(
+  late final GoRouter router = _initializeRouter();
+  
+  /// Initialize the router and set up the NavigationService
+  GoRouter _initializeRouter() {
+    final GoRouter router = GoRouter(
     initialLocation: '/',
     routes: <GoRoute>[
       GoRoute(
@@ -164,4 +169,10 @@ class AppRouter {
       ),
     ],
   );
+  
+  // Initialize the NavigationService with this router instance
+  NavigationService().initialize(router);
+  
+  return router;
+  }
 }

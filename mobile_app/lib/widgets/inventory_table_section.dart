@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../models/inventory_item.dart';
+import '../navigation/app_router.dart';
+import '../services/navigation_service.dart';
 import '../services/saved_items_service.dart';
 import '../state/cart_state.dart';
 import '../services/unified_saved_items_service.dart';
@@ -171,9 +173,9 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
           label: 'VIEW CART',
           textColor: Colors.amber,
           onPressed: () {
-            // Use GoRouter navigation to avoid widget lifecycle issues
-            // The context here may be stale, so we use a safer approach
-            GoRouter.of(context).push('/cart');
+            // Using NavigationService for context-independent navigation
+            // This avoids widget lifecycle issues with the context
+            NavigationService().navigateToNamed(AppRouter.cart);
           },
         ),
       ),
