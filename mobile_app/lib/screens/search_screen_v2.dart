@@ -1,19 +1,17 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 import '../models/inventory_item.dart';
 import '../models/product.dart';
 import '../services/inventory_service.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
-import '../navigation/app_router.dart' as router;
+import '../navigation/app_router.dart';
+import '../state/cart_state.dart';
+import '../services/unified_saved_items_service.dart';
 import '../utils/image_utils.dart';
-import '../config/security_config.dart';
 
 class SearchScreenV2 extends StatefulWidget {
   // Accept services directly
@@ -290,41 +288,67 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       debugPrint('Error during search: $e');
     }
     
-    // STEP 2: Search inventory items
+    // STEP 2: Search inventory items using InventoryService
     try {
       final inventoryService = _getInventoryService();
-      
-      // Get all inventory items
-      final allItems = await inventoryService.loadLocalInventory();
-      
-      // Filter inventory items by search query
-      final List<InventoryItem> inventoryResults = allItems.where((item) {
-        final String itemText = '${item.code} ${item.description} ${item.type} ${item.color}'.toLowerCase();
-        return itemText.contains(normalizedQuery);
-      }).toList();
-      
-      // Update state with inventory results
-      if (inventoryResults.isNotEmpty) {
-        // Extract unique colors and types for grouping
-        final Set<String> colors = {};
-        final Map<String, List<InventoryItem>> typeGroups = {};
-        
-        for (final item in inventoryResults) {
-          // Add color to colors list if not empty
-          if (item.color.isNotEmpty) {
-            colors.add(item.color);
-          }
-          
-          // Group by type
-          if (item.type.isNotEmpty) {
-            if (!typeGroups.containsKey(item.type)) {
-              typeGroups[item.type] = [];
-            }
-            typeGroups[item.type]!.add(item);
+
+      // First search directly by query
+      List<InventoryItem> inventoryResults = await inventoryService.fetchInventory(
+        searchQuery: query,
+        pageSize: 10000,
+      );
+
+      // If no results, try as a color search
+      if (inventoryResults.isEmpty) {
+        inventoryResults = await inventoryService.fetchInventory(
+          color: query,
+          pageSize: 10000,
+        );
+      }
+
+      // If still none, try as a type search
+      if (inventoryResults.isEmpty) {
+        inventoryResults = await inventoryService.fetchInventory(
+          type: query,
+          pageSize: 10000,
+        );
+      }
+
+      // Fetch all items once to collect colors and types
+      final allItems = await inventoryService.fetchInventory(pageSize: 10000);
+
+      final Set<String> colors = {};
+      final Map<String, List<InventoryItem>> typeGroups = {};
+
+      for (final item in allItems) {
+        if (item.color.toLowerCase().contains(normalizedQuery)) {
+          colors.add(item.color);
+        }
+
+        if (item.type.toLowerCase().contains(normalizedQuery)) {
+          if (!typeGroups.containsKey(item.type)) {
+            typeGroups[item.type] = [];
           }
         }
-        
+
+        if (colors.contains(item.color) || typeGroups.containsKey(item.type)) {
+          inventoryResults.add(item);
+        }
+      }
+
+      // Remove duplicates
+      inventoryResults = inventoryResults.toSet().toList();
+
+      // Populate type groups with items
+      for (final item in allItems) {
+        if (typeGroups.containsKey(item.type)) {
+          typeGroups[item.type]!.add(item);
+        }
+      }
+
+      if (inventoryResults.isNotEmpty || colors.isNotEmpty || typeGroups.isNotEmpty) {
         setState(() {
+          _inventoryResults = inventoryResults;
           _colorResults = colors.toList();
           _typeGroupedResults = typeGroups;
           _inventoryResults = inventoryResults;
@@ -352,23 +376,47 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       ),
       body: Column(
         children: [
-          // Search bar
+          // Accessible search bar copied from the original search screen
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               controller: _searchController,
               focusNode: _searchFocusNode,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16.0,
+              ),
               decoration: InputDecoration(
-                hintText: 'Search for products, colors, or inventory...',
-                prefixIcon: const Icon(Icons.search),
+                hintText: 'Search products, colors, inventory...',
+                hintStyle: const TextStyle(color: Colors.white70),
+                prefixIcon: const Icon(Icons.search, color: Colors.white),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, color: Colors.white),
+                        onPressed: () {
+                          _searchController.clear();
+                          _onSearchChanged('');
+                        },
+                      )
+                    : null,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: Colors.white30),
                 ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 12.0),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: Colors.white30),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: Colors.white),
+                ),
                 filled: true,
-                fillColor: Colors.grey[100],
+                fillColor: Colors.black.withOpacity(0.3),
               ),
               onChanged: _onSearchChanged,
+              textInputAction: TextInputAction.search,
+              onSubmitted: (_) => _searchFocusNode.unfocus(),
             ),
           ),
           
@@ -488,18 +536,27 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
           itemBuilder: (context, index) {
             final type = _typeGroupedResults.keys.elementAt(index);
             final items = _typeGroupedResults[type]!;
-            
-            return ExpansionTile(
-              title: Text('$type (${items.length})'),
-              children: items.map((item) {
-                return ListTile(
-                  title: Text(item.code),
-                  subtitle: Text(item.description),
-                  trailing: Text(item.color),
-                  onTap: () => _navigateToInventoryItemDetail(item),
-                );
-              }).toList(),
-            );
+            return _buildTypeSection(type, items);
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTypeSection(String type, List<InventoryItem> items) {
+    return ExpansionTile(
+      title: Text(
+        '$type (${items.length})',
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      initiallyExpanded: false,
+      children: [
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            return _buildInventoryItemTile(items[index]);
           },
         ),
       ],
@@ -592,7 +649,152 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
     return ListTile(
       title: Text(item.description),
       subtitle: Text('${item.code} • ${item.size} • ${item.color}'),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.bookmark_border),
+            onPressed: () {
+              final itemMap = {
+                'id': item.code,
+                'code': item.code,
+                'description': item.description,
+                'color': item.color,
+                'size': item.size,
+                'location': item.location,
+                'quantity': item.quantity,
+                'type': item.type,
+              };
+
+              UnifiedSavedItemsService.saveItem(context, itemMap);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('${item.description} saved for later'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.shopping_cart_outlined),
+            onPressed: () => _showQuantityDialog(context, item),
+          ),
+        ],
+      ),
       onTap: () => _navigateToInventoryItemDetail(item),
+    );
+  }
+
+  void _addToCart(BuildContext context, InventoryItem item, int quantity) {
+    try {
+      final cartState = Provider.of<CartState>(context, listen: false);
+
+      final itemMap = {
+        'id': item.code,
+        'code': item.code,
+        'description': item.description,
+        'color': item.color,
+        'size': item.size,
+        'location': item.location,
+        'quantity': item.quantity,
+        'type': item.type,
+      };
+
+      cartState.addItemWithQuantity(itemMap, quantity);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${quantity}x ${item.description} added to cart'),
+          action: SnackBarAction(
+            label: 'VIEW CART',
+            onPressed: () {
+              GoRouter.of(context).pushNamed(AppRouter.cart);
+            },
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error adding to cart: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error adding to cart: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _showQuantityDialog(BuildContext context, InventoryItem item) {
+    int quantity = 1;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Select Quantity'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(item.description),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.remove),
+                        onPressed: quantity > 1
+                            ? () {
+                                setState(() {
+                                  quantity--;
+                                });
+                              }
+                            : null,
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          quantity.toString(),
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: () {
+                          setState(() {
+                            quantity++;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('CANCEL'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    _addToCart(context, item, quantity);
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('ADD TO CART'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
   
