@@ -320,31 +320,48 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       final Set<String> colors = {};
       final Map<String, List<InventoryItem>> typeGroups = {};
 
-      for (final item in allItems) {
-        if (item.color.toLowerCase().contains(normalizedQuery)) {
+      // First, collect all colors and types from matching items
+      for (final item in inventoryResults) {
+        if (item.color.isNotEmpty) {
           colors.add(item.color);
         }
-
-        if (item.type.toLowerCase().contains(normalizedQuery)) {
+        
+        if (item.type.isNotEmpty) {
           if (!typeGroups.containsKey(item.type)) {
             typeGroups[item.type] = [];
           }
-        }
-
-        if (colors.contains(item.color) || typeGroups.containsKey(item.type)) {
-          inventoryResults.add(item);
-        }
-      }
-
-      // Remove duplicates
-      inventoryResults = inventoryResults.toSet().toList();
-
-      // Populate type groups with items
-      for (final item in allItems) {
-        if (typeGroups.containsKey(item.type)) {
           typeGroups[item.type]!.add(item);
         }
       }
+      
+      // If we have no results yet, try to find items by color or type
+      if (inventoryResults.isEmpty) {
+        for (final item in allItems) {
+          if (item.color.toLowerCase().contains(normalizedQuery) || 
+              item.type.toLowerCase().contains(normalizedQuery) ||
+              item.description.toLowerCase().contains(normalizedQuery) ||
+              item.code.toLowerCase().contains(normalizedQuery)) {
+            
+            inventoryResults.add(item);
+            
+            // Add to color set if not already there
+            if (item.color.isNotEmpty) {
+              colors.add(item.color);
+            }
+            
+            // Add to type groups
+            if (item.type.isNotEmpty) {
+              if (!typeGroups.containsKey(item.type)) {
+                typeGroups[item.type] = [];
+              }
+              typeGroups[item.type]!.add(item);
+            }
+          }
+        }
+      }
+      
+      // Remove duplicates
+      inventoryResults = inventoryResults.toSet().toList();
 
       if (inventoryResults.isNotEmpty || colors.isNotEmpty || typeGroups.isNotEmpty) {
         setState(() {
@@ -370,6 +387,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black, // Use dark theme background
       appBar: AppBar(
         title: const Text('Search'),
         elevation: 0,
@@ -454,9 +472,6 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
 
           if (_typeGroupedResults.isNotEmpty)
             _buildInventoryTypeSection(),
-
-          if (_inventoryResults.isNotEmpty)
-            _buildInventoryItemsSection(),
         ],
       ),
     );
