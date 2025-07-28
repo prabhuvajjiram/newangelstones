@@ -190,4 +190,11 @@ Thumbs.db
 !.env.example
 **/*.log
 chat_backup/
+
+# Generated Flutter plugin files
+**/pubspec.lock
+**/Podfile.lock
+**/GeneratedPluginRegistrant.swift
+**/generated_plugin_registrant.cc
+**/generated_plugins.cmake
 logs/
