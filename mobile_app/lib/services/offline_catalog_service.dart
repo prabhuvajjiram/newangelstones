@@ -40,6 +40,7 @@ class OfflineCatalogService {
                   price: 0.0,
                 ))
             .toList();
+
         await _productDao.insertProducts(products);
         count++;
         _statusController.add(SyncStatus(

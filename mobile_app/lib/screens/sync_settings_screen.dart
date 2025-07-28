@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config/offline_config.dart';
 
 class SyncSettingsScreen extends StatelessWidget {
   const SyncSettingsScreen({super.key});
