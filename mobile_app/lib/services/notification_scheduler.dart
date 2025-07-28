@@ -6,26 +6,24 @@ import 'package:flutter/material.dart';
 class NotificationScheduler {
   final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
 
-  Future<void> scheduleDaily(NotificationPayload payload, TimeOfDay time) async {
-    final androidDetails = AndroidNotificationDetails(
-      'scheduled_channel',
-      'Scheduled Notifications',
-    );
-    final details = NotificationDetails(android: androidDetails);
+Future<void> scheduleDaily(NotificationPayload payload, TimeOfDay time) async {
+  final androidDetails = AndroidNotificationDetails(
+    'scheduled_channel',
+    'Scheduled Notifications',
+  );
+  final details = NotificationDetails(android: androidDetails);
 
-    await _plugin.zonedSchedule(
-      0,
-      payload.title,
-      payload.body,
-      _nextInstanceOf(time),
-      details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      payload: payload.deepLink,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
-  }
+  await _plugin.zonedSchedule(
+    0,
+    payload.title,
+    payload.body,
+    _nextInstanceOf(time),
+    details,
+    androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    payload: payload.deepLink,
+    matchDateTimeComponents: DateTimeComponents.time,
+  );
+}
 
   tz.TZDateTime _nextInstanceOf(TimeOfDay time) {
     final now = tz.TZDateTime.now(tz.local);

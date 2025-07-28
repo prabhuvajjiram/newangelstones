@@ -22,6 +22,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -29,6 +30,7 @@ android {
     }
 
     defaultConfig {
+        multiDexEnabled = true
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.angelgranites.app"
         // You can update the following values to match your application needs.
@@ -40,7 +42,7 @@ android {
         val pubspecFile = File(project.projectDir.parentFile.parentFile, "pubspec.yaml")
         val pubspecContent = pubspecFile.readText()
         val versionMatch = Regex("""version:\s+([0-9]+\.[0-9]+\.[0-9]+)\+([0-9]+)""").find(pubspecContent)
-        
+
         if (versionMatch != null) {
             versionName = versionMatch.groupValues[1]
             versionCode = versionMatch.groupValues[2].toInt()
@@ -58,6 +60,9 @@ android {
 
 flutter {
     source = "../.."
+}
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }
 
 
