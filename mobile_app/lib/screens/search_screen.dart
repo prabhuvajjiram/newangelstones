@@ -271,9 +271,8 @@ class _SearchScreenState extends State<SearchScreen> {
     }
     
     // STEP 2: Search featured products from ApiService and directory
-    try {
-      final apiService = _getApiService();
-      final directoryService = _getDirectoryService();
+      try {
+        final apiService = _getApiService();
       
       if (apiService != null) {
         // Fetch featured products
@@ -333,10 +332,9 @@ class _SearchScreenState extends State<SearchScreen> {
                   
                   // Process each file in the directory
                   for (final file in files) {
-                    if (file is Map<String, dynamic>) {
-                      final String name = (file['name'] ?? '').toString().toLowerCase();
-                      final String fullname = (file['fullname'] ?? '').toString().toLowerCase();
-                      final String path = (file['path'] ?? '').toString().toLowerCase();
+                      if (file is Map<String, dynamic>) {
+                        final String name = (file['name'] ?? '').toString().toLowerCase();
+                        final String path = (file['path'] ?? '').toString().toLowerCase();
                       
                       debugPrint('🔍 DEBUG: Checking file in $dir: name=$name, path=$path');
                       
@@ -415,10 +413,6 @@ class _SearchScreenState extends State<SearchScreen> {
           
           // Add directory products to featured products
           if (directoryProducts.isNotEmpty) {
-            // Initialize featuredProductResults if it's null
-            if (featuredProductResults == null) {
-              featuredProductResults = [];
-            }
             
             // Add all directory products to featured products
             featuredProductResults.addAll(directoryProducts);
@@ -531,11 +525,6 @@ class _SearchScreenState extends State<SearchScreen> {
         }).toList();
         
         debugPrint('🔍 Found ${matchingFeaturedProducts.length} matching featured products');
-        
-        // Initialize featuredProductResults if it's null
-        if (featuredProductResults == null) {
-          featuredProductResults = [];
-        }
         
         // Add matching featured products to results (which may already contain directory products)
         featuredProductResults.addAll(matchingFeaturedProducts);
@@ -694,45 +683,6 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
   
-  void _processSearchResults(List<InventoryItem> results) {
-    // Clear previous results
-    _colorResults.clear();
-    _typeGroupedResults.clear();
-    
-    debugPrint('🔄 Processing ${results.length} search results');
-    
-    // Extract unique colors that match the search query
-    final Set<String> uniqueColors = {};
-    for (var item in results) {
-      // Add color if it matches the search query
-      if (item.color.isNotEmpty && 
-          item.color.toLowerCase().contains(_searchQuery.toLowerCase())) {
-        uniqueColors.add(item.color);
-      }
-    }
-    _colorResults.addAll(uniqueColors);
-    debugPrint('🎨 Found ${_colorResults.length} matching colors');
-    
-    // Group items by type
-    for (var item in results) {
-      // Skip items with empty type
-      if (item.type.isEmpty) continue;
-      
-      // Create a list for this type if it doesn't exist
-      if (!_typeGroupedResults.containsKey(item.type)) {
-        _typeGroupedResults[item.type] = [];
-      }
-      
-      // Add the item to its type group
-      _typeGroupedResults[item.type]!.add(item);
-    }
-    
-    // Log the results for debugging
-    debugPrint('📊 Grouped results by ${_typeGroupedResults.length} types:');
-    _typeGroupedResults.forEach((type, items) {
-      debugPrint('  - $type: ${items.length} items');
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -781,7 +731,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   borderSide: const BorderSide(color: Colors.white),
                 ),
                 filled: true,
-                fillColor: Colors.black.withOpacity(0.3), // Darker background for better contrast
+                fillColor: Colors.black.withValues(alpha: 0.3), // Darker background for better contrast
               ),
               onChanged: _onSearchChanged,
               textInputAction: TextInputAction.search,
@@ -1108,12 +1058,12 @@ class _SearchScreenState extends State<SearchScreen> {
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.9), // High contrast background
+          color: Colors.white.withValues(alpha: 0.9), // High contrast background
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.grey[300]!),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 2,
               offset: const Offset(0, 1),
             ),

@@ -6,6 +6,8 @@ import 'services/inventory_service.dart';
 import 'services/directory_service.dart';
 // Unified service not directly used in main.dart anymore
 import 'services/saved_items_service.dart';
+import 'services/connectivity_service.dart';
+import 'services/offline_catalog_service.dart';
 import 'navigation/app_router.dart';
 import 'theme/app_theme.dart';
 import 'state/cart_state.dart';
@@ -43,8 +45,8 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => CartState()),
         ChangeNotifierProvider(create: (_) => SavedItemsState()),
-        // Add InventoryService provider at the app level
         Provider(create: (_) => InventoryService()),
+        Provider(create: (_) => ConnectivityService()),
       ],
       child: const MyApp(),
     ),
@@ -64,6 +66,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late final ApiService _apiService;
   final InventoryService _inventoryService = InventoryService();
   final DirectoryService _directoryService = DirectoryService();
+  late final ConnectivityService _connectivityService;
+  late final OfflineCatalogService _offlineCatalogService;
   late final AppRouter _router;
 
   // Analytics observer is created but not currently used with GoRouter
@@ -75,9 +79,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.initState();
 
     WidgetsBinding.instance.addObserver(this);
-    
+
     // Initialize services in the correct order
     _apiService = ApiService(storageService: _storageService);
+    _connectivityService = ConnectivityService();
+    _offlineCatalogService = OfflineCatalogService(
+      apiService: _apiService,
+      connectivityService: _connectivityService,
+    );
     
     // Initialize router
     _router = AppRouter(
@@ -85,6 +94,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       storageService: _storageService,
       inventoryService: _inventoryService,
       directoryService: _directoryService,
+      offlineCatalogService: _offlineCatalogService,
     );
     
     // Initialize services
@@ -104,6 +114,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       
       // Initialize directory service
       await _directoryService.initialize();
+
+      // Kick off offline catalog sync in background
+      _offlineCatalogService.syncCatalog();
       
       // Initialize saved items from storage (after widget is built)
       // We need to wait for the first frame to be built before accessing context

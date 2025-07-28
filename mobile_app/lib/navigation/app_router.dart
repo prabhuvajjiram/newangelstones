@@ -17,10 +17,13 @@ import '../screens/product_detail_screen.dart';
 import '../screens/saved_items_screen.dart';
 import '../screens/quote_request_screen.dart';
 import '../screens/search_screen_v2.dart';
+import '../screens/offline_catalog_screen.dart';
+import '../screens/sync_settings_screen.dart';
 import '../services/api_service.dart';
 import '../services/directory_service.dart';
 import '../services/inventory_service.dart';
 import '../services/storage_service.dart';
+import '../services/offline_catalog_service.dart';
 import 'main_navigation.dart';
 
 /// Holds all application routes using [GoRouter].
@@ -38,12 +41,15 @@ class AppRouter {
   static const String quoteRequest = 'quote-request';
   static const String inventoryItemDetails = 'inventory-item-details';
   static const String search = 'search';
+  static const String offlineCatalog = 'offline-catalog';
+  static const String syncSettings = 'sync-settings';
 
   AppRouter({
     required this.apiService,
     required this.storageService,
     required this.inventoryService,
     required this.directoryService,
+    required this.offlineCatalogService,
   });
 
   /// API helper for loading data.
@@ -54,6 +60,8 @@ class AppRouter {
 
   /// Inventory backend helper.
   final InventoryService inventoryService;
+
+  final OfflineCatalogService offlineCatalogService;
 
   /// Directory helper for fetching design counts.
   final DirectoryService directoryService;
@@ -166,6 +174,18 @@ class AppRouter {
           apiService: apiService,
           storageService: storageService,
         ),
+      ),
+      GoRoute(
+        path: '/offline-catalog',
+        name: offlineCatalog,
+        builder: (context, state) => OfflineCatalogScreen(
+          catalogService: offlineCatalogService,
+        ),
+      ),
+      GoRoute(
+        path: '/sync-settings',
+        name: syncSettings,
+        builder: (context, state) => const SyncSettingsScreen(),
       ),
     ],
   );
