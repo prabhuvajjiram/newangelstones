@@ -14,11 +14,13 @@ class OfflineCatalogScreen extends StatefulWidget {
 
 class _OfflineCatalogScreenState extends State<OfflineCatalogScreen> {
   late Future<List<Product>> _productsFuture;
+  late Future<DateTime?> _lastSyncFuture;
 
   @override
   void initState() {
     super.initState();
     _productsFuture = widget.catalogService.getAllProducts();
+    _lastSyncFuture = widget.catalogService.getLastSync();
   }
 
   @override
@@ -29,6 +31,19 @@ class _OfflineCatalogScreenState extends State<OfflineCatalogScreen> {
         children: [
           OfflineBanner(connectivityService: widget.catalogService.connectivityService),
           SyncProgressIndicator(statusStream: widget.catalogService.statusStream),
+          FutureBuilder<DateTime?>(
+            future: _lastSyncFuture,
+            builder: (context, snapshot) {
+              final ts = snapshot.data;
+              final text = ts != null
+                  ? 'Last synced: \${ts.toLocal().toString().split(".").first}'
+                  : 'Never synced';
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(text, style: const TextStyle(fontSize: 12)),
+              );
+            },
+          ),
           Expanded(
             child: FutureBuilder<List<Product>>(
               future: _productsFuture,
@@ -60,6 +75,7 @@ class _OfflineCatalogScreenState extends State<OfflineCatalogScreen> {
           await widget.catalogService.syncCatalog();
           setState(() {
             _productsFuture = widget.catalogService.getAllProducts();
+            _lastSyncFuture = widget.catalogService.getLastSync();
           });
         },
         child: const Icon(Icons.sync),
