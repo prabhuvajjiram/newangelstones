@@ -11,15 +11,18 @@ class NotificationPermissionPrompt extends StatelessWidget {
       content: const Text('Stay updated with the latest products and offers.'),
       actions: [
         TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+          onPressed: () => Navigator.of(context).pop(),
           child: const Text('No Thanks'),
         ),
         ElevatedButton(
           onPressed: () async {
+            // Store the navigator context before async operation
+            final navigator = Navigator.of(context);
             await NotificationService.instance.initialize();
-            Navigator.of(context).pop();
+            // Use the stored navigator
+            if (navigator.canPop()) {
+              navigator.pop();
+            }
           },
           child: const Text('Allow'),
         ),
