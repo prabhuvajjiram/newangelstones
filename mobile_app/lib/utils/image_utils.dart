@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 
 /// Utility class for handling image loading in a consistent way
 class ImageUtils {
-  /// Determines if a path is a network URL or a local asset
+  /// Determines if a path is a network URL
   static bool isNetworkImage(String path) {
     return path.startsWith('http://') || path.startsWith('https://');
+  }
+
+  /// Determines if a path points to a local file on disk
+  static bool isFileImage(String path) {
+    return path.startsWith('/') || path.startsWith('file://');
   }
 
   /// Returns the appropriate ImageProvider based on the path
   static ImageProvider getImageProvider(String path) {
     if (isNetworkImage(path)) {
       return NetworkImage(path);
+    } else if (isFileImage(path)) {
+      return FileImage(File(path));
     } else {
       // For local assets, use AssetImage
       return AssetImage(path);

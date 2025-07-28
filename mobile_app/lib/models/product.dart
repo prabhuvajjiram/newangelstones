@@ -6,6 +6,8 @@ class Product {
   final double price;
   final String? label;
   final String? pdfUrl;
+  final String? localImagePath;
+  final String? category;
 
   Product({
     required this.id,
@@ -15,6 +17,8 @@ class Product {
     required this.price,
     this.label,
     this.pdfUrl,
+    this.localImagePath,
+    this.category,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -46,6 +50,9 @@ class Product {
       label = data['category'] as String;
     }
 
+    final localImagePath = data['localImagePath']?.toString();
+    final category = data['category'] is String ? data['category'] as String : null;
+
     return Product(
       id: (data['sku'] ?? data['id'] ?? '').toString(),
       name: data['name'] ?? '',
@@ -54,6 +61,8 @@ class Product {
       price: double.tryParse(priceField?.toString() ?? '') ?? 0.0,
       label: label,
       pdfUrl: data['pdf']?.toString(),
+      localImagePath: localImagePath,
+      category: category,
     );
   }
   
@@ -66,6 +75,8 @@ class Product {
       'price': price,
       'label': label,
       'pdfUrl': pdfUrl,
+      'localImagePath': localImagePath,
+      'category': category,
     };
   }
 }
