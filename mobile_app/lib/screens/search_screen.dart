@@ -23,11 +23,11 @@ class SearchScreen extends StatefulWidget {
   final DirectoryService? directoryService;
 
   const SearchScreen({
-    Key? key, 
+    super.key,
     this.inventoryService,
     this.apiService,
     this.directoryService,
-  }) : super(key: key);
+  });
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -123,16 +123,6 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
   
-  // Get the Directory service instance
-  DirectoryService _getDirectoryService() {
-    // First try to use the service passed directly to the widget
-    if (widget.directoryService != null) {
-      return widget.directoryService!;
-    }
-    
-    // If not available, create a new instance
-    return DirectoryService();
-  }
   
   Future<void> _performSearch(String query) async {
     setState(() {
@@ -390,7 +380,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         debugPrint('🔍 DEBUG: Creating product with code: $productCode');
                         
                         final product = Product(
-                          id: 'dir-${dir}-$name',
+                          id: 'dir-$dir-$name',
                           name: productCode.isNotEmpty ? 'Product $productCode' : name,
                           description: 'Directory product from $dir',
                           imageUrl: '${DirectoryService.baseUrl}/$path',
@@ -898,9 +888,9 @@ class _SearchScreenState extends State<SearchScreen> {
           
           // Types section - each type gets its own expandable section
           if (_typeGroupedResults.isNotEmpty) ...
-          _typeGroupedResults.entries.map((entry) {
-            return _buildTypeSection(entry.key, entry.value);
-          }).toList(),
+            _typeGroupedResults.entries.map(
+              (entry) => _buildTypeSection(entry.key, entry.value),
+            ),
           
           // Inventory items section (items not grouped by type)
           if (_searchResults.isNotEmpty) ...[  

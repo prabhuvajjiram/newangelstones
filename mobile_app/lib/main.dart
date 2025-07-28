@@ -15,7 +15,6 @@ import 'state/saved_items_state.dart';
 import 'package:provider/provider.dart';
 import 'services/firebase_service.dart';
 import 'services/analytics_wrapper.dart';
-import 'widgets/connectivity_handler.dart';
 
 void main() async {
   // Ensure Flutter is initialized

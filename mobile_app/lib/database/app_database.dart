@@ -3,7 +3,6 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../config/offline_config.dart';
-import '../models/product.dart';
 
 class AppDatabase {
   static Database? _db;
