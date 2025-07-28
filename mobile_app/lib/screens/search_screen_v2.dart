@@ -421,7 +421,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
                   borderSide: const BorderSide(color: Colors.white),
                 ),
                 filled: true,
-                fillColor: Colors.black.withOpacity(0.3),
+                fillColor: Colors.black.withValues(alpha: 0.3),
               ),
               onChanged: _onSearchChanged,
               textInputAction: TextInputAction.search,
@@ -602,12 +602,12 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.9),
+          color: Colors.white.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.grey[300]!),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 2,
               offset: const Offset(0, 1),
             ),

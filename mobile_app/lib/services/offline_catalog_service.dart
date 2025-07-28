@@ -30,7 +30,17 @@ class OfflineCatalogService {
       int count = 0;
       for (final dir in directories) {
         final dirName = dir.split('/').last;
-        final products = await apiService.fetchProductImagesWithCodes(dirName);
+        final images = await apiService.fetchProductImagesWithCodes(dirName);
+        final products = images
+            .map((img) => Product(
+                  id: img.productCode,
+                  name: 'Product ${img.productCode}',
+                  description: 'Offline product from $dirName',
+                  imageUrl: img.imageUrl,
+                  price: 0.0,
+                ))
+            .toList();
+
         await _productDao.insertProducts(products);
         count++;
         _statusController.add(SyncStatus(
