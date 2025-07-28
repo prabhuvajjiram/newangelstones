@@ -52,7 +52,8 @@ class _HomeScreenState extends State<HomeScreen> {
       // Fetch featured products dynamically from server with force refresh
       _futureFeatured = widget.apiService.fetchFeaturedProducts(forceRefresh: true);
       // Fetch inventory summary from API
-      _futureInventorySummary = widget.inventoryService.fetchInventory(pageSize: 3);
+      _futureInventorySummary =
+          widget.inventoryService.fetchInventory(pageSize: 3, forceRefresh: true);
       // Refresh specials
       _futureSpecials = widget.apiService.loadLocalProducts('assets/specials.json');
     });

@@ -58,7 +58,7 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   // Initialize services
   late final StorageService _storageService = StorageService();
   late final ApiService _apiService;
@@ -73,6 +73,8 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addObserver(this);
     
     // Initialize services in the correct order
     _apiService = ApiService(storageService: _storageService);
@@ -147,6 +149,21 @@ class _MyAppState extends State<MyApp> {
     } catch (e) {
       debugPrint('Error initializing saved items: $e');
     }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _apiService.clearExpiredCache();
+      _inventoryService.clearExpiredCache();
+      _storageService.clearExpiredCache();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override
