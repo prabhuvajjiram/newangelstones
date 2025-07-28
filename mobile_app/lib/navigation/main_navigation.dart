@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,6 +11,7 @@ import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import '../services/inventory_service.dart';
 import '../services/directory_service.dart';
+import '../services/connectivity_service.dart';
 import '../widgets/cart_icon.dart';
 import '../theme/app_theme.dart';
 
@@ -20,18 +22,20 @@ class MainNavigation extends StatefulWidget {
     required this.storageService,
     required this.inventoryService,
     required this.directoryService,
+    this.connectivityService,
   });
 
   final ApiService apiService;
   final StorageService storageService;
   final InventoryService inventoryService;
   final DirectoryService directoryService;
+  final ConnectivityService? connectivityService;
 
   @override
   State<MainNavigation> createState() => _MainNavigationState();
 }
 
-class _MainNavigationState extends State<MainNavigation> {
+class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObserver {
   //final PageStorageBucket _bucket = PageStorageBucket();
   int _currentIndex = 0;
 
@@ -39,11 +43,24 @@ class _MainNavigationState extends State<MainNavigation> {
 
   bool _isInitialized = false;
   String? _initError;
+  
+  // Connectivity monitoring
+  StreamSubscription<bool>? _connectivitySubscription;
+  bool _wasOffline = false;
+  bool _offlineHandled = false;
+  ConnectivityService? _connectivityService;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeServices();
+    
+    // Initialize connectivity monitoring
+    _connectivityService = widget.connectivityService;
+    if (_connectivityService != null) {
+      _setupConnectivityMonitoring();
+    }
 
     // Create pages immediately so UI can render even if services are still initializing
     _pages = [
@@ -381,5 +398,75 @@ class _MainNavigationState extends State<MainNavigation> {
 
     // Main app UI once initialized
     return mainContent;
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Check connectivity when app resumes from background
+    if (state == AppLifecycleState.resumed && _connectivityService != null) {
+      _checkConnectivityStatus();
+    }
+  }
+  
+  void _setupConnectivityMonitoring() {
+    // Initial check
+    _checkConnectivityStatus();
+    
+    // Listen for connectivity changes
+    _connectivitySubscription = _connectivityService!.onConnectivityChanged.listen((isOnline) {
+      debugPrint('🔌 Connectivity changed: ${isOnline ? "ONLINE" : "OFFLINE"}');
+      
+      if (!isOnline && !_offlineHandled) {
+        _navigateToOfflineCatalog();
+      } else if (isOnline && _wasOffline) {
+        // We're back online after being offline
+        _wasOffline = false;
+        _offlineHandled = false;
+        debugPrint('🔌 Connectivity restored');
+        
+        // Show a snackbar that we're back online
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('You are back online'),
+              duration: Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    });
+  }
+  
+  Future<void> _checkConnectivityStatus() async {
+    if (_connectivityService == null) return;
+    
+    final isOnline = await _connectivityService!.isOnline;
+    debugPrint('🔌 Connectivity check: ${isOnline ? "ONLINE" : "OFFLINE"}');
+    
+    if (!isOnline && !_offlineHandled) {
+      _navigateToOfflineCatalog();
+    }
+  }
+  
+  void _navigateToOfflineCatalog() {
+    // We're offline and haven't handled it yet
+    _wasOffline = true;
+    _offlineHandled = true;
+    
+    // Navigate to offline catalog
+    debugPrint('🔌 Navigating to offline catalog');
+    try {
+      GoRouter.of(context).pushNamed(AppRouter.offlineCatalog);
+    } catch (e) {
+      debugPrint('⚠️ Error navigating to offline catalog: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _connectivitySubscription?.cancel();
+    super.dispose();
   }
 }

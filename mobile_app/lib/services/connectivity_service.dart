@@ -1,17 +1,46 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 class ConnectivityService {
   final Connectivity _connectivity = Connectivity();
-
-  Stream<bool> get onConnectivityChanged async* {
-    await for (final result in _connectivity.onConnectivityChanged) {
-      yield result != ConnectivityResult.none;
+  final StreamController<bool> _connectivityController = StreamController<bool>.broadcast();
+  bool _lastKnownState = true; // Assume online initially
+  
+  ConnectivityService() {
+    // Initialize the service
+    _initialize();
+  }
+  
+  Future<void> _initialize() async {
+    // Check initial connection state
+    _lastKnownState = await _checkConnection();
+    _connectivityController.add(_lastKnownState);
+    
+    // Listen to connectivity changes
+    _connectivity.onConnectivityChanged.listen((ConnectivityResult result) async {
+      final isOnline = result != ConnectivityResult.none;
+      
+      // Only emit if state changed
+      if (isOnline != _lastKnownState) {
+        _lastKnownState = isOnline;
+        debugPrint('🔌 Connectivity changed: ${isOnline ? 'ONLINE' : 'OFFLINE'}');
+        _connectivityController.add(isOnline);
+      }
+    });
+  }
+  
+  Future<bool> _checkConnection() async {
+    try {
+      final result = await _connectivity.checkConnectivity();
+      return result != ConnectivityResult.none;
+    } catch (e) {
+      debugPrint('⚠️ Error checking connectivity: $e');
+      return false; // Assume offline on error
     }
   }
 
-  Future<bool> get isOnline async {
-    final result = await _connectivity.checkConnectivity();
-    return result != ConnectivityResult.none;
-  }
+  Stream<bool> get onConnectivityChanged => _connectivityController.stream;
+
+  Future<bool> get isOnline async => await _checkConnection();
 }

@@ -24,6 +24,7 @@ import '../services/directory_service.dart';
 import '../services/inventory_service.dart';
 import '../services/storage_service.dart';
 import '../services/offline_catalog_service.dart';
+import '../services/connectivity_service.dart';
 import 'main_navigation.dart';
 
 /// Holds all application routes using [GoRouter].
@@ -50,6 +51,7 @@ class AppRouter {
     required this.inventoryService,
     required this.directoryService,
     required this.offlineCatalogService,
+    required this.connectivityService,
   });
 
   /// API helper for loading data.
@@ -65,6 +67,9 @@ class AppRouter {
 
   /// Directory helper for fetching design counts.
   final DirectoryService directoryService;
+  
+  /// Connectivity service for monitoring network status
+  final ConnectivityService connectivityService;
 
   /// Returns the configured router.
   late final GoRouter router = _initializeRouter();
@@ -82,6 +87,7 @@ class AppRouter {
           storageService: storageService,
           inventoryService: inventoryService,
           directoryService: directoryService,
+          connectivityService: connectivityService,
         ),
       ),
       GoRoute(
