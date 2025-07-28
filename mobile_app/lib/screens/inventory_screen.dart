@@ -92,13 +92,14 @@ class _InventoryScreenState extends State<InventoryScreen> {
     super.dispose();
   }
 
-  Future<void> _loadInventory() async {
+  Future<void> _loadInventory({bool forceRefresh = false}) async {
     setState(() {
       _futureInventory = widget.inventoryService.fetchInventory(
         pageSize: 100,
         searchQuery: _searchQuery.isNotEmpty ? _searchQuery : null,
         type: _selectedType,
         color: _selectedColor,
+        forceRefresh: forceRefresh,
       );
     });
   }
@@ -111,7 +112,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     _selectedColor = null;
     
     // Reload inventory data
-    await _loadInventory();
+    await _loadInventory(forceRefresh: true);
     
     // Refresh filter options
     _fetchFilterOptions();

@@ -5,11 +5,16 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/inventory_item.dart';
+import '../utils/cache_entry.dart';
 
 class InventoryService {
   static const _baseUrl = 'https://monument.business';
   static const _token = '097EE598BBACB8A8182BC9D4D7D5CFE609E4DB2AF4A3F1950738C927ECF05B6A';
-  static const _referer = 'https://monument.business/GV/GVOBPInventory/ShowInventoryAll/$_token';
+  static const _referer = 'https://monument.business/GV/GVOBPInventory/ShowInventoryAll/\$_token';
+
+  static const Duration _cacheTTL = Duration(hours: 2);
+
+  CacheEntry<List<InventoryItem>>? _inventoryCache;
   
   // Sets to store unique filter values from API responses
   final Set<String> _availableTypes = {};
@@ -182,9 +187,18 @@ class InventoryService {
     String? type,
     String? color,
     int retryCount = 0,
+    bool forceRefresh = false,
   }) async {
     // Convert search query to lowercase for case-insensitive search
     final String? normalizedSearchQuery = searchQuery?.toLowerCase().trim();
+    final bool isBaseRequest =
+        searchQuery == null && type == null && color == null && page == 1;
+
+    if (!forceRefresh && isBaseRequest &&
+        _inventoryCache != null && !_inventoryCache!.isExpired(_cacheTTL)) {
+      debugPrint('📦 Using cached inventory');
+      return _inventoryCache!.data;
+    }
     try {
       debugPrint('🔍 Fetching inventory from direct API endpoints');
       
@@ -408,6 +422,9 @@ class InventoryService {
       // If we have any items, return them
       if (filteredItems.isNotEmpty) {
         debugPrint('📊 Returning ${filteredItems.length} items from API');
+        if (isBaseRequest) {
+          _inventoryCache = CacheEntry(filteredItems);
+        }
         return filteredItems;
       } else {
         // If this is a search or type filter and we got no results, try a retry with modified parameters
@@ -489,6 +506,9 @@ class InventoryService {
           debugPrint('📊 Found ${filteredLocalItems.length} local items matching color filter');
         }
         
+        if (isBaseRequest) {
+          _inventoryCache = CacheEntry(filteredLocalItems);
+        }
         return filteredLocalItems;
       }
     } on SocketException catch (e) {
@@ -503,6 +523,13 @@ class InventoryService {
     } catch (e) {
       debugPrint('Unknown error while loading inventory: $e');
       throw Exception('Unable to load inventory');
+    }
+  }
+
+  /// Clear cached inventory if expired
+  void clearExpiredCache() {
+    if (_inventoryCache != null && _inventoryCache!.isExpired(_cacheTTL)) {
+      _inventoryCache = null;
     }
   }
 }

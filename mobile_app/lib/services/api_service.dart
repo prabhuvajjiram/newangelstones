@@ -11,11 +11,13 @@ import 'package:path_provider/path_provider.dart';
 import '../models/product.dart';
 import '../models/product_image.dart';
 import 'storage_service.dart';
+import '../utils/cache_entry.dart';
 
 class ApiService {
+  static const Duration _memoryCacheTTL = Duration(minutes: 30);
   bool _isInitialized = false;
-  final Map<String, List<String>> _categoryCache = {};
-  List<Product>? _productCache;
+  final Map<String, CacheEntry<List<String>>> _categoryCache = {};
+  CacheEntry<List<Product>>? _productCache;
   StorageService? _storageService;
   
   /// Initialize the API service with error handling and timeout
@@ -68,7 +70,7 @@ class ApiService {
   }
 
   // Map to cache product images with their codes
-  final Map<String, List<ProductImage>> _productImageCache = {};
+  final Map<String, CacheEntry<List<ProductImage>>> _productImageCache = {};
   
   /// Extract product code from fullname
   String _extractProductCode(String fullname) {
@@ -115,10 +117,11 @@ class ApiService {
   }
 
   Future<List<String>> fetchCategoryImages(String category) async {
-  // ✅ Use cache if available
-  if (_categoryCache.containsKey(category)) {
+  // ✅ Use cache if available and not expired
+  final cacheEntry = _categoryCache[category];
+  if (cacheEntry != null && !cacheEntry.isExpired(_memoryCacheTTL)) {
     debugPrint('📦 Using cached category images for: $category');
-    return _categoryCache[category]!;
+    return cacheEntry.data;
   }
 
   // ⏬ Fetch from network
@@ -126,7 +129,7 @@ class ApiService {
   final imageUrls = productImages.map((img) => img.imageUrl).toList();
 
   // 🧠 Save to cache
-  _categoryCache[category] = imageUrls;
+  _categoryCache[category] = CacheEntry(imageUrls);
   return imageUrls;
 }
 
@@ -137,18 +140,19 @@ class ApiService {
     final String normalizedSearchQuery = isSearching ? searchQuery.toLowerCase() : '';
     
     // Use cache if available and not searching
-    if (!isSearching && _productImageCache.containsKey(category)) {
+    final cacheEntry = _productImageCache[category];
+    if (!isSearching && cacheEntry != null && !cacheEntry.isExpired(_memoryCacheTTL)) {
       debugPrint('📦 Using cached product images for category: $category');
-      return _productImageCache[category]!;
+      return cacheEntry.data;
     }
     
     try {
       List<ProductImage> productImages;
       
       // If searching but we have the category cached, filter from cache
-      if (isSearching && _productImageCache.containsKey(category)) {
+      if (isSearching && cacheEntry != null && !cacheEntry.isExpired(_memoryCacheTTL)) {
         debugPrint('🔍 Filtering cached products for query: "$searchQuery"');
-        productImages = _filterProductImages(_productImageCache[category]!, normalizedSearchQuery);
+        productImages = _filterProductImages(cacheEntry.data, normalizedSearchQuery);
         return productImages;
       }
       
@@ -199,7 +203,7 @@ class ApiService {
         debugPrint('✅ Successfully loaded ${productImages.length} product images with codes');
         
         // Cache the full results
-        _productImageCache[category] = productImages;
+        _productImageCache[category] = CacheEntry(productImages);
         
         // If searching, filter the results
         if (isSearching) {
@@ -282,7 +286,9 @@ class ApiService {
   }
 
   Future<List<Product>> fetchProducts() async {
-    if (_productCache != null) return _productCache!;
+    if (_productCache != null && !_productCache!.isExpired(_memoryCacheTTL)) {
+      return _productCache!.data;
+    }
     try {
       final url = '${SecurityConfig.angelStonesBaseUrl}/api/color.json';
       debugPrint('🌐 Fetching products from: $url');
@@ -297,19 +303,21 @@ class ApiService {
             .map((e) => Product.fromJson(e['item'] as Map<String, dynamic>))
             .toList();
         debugPrint('✅ Successfully loaded ${products.length} products');
-        _productCache = products;
+        _productCache = CacheEntry(products);
         return products;
       } else {
         debugPrint('❌ Failed to load products: ${response.statusCode}');
         // Fall back to local data
-        _productCache = await loadLocalProducts('assets/colors.json');
-        return _productCache!;
+        final local = await loadLocalProducts('assets/colors.json');
+        _productCache = CacheEntry(local);
+        return local;
       }
     } catch (e) {
       debugPrint('⚠️ Error fetching products: $e');
       // Fall back to local data
-      _productCache = await loadLocalProducts('assets/colors.json');
-      return _productCache!;
+      final local = await loadLocalProducts('assets/colors.json');
+      _productCache = CacheEntry(local);
+      return local;
     }
   }
 
@@ -347,10 +355,10 @@ class ApiService {
   }
   
   // Cache for featured products
-  List<Product>? _featuredProductsCache;
-  
+  CacheEntry<List<Product>>? _featuredProductsCache;
+
   // Cache for colors products
-  List<Product>? _colorsCache;
+  CacheEntry<List<Product>>? _colorsCache;
   
   /// Get product directory paths from featured_products.json
   /// Returns a list of directory paths that should be searched for products
@@ -385,10 +393,12 @@ class ApiService {
   Future<List<Product>> fetchFeaturedProducts({bool forceRefresh = false}) async {
     debugPrint('🌐 Fetching featured products from server');
     
-    // Return cached products if available and not forcing refresh
-    if (_featuredProductsCache != null && !forceRefresh) {
+    // Return cached products if available and valid
+    if (_featuredProductsCache != null &&
+        !forceRefresh &&
+        !_featuredProductsCache!.isExpired(_memoryCacheTTL)) {
       debugPrint('💾 Using cached featured products');
-      return _featuredProductsCache!;
+      return _featuredProductsCache!.data;
     }
     
     // Clear cache if forcing refresh
@@ -530,7 +540,7 @@ class ApiService {
         }
         
         // Cache the merged products
-        _featuredProductsCache = mergedProducts;
+        _featuredProductsCache = CacheEntry(mergedProducts);
         
         // Update the local JSON file with the latest data
         _updateLocalFeaturedProductsJson(mergedProducts);
@@ -554,10 +564,12 @@ class ApiService {
   Future<List<Product>> fetchColors({bool forceRefresh = false}) async {
     debugPrint('🌐 Fetching colors from enhanced website API');
     
-    // Return cached products if available and not forcing refresh
-    if (_colorsCache != null && !forceRefresh) {
+    // Return cached products if available and valid
+    if (_colorsCache != null &&
+        !forceRefresh &&
+        !_colorsCache!.isExpired(_memoryCacheTTL)) {
       debugPrint('💾 Using cached colors');
-      return _colorsCache!;
+      return _colorsCache!.data;
     }
     
     // Clear cache if forcing refresh
@@ -683,7 +695,7 @@ class ApiService {
           await _updateLocalColorsJson(schemaData);
           
           // Cache the products
-          _colorsCache = serverProducts;
+          _colorsCache = CacheEntry(serverProducts);
           
           // Return the products
           return serverProducts;
@@ -699,7 +711,7 @@ class ApiService {
       debugPrint('⚠️ Error fetching colors: $e');
       // Fall back to local data
       final localProducts = await loadLocalProducts('assets/colors.json');
-      _colorsCache = localProducts;
+      _colorsCache = CacheEntry(localProducts);
       return localProducts;
     }
   }
@@ -715,6 +727,21 @@ class ApiService {
       debugPrint('✅ Successfully updated local colors JSON file');
     } catch (e) {
       debugPrint('⚠️ Error updating local colors JSON file: $e');
+    }
+  }
+
+  /// Clear caches that have passed their TTL
+  void clearExpiredCache() {
+    _categoryCache.removeWhere((key, entry) => entry.isExpired(_memoryCacheTTL));
+    _productImageCache.removeWhere((key, entry) => entry.isExpired(_memoryCacheTTL));
+    if (_productCache != null && _productCache!.isExpired(_memoryCacheTTL)) {
+      _productCache = null;
+    }
+    if (_featuredProductsCache != null && _featuredProductsCache!.isExpired(_memoryCacheTTL)) {
+      _featuredProductsCache = null;
+    }
+    if (_colorsCache != null && _colorsCache!.isExpired(_memoryCacheTTL)) {
+      _colorsCache = null;
     }
   }
 }
