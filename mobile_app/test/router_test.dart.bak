@@ -5,6 +5,8 @@ import 'package:mobile_app/services/api_service.dart';
 import 'package:mobile_app/services/storage_service.dart';
 import 'package:mobile_app/services/inventory_service.dart';
 import 'package:mobile_app/services/directory_service.dart';
+import 'package:mobile_app/services/offline_catalog_service.dart';
+import 'package:mobile_app/services/connectivity_service.dart';
 
 void main() {
   test('router initializes with routes', () {
@@ -13,6 +15,10 @@ void main() {
       storageService: StorageService(),
       inventoryService: InventoryService(),
       directoryService: DirectoryService(),
+      offlineCatalogService: OfflineCatalogService(
+        apiService: ApiService(),
+        connectivityService: ConnectivityService(),
+      ),
     ).router;
 
     expect(router, isA<GoRouter>());

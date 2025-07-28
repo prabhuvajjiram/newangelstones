@@ -41,7 +41,6 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
   List<Product> _productResults = [];
   List<String> _colorResults = [];
   Map<String, List<InventoryItem>> _typeGroupedResults = {};
-  List<InventoryItem> _inventoryResults = [];
   
   Timer? _searchDebounce;
   
@@ -104,7 +103,6 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
         _productResults = [];
         _colorResults = [];
         _typeGroupedResults = {};
-        _inventoryResults = [];
         _hasResults = false;
       });
       return;
@@ -360,10 +358,8 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
 
       if (inventoryResults.isNotEmpty || colors.isNotEmpty || typeGroups.isNotEmpty) {
         setState(() {
-          _inventoryResults = inventoryResults;
           _colorResults = colors.toList();
           _typeGroupedResults = typeGroups;
-          _inventoryResults = inventoryResults;
         });
 
         hasAnyResults = hasAnyResults || inventoryResults.isNotEmpty;
