@@ -35,6 +35,18 @@ class _InventoryItemDetailsScreenState extends State<InventoryItemDetailsScreen>
       isSaved = savedItemsState.hasItem(widget.item.code);
     });
   }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final savedItemsState = Provider.of<SavedItemsState>(context);
+    final saved = savedItemsState.hasItem(widget.item.code);
+    if (saved != isSaved) {
+      setState(() {
+        isSaved = saved;
+      });
+    }
+  }
   
   Future<void> _toggleSaveItem() async {
     // Convert InventoryItem to Map<String, dynamic>
