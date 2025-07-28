@@ -180,7 +180,7 @@ class ApiService {
             final products = productImages.map((image) => Product(
                   id: image.productCode,
                   name: 'Product ${image.productCode}',
-                  description: 'Product ${image.productCode} from ${category} category',
+                  description: 'Product ${image.productCode} from $category category',
                   imageUrl: image.imageUrl,
                   price: 0.0,
                 )).toList();

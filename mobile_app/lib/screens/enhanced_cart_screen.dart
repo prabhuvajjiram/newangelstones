@@ -52,8 +52,6 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
         final cartItemsList = cart.items;
         final savedItemsList = savedItems.items;
         final isCartEmpty = cartItemsList.isEmpty;
-        final isSavedEmpty = savedItemsList.isEmpty;
-        final totalQuantity = cart.totalQuantity;
 
         return Scaffold(
           appBar: AppBar(
@@ -71,13 +69,12 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
           body: RefreshIndicator(
             onRefresh: _refreshCart,
             child: _buildCartContent(
-                context,
-                cartItems: cartItemsList,
-                savedItems: savedItemsList,
-                totalQuantity: totalQuantity,
-                cart: cart,
-                savedItemsState: savedItems,
-              ),
+              context,
+              cartItems: cartItemsList,
+              savedItems: savedItemsList,
+              cart: cart,
+              savedItemsState: savedItems,
+            ),
           ),
         );
       },
@@ -133,7 +130,6 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
     BuildContext context, {
     required List<Map<String, dynamic>> cartItems,
     required List<Map<String, dynamic>> savedItems,
-    required int totalQuantity,
     required CartState cart,
     required SavedItemsState savedItemsState,
   }) {
@@ -197,12 +193,11 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
                 children: [
                   // Request quote button
                   AppButton(
-                    onPressed: () {
-                      // Navigate to quote request screen with cart items
-                      final cartItems = cart.items;
-                      final totalQuantity = cart.totalQuantity;
-                      context.pushNamed('quote-request', extra: cartItems);
-                    },
+                      onPressed: () {
+                        // Navigate to quote request screen with cart items
+                        final cartItems = cart.items;
+                        context.pushNamed('quote-request', extra: cartItems);
+                      },
                     color: const Color(0xFFFFD700), // Gold color
                     textColor: Colors.black,
                     child: Row(
@@ -563,160 +558,6 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
     );
   }
 
-  // Build the detail view for an item
-  Widget _buildDetailView(
-    BuildContext context,
-    Map<String, dynamic> item,
-    CartState cart,
-    SavedItemsState savedItemsState,
-  ) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.9,
-      minChildSize: 0.5,
-      maxChildSize: 0.95,
-      builder: (_, controller) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: ListView(
-            controller: controller,
-            padding: const EdgeInsets.all(16),
-            children: [
-              // Close button
-              Align(
-                alignment: Alignment.topRight,
-                child: IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ),
-              
-              // No product icon or placeholder image in detail view
-              
-              // Product name (Type + Color)
-              Text(
-                _getItemDisplayName(item),
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              // Product code
-              if (item['code'] != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    'Code: ${item['code']}',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                  ),
-                ),
-              const SizedBox(height: 16),
-              
-              // Product description (if available)
-              if (item['description'] != null)
-                Text(
-                  item['description'],
-                  style: const TextStyle(fontSize: 16),
-                ),
-              const SizedBox(height: 24),
-              
-              // Quantity selector - improved UI
-              Row(
-                children: [
-                  const Text('Quantity:', style: TextStyle(fontSize: 16)),
-                  const SizedBox(width: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.remove),
-                          onPressed: () {
-                            final currentQty = item['quantity'] as int? ?? 1;
-                            if (currentQty > 1) {
-                              setState(() {
-                                item['quantity'] = currentQty - 1;
-                              });
-                            }
-                          },
-                          padding: const EdgeInsets.all(4),
-                          constraints: const BoxConstraints(),
-                          iconSize: 20,
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Text(
-                            '${item['quantity'] ?? 1}',
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.add),
-                          onPressed: () {
-                            final currentQty = item['quantity'] as int? ?? 1;
-                            setState(() {
-                              item['quantity'] = currentQty + 1;
-                            });
-                          },
-                          padding: const EdgeInsets.all(4),
-                          constraints: const BoxConstraints(),
-                          iconSize: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
-              
-              // Action buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).primaryColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      onPressed: () {
-                        cart.addItem(item);
-                        if (savedItemsState.hasItem(item['id'])) {
-                          savedItemsState.removeItem(item);
-                        }
-                        Navigator.pop(context);
-                      },
-                      child: const Text('Add to Cart'),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Theme.of(context).primaryColor),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      onPressed: () {
-                        savedItemsState.addItem(item);
-                        if (cart.hasItem(item['id'])) {
-                          cart.removeItem(item);
-                        }
-                        Navigator.pop(context);
-                      },
-                      child: const Text('Save for Later'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   // Show dialog to confirm clearing the cart
   void _showClearCartDialog(BuildContext context, CartState cart) {
