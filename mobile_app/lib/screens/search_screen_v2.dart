@@ -20,11 +20,11 @@ class SearchScreenV2 extends StatefulWidget {
   final StorageService? storageService;
 
   const SearchScreenV2({
-    Key? key, 
+    super.key,
     this.inventoryService,
     this.apiService,
     this.storageService,
-  }) : super(key: key);
+  });
 
   @override
   State<SearchScreenV2> createState() => _SearchScreenV2State();
@@ -60,7 +60,6 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
   // Load products from all available directories
   Future<void> _loadAllProductDirectories() async {
     final apiService = _getApiService();
-    if (apiService == null) return;
     
     try {
       // Get all available product directories
@@ -212,8 +211,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
     bool hasAnyResults = false;
     final normalizedQuery = query.toLowerCase().trim();
     
-    // Check if this is a search for special product codes
-    bool isTargetSearch = query.contains('946') || query.contains('948');
+
     
     // STEP 1: Search for products in local storage
     try {
@@ -222,13 +220,10 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       
       // Filter products by search query
       final List<Product> matchingProducts = allProducts.where((product) {
-        final name = product.name?.toLowerCase() ?? '';
-        final description = product.description?.toLowerCase() ?? '';
-        final id = product.id?.toLowerCase() ?? '';
+        final name = product.name.toLowerCase();
+        final description = product.description.toLowerCase();
+        final id = product.id.toLowerCase();
         String numericId = '';
-        
-        // Check if this is a target product we're specifically looking for
-        bool isTargetProduct = id.contains('946') || id.contains('948');
         
         // Extract numeric part from ID if possible
         if (id.isNotEmpty) {
@@ -578,34 +573,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
     );
   }
 
-  Widget _buildInventoryItemsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Text(
-            'Inventory Items (${_inventoryResults.length})',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-        ),
-        ExpansionTile(
-          title: const Text('View Results'),
-          initiallyExpanded: false,
-          children: [
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _inventoryResults.length,
-              itemBuilder: (context, index) {
-                return _buildInventoryItemTile(_inventoryResults[index]);
-              },
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+
 
   Widget _buildProductTile(Product product) {
     return ListTile(
