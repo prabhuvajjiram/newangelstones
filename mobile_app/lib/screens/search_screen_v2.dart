@@ -36,6 +36,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
   String _searchQuery = '';
   bool _isSearching = false;
   bool _hasResults = false;
+  bool _isLoading = false;
   
   // Search results
   List<Product> _productResults = [];
@@ -100,6 +101,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       setState(() {
         _searchQuery = '';
         _isSearching = false;
+        _isLoading = false;
         _productResults = [];
         _colorResults = [];
         _typeGroupedResults = {};
@@ -114,6 +116,11 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       setState(() {
         _searchQuery = trimmedQuery;
         _isSearching = true;
+        _isLoading = true;
+        _hasResults = false;
+        _productResults = [];
+        _colorResults = [];
+        _typeGroupedResults = {};
       });
       
       // For any search, ensure all product directories are loaded first
@@ -372,6 +379,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
     setState(() {
       _hasResults = hasAnyResults;
       _searchQuery = query;
+      _isLoading = false;
     });
   }
   
@@ -431,7 +439,11 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
           
           // Search results
           Expanded(
-            child: _isSearching ? _buildSearchResults() : _buildEmptyState(),
+            child: _searchQuery.isEmpty
+                ? _buildEmptyState()
+                : (_isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _buildSearchResults()),
           ),
         ],
       ),
@@ -440,14 +452,26 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
   
   Widget _buildEmptyState() {
     return const Center(
-      child: Text('Enter a search term to find products, colors, or inventory items'),
+      child: Text(
+        'Enter a search term to find products, colors, or inventory items',
+        style: TextStyle(
+          fontSize: 18,
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
+        textAlign: TextAlign.center,
+      ),
     );
   }
   
   Widget _buildSearchResults() {
     if (!_hasResults) {
       return Center(
-        child: Text('No results found for "$_searchQuery"'),
+        child: Text(
+          'No results found for "$_searchQuery"',
+          style: const TextStyle(color: Colors.white70),
+          textAlign: TextAlign.center,
+        ),
       );
     }
     

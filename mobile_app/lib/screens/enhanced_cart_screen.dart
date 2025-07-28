@@ -6,6 +6,7 @@ import '../state/cart_state.dart';
 import '../state/saved_items_state.dart';
 import '../widgets/app_button.dart';
 import '../models/inventory_item.dart';
+import '../services/unified_saved_items_service.dart';
 
 class EnhancedCartScreen extends StatefulWidget {
   const EnhancedCartScreen({super.key});
@@ -478,6 +479,7 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
                 Navigator.pop(context);
                 savedItemsState.addItem(item);
                 cart.removeItem(item);
+                UnifiedSavedItemsService.saveItem(context, item);
               },
             ),
             ListTile(
@@ -523,6 +525,10 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
               onTap: () {
                 Navigator.pop(context);
                 savedItemsState.removeItem(item);
+                final itemId = item['id']?.toString() ?? item['code']?.toString();
+                if (itemId != null) {
+                  UnifiedSavedItemsService.removeItem(context, itemId);
+                }
               },
             ),
           ],
