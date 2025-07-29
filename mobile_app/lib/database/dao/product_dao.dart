@@ -13,9 +13,13 @@ class ProductDao {
     final db = await AppDatabase.database;
     final batch = db.batch();
     for (final product in products) {
+      final data = Map<String, dynamic>.from(product.toJson());
+      // Remove fields not present in the products table
+      data.remove('label');
+      data.remove('pdfUrl');
       batch.insert(
         'products',
-        product.toJson(),
+        data,
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
