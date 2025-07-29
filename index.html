@@ -48,7 +48,7 @@
     <!-- Preload critical CSS resources from CDN with proper onload handlers -->
     <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="css/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="css/style.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <link rel="preload" href="css/critical.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     
     <!-- Preload jQuery since it's a critical dependency -->
@@ -350,8 +350,8 @@
     <link rel="stylesheet" href="css/color-carousel.min.css" media="print" onload="this.media='all'">
 -->
     <!-- Preload critical CSS -->
-<link rel="preload" href="css/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="css/style.css"></noscript>
+    <link rel="preload" href="css/style.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="css/style.min.css"></noscript>
 
 <!-- Defer non-critical CSS -->
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -500,8 +500,8 @@
     <meta name="theme-color" content="#262626">
     
     <!-- Color Gallery Styles -->
-    <link rel="preload" href="/css/color-gallery.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="/css/color-gallery.css"></noscript>
+    <link rel="preload" href="/css/color-gallery.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/css/color-gallery.min.css"></noscript>
     
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -632,8 +632,8 @@
         }
     </style>
 
-    <link rel="preload" href="css/carousel.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="css/carousel.css"></noscript>
+    <link rel="preload" href="css/carousel.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="css/carousel.min.css"></noscript>
 
     <!-- Add these in the <head> section -->
     <link rel="preload" as="image" href="images/video-poster-optimized.jpg">
