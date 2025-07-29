@@ -34,7 +34,6 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   String _searchQuery = '';
-  bool _isSearching = false;
   bool _hasResults = false;
   bool _isLoading = false;
   
@@ -100,7 +99,6 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
     if (query.isEmpty) {
       setState(() {
         _searchQuery = '';
-        _isSearching = false;
         _isLoading = false;
         _productResults = [];
         _colorResults = [];
@@ -115,7 +113,6 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       final trimmedQuery = query.trim();
       setState(() {
         _searchQuery = trimmedQuery;
-        _isSearching = true;
         _isLoading = true;
         _hasResults = false;
         _productResults = [];
@@ -202,14 +199,12 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
         _productResults = [];
         _colorResults = [];
         _typeGroupedResults = {};
-        _isSearching = false;
         _hasResults = false;
       });
       return;
     }
     
     setState(() {
-      _isSearching = true;
       _hasResults = false;
     });
     
