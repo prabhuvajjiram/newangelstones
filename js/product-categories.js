@@ -134,6 +134,8 @@ function addCacheBuster(url, category) {
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize state
     let categories = {};
+    const CATEGORY_CACHE_KEY = 'product_categories_cache';
+    const CATEGORY_CACHE_TTL = 60 * 60 * 1000; // 1 hour
     
     // Function to load and display categories
     async function loadAndDisplayCategories() {
@@ -143,6 +145,22 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show loading indicator
         container.innerHTML = '';
         showLoadingIndicator(container);
+
+        // Try loading categories from localStorage cache first
+        try {
+            const cached = localStorage.getItem(CATEGORY_CACHE_KEY);
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (parsed.timestamp && (Date.now() - parsed.timestamp) < CATEGORY_CACHE_TTL) {
+                    categories = parsed.categories || {};
+                    console.log('Loaded categories from cache');
+                    displayCategories();
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('Category cache read failed', e);
+        }
 
         try {
             // First, get all categories with cache-busting timestamp
@@ -172,6 +190,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             console.log('Loaded categories:', categories);
+            try {
+                localStorage.setItem(CATEGORY_CACHE_KEY, JSON.stringify({
+                    timestamp: Date.now(),
+                    categories: categories
+                }));
+            } catch (e) {
+                console.warn('Category cache save failed', e);
+            }
             displayCategories();
         } catch (error) {
             console.error('Error loading categories:', error);
