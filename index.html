@@ -461,7 +461,6 @@
     </style>
     
     <!-- Async load full font families with font-display:swap to prevent layout shifts -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Didact+Gothic&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap&display=swap">
     <style>
         /* Font fallback system to prevent layout shifts */
         body {
@@ -501,7 +500,8 @@
     <meta name="theme-color" content="#262626">
     
     <!-- Color Gallery Styles -->
-    <link rel="stylesheet" href="/css/color-gallery.css">
+    <link rel="preload" href="/css/color-gallery.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/css/color-gallery.css"></noscript>
     
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -632,7 +632,8 @@
         }
     </style>
 
-    <link rel="stylesheet" href="css/carousel.css">
+    <link rel="preload" href="css/carousel.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="css/carousel.css"></noscript>
 
     <!-- Add these in the <head> section -->
     <link rel="preload" as="image" href="images/video-poster-optimized.jpg">
@@ -647,10 +648,6 @@
                        images/Factory-1920.webp 1920w"
           imagesizes="100vw"
           type="image/webp">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Didact+Gothic&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 
     <!-- HTML structure optimized for mobile-first loading -->
     <link rel="preload" as="script" href="js/jquery-3.7.1.min.js" fetchpriority="low">
@@ -1497,7 +1494,7 @@
                             </p>
                         </div>
                         <div class="col-md-6">
-                            <div><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans"><a href='https://www.convergepay.com/hosted-payments?ssl_txn_auth_token=E%2F8reYrhQjCCZuE850a9TQAAAZZqwm4V' style='color:#d6b772; font-size:14px; font-family:Open Sans; font-weight:bold; margin-bottom:15px; display:block;'>Pay Invoice</a></div>
+                              <div><a href='https://www.convergepay.com/hosted-payments?ssl_txn_auth_token=E%2F8reYrhQjCCZuE850a9TQAAAZZqwm4V' style='color:#d6b772; font-size:14px; font-family:"Didact Gothic", sans-serif; font-weight:bold; margin-bottom:15px; display:block;'>Pay Invoice</a></div>
                             <ul class="social-network">
                                 <li><a href="#" target="_blank" rel="nofollow" aria-label="Visit our Facebook page">Facebook</a></li>
                                 <li><a href="#" target="_blank" rel="nofollow" aria-label="Follow us on Twitter">Twitter</a></li>
