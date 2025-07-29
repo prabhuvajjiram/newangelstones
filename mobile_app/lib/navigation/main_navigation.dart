@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
 
 import 'app_router.dart';
 import '../screens/home_screen.dart';
@@ -36,15 +37,10 @@ class MainNavigation extends StatefulWidget {
 }
 
 class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObserver {
-  //final PageStorageBucket _bucket = PageStorageBucket();
   int _currentIndex = 0;
-
   late final List<Widget> _pages;
-
   bool _isInitialized = false;
   String? _initError;
-  
-  // Connectivity monitoring
   StreamSubscription<bool>? _connectivitySubscription;
   bool _wasOffline = false;
   bool _offlineHandled = false;
@@ -55,14 +51,10 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initializeServices();
-    
-    // Initialize connectivity monitoring
     _connectivityService = widget.connectivityService;
     if (_connectivityService != null) {
       _setupConnectivityMonitoring();
     }
-
-    // Create pages immediately so UI can render even if services are still initializing
     _pages = [
       HomeScreen(
         key: const PageStorageKey('home'),
@@ -86,157 +78,110 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
 
   Future<void> _initializeServices() async {
     debugPrint('🔄 Starting service initialization...');
-
-    // Add a global failsafe timeout to ensure UI is updated even if something gets stuck
     Future.delayed(const Duration(seconds: 10), () {
       if (mounted && !_isInitialized) {
-        debugPrint('⚠️ Global failsafe timeout triggered - forcing UI update');
         setState(() {
           _isInitialized = true;
-          _initError =
-              'Some services failed to initialize. The app may have limited functionality.';
+          _initError = 'Some services failed to initialize. The app may have limited functionality.';
         });
       }
     });
-
     try {
-      // Initialize services with individual timeouts
-      debugPrint('🔄 Initializing API service...');
-      await widget.apiService.initialize().timeout(
-        const Duration(seconds: 2),
-        onTimeout: () {
-          debugPrint('⚠️ API service initialization timed out');
-          return;
-        },
-      );
-
-      debugPrint('🔄 Initializing Storage service...');
-      await widget.storageService.initialize().timeout(
-        const Duration(seconds: 2),
-        onTimeout: () {
-          debugPrint('⚠️ Storage service initialization timed out');
-          return;
-        },
-      );
-
-      debugPrint('🔄 Initializing Inventory service...');
-      await widget.inventoryService.initialize().timeout(
-        const Duration(seconds: 2),
-        onTimeout: () {
-          debugPrint('⚠️ Inventory service initialization timed out');
-          return;
-        },
-      );
-
-      debugPrint('🔄 Initializing Directory service...');
-      await widget.directoryService.initialize().timeout(
-        const Duration(seconds: 2),
-        onTimeout: () {
-          debugPrint('⚠️ Directory service initialization timed out');
-          return;
-        },
-      );
-
-      debugPrint('🔄 Preloading API data...');
-      await _preloadApiData().timeout(
-        const Duration(seconds: 2),
-        onTimeout: () {
-          debugPrint('⚠️ API data preloading timed out');
-          return;
-        },
-      );
-
-      debugPrint('✅ All services initialized successfully!');
-
-      if (mounted) {
-        setState(() {
-          _isInitialized = true;
-          debugPrint('✅ UI updated: _isInitialized = true');
-        });
-      } else {
-        debugPrint('⚠️ Widget not mounted, cannot update state');
-      }
+      await widget.apiService.initialize().timeout(const Duration(seconds: 2), onTimeout: () => null);
+      await widget.storageService.initialize().timeout(const Duration(seconds: 2), onTimeout: () => null);
+      await widget.inventoryService.initialize().timeout(const Duration(seconds: 2), onTimeout: () => null);
+      await widget.directoryService.initialize().timeout(const Duration(seconds: 2), onTimeout: () => null);
+      await _preloadApiData().timeout(const Duration(seconds: 2), onTimeout: () => null);
+      if (mounted) setState(() => _isInitialized = true);
     } catch (e, stackTrace) {
       debugPrint('⚠️ Error during service initialization: $e');
       debugPrint('Stack trace: $stackTrace');
       if (mounted) {
         setState(() {
           _initError = e.toString();
-          _isInitialized = true; // Still mark as initialized to prevent infinite loading
-          debugPrint('✅ UI updated with error: $_initError');
+          _isInitialized = true;
         });
-      } else {
-        debugPrint('⚠️ Widget not mounted, cannot update state with error');
       }
     }
   }
 
   Future<void> _preloadApiData() async {
     try {
-      // Preload essential data with individual timeouts
-      await widget.apiService
-          .loadLocalProducts('assets/featured_products.json')
+      await widget.apiService.loadLocalProducts('assets/featured_products.json')
           .timeout(const Duration(seconds: 3), onTimeout: () => []);
     } catch (e) {
       debugPrint('⚠️ Error preloading API data: $e');
-      // Continue anyway
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Always show the main UI, but add a loading overlay if still initializing
-    // This ensures we don't get stuck at a blank screen
+    final screenWidth = MediaQuery.of(context).size.width;
+    final double dynamicFontSize = screenWidth / 20;
+
     final Widget mainContent = Scaffold(
       appBar: AppBar(
+        centerTitle: false,
+        backgroundColor: Colors.black,
+        elevation: 0,
         title: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Container(
-              constraints: const BoxConstraints(
-                maxWidth: 32,
-                maxHeight: 32,
-              ),
-              padding: const EdgeInsets.all(2),
-              margin: const EdgeInsets.only(right: 8),
-              child: Image.asset(
-                'assets/logo.png',
-                width: 28,
-                height: 28,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) => 
-                    const Icon(Icons.star, size: 28, color: Colors.white),
+            const SizedBox(width: 32),
+            SizedBox(
+              width: 36,
+              height: 36,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Shimmer.fromColors(
+                    baseColor: const Color(0xFFD4AF37),
+                    highlightColor: const Color(0xFFFFF8DC),
+                    period: const Duration(seconds: 3),
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFFD4AF37).withOpacity(0.3),
+                      ),
+                    ),
+                  ),
+                  Image.asset(
+                    'assets/logo.png',
+                    fit: BoxFit.contain,
+                  ),
+                ],
               ),
             ),
+            const SizedBox(width: 12),
             Flexible(
+              fit: FlexFit.tight,
               child: ShaderMask(
+                blendMode: BlendMode.srcIn,
                 shaderCallback: (Rect bounds) {
                   return const LinearGradient(
                     colors: [
-                      Color(0xFFD4AF37),  // Rich gold
-                      Color(0xFFFFD700),  // Bright gold
-                      Color(0xFFD4AF37),  // Back to rich gold
+                      Color(0xFFD4AF37),
+                      Color(0xFFFFD700),
+                      Color(0xFFE6BE8A),
                     ],
-                    stops: [0.0, 0.5, 1.0],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ).createShader(bounds);
                 },
-                child: Text(
-                  'ANGEL GRANITES',
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Poppins',
-                    letterSpacing: 0.5,
-                    color: Colors.white,  // This will be replaced by the gradient
-                    shadows: [
-                      Shadow(
-                        color: Color(0xFFFFD700),
-                        blurRadius: 8.0,
-                        offset: Offset(0, 0),
-                      ),
-                    ],
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'ANGEL GRANITES',
+                    style: const TextStyle(
+                      fontSize: 18, // this acts as max size
+                      fontWeight: FontWeight.w700,
+                      fontFamily: 'OpenSans',
+                      letterSpacing: 0.5,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -244,24 +189,20 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
           ],
         ),
         actions: [
-          // Search Button
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: const Icon(Icons.search, color: Color(0xFFFFD700)),
             tooltip: 'Search',
             onPressed: () {
-              // Navigate to the new search screen using GoRouter
               GoRouter.of(context).pushNamed(AppRouter.search);
             },
           ),
-          // Cart Button
           CartIcon(
             onPressed: () {
               GoRouter.of(context).pushNamed(AppRouter.cart);
             },
           ),
-          // Login Button
           IconButton(
-            icon: const Icon(Icons.person_outline),
+            icon: const Icon(Icons.person_outline, color: Color(0xFFFFD700)),
             tooltip: 'Login',
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -291,7 +232,7 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
+              color: Colors.black.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -339,14 +280,12 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
       ),
     );
 
-    // If still initializing, show a loading overlay
     if (!_isInitialized) {
       return Stack(
         children: [
-          mainContent, // Show the main UI in the background
-          // Overlay with semi-transparent background
+          mainContent,
           Container(
-            color: AppTheme.primaryColor.withValues(alpha: 0.8),
+            color: AppTheme.primaryColor.withOpacity(0.8),
             child: const Center(
               child: CircularProgressIndicator(color: AppTheme.accentColor),
             ),
@@ -355,7 +294,6 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
       );
     }
 
-    // Show error screen if initialization failed
     if (_initError != null) {
       return Scaffold(
         backgroundColor: AppTheme.primaryColor,
@@ -368,9 +306,10 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
               const Text(
                 'Initialization Error',
                 style: TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold),
+                  color: AppTheme.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
               Padding(
@@ -396,35 +335,24 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
       );
     }
 
-    // Main app UI once initialized
     return mainContent;
   }
-  
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Check connectivity when app resumes from background
     if (state == AppLifecycleState.resumed && _connectivityService != null) {
       _checkConnectivityStatus();
     }
   }
-  
+
   void _setupConnectivityMonitoring() {
-    // Initial check
     _checkConnectivityStatus();
-    
-    // Listen for connectivity changes
     _connectivitySubscription = _connectivityService!.onConnectivityChanged.listen((isOnline) {
-      debugPrint('🔌 Connectivity changed: ${isOnline ? "ONLINE" : "OFFLINE"}');
-      
       if (!isOnline && !_offlineHandled) {
         _navigateToOfflineCatalog();
       } else if (isOnline && _wasOffline) {
-        // We're back online after being offline
         _wasOffline = false;
         _offlineHandled = false;
-        debugPrint('🔌 Connectivity restored');
-        
-        // Show a snackbar that we're back online
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -437,25 +365,18 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
       }
     });
   }
-  
+
   Future<void> _checkConnectivityStatus() async {
     if (_connectivityService == null) return;
-    
     final isOnline = await _connectivityService!.isOnline;
-    debugPrint('🔌 Connectivity check: ${isOnline ? "ONLINE" : "OFFLINE"}');
-    
     if (!isOnline && !_offlineHandled) {
       _navigateToOfflineCatalog();
     }
   }
-  
+
   void _navigateToOfflineCatalog() {
-    // We're offline and haven't handled it yet
     _wasOffline = true;
     _offlineHandled = true;
-    
-    // Navigate to offline catalog
-    debugPrint('🔌 Navigating to offline catalog');
     try {
       GoRouter.of(context).pushNamed(AppRouter.offlineCatalog);
     } catch (e) {
