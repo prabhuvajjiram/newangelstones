@@ -1,15 +1,16 @@
 package com.angelgranites.app
 
 import android.os.Bundle
-import androidx.core.view.WindowCompat
+import androidx.activity.enableEdgeToEdge
 import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Enable edge-to-edge display using the modern API. This replaces
+        // deprecated calls such as window.setStatusBarColor and
+        // window.setNavigationBarColor.
+        enableEdgeToEdge()
+
         super.onCreate(savedInstanceState)
-        
-        // Enable edge-to-edge display for Android 15+ compatibility
-        // This replaces the deprecated window.setStatusBarColor, window.setNavigationBarColor, etc.
-        WindowCompat.setDecorFitsSystemWindows(window, false)
     }
 }
