@@ -335,9 +335,10 @@ class _ContactScreenState extends State<ContactScreen> {
   Widget build(BuildContext context) {
     return Container(
       decoration: AppTheme.gradientBackground,
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
             Container(
@@ -355,9 +356,12 @@ class _ContactScreenState extends State<ContactScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Get in Touch',
-                    style: Theme.of(context).textTheme.displayLarge,
+                  Semantics(
+                    header: true,
+                    child: Text(
+                      'Get in Touch',
+                      style: Theme.of(context).textTheme.displayLarge,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(

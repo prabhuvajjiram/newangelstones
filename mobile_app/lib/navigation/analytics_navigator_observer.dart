@@ -54,7 +54,8 @@ class AnalyticsNavigatorObserver extends NavigatorObserver {
       return 'product_detail_screen';
     } else if (routeStr.contains('FlyerViewerScreen')) {
       return 'flyer_viewer_screen';
-    } else if (routeStr.contains('CartScreen')) {
+    } else if (routeStr.contains('EnhancedCartScreen') ||
+        routeStr.contains('CartScreen')) {
       return 'cart_screen';
     } else if (routeStr.contains('MainNavigation')) {
       return 'main_screen';
