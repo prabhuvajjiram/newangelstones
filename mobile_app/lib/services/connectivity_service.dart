@@ -18,8 +18,8 @@ class ConnectivityService {
     _connectivityController.add(_lastKnownState);
     
     // Listen to connectivity changes
-    _connectivity.onConnectivityChanged.listen((ConnectivityResult result) async {
-      final isOnline = result != ConnectivityResult.none;
+    _connectivity.onConnectivityChanged.listen((List<ConnectivityResult> results) async {
+      final isOnline = results.isNotEmpty && results.any((result) => result != ConnectivityResult.none);
       
       // Only emit if state changed
       if (isOnline != _lastKnownState) {
@@ -32,8 +32,8 @@ class ConnectivityService {
   
   Future<bool> _checkConnection() async {
     try {
-      final result = await _connectivity.checkConnectivity();
-      return result != ConnectivityResult.none;
+      final results = await _connectivity.checkConnectivity();
+      return results.isNotEmpty && results.any((result) => result != ConnectivityResult.none);
     } catch (e) {
       debugPrint('⚠️ Error checking connectivity: $e');
       return false; // Assume offline on error

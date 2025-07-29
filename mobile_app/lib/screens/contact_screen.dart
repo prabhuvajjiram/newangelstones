@@ -648,7 +648,7 @@ class _ContactScreenState extends State<ContactScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   List<Widget> _buildStaggeredLocations() {
