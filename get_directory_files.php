@@ -27,6 +27,22 @@ function getDirectoryFiles($directory) {
     // Base directory is one level up from this script
     $baseDir = __DIR__ . '/images';
     
+    // Simple caching to reduce repeated directory scans
+    $cacheDir = __DIR__ . '/cache';
+    if (!is_dir($cacheDir)) {
+        mkdir($cacheDir, 0755, true);
+    }
+    $cacheKey = preg_replace('/[^A-Za-z0-9_-]/', '_', $directory);
+    $cacheFile = $cacheDir . '/' . $cacheKey . '.json';
+    $cacheTTL = 3600; // 1 hour
+
+    if (file_exists($cacheFile) && (time() - filemtime($cacheFile) < $cacheTTL)) {
+        $cached = json_decode(file_get_contents($cacheFile), true);
+        if ($cached) {
+            return $cached;
+        }
+    }
+
     // If searching products, provide the right subdirectory
     if ($directory === 'products' || strpos($directory, 'products/') === 0) {
         $normalizedBaseDir = realpath($baseDir . '/products');
@@ -68,10 +84,12 @@ function getDirectoryFiles($directory) {
                     ];
                 }
             }
-            return [
+            $result = [
                 'success' => true,
                 'files' => $categories
             ];
+            file_put_contents($cacheFile, json_encode($result));
+            return $result;
         }
         
         $category = substr($directory, strlen('products/'));
@@ -164,11 +182,13 @@ function getDirectoryFiles($directory) {
         
         // Log the result
         error_log("Returning " . count($files) . " files");
-        
-        return [
+
+        $result = [
             'success' => true,
             'files' => $files
         ];
+        file_put_contents($cacheFile, json_encode($result));
+        return $result;
     } else {
         error_log("Invalid directory: $directory");
         return [
