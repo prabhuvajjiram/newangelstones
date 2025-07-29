@@ -14,16 +14,18 @@ class DesignGalleryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Set preferred orientations and status bar style for better UX
+    // Set preferred orientations and enable modern edge-to-edge UI
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
+    // Use edge-to-edge mode without modifying system bar colors, which avoids
+    // the deprecated Window.setStatusBarColor and setNavigationBarColor APIs.
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
       ),
     );
