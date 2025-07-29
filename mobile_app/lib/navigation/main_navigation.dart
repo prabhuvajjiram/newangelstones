@@ -143,7 +143,7 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
                       height: 36,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: const Color(0xFFD4AF37).withOpacity(0.3),
+                        color: const Color(0xFFD4AF37).withValues(alpha: 0.3),
                       ),
                     ),
                   ),
@@ -175,8 +175,9 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
                   alignment: Alignment.centerLeft,
                   child: Text(
                     'ANGEL GRANITES',
-                    style: const TextStyle(
-                      fontSize: 18, // this acts as max size
+                    style: TextStyle(
+                      //fontSize: 18, // this acts as max size
+                      fontSize: dynamicFontSize.clamp(14.0, 22.0), // keeps it readable on all devices
                       fontWeight: FontWeight.w700,
                       fontFamily: 'OpenSans',
                       letterSpacing: 0.5,
@@ -232,7 +233,7 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -285,7 +286,7 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
         children: [
           mainContent,
           Container(
-            color: AppTheme.primaryColor.withOpacity(0.8),
+            color: AppTheme.primaryColor.withValues(alpha: 0.8),
             child: const Center(
               child: CircularProgressIndicator(color: AppTheme.accentColor),
             ),
