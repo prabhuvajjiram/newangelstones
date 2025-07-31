@@ -362,9 +362,7 @@ $status = $_GET['status'] ?? '';
             </label>
         </div>
 
-        <div class="mb-3">
-            <div class="g-recaptcha" data-sitekey="YOUR_SITE_KEY"></div>
-        </div>
+        <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
 
         <button type="submit" class="btn btn-primary">Submit Application</button>
     </form>
@@ -375,6 +373,7 @@ $status = $_GET['status'] ?? '';
 
 <script src="/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.5/dist/signature_pad.umd.min.js"></script>
+
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <script>
     const sigPad1 = new SignaturePad(document.getElementById('sigPad1'));
@@ -387,16 +386,26 @@ $status = $_GET['status'] ?? '';
         sigPad2.clear();
         document.getElementById('signature2_image').value = '';
     });
-    document.getElementById('creditAppForm').addEventListener('submit', function(e){
+
+    const form = document.getElementById('creditAppForm');
+    form.addEventListener('submit', function(e){
+        e.preventDefault();
         if(sigPad1.isEmpty()){
             alert('Please provide at least the first signature.');
-            e.preventDefault();
+
             return false;
         }
         document.getElementById('signature1_image').value = sigPad1.toDataURL('image/png');
         if(!sigPad2.isEmpty()){
             document.getElementById('signature2_image').value = sigPad2.toDataURL('image/png');
         }
+
+        grecaptcha.ready(function(){
+            grecaptcha.execute('YOUR_SITE_KEY', {action: 'creditapp'}).then(function(token){
+                document.getElementById('g-recaptcha-response').value = token;
+                form.submit();
+            });
+        });
     });
 </script>
 </body>

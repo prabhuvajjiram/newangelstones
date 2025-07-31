@@ -11,14 +11,34 @@ if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'] ?? '', 
     exit;
 }
 
-// reCAPTCHA validation
+
+// reCAPTCHA v3 validation
+
 $recaptchaSecret = 'YOUR_SECRET_KEY';
 $recaptchaResponse = $_POST['g-recaptcha-response'] ?? '';
 $recaptchaVerified = false;
 if ($recaptchaSecret && $recaptchaResponse) {
-    $verify = file_get_contents('https://www.google.com/recaptcha/api/siteverify?secret=' . urlencode($recaptchaSecret) . '&response=' . urlencode($recaptchaResponse));
-    $captcha = json_decode($verify, true);
-    $recaptchaVerified = $captcha['success'] ?? false;
+    $params = [
+        'secret'   => $recaptchaSecret,
+        'response' => $recaptchaResponse,
+        'remoteip' => $_SERVER['REMOTE_ADDR'] ?? ''
+    ];
+    $context = stream_context_create([
+        'http' => [
+            'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+            'method'  => 'POST',
+            'content' => http_build_query($params),
+            'timeout' => 10,
+        ]
+    ]);
+    $verify = file_get_contents('https://www.google.com/recaptcha/api/siteverify', false, $context);
+    if ($verify !== false) {
+        $captcha = json_decode($verify, true);
+        $recaptchaVerified = ($captcha['success'] ?? false) &&
+            ($captcha['score'] ?? 0) >= 0.5 &&
+            ($captcha['action'] ?? '') === 'creditapp';
+    }
+
 }
 if (!$recaptchaVerified) {
     header('Location: index.php?status=error');
