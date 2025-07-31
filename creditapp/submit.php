@@ -11,7 +11,9 @@ if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'] ?? '', 
     exit;
 }
 
+
 // reCAPTCHA v3 validation
+
 $recaptchaSecret = 'YOUR_SECRET_KEY';
 $recaptchaResponse = $_POST['g-recaptcha-response'] ?? '';
 $recaptchaVerified = false;
@@ -36,6 +38,7 @@ if ($recaptchaSecret && $recaptchaResponse) {
             ($captcha['score'] ?? 0) >= 0.5 &&
             ($captcha['action'] ?? '') === 'creditapp';
     }
+
 }
 if (!$recaptchaVerified) {
     header('Location: index.php?status=error');
