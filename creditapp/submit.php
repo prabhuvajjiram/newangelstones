@@ -1,6 +1,13 @@
 <?php
+session_start();
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: index.php');
+    exit;
+}
+
+// CSRF token check
+if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'])) {
+    header('Location: index.php?status=error');
     exit;
 }
 
@@ -50,37 +57,14 @@ if (!empty($_POST['signature2_image'])) {
     $signaturePaths[] = $sig2;
 }
 
-file_put_contents($base . '.txt', print_r($_POST, true));
 
-// Load TCPDF
-$tcpdfPaths = [
-    __DIR__ . '/../crm/tcpdf/tcpdf.php',
-    __DIR__ . '/crm/tcpdf/tcpdf.php',
-    dirname(__DIR__) . '/crm/tcpdf/tcpdf.php',
-    realpath(__DIR__ . '/../crm/tcpdf/tcpdf.php'),
-];
-$tcpdfFound = false;
-foreach ($tcpdfPaths as $p) {
-    if (file_exists($p)) {
-        require_once $p;
-        $tcpdfFound = true;
-        break;
-    }
-}
-if (!$tcpdfFound) {
-    header('Location: index.php?status=error');
-    exit;
-}
+$txtFile = $base . '.txt';
+file_put_contents($txtFile, print_r($_POST, true));
 
-class CreditAppPDF extends TCPDF {
-    public function Header() {
-        $this->SetFont('helvetica', 'B', 15);
-        $this->Cell(0, 10, 'Angel Stones Credit Application', 0, 1, 'C');
-        $this->Ln(4);
-    }
-}
+// Load custom PDF class
+require_once __DIR__ . '/../crm/includes/mypdf.php';
 
-$pdf = new CreditAppPDF();
+$pdf = new MYPDF();
 $pdf->AddPage();
 $pdf->SetFont('helvetica', '', 10);
 foreach ($formData as $field => $val) {
@@ -99,16 +83,37 @@ $pdfFile = $base . '.pdf';
 $pdf->Output($pdfFile, 'F');
 
 // Email with PHPMailer (fallback to mail)
+$config_path = __DIR__ . '/../email_config.php';
+if (file_exists($config_path)) {
+    require_once $config_path;
+}
+
 $phpmailer = __DIR__ . '/../crm/vendor/phpmailer/PHPMailer.php';
 $emailSent = false;
 if (file_exists($phpmailer)) {
     require_once $phpmailer;
+    require_once __DIR__ . '/../crm/vendor/phpmailer/SMTP.php';
     require_once __DIR__ . '/../crm/vendor/phpmailer/Exception.php';
     $mail = new PHPMailer\PHPMailer\PHPMailer();
-    $mail->setFrom('noreply@theangelstones.com', 'Credit Application');
-    $mail->addAddress('hr@theangelstones.com');
+    if (defined('SMTP_HOST')) {
+        $mail->isSMTP();
+        $mail->Host = SMTP_HOST;
+        $mail->SMTPAuth = true;
+        $mail->Username = SMTP_USERNAME;
+        $mail->Password = SMTP_PASSWORD;
+        $mail->SMTPSecure = SMTP_SECURE;
+        $mail->Port = SMTP_PORT;
+    }
+    $fromEmail = defined('SMTP_FROM_EMAIL') ? SMTP_FROM_EMAIL : 'noreply@theangelstones.com';
+    $fromName  = defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : 'Angel Stones';
+    $mail->setFrom($fromEmail, $fromName);
+    $mail->addAddress('da@theangelstones.com');
     $mail->Subject = 'New Credit Application';
-    $mail->Body = "A new credit application has been submitted.";
+    $body = '<h2>New Credit Application</h2>';
+    foreach ($formData as $field => $val) {
+        $body .= '<p><strong>' . ucwords(str_replace('_',' ', $field)) . ':</strong> ' . nl2br($val) . '</p>';
+    }
+    $mail->Body = $body;
     $mail->isHTML(true);
     $mail->addAttachment($pdfFile);
     foreach ($signaturePaths as $sig) {
@@ -140,7 +145,7 @@ if (!$emailSent) {
         }
     }
     $message .= "\r\n--$boundary--";
-    $emailSent = mail('hr@theangelstones.com', 'New Credit Application', $message, $headers);
+    $emailSent = mail('da@theangelstones.com', 'New Credit Application', $message, $headers);
 }
 
 header('Location: index.php?status=' . ($emailSent ? 'success' : 'error'));

@@ -1,5 +1,9 @@
 <?php
 // Credit Application Form for Angel Stones
+session_start();
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 $status = $_GET['status'] ?? '';
 ?>
 <!DOCTYPE html>
@@ -24,6 +28,7 @@ $status = $_GET['status'] ?? '';
         <div class="alert alert-danger">There was an error submitting the form. Please try again.</div>
     <?php endif; ?>
     <form action="submit.php" method="post" id="creditAppForm">
+        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
         <h4 class="mt-4">1. Business Information</h4>
         <div class="row">
             <div class="col-md-6 mb-3">
