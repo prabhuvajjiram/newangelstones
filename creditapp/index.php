@@ -13,14 +13,31 @@ $status = $_GET['status'] ?? '';
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Credit Application - Angel Stones</title>
     <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <!-- Modern styling inspired by order quote form -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { background:#f8f9fa; }
+        :root {
+            --primary-gradient: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            --accent-gradient: linear-gradient(135deg, #4299e1 0%, #63b3ed 100%);
+        }
+        body {
+            background: #f7fafc;
+            font-family: 'Poppins', sans-serif;
+        }
+        .app-container {
+            background: #fff;
+            border-radius: .75rem;
+            box-shadow: 0 0.25rem 1rem rgba(0,0,0,0.1);
+            padding: 2rem;
+        }
         .signature-pad { border:1px solid #ced4da; border-radius:.25rem; }
         canvas { width:100%; height:200px; }
     </style>
 </head>
 <body>
-<div class="container my-4">
+<div class="container my-4 app-container">
     <h1 class="mb-4">Credit Application</h1>
     <?php if($status==='success'): ?>
         <div class="alert alert-success">Your application has been submitted successfully.</div>
@@ -280,6 +297,20 @@ $status = $_GET['status'] ?? '';
         </div>
 
         <h4 class="mt-4">7. Personal Guarantee & Signature</h4>
+        <p class="mb-3">
+            The undersigned represents that the above stated information is correct and true to the
+            best of his/her knowledge as of the date stated herein. This application is submitted to
+            Angel Stones LLC for the purpose of obtaining credit with Angel Stones LLC. Upon
+            acceptance of this application by Angel Stones LLC, the undersigned agrees to pay and
+            abide by the terms of payment set forth and agreed upon at the time of purchase. All
+            invoices must be paid within the terms specified on each sales invoice. Payments beyond
+            those terms are subject to a 1.5% monthly interest charge (18% APR). Furthermore,
+            applicant acknowledges and agrees to Angel Stones LLC's financial policy stating that any
+            customer who knowingly defaults will be responsible for all costs of collection including
+            agency commissions, attorney fees, legal filing fees, court costs and any fees associated
+            with judgment execution. In consideration of credit extended by Angel Stones LLC the
+            undersigned does jointly and severally personally guarantee payment of all sums due.
+        </p>
         <div class="row">
             <div class="col-md-6 mb-3">
                 <label class="form-label">Name (Guarantor 1)</label>
@@ -299,7 +330,7 @@ $status = $_GET['status'] ?? '';
                     <canvas id="sigPad1"></canvas>
                 </div>
                 <button type="button" class="btn btn-secondary mt-2" id="clearSig1">Clear</button>
-                <input type="hidden" name="signature1_image" id="signature1_image" required>
+                <input type="hidden" name="signature1_image" id="signature1_image" aria-required="true">
             </div>
 
             <div class="col-md-6 mb-3">
@@ -325,8 +356,8 @@ $status = $_GET['status'] ?? '';
         </div>
 
         <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" value="1" id="agree" required>
-            <label class="form-check-label" for="agree">
+            <input class="form-check-input" type="checkbox" value="1" id="agree" required aria-describedby="termsHelp">
+            <label class="form-check-label" for="agree" id="termsHelp">
                 I agree to the <a href="/terms-of-service.html" target="_blank">terms and conditions</a>.
             </label>
         </div>
