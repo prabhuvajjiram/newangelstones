@@ -42,8 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _futureFeatured = widget.apiService.fetchFeaturedProducts();
     _futureInventorySummary =
         widget.inventoryService.fetchInventory(pageSize: 3);
-    _futureSpecials =
-        widget.apiService.loadLocalProducts('assets/specials.json');
+    _futureSpecials = widget.apiService.fetchSpecials();
     _directoryService = widget.directoryService;
   }
 
@@ -55,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _futureInventorySummary =
           widget.inventoryService.fetchInventory(pageSize: 3, forceRefresh: true);
       // Refresh specials
-      _futureSpecials = widget.apiService.loadLocalProducts('assets/specials.json');
+      _futureSpecials = widget.apiService.fetchSpecials(forceRefresh: true);
     });
   }
 
