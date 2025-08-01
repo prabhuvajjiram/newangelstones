@@ -296,9 +296,11 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.inventory_2_outlined, 
-                    size: 64, 
-                    color: theme.hintColor.withValues(alpha: 0.5)),
+                Icon(
+                  Icons.inventory_2_outlined,
+                  size: 64,
+                  color: theme.hintColor.withOpacity(0.5),
+                ),
                 const SizedBox(height: 16),
                 Text(
                   'No items found',
