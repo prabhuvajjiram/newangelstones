@@ -150,8 +150,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
       },
       child: RefreshIndicator(
         onRefresh: _refreshData,
-        child: Column(
-      children: [
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
         // Search and filter section
         Padding(
           padding: const EdgeInsets.all(8.0),
@@ -247,12 +249,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
           ),
         ),
         // Inventory table
-        Expanded(
-          child: InventoryTableSection(
-            title: 'Current Inventory',
-            future: _futureInventory,
-            onRetry: _loadInventory,
-          ),
+        InventoryTableSection(
+          title: 'Current Inventory',
+          future: _futureInventory,
+          onRetry: _loadInventory,
         ),
       ],
     ),
