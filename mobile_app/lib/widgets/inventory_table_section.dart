@@ -464,11 +464,17 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
         // For larger screens, show a responsive data table
         return LayoutBuilder(
           builder: (context, constraints) {
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                child: DataTable(
+            return Scrollbar(
+              controller: _scrollController,
+              thumbVisibility: true,
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                    child: DataTable(
                   columnSpacing: 16,
                   horizontalMargin: 12,
                   headingRowHeight: 56,
@@ -556,8 +562,8 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
                   }).toList(),
                 ),
               ),
-            );
-          },
+            ),
+          ),
         );
       },
     );
