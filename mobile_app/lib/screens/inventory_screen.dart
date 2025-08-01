@@ -154,6 +154,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
+        // Search and filter section
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
               // Search and filter section
               Padding(
                 padding: const EdgeInsets.all(8.0),
