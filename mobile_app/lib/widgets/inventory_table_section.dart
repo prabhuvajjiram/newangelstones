@@ -316,12 +316,12 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
         // For small screens, show a list view with compact rows
         if (isSmallScreen) {
           return Stack(
-          children: [
-            ListView.builder(
-              controller: _scrollController,
-            padding: const EdgeInsets.all(8),
-            itemCount: items.length,
-              itemBuilder: (context, index) {
+            children: [
+              ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(8),
+                itemCount: items.length,
+                itemBuilder: (context, index) {
               final item = items[index];
               
               final isSaved = _savedItems[item.code] ?? false;
@@ -458,17 +458,24 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
                   child: const Icon(Icons.arrow_upward, color: Colors.white), // Unique hero tag
                 ),
               ),
-          ],
-        );}
+            ],
+          );
+        }
         
         // For larger screens, show a responsive data table
         return LayoutBuilder(
           builder: (context, constraints) {
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                child: DataTable(
+            return Scrollbar(
+              controller: _scrollController,
+              thumbVisibility: true,
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                    child: DataTable(
                   columnSpacing: 16,
                   horizontalMargin: 12,
                   headingRowHeight: 56,
@@ -556,8 +563,8 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
                   }).toList(),
                 ),
               ),
-            );
-          },
+            ),
+          ),
         );
       },
     );

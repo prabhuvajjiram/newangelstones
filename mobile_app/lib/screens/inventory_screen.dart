@@ -145,18 +145,20 @@ class _InventoryScreenState extends State<InventoryScreen> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Dismiss keyboard when tapping outside of text fields
+        // Dismiss keyboard when tapping outside text fields
         FocusScope.of(context).unfocus();
       },
       child: RefreshIndicator(
         onRefresh: _refreshData,
-        child: Column(
-      children: [
-        // Search and filter section
-        Padding(
-          padding: const EdgeInsets.all(8.0),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
+              // Search and filter section
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
               // Search bar
               Semantics(
                 label: 'Search inventory',
@@ -247,16 +249,15 @@ class _InventoryScreenState extends State<InventoryScreen> {
           ),
         ),
         // Inventory table
-        Expanded(
-          child: InventoryTableSection(
-            title: 'Current Inventory',
-            future: _futureInventory,
-            onRetry: _loadInventory,
-          ),
+        InventoryTableSection(
+          title: 'Current Inventory',
+          future: _futureInventory,
+          onRetry: _loadInventory,
         ),
       ],
     ),
-    ),
+        ),
+      ),
     );
   }
   
