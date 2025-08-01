@@ -359,6 +359,9 @@ class ApiService {
 
   // Cache for colors products
   CacheEntry<List<Product>>? _colorsCache;
+
+  // Cache for specials flyers
+  CacheEntry<List<Product>>? _specialsCache;
   
   /// Get product directory paths from featured_products.json
   /// Returns a list of directory paths that should be searched for products
@@ -715,6 +718,75 @@ class ApiService {
       return localProducts;
     }
   }
+
+  /// Fetch specials/flyer data from the server
+  /// Falls back to local JSON on error
+  Future<List<Product>> fetchSpecials({bool forceRefresh = false}) async {
+    debugPrint('🌐 Fetching specials from website API');
+
+    if (_specialsCache != null &&
+        !forceRefresh &&
+        !_specialsCache!.isExpired(_memoryCacheTTL)) {
+      debugPrint('💾 Using cached specials');
+      return _specialsCache!.data;
+    }
+
+    if (forceRefresh) {
+      debugPrint('🔄 Force refreshing specials');
+      _specialsCache = null;
+    }
+
+    try {
+      // Preload local specials as fallback
+      await loadLocalProducts('assets/specials.json');
+
+      final url = '${SecurityConfig.angelStonesBaseUrl}/api/specials.php?action=list';
+      final response = await _secureClient
+          .secureGet(url)
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final responseBody = utf8.decode(response.bodyBytes);
+        final dynamic data = json.decode(responseBody);
+
+        if (data is Map<String, dynamic> &&
+            data['success'] == true &&
+            data['specials'] is List) {
+          final List<dynamic> items = data['specials'] as List;
+
+          final specials = items.whereType<Map<String, dynamic>>().map((e) {
+            final id = e['id']?.toString() ?? '';
+            final title = e['title']?.toString() ?? id;
+            final thumbnail = e['thumbnail']?.toString() ?? '';
+            final pdf = e['url']?.toString() ?? '';
+            return Product(
+              id: id,
+              name: title,
+              description: e['description']?.toString() ?? '',
+              imageUrl: '${SecurityConfig.angelStonesBaseUrl}$thumbnail',
+              price: 0.0,
+              label: e['label']?.toString(),
+              pdfUrl: '${SecurityConfig.angelStonesBaseUrl}$pdf',
+            );
+          }).toList();
+
+          _specialsCache = CacheEntry(specials);
+          _updateLocalSpecialsJson(specials);
+          return specials;
+        } else {
+          debugPrint('⚠️ Unexpected specials API response format: ${data.runtimeType}');
+          throw Exception('Invalid response format');
+        }
+      } else {
+        debugPrint('❌ Failed to fetch specials: ${response.statusCode}');
+        throw Exception('Failed to fetch specials');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error fetching specials: $e');
+      _specialsCache = CacheEntry(await loadLocalProducts('assets/specials.json'));
+      return _specialsCache!.data;
+    }
+  }
   
   /// Update the local colors JSON file with new data from the API
   Future<void> _updateLocalColorsJson(Map<String, dynamic> data) async {
@@ -730,6 +802,20 @@ class ApiService {
     }
   }
 
+  /// Update the local specials JSON file with new data
+  Future<void> _updateLocalSpecialsJson(List<Product> specials) async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File(path.join(directory.path, 'specials.json'));
+      final jsonString = const JsonEncoder.withIndent('  ')
+          .convert(specials.map((e) => e.toJson()).toList());
+      await file.writeAsString(jsonString);
+      debugPrint('✅ Successfully updated local specials.json');
+    } catch (e) {
+      debugPrint('⚠️ Error updating local specials JSON file: $e');
+    }
+  }
+
   /// Clear caches that have passed their TTL
   void clearExpiredCache() {
     _categoryCache.removeWhere((key, entry) => entry.isExpired(_memoryCacheTTL));
@@ -742,6 +828,9 @@ class ApiService {
     }
     if (_colorsCache != null && _colorsCache!.isExpired(_memoryCacheTTL)) {
       _colorsCache = null;
+    }
+    if (_specialsCache != null && _specialsCache!.isExpired(_memoryCacheTTL)) {
+      _specialsCache = null;
     }
   }
 }
