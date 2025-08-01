@@ -15,6 +15,7 @@ import 'state/saved_items_state.dart';
 import 'package:provider/provider.dart';
 import 'services/firebase_service.dart';
 import 'services/analytics_wrapper.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 void main() async {
   // Ensure Flutter is initialized
@@ -23,17 +24,15 @@ void main() async {
   // Initialize Firebase
   await FirebaseService.instance.initialize();
   
-  // Set up global error handling
-  // Note: Firebase Crashlytics will handle error reporting in production
+  // Set up global error handling and forward to Crashlytics
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
-    debugPrint('Flutter error caught: ${details.exception}');
+    FirebaseCrashlytics.instance.recordFlutterFatalError(details);
   };
-  
+
   // Handle uncaught async errors
-  // Use WidgetsBinding for platform error handling (compatible with older Flutter versions)
   WidgetsBinding.instance.platformDispatcher.onError = (error, stack) {
-    debugPrint('Uncaught platform error: $error');
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
   };
   
