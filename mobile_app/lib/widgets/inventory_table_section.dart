@@ -316,12 +316,12 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
         // For small screens, show a list view with compact rows
         if (isSmallScreen) {
           return Stack(
-          children: [
-            ListView.builder(
-              controller: _scrollController,
-            padding: const EdgeInsets.all(8),
-            itemCount: items.length,
-              itemBuilder: (context, index) {
+            children: [
+              ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(8),
+                itemCount: items.length,
+                itemBuilder: (context, index) {
               final item = items[index];
               
               final isSaved = _savedItems[item.code] ?? false;
@@ -458,8 +458,9 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
                   child: const Icon(Icons.arrow_upward, color: Colors.white), // Unique hero tag
                 ),
               ),
-          ],
-        );}
+            ],
+          );
+        }
         
         // For larger screens, show a responsive data table
         return LayoutBuilder(
