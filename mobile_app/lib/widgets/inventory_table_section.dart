@@ -299,7 +299,7 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
                 Icon(
                   Icons.inventory_2_outlined,
                   size: 64,
-                  color: theme.hintColor.withOpacity(0.5),
+                  color: theme.hintColor.withAlpha((0.5 * 255).round()),
                 ),
                 const SizedBox(height: 16),
                 Text(
