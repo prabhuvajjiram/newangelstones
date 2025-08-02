@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 import '../models/product.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
@@ -41,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // Try to fetch featured products from server, fall back to local if needed
     _futureFeatured = widget.apiService.fetchFeaturedProducts();
     _futureInventorySummary =
-        widget.inventoryService.fetchInventory(pageSize: 3);
+        widget.inventoryService.fetchInventory(pageSize: 1000);
     _futureSpecials = widget.apiService.fetchSpecials();
     _directoryService = widget.directoryService;
   }
@@ -52,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _futureFeatured = widget.apiService.fetchFeaturedProducts(forceRefresh: true);
       // Fetch inventory summary from API
       _futureInventorySummary =
-          widget.inventoryService.fetchInventory(pageSize: 3, forceRefresh: true);
+          widget.inventoryService.fetchInventory(pageSize: 1000, forceRefresh: true);
       // Refresh specials
       _futureSpecials = widget.apiService.fetchSpecials(forceRefresh: true);
     });
@@ -276,7 +277,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ElevatedButton(
                                     onPressed: () {
                                       setState(() {
-                                        _futureInventorySummary = widget.inventoryService.fetchInventory(pageSize: 3);
+                                        _futureInventorySummary = widget.inventoryService.fetchInventory(pageSize: 1000);
                                       });
                                     },
                                     child: const Text('Retry'),
@@ -308,7 +309,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             );
                           }
-                          final items = snapshot.data!;
+                          final randomItems =
+                              List<InventoryItem>.from(snapshot.data!);
+                          randomItems.shuffle();
+                          final items =
+                              randomItems.take(5).toList();
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -420,7 +425,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 );
                               }),
                               const SizedBox(height: 16),
-                              // View Full Inventory Button
+                              // View Inventory Button
                               Container(
                                 width: double.infinity,
                                 margin: const EdgeInsets.only(top: 8),
@@ -457,7 +462,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: const [
                                       Text(
-                                        'View Full Inventory',
+                                        'View Inventory',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16,
