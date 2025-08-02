@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'app_router.dart';
 import '../screens/home_screen.dart';
@@ -114,6 +116,16 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
     }
   }
 
+  Future<void> _launchMonumentLink() async {
+    final Uri uri = Uri.parse('https://monument.business/GV/');
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not launch URL')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -127,7 +139,19 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
         title: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(width: 32),
+            InkWell(
+              onTap: _launchMonumentLink,
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              child: Container(
+                width: 30,
+                height: 30,
+                color: kDebugMode
+                    ? Colors.red.withOpacity(0.3)
+                    : Colors.transparent,
+              ),
+            ),
+            const SizedBox(width: 2),
             SizedBox(
               width: 36,
               height: 36,
