@@ -292,21 +292,27 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
         
         // Empty state
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.inventory_2_outlined, 
-                    size: 64, 
-                    color: theme.hintColor.withValues(alpha: 0.5)),
-                const SizedBox(height: 16),
-                Text(
-                  'No items found',
-                  style: theme.textTheme.titleMedium,
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.8,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.inventory_2_outlined,
+                        size: 64,
+                        color: theme.hintColor.withValues(alpha: 0.5)),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No items found',
+                      style: theme.textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    const Text('Try adjusting your search or filters'),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                const Text('Try adjusting your search or filters'),
-              ],
+              ),
             ),
           );
         }
@@ -319,6 +325,7 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
           children: [
             ListView.builder(
               controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(8),
             itemCount: items.length,
               itemBuilder: (context, index) {
@@ -465,10 +472,12 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
         return LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                child: DataTable(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                  child: DataTable(
                   columnSpacing: 16,
                   horizontalMargin: 12,
                   headingRowHeight: 56,

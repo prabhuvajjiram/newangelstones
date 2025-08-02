@@ -93,6 +93,7 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
     return RefreshIndicator(
       onRefresh: _loadSavedItems,
       child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(8),
         itemCount: _savedItems.length,
         itemBuilder: (context, index) {
