@@ -33,6 +33,7 @@ class _ColorsScreenState extends State<ColorsScreen> {
     return RefreshIndicator(
       onRefresh: _refreshData,
       child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         child: ProductSection(
           title: 'Granite Varieties',
           future: _futureColors,
