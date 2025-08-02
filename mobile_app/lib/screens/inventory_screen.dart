@@ -165,7 +165,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 controller: _searchController,
                 focusNode: _searchFocusNode,
                 decoration: InputDecoration(
-                  hintText: 'Search inventory...',
+                  hintText: 'Search inventory...(Pull to load more)',
                   prefixIcon: const Icon(Icons.search),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),

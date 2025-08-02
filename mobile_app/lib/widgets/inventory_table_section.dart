@@ -565,7 +565,7 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
                   }).toList(),
                 ),
               ),
-            );
+            ));
           },
         );
       },
