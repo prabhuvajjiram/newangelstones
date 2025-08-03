@@ -1,6 +1,6 @@
 name: angel_granites_app
 description: Mobile app for Angel Granites.
-version: 2.2.1+20 # versionName + versionCode
+version: 2.2.3+23 # versionName + versionCode
 
 
 environment:
