@@ -91,7 +91,8 @@ $google_login_url = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build
                     <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
                 <?php endif; ?>
 
-                <a href="#" class="btn-google" id="googleBtn">
+                <!-- Direct link to Google OAuth, as in December version -->
+                <a href="<?php echo $google_login_url; ?>" class="btn-google">
                     <img src="../images/Google__G__logo.svg" alt="Google Logo">
                     Sign in with Google
                 </a>
@@ -100,24 +101,5 @@ $google_login_url = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build
         </div>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script>
-        window.onload = function () {
-            if (window.google && google.accounts && google.accounts.oauth2) {
-                const codeClient = google.accounts.oauth2.initCodeClient({
-                    client_id: '<?php echo GOOGLE_CLIENT_ID; ?>',
-                    scope: 'openid email profile',
-                    redirect_uri: '<?php echo GOOGLE_REDIRECT_URI; ?>',
-                    ux_mode: 'redirect',
-                    hd: 'theangelstones.com'
-                });
-                const btn = document.getElementById('googleBtn');
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    codeClient.requestCode();
-                });
-            }
-        };
-    </script>
 </body>
 </html>

@@ -1,0 +1,389 @@
+PS C:\Users\prabh\OneDrive\Desktop> .\ring.ps1
+{
+    "uri":  "https://platform.ringcentral.com/restapi/v1.0/account/63395585031/extension?page=1\u0026perPage=100",
+    "records":  [
+                    {
+                        "uri":  "https://platform.ringcentral.com/restapi/v1.0/account/63395585031/extension/542668030",
+                        "id":  542668030,
+                        "extensionNumber":  "106",
+                        "contact":  {
+                                        "firstName":  "Jeremy",
+                                        "lastName":  "Owens",
+                                        "jobTitle":  "Sales Specialist",
+                                        "department":  "Sales",
+                                        "email":  "jowens@angelgranites.com",
+                                        "emailAsLoginName":  true,
+                                        "pronouncedName":  {
+                                                               "type":  "Recorded",
+                                                               "text":  "Jeremy Owens",
+                                                               "prompt":  {
+                                                                              "id":  "5319373031",
+                                                                              "contentType":  "audio/wav",
+                                                                              "contentUri":  "https://media.ringcentral.com/restapi/v1.0/account/63395585031/extension/542668030/greeting/5319373031/content"
+                                                                          }
+                                                           }
+                                    },
+                        "name":  "Jeremy Owens",
+                        "type":  "User",
+                        "status":  "Enabled",
+                        "permissions":  {
+                                            "admin":  {
+                                                          "enabled":  false
+                                                      },
+                                            "internationalCalling":  {
+                                                                         "enabled":  true
+                                                                     }
+                                        },
+                        "profileImage":  {
+                                             "uri":  "https://platform.ringcentral.com/restapi/v1.0/account/63395585031/extension/542668030/profile-image"
+                                         },
+                        "hidden":  false,
+                        "assignedCountry":  {
+                                                "uri":  "https://platform.ringcentral.com/restapi/v1.0/dictionary/country/1",
+                                                "id":  "1",
+                                                "name":  "United States",
+                                                "isoCode":  "US"
+                                            },
+                        "creationTime":  "2025-03-28T21:16:23Z"
+                    },
+                    {
+                        "uri":  "https://platform.ringcentral.com/restapi/v1.0/account/63395585031/extension/572657030",
+                        "id":  572657030,
+                        "extensionNumber":  "107",
+                        "contact":  {
+                                        "firstName":  "Angel",
+                                        "lastName":  "Dove",
+                                        "jobTitle":  "Sales Rep",
+                                        "email":  "adove@angelgranites.com",
+                                        "emailAsLoginName":  true,
+                                        "pronouncedName":  {
+                                                               "type":  "Recorded",
+                                                               "text":  "Angel Dove",
+                                                               "prompt":  {
+                                                                              "id":  "5468646031",
+                                                                              "contentType":  "audio/wav",
+                                                                              "contentUri":  "https://media.ringcentral.com/restapi/v1.0/account/63395585031/extension/572657030/greeting/5468646031/content"
+                                                                          }
+                                                           }
+                                    },
+                        "name":  "Angel Dove",
+                        "type":  "User",
+                        "status":  "Enabled",
+                        "permissions":  {
+                                            "admin":  {
+                                                          "enabled":  false
+                                                      },
+                                            "internationalCalling":  {
+                                                                         "enabled":  true
+                                                                     }
+                                        },
+                        "profileImage":  {
+                                             "uri":  "https://platform.ringcentral.com/restapi/v1.0/account/63395585031/extension/572657030/profile-image"
+                                         },
+                        "hidden":  false,
+                        "assignedCountry":  {
+                                                "uri":  "https://platform.ringcentral.com/restapi/v1.0/dictionary/country/1",
+                                                "id":  "1",
+                                                "name":  "United States",
+                                                "isoCode":  "US"
+                                            },
+                        "creationTime":  "2025-06-12T20:11:35Z"
+                    },
+                    {
+                        "uri":  "https://platform.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395585031",
+                        "id":  63395585031,
+                        "extensionNumber":  "101",
+                        "contact":  {
+                                        "firstName":  "Deepa",
+                                        "lastName":  "Anbalagan",
+                                        "company":  "Angel Granites LLC",
+                                        "email":  "purchase@theangelstones.com",
+                                        "businessPhone":  "+13234559489",
+                                        "emailAsLoginName":  true,
+                                        "pronouncedName":  {
+                                                               "type":  "Recorded",
+                                                               "text":  "Deepa Anbalagan",
+                                                               "prompt":  {
+                                                                              "id":  "405102030",
+                                                                              "contentType":  "audio/wav",
+                                                                              "contentUri":  "https://media.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395585031/greeting/405102030/content"
+                                                                          }
+                                                           }
+                                    },
+                        "name":  "Deepa Anbalagan",
+                        "type":  "User",
+                        "status":  "Enabled",
+                        "permissions":  {
+                                            "admin":  {
+                                                          "enabled":  true
+                                                      },
+                                            "internationalCalling":  {
+                                                                         "enabled":  true
+                                                                     }
+                                        },
+                        "profileImage":  {
+                                             "uri":  "https://platform.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395585031/profile-image"
+                                         },
+                        "hidden":  false,
+                        "assignedCountry":  {
+                                                "uri":  "https://platform.ringcentral.com/restapi/v1.0/dictionary/country/1",
+                                                "id":  "1",
+                                                "name":  "United States",
+                                                "isoCode":  "US"
+                                            },
+                        "creationTime":  "2025-02-13T19:31:22Z"
+                    },
+                    {
+                        "uri":  "https://platform.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395588031",
+                        "id":  63395588031,
+                        "extensionNumber":  "102",
+                        "contact":  {
+                                        "firstName":  "Mike",
+                                        "lastName":  "Scoggins",
+                                        "email":  "mscoggins@angelgranites.com",
+                                        "emailAsLoginName":  true,
+                                        "pronouncedName":  {
+                                                               "type":  "Recorded",
+                                                               "text":  "Mike Scoggins",
+                                                               "prompt":  {
+                                                                              "id":  "466614030",
+                                                                              "contentType":  "audio/wav",
+                                                                              "contentUri":  "https://media.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395588031/greeting/466614030/content"
+                                                                          }
+                                                           }
+                                    },
+                        "name":  "Mike Scoggins",
+                        "type":  "User",
+                        "status":  "Enabled",
+                        "permissions":  {
+                                            "admin":  {
+                                                          "enabled":  false
+                                                      },
+                                            "internationalCalling":  {
+                                                                         "enabled":  true
+                                                                     }
+                                        },
+                        "profileImage":  {
+                                             "uri":  "https://platform.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395588031/profile-image"
+                                         },
+                        "hidden":  false,
+                        "assignedCountry":  {
+                                                "uri":  "https://platform.ringcentral.com/restapi/v1.0/dictionary/country/1",
+                                                "id":  "1",
+                                                "name":  "United States",
+                                                "isoCode":  "US"
+                                            },
+                        "creationTime":  "2025-02-13T19:31:35Z"
+                    },
+                    {
+                        "uri":  "https://platform.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395589031",
+                        "id":  63395589031,
+                        "extensionNumber":  "103",
+                        "contact":  {
+                                        "firstName":  "Tiffany",
+                                        "lastName":  "Smith",
+                                        "email":  "tsmith@angelgranites.com",
+                                        "emailAsLoginName":  true,
+                                        "pronouncedName":  {
+                                                               "type":  "Recorded",
+                                                               "text":  "Tiffany Smith",
+                                                               "prompt":  {
+                                                                              "id":  "5197611031",
+                                                                              "contentType":  "audio/wav",
+                                                                              "contentUri":  "https://media.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395589031/greeting/5197611031/content"
+                                                                          }
+                                                           }
+                                    },
+                        "name":  "Tiffany Smith",
+                        "type":  "User",
+                        "status":  "Enabled",
+                        "permissions":  {
+                                            "admin":  {
+                                                          "enabled":  false
+                                                      },
+                                            "internationalCalling":  {
+                                                                         "enabled":  true
+                                                                     }
+                                        },
+                        "profileImage":  {
+                                             "uri":  "https://platform.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395589031/profile-image"
+                                         },
+                        "hidden":  false,
+                        "assignedCountry":  {
+                                                "uri":  "https://platform.ringcentral.com/restapi/v1.0/dictionary/country/1",
+                                                "id":  "1",
+                                                "name":  "United States",
+                                                "isoCode":  "US"
+                                            },
+                        "creationTime":  "2025-02-13T19:31:36Z"
+                    },
+                    {
+                        "uri":  "https://platform.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395590031",
+                        "id":  63395590031,
+                        "extensionNumber":  "104",
+                        "contact":  {
+                                        "firstName":  "Martha",
+                                        "lastName":  "Rucker",
+                                        "department":  "Sales",
+                                        "email":  "mrucker@angelgranites.com",
+                                        "emailAsLoginName":  true,
+                                        "pronouncedName":  {
+                                                               "type":  "Recorded",
+                                                               "text":  "Martha Rucker",
+                                                               "prompt":  {
+                                                                              "id":  "400595030",
+                                                                              "contentType":  "audio/wav",
+                                                                              "contentUri":  "https://media.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395590031/greeting/400595030/content"
+                                                                          }
+                                                           }
+                                    },
+                        "name":  "Martha Rucker",
+                        "type":  "User",
+                        "status":  "Enabled",
+                        "permissions":  {
+                                            "admin":  {
+                                                          "enabled":  false
+                                                      },
+                                            "internationalCalling":  {
+                                                                         "enabled":  true
+                                                                     }
+                                        },
+                        "profileImage":  {
+                                             "uri":  "https://platform.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395590031/profile-image"
+                                         },
+                        "hidden":  false,
+                        "assignedCountry":  {
+                                                "uri":  "https://platform.ringcentral.com/restapi/v1.0/dictionary/country/1",
+                                                "id":  "1",
+                                                "name":  "United States",
+                                                "isoCode":  "US"
+                                            },
+                        "creationTime":  "2025-02-13T19:31:36Z"
+                    },
+                    {
+                        "uri":  "https://platform.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395591031",
+                        "id":  63395591031,
+                        "extensionNumber":  "105",
+                        "contact":  {
+                                        "firstName":  "Candiss",
+                                        "lastName":  "Geter",
+                                        "email":  "cgeter@angelgranites.com",
+                                        "emailAsLoginName":  true,
+                                        "pronouncedName":  {
+                                                               "type":  "Recorded",
+                                                               "text":  "Candiss Geter",
+                                                               "prompt":  {
+                                                                              "id":  "5504548031",
+                                                                              "contentType":  "audio/wav",
+                                                                              "contentUri":  "https://media.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395591031/greeting/5504548031/content"
+                                                                          }
+                                                           }
+                                    },
+                        "name":  "Candiss Geter",
+                        "type":  "User",
+                        "status":  "Enabled",
+                        "permissions":  {
+                                            "admin":  {
+                                                          "enabled":  false
+                                                      },
+                                            "internationalCalling":  {
+                                                                         "enabled":  true
+                                                                     }
+                                        },
+                        "profileImage":  {
+                                             "uri":  "https://media.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395591031/profile-image",
+                                             "etag":  "b6de361a334ad7cf7588a6137d07b670",
+                                             "contentType":  "image/jpeg",
+                                             "lastModified":  "2025-05-12T17:24:14.465Z",
+                                             "scales":  [
+                                                            {
+                                                                "uri":  "https://media.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395591031/profile-image/90x90"
+                                                            },
+                                                            {
+                                                                "uri":  "https://media.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395591031/profile-image/195x195"
+                                                            },
+                                                            {
+                                                                "uri":  "https://media.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395591031/profile-image/584x584"
+                                                            },
+                                                            {
+                                                                "uri":  "https://media.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395591031/profile-image/original"
+                                                            }
+                                                        ]
+                                         },
+                        "hidden":  false,
+                        "assignedCountry":  {
+                                                "uri":  "https://platform.ringcentral.com/restapi/v1.0/dictionary/country/1",
+                                                "id":  "1",
+                                                "name":  "United States",
+                                                "isoCode":  "US"
+                                            },
+                        "creationTime":  "2025-02-13T19:31:37Z"
+                    },
+                    {
+                        "uri":  "https://platform.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395593031",
+                        "id":  63395593031,
+                        "type":  "User",
+                        "status":  "Unassigned",
+                        "profileImage":  {
+                                             "uri":  "https://platform.ringcentral.com/restapi/v1.0/account/63395585031/extension/63395593031/profile-image"
+                                         },
+                        "hidden":  true,
+                        "assignedCountry":  {
+                                                "uri":  "https://platform.ringcentral.com/restapi/v1.0/dictionary/country/1",
+                                                "id":  "1",
+                                                "name":  "United States",
+                                                "isoCode":  "US"
+                                            },
+                        "creationTime":  "2025-02-13T19:31:39Z"
+                    },
+                    {
+                        "uri":  "https://platform.ringcentral.com/restapi/v1.0/account/63395585031/extension/63396133031",
+                        "id":  63396133031,
+                        "extensionNumber":  "1",
+                        "contact":  {
+                                        "firstName":  "Angel Granites LLC",
+                                        "pronouncedName":  {
+                                                               "type":  "Recorded",
+                                                               "text":  "Angel Granites LLC",
+                                                               "prompt":  {
+                                                                              "id":  "399135030",
+                                                                              "contentType":  "audio/wav",
+                                                                              "contentUri":  "https://media.ringcentral.com/restapi/v1.0/account/63395585031/extension/63396133031/greeting/399135030/content"
+                                                                          }
+                                                           }
+                                    },
+                        "name":  "Angel Granites LLC",
+                        "type":  "Department",
+                        "status":  "Enabled",
+                        "permissions":  {
+                                            "admin":  {
+                                                          "enabled":  false
+                                                      },
+                                            "internationalCalling":  {
+                                                                         "enabled":  false
+                                                                     }
+                                        },
+                        "profileImage":  {
+                                             "uri":  "https://platform.ringcentral.com/restapi/v1.0/account/63395585031/extension/63396133031/profile-image"
+                                         },
+                        "hidden":  false,
+                        "creationTime":  "2025-02-13T20:35:05Z"
+                    }
+                ],
+    "paging":  {
+                   "page":  1,
+                   "totalPages":  1,
+                   "perPage":  100,
+                   "totalElements":  9,
+                   "pageStart":  0,
+                   "pageEnd":  8
+               },
+    "navigation":  {
+                       "firstPage":  {
+                                         "uri":  "https://platform.ringcentral.com/restapi/v1.0/account/63395585031/extension?page=1\u0026perPage=100"
+                                     },
+                       "lastPage":  {
+                                        "uri":  "https://platform.ringcentral.com/restapi/v1.0/account/63395585031/extension?page=1\u0026perPage=100"
+                                    }
+                   }
+}

@@ -6,6 +6,9 @@
  */
 
 // Include configuration
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 define('LOCAL_ENTRY_POINT', true);
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../db.php';
@@ -24,12 +27,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Define log file and logging function
+
 $logFile = __DIR__ . '/../ringcentral_chat.log';
 
 function logMessage($message, $level = 'INFO') {
     global $logFile;
     $timestamp = date('[Y-m-d H:i:s] ');
     file_put_contents($logFile, $timestamp . '[' . $level . '] ' . $message . PHP_EOL, FILE_APPEND);
+}
+
+// Add missing logError function
+function logError($message) {
+    logMessage($message, 'ERROR');
 }
 
 // Only accept POST requests
@@ -43,57 +52,57 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 try {
-    // Get input
     $input = json_decode(file_get_contents('php://input'), true);
-    
-    // Log what we received
     logMessage("Received POST data in send_message.php: " . json_encode($input));
-    
-    // Check required fields
     if (empty($input['session_id']) || empty($input['message'])) {
         throw new Exception("Missing required fields: session_id and message are required");
     }
-    
-    // Extract data
     $sessionId = $input['session_id'];
     $message = $input['message'];
     $visitorId = $input['visitor_id'] ?? null;
     $visitorName = $input['visitor_name'] ?? 'Anonymous';
     $visitorEmail = $input['visitor_email'] ?? null;
     $visitorPhone = $input['visitor_phone'] ?? null;
-    
+
     // Get database connection
-    $db = getDb();
-    
-    // Store visitor information and update session
+    try {
+        $db = getDb();
+    } catch (Exception $dbEx) {
+        logError("DB connection error: " . $dbEx->getMessage() . "\n" . $dbEx->getTraceAsString());
+        throw $dbEx;
+    }
+
     $visitorInfo = [
         'name' => $visitorName,
         'email' => $visitorEmail,
         'phone' => $visitorPhone
     ];
-    
-    // Update or create the chat session
-    $sessionResult = createOrUpdateChatSession($db, $sessionId, $visitorInfo);
-    logMessage("Session " . ($sessionResult == 'created' ? 'created' : 'updated') . ": $sessionId");
-    
-    // Store the message in the database
-    $messageId = storeChatMessage($db, $sessionId, $message, 'visitor', $visitorId);
-    
+    try {
+        $sessionResult = createOrUpdateChatSession($db, $sessionId, $visitorInfo);
+        logMessage("Session " . ($sessionResult == 'created' ? 'created' : 'updated') . ": $sessionId");
+    } catch (Exception $sessEx) {
+        logError("Session create/update error: " . $sessEx->getMessage() . "\n" . $sessEx->getTraceAsString());
+        throw $sessEx;
+    }
+
+    try {
+        $messageId = storeChatMessage($db, $sessionId, $message, 'visitor', $visitorId);
+    } catch (Exception $msgEx) {
+        logError("Message store error: " . $msgEx->getMessage() . "\n" . $msgEx->getTraceAsString());
+        throw $msgEx;
+    }
     if (!$messageId) {
         throw new Exception("Failed to store message in database");
     }
-    
     logMessage("Saved message to database: $messageId");
-    
-    // Optional: Forward to RingCentral if FORWARD_TO_RINGCENTRAL is defined and true
+
+    $isNewSession = ($sessionResult == 'created');
+    $ringcentralChatId = null;
     $forwardToRingCentral = defined('FORWARD_TO_RINGCENTRAL') && FORWARD_TO_RINGCENTRAL === true;
-    
+
     if ($forwardToRingCentral) {
         try {
-            // Initialize the RingCentral client
             require_once __DIR__ . '/../RingCentralTeamMessagingClient.php';
-            
-            // Determine which authentication method to use
             $authType = defined('RINGCENTRAL_AUTH_TYPE') ? RINGCENTRAL_AUTH_TYPE : 'oauth';
             $clientConfig = [
                 'clientId' => RINGCENTRAL_CLIENT_ID,
@@ -102,13 +111,10 @@ try {
                 'tokenPath' => __DIR__ . '/../secure_storage/rc_token.json',
                 'teamChatId' => RINGCENTRAL_TEAM_CHAT_ID
             ];
-            
-            // Add JWT token if using JWT authentication
             if ($authType === 'jwt' && defined('RINGCENTRAL_JWT_TOKEN')) {
                 $clientConfig['jwtToken'] = RINGCENTRAL_JWT_TOKEN;
                 logMessage("Using JWT authentication for RingCentral");
             } else {
-                // Fall back to OAuth if JWT is not available
                 if (defined('RINGCENTRAL_USERNAME') && defined('RINGCENTRAL_PASSWORD') && defined('RINGCENTRAL_EXTENSION')) {
                     $clientConfig['username'] = RINGCENTRAL_USERNAME;
                     $clientConfig['password'] = RINGCENTRAL_PASSWORD;
@@ -116,81 +122,96 @@ try {
                     logMessage("Using OAuth authentication for RingCentral");
                 }
             }
-            
             $rcClient = new RingCentralTeamMessagingClient($clientConfig);
-            
-            // Try to find a dedicated chat for this session
+
             $chatIdColumn = getDynamicColumnName($db, 'chat_sessions', ['ring_central_chat_id', 'ringcentral_chat_id', 'rc_chat_id', 'chat_id']);
             $sessionIdColumn = getDynamicColumnName($db, 'chat_sessions', ['session_id', 'sessionid', 'chat_session_id', 'session']);
-            
-            $stmt = $db->prepare("SELECT $chatIdColumn FROM chat_sessions WHERE $sessionIdColumn = ?");
-            $stmt->execute([$sessionId]);
-            $dedicatedChatId = $stmt->fetchColumn();
-            
-            // If no dedicated chat found, use the default team chat ID
-            $chatId = $dedicatedChatId ?: RINGCENTRAL_TEAM_CHAT_ID;
-            
-            // Post the message to RingCentral
-            // Format visitor info as a nice message
+            if ($isNewSession) {
+                $groupName = "Chat with $visitorName ($sessionId)";
+                $groupMembers = ["purchase@theangelstones.com"];
+                try {
+                    $group = $rcClient->createTeam($groupName, '', $groupMembers);
+                    logMessage("RingCentral createTeam response: " . json_encode($group));
+                } catch (Exception $rcCreateEx) {
+                    logError("RingCentral createTeam exception: " . $rcCreateEx->getMessage() . "\n" . $rcCreateEx->getTraceAsString());
+                    throw $rcCreateEx;
+                }
+                if (isset($group['id'])) {
+                    $ringcentralChatId = $group['id'];
+                    try {
+                        $stmt = $db->prepare("UPDATE chat_sessions SET $chatIdColumn = ? WHERE $sessionIdColumn = ?");
+                        $stmt->execute([$ringcentralChatId, $sessionId]);
+                    } catch (Exception $dbUpdateEx) {
+                        logError("DB update chatId error: " . $dbUpdateEx->getMessage() . "\n" . $dbUpdateEx->getTraceAsString());
+                    }
+                    logMessage("Created new RingCentral group: $ringcentralChatId for session $sessionId");
+                } else {
+                    logError("Failed to create RingCentral group for session $sessionId. Response: " . json_encode($group));
+                }
+            } else {
+                try {
+                    $stmt = $db->prepare("SELECT $chatIdColumn FROM chat_sessions WHERE $sessionIdColumn = ?");
+                    $stmt->execute([$sessionId]);
+                    $ringcentralChatId = $stmt->fetchColumn();
+                } catch (Exception $dbSelectEx) {
+                    logError("DB select chatId error: " . $dbSelectEx->getMessage() . "\n" . $dbSelectEx->getTraceAsString());
+                }
+            }
+
+            $chatId = $ringcentralChatId ?: RINGCENTRAL_TEAM_CHAT_ID;
+
             $formattedMessage = "**New Message from Website Visitor**\n\n";
             $formattedMessage .= "**Message:** {$message}\n\n";
             $formattedMessage .= "**Session ID:** {$sessionId}\n";
-            
             if (!empty($visitorInfo['name'])) {
                 $formattedMessage .= "**Name:** {$visitorInfo['name']}\n";
             }
-            
             if (!empty($visitorInfo['email'])) {
                 $formattedMessage .= "**Email:** {$visitorInfo['email']}\n";
             }
-            
             if (!empty($visitorInfo['phone'])) {
                 $formattedMessage .= "**Phone:** {$visitorInfo['phone']}\n";
             }
-            
             $formattedMessage .= "\n*Sent via Angel Stones Chat Widget at " . date('Y-m-d H:i:s') . "*";
-            
-            // Use the standard postMessage method instead of postCustomerMessage
-            $result = $rcClient->postMessage(
-                $chatId,
-                $formattedMessage
-            );
-            
+
+            try {
+                $result = $rcClient->postMessage($chatId, $formattedMessage);
+                logMessage("RingCentral postMessage response: " . json_encode($result));
+            } catch (Exception $rcPostEx) {
+                logError("RingCentral postMessage exception: " . $rcPostEx->getMessage() . "\n" . $rcPostEx->getTraceAsString());
+                throw $rcPostEx;
+            }
             if ($result && isset($result['id'])) {
-                // If successful, update the message record with RingCentral message ID
-                $rcMsgIdColumn = getDynamicColumnName($db, 'chat_messages', ['ring_central_message_id', 'ringcentral_message_id', 'rc_message_id', 'message_id']);
-                $stmt = $db->prepare("UPDATE chat_messages SET $rcMsgIdColumn = ? WHERE id = ?");
-                $stmt->execute([$result['id'], $messageId]);
-                
+                try {
+                    $rcMsgIdColumn = getDynamicColumnName($db, 'chat_messages', ['ring_central_message_id', 'ringcentral_message_id', 'rc_message_id', 'message_id']);
+                    $stmt = $db->prepare("UPDATE chat_messages SET $rcMsgIdColumn = ? WHERE id = ?");
+                    $stmt->execute([$result['id'], $messageId]);
+                } catch (Exception $dbMsgUpdateEx) {
+                    logError("DB update messageId error: " . $dbMsgUpdateEx->getMessage() . "\n" . $dbMsgUpdateEx->getTraceAsString());
+                }
                 logMessage("Message forwarded to RingCentral successfully. RingCentral Message ID: " . $result['id']);
             } else {
-                logMessage("Failed to forward message to RingCentral", 'WARN');
+                logError("Failed to forward message to RingCentral. Response: " . json_encode($result));
             }
         } catch (Exception $ringEx) {
-            // Non-fatal exception - log it but don't fail the entire request
-            logMessage("RingCentral forwarding exception: " . $ringEx->getMessage(), 'WARN');
+            logError("RingCentral forwarding exception: " . $ringEx->getMessage() . "\n" . $ringEx->getTraceAsString());
+            throw $ringEx;
         }
     } else {
         logMessage("Skipping RingCentral forwarding - feature disabled or not configured");
     }
-    
-    // Return success response
+
     echo json_encode([
         'status' => 'success',
         'message' => 'Message sent successfully',
         'message_id' => $messageId,
         'session_id' => $sessionId
     ]);
-    
 } catch (Exception $e) {
-    // Log error
-    logError("Error in send_message.php: " . $e->getMessage());
-    
-    // Return error response
+    logError("Error in send_message.php: " . $e->getMessage() . "\n" . $e->getTraceAsString());
     http_response_code(500);
-    echo json_encode([
-        'status' => 'error',
-        'message' => 'An unexpected error occurred. Please try again later.'
-    ]);
+    header('Content-Type: application/json');
+    echo json_encode(['error' => true, 'message' => $e->getMessage()]);
+    exit();
 }
 ?>

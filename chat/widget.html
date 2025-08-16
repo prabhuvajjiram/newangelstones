@@ -4,549 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Angel Stones Chat</title>
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Base Styles */
-        :root {
-            --primary: #2c3e50;
-            --accent: #3498db;
-            --white: #ffffff;
-            --light: #f8f9fa;
-            --dark: #343a40;
-            --gray: #6c757d;
-            --light-gray: #e9ecef;
-            --danger: #dc3545;
-            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            --border-radius: 12px;
-            --transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #f5f7fa;
-            color: #333;
-        }
-
-        /* Chat Widget Container */
-        .angel-chat-container {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            z-index: 9999;
-        }
-
-        /* Chat Button */
-        .angel-chat-button {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: white;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            position: relative;
-            transition: var(--transition);
-            outline: none;
-        }
-
-        .angel-chat-button:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.25);
-        }
-
-        .angel-chat-button i {
-            font-size: 1.3rem;
-            transition: var(--transition);
-        }
-
-        .chat-icon { display: block; }
-        .close-icon { 
-            display: none; 
-            position: absolute;
-            font-size: 1.8rem;
-        }
-
-        /* Unread Badge */
-        .angel-chat-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: var(--danger);
-            color: white;
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            font-weight: bold;
-            border: 2px solid white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            display: none;
-        }
-
-        /* Chat Window */
-        .angel-chat-window {
-            position: fixed;
-            width: 350px;
-            max-width: 90%;
-            height: 500px;
-            max-height: 80vh;
-            background: var(--white);
-            border-radius: var(--border-radius);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(20px) scale(0.95);
-            transition: var(--transition);
-            z-index: 9999;
-            bottom: 60px;
-            right: 10px;
-        }
-
-        .angel-chat-window.active {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0) scale(1);
-        }
-
-        /* Header */
-        .angel-chat-header {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .angel-chat-header h5 {
-            margin: 0;
-            font-size: 1.1rem;
-            font-weight: 500;
-        }
-
-        .angel-chat-close {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
-
-        .angel-chat-close:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        /* Body */
-        .angel-chat-body {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            background: var(--light);
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Welcome Screen */
-        .angel-welcome-screen {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 20px 0;
-        }
-
-        .angel-welcome-screen i {
-            font-size: 3rem;
-            color: var(--accent);
-            margin-bottom: 15px;
-        }
-
-        .angel-welcome-screen h4 {
-            margin-bottom: 10px;
-            color: var(--primary);
-        }
-
-        .angel-welcome-screen p {
-            color: var(--gray);
-            margin-bottom: 20px;
-            font-size: 0.95rem;
-        }
-
-        /* Form Groups */
-        .angel-form-group {
-            margin-bottom: 15px;
-            width: 100%;
-            text-align: left;
-        }
-
-        .angel-form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: var(--dark);
-            font-size: 0.9rem;
-        }
-
-        .angel-form-control {
-            width: 100%;
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 0.95rem;
-            transition: border-color 0.2s;
-        }
-
-        .angel-form-control:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-        }
-
-        /* Buttons */
-        .angel-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .angel-button-primary {
-            background: var(--accent);
-            color: white;
-            width: 100%;
-        }
-
-        .angel-button-primary:hover {
-            background: var(--primary);
-            transform: translateY(-2px);
-        }
-
-        /* Messages */
-        .angel-messages {
-            display: none;
-            flex-direction: column;
-            gap: 12px;
-            padding: 10px 0;
-        }
-
-        .message {
-            max-width: 80%;
-            padding: 10px 15px;
-            border-radius: 18px;
-            font-size: 0.95rem;
-            line-height: 1.4;
-            position: relative;
-            word-wrap: break-word;
-        }
-
-        .visitor-message {
-            background: var(--accent);
-            color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 4px;
-        }
-
-        .agent-message {
-            background: var(--white);
-            color: var(--dark);
-            align-self: flex-start;
-            border: 1px solid #eee;
-            border-bottom-left-radius: 4px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-
-        .system-message {
-            align-self: center;
-            background: #fff3cd;
-            color: #856404;
-            padding: 8px 15px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            text-align: center;
-            margin: 10px 0;
-            max-width: 90%;
-        }
-
-        /* Footer */
-        .angel-chat-footer {
-            padding: 15px;
-            border-top: 1px solid #eee;
-            background: var(--white);
-            display: none;
-        }
-
-        .angel-message-form {
-            display: flex;
-            gap: 10px;
-        }
-
-        .angel-message-input {
-            flex: 1;
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            font-size: 0.95rem;
-            transition: border-color 0.2s;
-        }
-
-        .angel-message-input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-        }
-
-        .angel-send-button {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--accent);
-            color: white;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .angel-send-button:hover {
-            background: var(--primary);
-            transform: translateY(-2px);
-        }
-
-        /* Typing Indicator */
-        .typing-indicator {
-            display: flex;
-            gap: 5px;
-            align-self: flex-start;
-            margin: 5px 0 15px;
-        }
-
-        .typing-indicator span {
-            width: 8px;
-            height: 8px;
-            background: #ccc;
-            border-radius: 50%;
-            display: inline-block;
-            animation: typing 1s infinite ease-in-out;
-        }
-
-        .typing-indicator span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .typing-indicator span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes typing {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-
-        /* Mobile Styles */
-        @media (max-width: 768px) {
-            .angel-chat-container {
-                bottom: 15px;
-                right: 15px;
-            }
-
-            .angel-chat-window {
-                width: 100%;
-                max-width: 100%;
-                height: 100%;
-                max-height: 100%;
-                border-radius: 0;
-                bottom: 0;
-                right: 0;
-            }
-        }
-
-        /* Demo Content */
-        .demo-content {
-            max-width: 800px;
-            padding: 2rem;
-            text-align: center;
-        }
-
-        .demo-content h1 {
-            color: var(--primary);
-            margin-bottom: 1rem;
-        }
-
-        .demo-content p {
-            color: var(--gray);
-            line-height: 1.6;
-            margin-bottom: 2rem;
-        }
-    </style>
-</head>
-<body>
-    <div class="demo-content">
-        <h1>Angel Stones CRM</h1>
-        <p>This is a demo page for the Angel Stones chat widget. Click the button in the bottom right to test the chat functionality.</p>
-    </div>
-
-    <!-- Chat Widget -->
-    <div class="angel-chat-container">
-        <!-- Chat Button -->
-        <button class="angel-chat-button" id="angelChatButton">
-            <i class="fas fa-comment-dots chat-icon"></i>
-            <i class="fas fa-times close-icon"></i>
-            <span class="angel-chat-badge" id="angelChatBadge">0</span>
-        </button>
-        
-        <!-- Chat Window -->
-        <div class="angel-chat-window" id="angelChatWindow">
-            <!-- Chat Header -->
-            <div class="angel-chat-header">
-                <h5>Chat with us</h5>
-                <button class="angel-chat-close" id="angelChatClose">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <!-- Chat Body -->
-            <div class="angel-chat-body" id="angelChatBody">
-                <!-- Welcome Screen -->
-                <div class="angel-welcome-screen" id="angelWelcomeScreen">
-                    <i class="fas fa-comments"></i>
-                    <h4>Welcome to Angel Stones</h4>
-                    <p>Our team is here to help. Please provide your details to start chatting.</p>
-                    
-                    <div class="angel-form-group">
-                        <label for="angelUserName">Your Name *</label>
-                        <input type="text" id="angelUserName" class="angel-form-control" placeholder="Enter your name" required>
-                    </div>
-                    
-                    <div class="angel-form-group">
-                        <label for="angelUserEmail">Email Address</label>
-                        <input type="email" id="angelUserEmail" class="angel-form-control" placeholder="Enter your email (optional)">
-                    </div>
-                    
-                    <div class="angel-form-group">
-                        <label for="angelUserPhone">Phone Number</label>
-                        <input type="tel" id="angelUserPhone" class="angel-form-control" placeholder="Enter your phone (optional)">
-                    </div>
-                    
-                    <button class="angel-button angel-button-primary" id="angelStartChat">
-                        Start Chat
-                    </button>
-                </div>
-                
-                <!-- Messages Container -->
-                <div class="angel-messages" id="angelMessages">
-                    <!-- Messages will be added here -->
-                </div>
-            </div>
-            
-            <!-- Chat Footer -->
-            <div class="angel-chat-footer" id="angelChatFooter">
-                <form class="angel-message-form" id="angelMessageForm">
-                    <input type="text" class="angel-message-input" id="angelMessageInput" placeholder="Type your message..." autocomplete="off">
-                    <button type="submit" class="angel-send-button">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </form>
-            </div>
-            
-            // Auto-open chat after a delay (for demo purposes)
-            setTimeout(() => {
-                if (!localStorage.getItem('chat_auto_opened')) {
-                    toggleChat();
-                    localStorage.setItem('chat_auto_opened', 'true');
-                }
-            }, 2000);
-            
-            // Add click event listener to the chat button
-            const chatButton = document.querySelector('.angel-chat-button');
-            const chatWindow = document.querySelector('.angel-chat-window');
-            const closeButton = document.querySelector('.angel-chat-close');
-            const chatIcon = document.querySelector('.chat-icon');
-            const closeIcon = document.querySelector('.close-icon');
-            
-            if (chatButton && chatWindow) {
-                chatButton.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    chatWindow.classList.toggle('active');
-                    
-                    if (chatWindow.classList.contains('active')) {
-                        chatIcon.style.display = 'none';
-                        closeIcon.style.display = 'block';
-                    } else {
-                        chatIcon.style.display = 'block';
-                        closeIcon.style.display = 'none';
-                    }
-                });
-                
-                // Close chat when clicking outside
-                document.addEventListener('click', function(e) {
-                    if (chatWindow.classList.contains('active') && 
-                        !chatWindow.contains(e.target) && 
-                        !chatButton.contains(e.target)) {
-                        chatWindow.classList.remove('active');
-                        chatIcon.style.display = 'block';
-                        closeIcon.style.display = 'none';
-                    }
-                });
-                
-                // Close button
-                if (closeButton) {
-                    closeButton.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        chatWindow.classList.remove('active');
-                        chatIcon.style.display = 'block';
-                        closeIcon.style.display = 'none';
-                    });
-                }
-            }
-        });
-    </script>
-</body>
-</html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Angel Stones Chat</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -1028,34 +485,51 @@
                 $messageInput.focus();
             }
             
-            // Create a new team chat
-            async function createTeamChat(name, email = '') {
+            // Get API base URL for local and production
+            function getApiBaseUrl() {
+                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                let port = window.location.port;
+                let base = '';
+                if (isLocal) {
+                    // If running on localhost, use port if present
+                    base = `${window.location.protocol}//${window.location.hostname}`;
+                    if (port) base += `:${port}`;
+                    base += '/newangelstones/chat/api/';
+                } else {
+                    // Production (theangelstones.com or others)
+                    base = '/chat/api/';
+                }
+                return base;
+            }
+
+            // Start chat by sending a welcome message to backend
+            async function createTeamChat(name, email = '', phone = '') {
                 try {
-                    const response = await fetch('team_chat.php', {
+                    const apiUrl = getApiBaseUrl() + 'send_message.php';
+                    const response = await fetch(apiUrl, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
-                            action: 'create_chat',
-                            customer_name: name,
-                            customer_email: email,
-                            session_id: sessionId
+                            session_id: sessionId,
+                            message: 'Started chat',
+                            visitor_name: name,
+                            visitor_email: email,
+                            visitor_phone: phone
                         })
                     });
-                    
                     const data = await response.json();
-                    
-                    if (data.success) {
-                        teamChatId = data.data.id;
+                    if (data.status === 'success') {
+                        teamChatId = sessionId;
                         localStorage.setItem('team_chat_id', teamChatId);
                         addSystemMessage('Connected to support team. How can we help you?');
                     } else {
-                        console.error('Failed to create team chat:', data.error);
+                        console.error('Failed to start chat:', data.message);
                         addSystemMessage('Failed to connect to support. Please try again later.', 'error');
                     }
                 } catch (error) {
-                    console.error('Error creating team chat:', error);
+                    console.error('Error starting chat:', error);
                     addSystemMessage('Error connecting to chat. Please try again.', 'error');
                 }
             }
@@ -1082,39 +556,29 @@
             async function sendMessage() {
                 const message = $messageInput.val().trim();
                 if (!message) return;
-                
                 // Add message to UI immediately
                 addMessage(message, 'visitor');
-                
-                // Clear input
                 $messageInput.val('');
-                
                 try {
-                    // In a real implementation, you would send the message to your server
-                    // and then to RingCentral
                     if (teamChatId) {
-                        const response = await fetch('team_chat.php', {
+                        const apiUrl = getApiBaseUrl() + 'send_message.php';
+                        const response = await fetch(apiUrl, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                             },
                             body: JSON.stringify({
-                                action: 'send_message',
-                                chat_id: teamChatId,
+                                session_id: teamChatId,
                                 message: message,
-                                sender_name: customerName,
-                                is_system: false
+                                visitor_name: customerName
                             })
                         });
-                        
                         const data = await response.json();
-                        
-                        if (!data.success) {
-                            console.error('Failed to send message:', data.error);
+                        if (data.status !== 'success') {
+                            console.error('Failed to send message:', data.message);
                             addSystemMessage('Failed to send message. Please try again.', 'error');
                         }
                     } else {
-                        // If no team chat ID, simulate a response after a delay
                         setTimeout(() => {
                             addMessage('Thank you for your message. Our team will get back to you shortly.', 'agent');
                         }, 1000);
@@ -1186,35 +650,6 @@
                 e.preventDefault();
                 startChat();
             });
-            
-            $messageForm.on('submit', function(e) {
-                e.preventDefault();
-                if (isChatStarted) {
-                    sendMessage();
-                } else {
-                    startChat();
-                }
-            });
-            
-            // Load saved user info if available
-            const savedName = localStorage.getItem('chat_user_name');
-            const savedEmail = localStorage.getItem('chat_user_email');
-            const savedPhone = localStorage.getItem('chat_user_phone');
-            
-            if (savedName) $userName.val(savedName);
-            if (savedEmail) $userEmail.val(savedEmail);
-            if (savedPhone) $userPhone.val(savedPhone);
-            
-            // Initialize chat
-            showWelcomeScreen();
-            
-            // Auto-open chat after a delay (optional)
-            // setTimeout(toggleChat, 2000);
-            
-            // Simulate agent joining (for demo purposes)
-            // setTimeout(() => {
-            //     addMessage('Hello! How can I help you today?', 'agent');
-            // }, 1500);
         });
     </script>
 </body>

@@ -1,480 +1,189 @@
-// Angel Stones Chat Widget - Embeddable Chat Interface
-// Version: 1.0.0
-
 (function() {
-    // Configuration
-    const config = {
-        apiBaseUrl: '/chat/api', // Update this with your actual API endpoint
-        widgetTitle: 'Chat with us',
-        welcomeMessage: 'Welcome to Angel Stones! How can we help you today?',
-        primaryColor: '#2c3e50',
-        accentColor: '#3498db',
-        position: 'right', // 'left' or 'right'
-        zIndex: 9999,
-        showWelcomeScreen: true
-    };
-
-    // State
-    let isOpen = false;
-    let isInitialized = false;
-    let unreadCount = 0;
-    let sessionId = 'session_' + Math.random().toString(36).substring(2, 12);
-    let messagePolling = null;
-    let visitorInfo = {
-        name: '',
-        email: '',
-        phone: ''
-    };
-
-    // DOM Elements
-    let chatContainer, chatButton, chatWindow, chatHeader, chatBody, chatInput, messageForm, messageInput;
-
-    // Initialize the widget
-    function init() {
-        if (isInitialized) return;
-        
-        // Create and inject the widget HTML
-        const widgetHTML = `
-            <div class="angel-chat-container" style="position: fixed; bottom: 25px; ${config.position}: 25px; z-index: ${config.zIndex};">
-                <!-- Chat Button -->
-                <button class="angel-chat-button" id="angelChatButton" aria-label="Open chat">
-                    <i class="fas fa-comment-dots chat-icon"></i>
-                    <i class="fas fa-times close-icon"></i>
-                    <span class="angel-chat-badge">0</span>
-                </button>
-
-                <!-- Chat Window -->
-                <div class="angel-chat-window" id="angelChatWindow">
-                    <!-- Chat Header -->
-                    <div class="angel-chat-header">
-                        <h5>${config.widgetTitle}</h5>
-                        <button class="angel-chat-close" id="angelChatClose">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <!-- Chat Body -->
-                    <div class="angel-chat-body" id="angelChatBody">
-                        <div class="angel-welcome-screen" id="angelWelcomeScreen">
-                            <i class="fas fa-comment-alt"></i>
-                            <h4>Welcome to Angel Stones</h4>
-                            <p>How can we help you today?</p>
-                            <button class="btn btn-primary" id="startChatBtn">Start Chat</button>
-                        </div>
-                        <div class="angel-messages" id="angelMessages"></div>
-                    </div>
-                    <!-- Chat Footer -->
-                    <div class="angel-chat-footer">
-                        <form id="angelMessageForm" class="angel-message-form">
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="angelMessageInput" 
-                                       placeholder="Type your message..." aria-label="Type your message">
-                                <button class="btn btn-primary" type="submit">
-                                    <i class="fas fa-paper-plane"></i>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Create a style element for the widget
-        const style = document.createElement('style');
-        style.textContent = `
-            /* Base Styles */
-            :root {
-                --primary: ${config.primaryColor};
-                --accent: ${config.accentColor};
-                --white: #ffffff;
-                --light: #f8f9fa;
-                --dark: #343a40;
-                --gray: #6c757d;
-                --light-gray: #e9ecef;
-                --danger: #dc3545;
-                --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-                --border-radius: 12px;
-                --transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            }
-
-            /* Chat Widget Styles */
-            .angel-chat-button {
-                width: 56px;
-                height: 56px;
-                border-radius: 50%;
-                background: linear-gradient(135deg, var(--primary), var(--accent));
-                color: white;
-                border: none;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                box-shadow: var(--shadow);
-                position: relative;
-                transition: var(--transition);
-                outline: none;
-            }
-
-            .angel-chat-button:hover {
-                transform: translateY(-3px) scale(1.05);
-                box-shadow: 0 6px 25px rgba(0, 0, 0, 0.25);
-            }
-
-
-            /* Rest of the styles from widget.html */
-            ${getWidgetStyles()}
-        `;
-
-        // Append style and widget to the body
-        document.head.appendChild(style);
-        const div = document.createElement('div');
-        div.innerHTML = widgetHTML;
-        document.body.appendChild(div);
-
-        // Initialize DOM references
-        initializeElements();
-        
-        // Add event listeners
-        setupEventListeners();
-        
-        // Start polling for messages
-        startMessagePolling();
-        
-        isInitialized = true;
-        
-        // Show welcome screen if enabled
-        if (config.showWelcomeScreen) {
-            showWelcomeScreen();
-        }
+  // Inject styles
+  const style = document.createElement('style');
+  style.textContent = `
+    .angel-chat-btn {
+      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+      width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg,#2c3e50,#3498db);
+      color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      cursor: pointer; font-size: 2rem; border: none;
     }
-
-
-    // Helper function to get widget styles
-    function getWidgetStyles() {
-        // This would contain all the CSS from widget.html
-        // For brevity, I'm including a simplified version
-        return `
-            .angel-chat-window {
-                position: fixed;
-                width: 350px;
-                max-width: 90%;
-                height: 500px;
-                max-height: 80vh;
-                background: var(--white);
-                border-radius: var(--border-radius);
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-                display: flex;
-                flex-direction: column;
-                overflow: hidden;
-                opacity: 0;
-                visibility: hidden;
-                transform: translateY(20px) scale(0.95);
-                transition: var(--transition);
-                z-index: 9999;
-                bottom: 70px;
-                ${config.position}: 10px;
-            }
-
-            /* Add more styles as needed */
-        `;
+    .angel-chat-widget {
+      position: fixed; bottom: 90px; right: 24px; z-index: 9999;
+      width: 340px; max-width: 95vw; height: 440px; max-height: 80vh;
+      background: #fff; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      display: flex; flex-direction: column; overflow: hidden; font-family: inherit;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
     }
-
-    // Initialize DOM elements
-    function initializeElements() {
-        chatContainer = document.querySelector('.angel-chat-container');
-        chatButton = document.getElementById('angelChatButton');
-        chatWindow = document.getElementById('angelChatWindow');
-        chatHeader = document.querySelector('.angel-chat-header');
-        chatBody = document.getElementById('angelChatBody');
-        messageForm = document.getElementById('angelMessageForm');
-        messageInput = document.getElementById('angelMessageInput');
+    .angel-chat-widget.active { opacity: 1; pointer-events: auto; }
+    .angel-chat-header {
+      background: linear-gradient(135deg,#2c3e50,#3498db); color: #fff;
+      padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;
     }
-
-    // Set up event listeners
-    function setupEventListeners() {
-        // Toggle chat window
-        chatButton.addEventListener('click', toggleChat);
-        
-        // Close button
-        const closeButton = document.getElementById('angelChatClose');
-        if (closeButton) {
-            closeButton.addEventListener('click', closeChat);
-        }
-        
-        // Start chat button
-        const startChatBtn = document.getElementById('startChatBtn');
-        if (startChatBtn) {
-            startChatBtn.addEventListener('click', startChat);
-        }
-        
-        // Message form submission
-        if (messageForm) {
-            messageForm.addEventListener('submit', handleMessageSubmit);
-        }
+    .angel-chat-header button { background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; }
+    .angel-chat-body { flex: 1; padding: 16px; overflow-y: auto; background: #f8f9fa; }
+    .angel-chat-footer { padding: 12px; border-top: 1px solid #eee; background: #fff; }
+    .angel-chat-input { width: 100%; padding: 8px 12px; border-radius: 18px; border: 1px solid #ddd; }
+    .angel-chat-send { background: #3498db; color: #fff; border: none; border-radius: 18px; padding: 8px 18px; margin-left: 8px; cursor: pointer; }
+    .angel-chat-msg { margin: 8px 0; }
+    .angel-chat-msg.visitor { text-align: right; }
+    .angel-chat-msg.agent { text-align: left; }
+    .angel-chat-bubble {
+      display: inline-block; padding: 8px 14px; border-radius: 16px; max-width: 80%; font-size: 0.97rem;
     }
+    .angel-chat-msg.visitor .angel-chat-bubble { background: #3498db; color: #fff; border-bottom-right-radius: 4px; }
+    .angel-chat-msg.agent .angel-chat-bubble { background: #fff; color: #333; border: 1px solid #eee; border-bottom-left-radius: 4px; }
+    .angel-chat-form-group { margin-bottom: 10px; }
+    .angel-chat-form-group label { display: block; margin-bottom: 3px; font-size: 0.95em; }
+    .angel-chat-form-group input { width: 100%; padding: 7px 10px; border-radius: 6px; border: 1px solid #ccc; }
+    .angel-chat-welcome { text-align: center; color: #2c3e50; margin-bottom: 10px; }
+  `;
+  document.head.appendChild(style);
 
-    // Toggle chat window
-    function toggleChat() {
-        isOpen = !isOpen;
-        
-        if (isOpen) {
-            chatWindow.classList.add('active');
-            document.querySelector('.chat-icon').style.display = 'none';
-            document.querySelector('.close-icon').style.display = 'block';
-            messageInput.focus();
-            resetUnreadCount();
-        } else {
-            chatWindow.classList.remove('active');
-            document.querySelector('.chat-icon').style.display = 'block';
-            document.querySelector('.close-icon').style.display = 'none';
-        }
-    }
+  // Create chat button
+  const btn = document.createElement('button');
+  btn.className = 'angel-chat-btn';
+  btn.innerHTML = '<i class="fa fa-comment-dots"></i>';
+  document.body.appendChild(btn);
 
-    // Close chat
-    function closeChat() {
-        isOpen = false;
-        chatWindow.classList.remove('active');
-        document.querySelector('.chat-icon').style.display = 'block';
-        document.querySelector('.close-icon').style.display = 'none';
-    }
+  // Create chat widget
+  const widget = document.createElement('div');
+  widget.className = 'angel-chat-widget';
+  widget.innerHTML = `
+    <div class="angel-chat-header">
+      <span>Chat with us</span>
+      <button title="Close" type="button">&times;</button>
+    </div>
+    <div class="angel-chat-body">
+      <div class="angel-chat-welcome">
+        <div style="font-size:2.2rem;margin-bottom:8px;"><i class="fa fa-comments"></i></div>
+        <div style="font-weight:600;">Welcome to Angel Stones</div>
+        <div style="font-size:0.97em;color:#666;margin-bottom:10px;">Please enter your details to start chatting.</div>
+      </div>
+      <form id="angel-chat-user-form">
+        <div class="angel-chat-form-group">
+          <label for="angel-chat-name">Your Name *</label>
+          <input type="text" id="angel-chat-name" required autocomplete="name">
+        </div>
+        <div class="angel-chat-form-group">
+          <label for="angel-chat-email">Email</label>
+          <input type="email" id="angel-chat-email" autocomplete="email">
+        </div>
+        <div class="angel-chat-form-group">
+          <label for="angel-chat-phone">Phone</label>
+          <input type="tel" id="angel-chat-phone" autocomplete="tel">
+        </div>
+        <button type="submit" class="angel-chat-send" style="width:100%;">Start Chat</button>
+      </form>
+      <div id="angel-chat-messages" style="display:none;"></div>
+    </div>
+    <div class="angel-chat-footer" style="display:none;">
+      <form id="angel-chat-msg-form" style="display:flex;">
+        <input type="text" class="angel-chat-input" id="angel-chat-input" placeholder="Type your message..." autocomplete="off">
+        <button type="submit" class="angel-chat-send"><i class="fa fa-paper-plane"></i></button>
+      </form>
+    </div>
+  `;
+  document.body.appendChild(widget);
 
-    // Show welcome screen
-    function showWelcomeScreen() {
-        const welcomeScreen = document.getElementById('angelWelcomeScreen');
-        const messagesContainer = document.getElementById('angelMessages');
-        
-        if (welcomeScreen) welcomeScreen.style.display = 'flex';
-        if (messagesContainer) messagesContainer.style.display = 'none';
-    }
+  // Elements
+  const closeBtn = widget.querySelector('.angel-chat-header button');
+  const userForm = widget.querySelector('#angel-chat-user-form');
+  const nameInput = widget.querySelector('#angel-chat-name');
+  const emailInput = widget.querySelector('#angel-chat-email');
+  const phoneInput = widget.querySelector('#angel-chat-phone');
+  const welcome = widget.querySelector('.angel-chat-welcome');
+  const messagesDiv = widget.querySelector('#angel-chat-messages');
+  const footer = widget.querySelector('.angel-chat-footer');
+  const msgForm = widget.querySelector('#angel-chat-msg-form');
+  const msgInput = widget.querySelector('#angel-chat-input');
+  let chatStarted = false;
+  let customerName = '';
+  let chatId = localStorage.getItem('angel_team_chat_id');
 
-    // Start chat
-    function startChat() {
-        const welcomeScreen = document.getElementById('angelWelcomeScreen');
-        const messagesContainer = document.getElementById('angelMessages');
-        
-        if (welcomeScreen) welcomeScreen.style.display = 'none';
-        if (messagesContainer) messagesContainer.style.display = 'block';
-        
-        // Add welcome message
-        addSystemMessage(config.welcomeMessage);
-        
-        // Focus on input
-        if (messageInput) messageInput.focus();
-    }
+  // Show/hide widget
+  btn.onclick = () => { widget.classList.add('active'); };
+  closeBtn.onclick = () => { widget.classList.remove('active'); };
 
-    // Handle message submission
-    function handleMessageSubmit(e) {
-        e.preventDefault();
-        
-        const message = messageInput.value.trim();
-        if (!message) return;
-        
-        // Add message to UI
-        addMessage(message, 'visitor');
-        
-        // Clear input
-        messageInput.value = '';
-        
-        // Send message to server
-        sendMessage(message);
-    }
-
-    // Add message to chat
-    function addMessage(text, type, id = Date.now()) {
-        const messagesContainer = document.getElementById('angelMessages');
-        if (!messagesContainer) return;
-        
-        const messageElement = document.createElement('div');
-        messageElement.className = `message ${type}-message`;
-        messageElement.setAttribute('data-message-id', id);
-        
-        // Format message based on type
-        if (type === 'visitor') {
-            messageElement.innerHTML = `
-                <div class="message-content">${escapeHtml(text)}</div>
-                <div class="message-time">${formatTime()}</div>
-            `;
-        } else if (type === 'agent') {
-            messageElement.innerHTML = `
-                <div class="message-sender">Agent</div>
-                <div class="message-content">${escapeHtml(text)}</div>
-                <div class="message-time">${formatTime()}</div>
-            `;
-        } else if (type === 'system') {
-            messageElement.className = 'system-message';
-            messageElement.textContent = text;
-        }
-        
-        messagesContainer.appendChild(messageElement);
-        scrollToBottom();
-        
-        // Increment unread count if chat is closed
-        if (!isOpen && type !== 'visitor') {
-            incrementUnreadCount();
-        }
-    }
-
-    // Add system message
-    function addSystemMessage(text) {
-        addMessage(text, 'system');
-    }
-
-    // Send message to server
-    function sendMessage(message) {
-        fetch(`${config.apiBaseUrl}/send_message.php`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                session_id: sessionId,
-                message: message,
-                visitor_name: visitorInfo.name,
-                visitor_email: visitorInfo.email,
-                visitor_phone: visitorInfo.phone
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Message sent:', data);
-        })
-        .catch(error => {
-            console.error('Error sending message:', error);
-            addSystemMessage('Error sending message. Please try again.');
+  // Start chat
+  userForm.onsubmit = async function(e) {
+    e.preventDefault();
+    customerName = nameInput.value.trim();
+    if (!customerName) { nameInput.focus(); return; }
+    const email = emailInput.value.trim();
+    const phone = phoneInput.value.trim();
+    userForm.style.display = 'none';
+    welcome.style.display = 'none';
+    messagesDiv.style.display = '';
+    footer.style.display = '';
+    addSystemMsg(`Welcome, ${customerName}! How can we help you today?`);
+    // Create chat on backend
+    if (!chatId) {
+      try {
+        const res = await fetch('/chat/team_chat.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'create_chat',
+            customer_name: customerName,
+            customer_email: email,
+            customer_phone: phone
+          })
         });
-    }
-
-    // Poll for new messages
-    function startMessagePolling() {
-        // Poll every 3 seconds
-        messagePolling = setInterval(() => {
-            if (!isInitialized) return;
-            
-            fetch(`${config.apiBaseUrl}/get_messages.php?session_id=${sessionId}&last_message_id=${getLastMessageId()}`)
-                .then(response => response.json())
-                .then(messages => {
-                    if (messages && messages.length > 0) {
-                        messages.forEach(msg => {
-                            addMessage(msg.text, 'agent', msg.id);
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error polling messages:', error);
-                });
-        }, 3000);
-    }
-
-    // Helper: Get last message ID
-    function getLastMessageId() {
-        const messages = document.querySelectorAll('[data-message-id]');
-        return messages.length > 0 ? messages[messages.length - 1].getAttribute('data-message-id') : 0;
-    }
-
-    // Helper: Scroll to bottom of chat
-    function scrollToBottom() {
-        const messagesContainer = document.getElementById('angelMessages');
-        if (messagesContainer) {
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-    }
-
-    // Helper: Format time
-    function formatTime(date = new Date()) {
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-
-    // Helper: Escape HTML
-    function escapeHtml(unsafe) {
-        return unsafe
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
-
-    // Unread count functions
-    function incrementUnreadCount() {
-        unreadCount++;
-        updateUnreadBadge();
-    }
-
-    function resetUnreadCount() {
-        unreadCount = 0;
-        updateUnreadBadge();
-    }
-
-    function updateUnreadBadge() {
-        const badge = document.querySelector('.angel-chat-badge');
-        if (!badge) return;
-        
-        if (unreadCount > 0) {
-            badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
-            badge.style.display = 'flex';
+        const data = await res.json();
+        if (data.success && data.data && data.data.id) {
+          chatId = data.data.id;
+          localStorage.setItem('angel_team_chat_id', chatId);
         } else {
-            badge.style.display = 'none';
+          addSystemMsg('Could not connect to support. Please try again later.');
         }
+      } catch {
+        addSystemMsg('Could not connect to support. Please try again later.');
+      }
     }
+    chatStarted = true;
+  };
 
-    // Public API
-    window.AngelChatWidget = {
-        init: function(options = {}) {
-            // Merge options with defaults
-            Object.assign(config, options);
-            
-            // Initialize when DOM is ready
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
-            } else {
-                init();
-            }
-        },
-        
-        // Public methods
-        open: function() {
-            if (!isOpen) toggleChat();
-        },
-        
-        close: function() {
-            if (isOpen) toggleChat();
-        },
-        
-        // Update visitor info
-        updateVisitorInfo: function(info) {
-            Object.assign(visitorInfo, info);
-            
-            // Notify server about the update
-            if (isInitialized) {
-                sendMessage('Visitor information updated');
-            }
-        },
-        
-        // Destroy the widget
-        destroy: function() {
-            if (messagePolling) {
-                clearInterval(messagePolling);
-                messagePolling = null;
-            }
-            
-            if (chatContainer && chatContainer.parentNode) {
-                chatContainer.parentNode.removeChild(chatContainer);
-            }
-            
-            isInitialized = false;
-            isOpen = false;
-        }
-    };
-})();
-
-// Auto-initialize with default settings
-window.AngelChatWidget.init();
-
-// Add Font Awesome if not already loaded
-(function() {
-    if (!document.querySelector('link[href*="font-awesome"]')) {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
-        document.head.appendChild(link);
+  // Send message
+  msgForm.onsubmit = async function(e) {
+    e.preventDefault();
+    if (!chatStarted) return;
+    const msg = msgInput.value.trim();
+    if (!msg) return;
+    addMsg(msg, 'visitor');
+    msgInput.value = '';
+    if (chatId) {
+      try {
+        await fetch('/chat/team_chat.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'send_message',
+            chat_id: chatId,
+            message: msg,
+            sender_name: customerName,
+            is_system: false
+          })
+        });
+      } catch {
+        addSystemMsg('Message not sent. Please try again.');
+      }
     }
+  };
+
+  // Add message to UI
+  function addMsg(text, type) {
+    const div = document.createElement('div');
+    div.className = 'angel-chat-msg ' + (type === 'visitor' ? 'visitor' : 'agent');
+    div.innerHTML = `<span class="angel-chat-bubble">${text}</span>`;
+    messagesDiv.appendChild(div);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+  function addSystemMsg(text) {
+    const div = document.createElement('div');
+    div.className = 'angel-chat-msg agent';
+    div.innerHTML = `<span class="angel-chat-bubble" style="background:#fff3cd;color:#856404;border:1px solid #ffeeba;">${text}</span>`;
+    messagesDiv.appendChild(div);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
 })();
