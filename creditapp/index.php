@@ -1,9 +1,8 @@
 <?php
 // Credit Application Form for Angel Stones
 session_start();
-if (!isset($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
+// Always generate a fresh CSRF token for each form load
+$_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 $status = $_GET['status'] ?? '';
 $errors = [];
 if ($status === 'validation_error' && isset($_GET['errors'])) {
@@ -486,7 +485,7 @@ if ($status === 'validation_error' && isset($_GET['errors'])) {
         <div class="alert alert-danger">There was an error submitting the form. Please try again.</div>
     <?php endif; ?>
     <form action="submit.php" method="post" id="creditAppForm">
-        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
         <div class="form-section">
             <h4>1. Business Information</h4>
             <div class="form-section-inner">
