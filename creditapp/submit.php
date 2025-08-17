@@ -26,7 +26,10 @@ file_put_contents($debug_file, $debug_content, LOCK_EX);
 chmod($debug_file, 0666); // Ensure file is readable
 
 // CSRF token validation
-if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+if (
+    !isset($_POST['csrf_token'], $_SESSION['csrf_token']) ||
+    !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])
+) {
     $debug_content .= "CSRF validation failed\n";
     $debug_content .= "POST csrf_token: " . ($_POST['csrf_token'] ?? 'NOT SET') . "\n";
     $debug_content .= "SESSION csrf_token: " . ($_SESSION['csrf_token'] ?? 'NOT SET') . "\n";
@@ -37,6 +40,8 @@ if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || $_POST['c
     exit;
 }
 
+// Invalidate token after successful validation to prevent reuse
+unset($_SESSION['csrf_token']);
 $debug_content .= "CSRF validation passed\n";
 
 // reCAPTCHA v3 validation (disabled for local testing)
