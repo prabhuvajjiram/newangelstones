@@ -2,47 +2,23 @@
 // Start session and CSRF protection
 session_start();
 
-// Debug flag - set to false to disable debug logging
-$debug_enabled = true;
+// PHPMailer use statements
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\SMTP;
 
-// Create debug directory if it doesn't exist
-$debug_dir = __DIR__ . '/debug';
-if (!is_dir($debug_dir)) {
-    mkdir($debug_dir, 0755, true);
-}
-
-// Start debug logging immediately - write to file right away
-$debug_file = $debug_dir . '/submit_debug_' . date('Y-m-d_H-i-s') . '.log';
-$debug_content = "=== SUBMIT.PHP DEBUG - " . date('Y-m-d H:i:s') . " ===\n";
-$debug_content .= "Script started successfully\n";
-$debug_content .= "Session ID: " . session_id() . "\n";
-$debug_content .= "Request method: " . $_SERVER['REQUEST_METHOD'] . "\n";
-$debug_content .= "POST data received: " . (empty($_POST) ? 'NO' : 'YES') . "\n";
-$debug_content .= "Debug file path: " . $debug_file . "\n";
-$debug_content .= "Debug directory writable: " . (is_writable($debug_dir) ? 'YES' : 'NO') . "\n";
-
-// Force write debug log immediately - this should always happen
-file_put_contents($debug_file, $debug_content, LOCK_EX);
-chmod($debug_file, 0666); // Ensure file is readable
 
 // CSRF token validation
 if (
     !isset($_POST['csrf_token'], $_SESSION['csrf_token']) ||
     !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])
 ) {
-    $debug_content .= "CSRF validation failed\n";
-    $debug_content .= "POST csrf_token: " . ($_POST['csrf_token'] ?? 'NOT SET') . "\n";
-    $debug_content .= "SESSION csrf_token: " . ($_SESSION['csrf_token'] ?? 'NOT SET') . "\n";
-    if ($debug_enabled) {
-        file_put_contents($debug_file, $debug_content);
-    }
     header('Location: index.php?status=error');
     exit;
 }
 
 // Invalidate token after successful validation to prevent reuse
 unset($_SESSION['csrf_token']);
-$debug_content .= "CSRF validation passed\n";
 
 // reCAPTCHA v3 validation (disabled for local testing)
 
@@ -50,7 +26,6 @@ $debug_content .= "CSRF validation passed\n";
 $recaptchaEnabled = defined('RECAPTCHA_ENABLED') ? RECAPTCHA_ENABLED : false;
 
 if ($recaptchaEnabled) {
-    $debug_content .= "reCAPTCHA validation enabled\n";
     // Load reCAPTCHA secret from config or environment
     $recaptchaSecret = defined('RECAPTCHA_SECRET_KEY') ? RECAPTCHA_SECRET_KEY : (getenv('RECAPTCHA_SECRET_KEY') ?: 'YOUR_SECRET_KEY');
     $recaptchaResponse = $_POST['g-recaptcha-response'] ?? '';
@@ -80,19 +55,12 @@ if ($recaptchaEnabled) {
     }
     
     if (!$recaptchaVerified) {
-        $debug_content .= "reCAPTCHA validation failed\n";
-        if ($debug_enabled) {
-            file_put_contents($debug_file, $debug_content);
-        }
         header('Location: index.php?status=error');
         exit;
     }
-    $debug_content .= "reCAPTCHA validation passed\n";
-} else {
-    $debug_content .= "reCAPTCHA validation disabled - skipping\n";
-    // reCAPTCHA disabled - skip validation for local testing
-    // In production, set RECAPTCHA_ENABLED to true in email_config.php
 }
+// reCAPTCHA disabled - skip validation for local testing
+// In production, set RECAPTCHA_ENABLED to true in email_config.php
 
 function sanitize($data) {
     return htmlspecialchars(trim($data));
@@ -155,23 +123,10 @@ function validateState($state) {
 // Form validation
 $errors = [];
 
-// Debug flag - set to false to disable debug logging
-$debug_enabled = true;
 
-// Create debug directory if it doesn't exist
-$debug_dir = __DIR__ . '/debug';
-if (!is_dir($debug_dir)) {
-    mkdir($debug_dir, 0755, true);
-}
-
-// Debug: Log all POST data to file
-$debug_file = $debug_dir . '/validation_debug_' . date('Y-m-d_H-i-s') . '.log';
-$debug_content = "=== FORM SUBMISSION DEBUG - " . date('Y-m-d H:i:s') . " ===\n";
-$debug_content .= "POST data:\n" . print_r($_POST, true) . "\n";
 
 // Validate required fields
 $business_name = isset($_POST['firm_name']) ? $_POST['firm_name'] : (isset($_POST['business_name']) ? $_POST['business_name'] : '');
-$debug_content .= "Business name field value: '$business_name'\n";
 if (empty($business_name) || !validateBusinessName($business_name)) {
     $errors[] = "Business Name is required (2-100 characters, letters, numbers, and basic punctuation only)";
 }
@@ -204,11 +159,9 @@ if (empty($_POST['billing_address']) || !validateAddress($_POST['billing_address
 
 // Validate at least one corporate officer
 $officers = ['officer_president', 'officer_vice_president', 'officer_secretary', 'officer_treasurer'];
-$debug_content .= "Checking officers: " . print_r($officers, true) . "\n";
 $hasOfficer = false;
 foreach ($officers as $officer) {
     $value = isset($_POST[$officer]) ? $_POST[$officer] : '';
-    $debug_content .= "Officer $officer value: '$value'\n";
     if (!empty($value)) {
         if (!validatePersonName($value)) {
             $errors[] = ucwords(str_replace(['officer_', '_'], ['', ' '], $officer)) . " must be a valid name (2-50 characters, letters only)";
@@ -252,33 +205,18 @@ if (!empty($_POST['state']) && !validateState($_POST['state'])) {
 
 // Validate digital authorization
 $authorization = isset($_POST['authorization']) ? $_POST['authorization'] : (isset($_POST['digital_authorization']) ? $_POST['digital_authorization'] : '');
-$debug_content .= "Authorization field value: '$authorization'\n";
 if (empty($authorization)) {
     $errors[] = "Digital Authorization agreement is required";
 }
 
-// Add validation results to debug log
-if ($debug_enabled) {
-    $debug_content .= "\nValidation Errors:\n" . print_r($errors, true) . "\n";
-    $debug_content .= "Validation passed: " . (empty($errors) ? 'YES' : 'NO') . "\n";
-}
 
 // If there are validation errors, show them
 if (!empty($errors)) {
-    if ($debug_enabled) {
-        $debug_content .= "Redirecting to index.php with validation errors\n";
-        $debug_content .= "=== END DEBUG ===\n";
-        file_put_contents($debug_file, $debug_content);
-    }
     header('Location: index.php?status=validation_error&errors=' . urlencode(json_encode($errors)));
     exit;
 }
 
 // Validation passed - continue with form processing
-if ($debug_enabled) {
-    $debug_content .= "Validation passed - proceeding with form processing\n";
-    $debug_content .= "Starting form data collection...\n";
-}
 
 // Enhanced form data collection for new fields
 $formData = [];
@@ -316,10 +254,6 @@ $fieldLabels = [
     'digital_authorization' => 'Digital Authorization Agreement'
 ];
 
-if ($debug_enabled) {
-    $debug_content .= "Form data collected successfully\n";
-    $debug_content .= "Creating applications directory and saving data...\n";
-}
 
 $saveDir = __DIR__ . '/applications';
 if (!is_dir($saveDir)) {
@@ -331,11 +265,6 @@ $base = $saveDir . '/creditapp_' . $timestamp;
 $txtFile = $base . '.txt';
 file_put_contents($txtFile, print_r($_POST, true));
 
-if ($debug_enabled) {
-    $debug_content .= "Data saved to: $txtFile\n";
-    $debug_content .= "Starting PDF generation...\n";
-}
-
 // Load custom PDF class
 require_once __DIR__ . '/../crm/includes/mypdf.php';
 
@@ -343,91 +272,131 @@ require_once __DIR__ . '/../crm/includes/mypdf.php';
 $pdf = new MYPDF();
 $pdf->AddPage();
 
-// Header
-$pdf->SetFont('helvetica', 'B', 18);
-$pdf->SetTextColor(0, 0, 0);
-$pdf->Cell(0, 12, 'ANGEL STONES CREDIT APPLICATION', 0, 1, 'C');
-$pdf->Ln(3);
+// The header is handled by MYPDF class, add subtitle and date
+$pdf->SetFont('helvetica', '', 14);
+$pdf->SetTextColor(255, 255, 255);
+$pdf->SetXY(10, 25);
+$pdf->Cell(0, 8, 'CREDIT APPLICATION', 0, 1, 'C');
 
-$pdf->SetFont('helvetica', '', 10);
-$pdf->SetTextColor(100, 100, 100);
-$pdf->Cell(0, 6, 'Submission Date: ' . date('F j, Y g:i A'), 0, 1, 'C');
+// Reset position after header
+$pdf->SetY(55);
+
+// Submission date with better formatting (EST timezone)
+date_default_timezone_set('America/New_York');
+$pdf->SetFont('helvetica', '', 11);
+$pdf->SetTextColor(127, 140, 141);
+$pdf->Cell(0, 6, 'Submission Date: ' . date('F j, Y \a\t g:i A T'), 0, 1, 'C');
 $pdf->Ln(8);
 
-// Business Information Section
-$pdf->SetTextColor(0, 0, 0);
-$pdf->SetFont('helvetica', 'B', 14);
-$pdf->Cell(0, 8, 'BUSINESS INFORMATION', 0, 1, 'L');
+// Business Information Section with improved styling
+$pdf->SetTextColor(41, 128, 185);
+$pdf->SetFont('helvetica', 'B', 13);
+$pdf->Cell(0, 10, 'BUSINESS INFORMATION', 0, 1, 'L');
+$pdf->SetDrawColor(41, 128, 185);
 $pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
-$pdf->Ln(5);
+$pdf->Ln(8);
 
 $businessFields = ['firm_name', 'business_type', 'other_business_type', 'federal_tax_id', 'subsidiary_of', 'tax_exempt_no', 'tax_exempt_state'];
 foreach ($businessFields as $field) {
     if (isset($formData[$field]) && !empty($formData[$field])) {
         $label = isset($fieldLabels[$field]) ? $fieldLabels[$field] : ucwords(str_replace('_', ' ', $field));
+        // Check if we need a new page (account for footer space)
+        if ($pdf->GetY() > 240) {
+            $pdf->AddPage();
+            $pdf->SetY(55); // Position after header
+        }
         $pdf->SetFont('helvetica', 'B', 10);
-        $pdf->Cell(60, 6, $label . ':', 0, 0, 'L');
+        $pdf->SetTextColor(52, 73, 94);
+        $pdf->Cell(65, 7, $label . ':', 0, 0, 'L');
         $pdf->SetFont('helvetica', '', 10);
-        $pdf->MultiCell(0, 6, $formData[$field], 0, 1);
-        $pdf->Ln(1);
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->MultiCell(0, 7, $formData[$field], 0, 1);
+        $pdf->Ln(2);
     }
 }
 
 // Contact Information Section
-$pdf->Ln(5);
-$pdf->SetFont('helvetica', 'B', 14);
-$pdf->Cell(0, 8, 'CONTACT INFORMATION', 0, 1, 'L');
+$pdf->Ln(8);
+$pdf->SetTextColor(41, 128, 185);
+$pdf->SetFont('helvetica', 'B', 13);
+$pdf->Cell(0, 10, 'CONTACT INFORMATION', 0, 1, 'L');
+$pdf->SetDrawColor(41, 128, 185);
 $pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
-$pdf->Ln(5);
+$pdf->Ln(8);
 
 $contactFields = ['phone', 'email', 'fax', 'web', 'shipping_address', 'billing_address'];
 foreach ($contactFields as $field) {
     if (isset($formData[$field]) && !empty($formData[$field])) {
         $label = isset($fieldLabels[$field]) ? $fieldLabels[$field] : ucwords(str_replace('_', ' ', $field));
+        // Check if we need a new page (account for footer space)
+        if ($pdf->GetY() > 240) {
+            $pdf->AddPage();
+            $pdf->SetY(55); // Position after header
+        }
         $pdf->SetFont('helvetica', 'B', 10);
-        $pdf->Cell(60, 6, $label . ':', 0, 0, 'L');
+        $pdf->SetTextColor(52, 73, 94);
+        $pdf->Cell(65, 7, $label . ':', 0, 0, 'L');
         $pdf->SetFont('helvetica', '', 10);
-        $pdf->MultiCell(0, 6, $formData[$field], 0, 1);
-        $pdf->Ln(1);
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->MultiCell(0, 7, $formData[$field], 0, 1);
+        $pdf->Ln(2);
     }
 }
 
 // Corporate Officers Section
-$pdf->Ln(5);
-$pdf->SetFont('helvetica', 'B', 14);
-$pdf->Cell(0, 8, 'CORPORATE OFFICERS', 0, 1, 'L');
+$pdf->Ln(8);
+$pdf->SetTextColor(41, 128, 185);
+$pdf->SetFont('helvetica', 'B', 13);
+$pdf->Cell(0, 10, 'CORPORATE OFFICERS', 0, 1, 'L');
+$pdf->SetDrawColor(41, 128, 185);
 $pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
-$pdf->Ln(5);
+$pdf->Ln(8);
 
 $officerFields = ['officer_president', 'officer_vice_president', 'officer_secretary', 'officer_treasurer'];
 foreach ($officerFields as $field) {
     if (isset($formData[$field]) && !empty($formData[$field])) {
         $label = ucwords(str_replace(['officer_', '_'], ['', ' '], $field));
+        // Check if we need a new page (account for footer space)
+        if ($pdf->GetY() > 240) {
+            $pdf->AddPage();
+            $pdf->SetY(55); // Position after header
+        }
         $pdf->SetFont('helvetica', 'B', 10);
-        $pdf->Cell(60, 6, $label . ':', 0, 0, 'L');
+        $pdf->SetTextColor(52, 73, 94);
+        $pdf->Cell(65, 7, $label . ':', 0, 0, 'L');
         $pdf->SetFont('helvetica', '', 10);
-        $pdf->MultiCell(0, 6, $formData[$field], 0, 1);
-        $pdf->Ln(1);
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->MultiCell(0, 7, $formData[$field], 0, 1);
+        $pdf->Ln(2);
     }
 }
 
 // Owners/Partners Section
-$pdf->Ln(5);
-$pdf->SetFont('helvetica', 'B', 14);
-$pdf->Cell(0, 8, 'OWNERS / PARTNERS', 0, 1, 'L');
+$pdf->Ln(8);
+$pdf->SetTextColor(41, 128, 185);
+$pdf->SetFont('helvetica', 'B', 13);
+$pdf->Cell(0, 10, 'OWNERS / PARTNERS', 0, 1, 'L');
+$pdf->SetDrawColor(41, 128, 185);
 $pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
-$pdf->Ln(5);
+$pdf->Ln(8);
 
 $ownerFields = ['owner1_name', 'owner1_percent', 'owner1_address', 'owner1_res_phone', 'owner1_cell', 
                 'owner2_name', 'owner2_percent', 'owner2_address', 'owner2_res_phone', 'owner2_cell'];
 foreach ($ownerFields as $field) {
     if (isset($formData[$field]) && !empty($formData[$field])) {
         $label = ucwords(str_replace('_', ' ', $field));
+        // Check if we need a new page (account for footer space)
+        if ($pdf->GetY() > 240) {
+            $pdf->AddPage();
+            $pdf->SetY(55); // Position after header
+        }
         $pdf->SetFont('helvetica', 'B', 10);
-        $pdf->Cell(60, 6, $label . ':', 0, 0, 'L');
+        $pdf->SetTextColor(52, 73, 94);
+        $pdf->Cell(65, 7, $label . ':', 0, 0, 'L');
         $pdf->SetFont('helvetica', '', 10);
-        $pdf->MultiCell(0, 6, $formData[$field], 0, 1);
-        $pdf->Ln(1);
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->MultiCell(0, 7, $formData[$field], 0, 1);
+        $pdf->Ln(2);
     }
 }
 
@@ -442,20 +411,34 @@ foreach ($guarantorFields as $field) {
 }
 
 if ($hasGuarantors) {
-    $pdf->Ln(5);
-    $pdf->SetFont('helvetica', 'B', 14);
-    $pdf->Cell(0, 8, 'GUARANTORS', 0, 1, 'L');
+    // Check if we need a new page for guarantors section
+    if ($pdf->GetY() > 200) {
+        $pdf->AddPage();
+        $pdf->SetY(55);
+    }
+    $pdf->Ln(8);
+    $pdf->SetTextColor(41, 128, 185);
+    $pdf->SetFont('helvetica', 'B', 13);
+    $pdf->Cell(0, 10, 'GUARANTORS', 0, 1, 'L');
+    $pdf->SetDrawColor(41, 128, 185);
     $pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
-    $pdf->Ln(5);
+    $pdf->Ln(8);
 
     foreach ($guarantorFields as $field) {
         if (isset($formData[$field]) && !empty($formData[$field])) {
             $label = ucwords(str_replace('_', ' ', $field));
+            // Check if we need a new page (account for footer space)
+            if ($pdf->GetY() > 240) {
+                $pdf->AddPage();
+                $pdf->SetY(55); // Position after header
+            }
             $pdf->SetFont('helvetica', 'B', 10);
-            $pdf->Cell(60, 6, $label . ':', 0, 0, 'L');
+            $pdf->SetTextColor(52, 73, 94);
+            $pdf->Cell(65, 7, $label . ':', 0, 0, 'L');
             $pdf->SetFont('helvetica', '', 10);
-            $pdf->MultiCell(0, 6, $formData[$field], 0, 1);
-            $pdf->Ln(1);
+            $pdf->SetTextColor(0, 0, 0);
+            $pdf->MultiCell(0, 7, $formData[$field], 0, 1);
+            $pdf->Ln(2);
         }
     }
 }
@@ -463,61 +446,96 @@ if ($hasGuarantors) {
 // Digital Authorization Section
 $authField = isset($formData['authorization']) ? $formData['authorization'] : (isset($formData['digital_authorization']) ? $formData['digital_authorization'] : '');
 if (!empty($authField)) {
-    $pdf->Ln(10);
-    $pdf->SetFont('helvetica', 'B', 14);
-    $pdf->SetTextColor(0, 100, 0);
+    // Check if we need a new page for authorization
+    if ($pdf->GetY() > 220) {
+        $pdf->AddPage();
+        $pdf->SetY(55);
+    }
+    $pdf->Ln(12);
+    // Add background color for authorization section
+    $pdf->SetFillColor(230, 247, 255);
+    $pdf->Rect(10, $pdf->GetY(), 190, 25, 'F');
+    $pdf->Ln(5);
+    $pdf->SetFont('helvetica', 'B', 12);
+    $pdf->SetTextColor(39, 174, 96);
+    // Use simple checkmark symbol instead of Unicode
     $pdf->Cell(0, 8, 'DIGITAL AUTHORIZATION CONFIRMED', 0, 1, 'C');
-    $pdf->SetTextColor(0, 0, 0);
+    $pdf->SetTextColor(52, 73, 94);
     $pdf->SetFont('helvetica', '', 10);
-    $pdf->MultiCell(0, 6, 'The applicant has digitally agreed to the terms and conditions of this credit application on ' . date('F j, Y \a\t g:i A') . '.', 0, 'C');
+    $pdf->MultiCell(0, 6, 'The applicant has digitally agreed to the terms and conditions of this credit application on ' . date('F j, Y \a\t g:i A T') . '.', 0, 'C');
+    $pdf->Ln(5);
 }
 $pdfFile = $base . '.pdf';
 $pdf->Output($pdfFile, 'F');
 
-if ($debug_enabled) {
-    $debug_content .= "PDF generated successfully: $pdfFile\n";
-    $debug_content .= "Starting email processing...\n";
-}
-
-// Email with PHPMailer (fallback to mail)
+// ... (rest of the code remains the same)
 $config_path = __DIR__ . '/../email_config.php';
-$debug_content .= "Checking email config at: $config_path\n";
 if (file_exists($config_path)) {
-    require_once $config_path;
-    $debug_content .= "Email config loaded successfully\n";
+    // Define SECURE_ACCESS for email config
+    define('SECURE_ACCESS', true);
+    
+    try {
+        require_once $config_path;
+    } catch (Exception $e) {
+        // Fallback to defaults if config fails
+        define('SMTP_HOST', 'smtp.gmail.com');
+        define('SMTP_PORT', 587);
+        define('SMTP_SECURE', 'tls');
+        define('SMTP_USERNAME', 'test@example.com');
+        define('SMTP_PASSWORD', 'test-password');
+        define('SMTP_FROM_EMAIL', 'noreply@theangelstones.com');
+        define('SMTP_FROM_NAME', 'Angel Stones Credit Application');
+    }
 } else {
-    $debug_content .= "Email config file not found\n";
+    // Define default values for testing
+    define('SMTP_HOST', 'smtp.gmail.com');
+    define('SMTP_PORT', 587);
+    define('SMTP_SECURE', 'tls');
+    define('SMTP_USERNAME', 'test@example.com');
+    define('SMTP_PASSWORD', 'test-password');
+    define('SMTP_FROM_EMAIL', 'noreply@theangelstones.com');
+    define('SMTP_FROM_NAME', 'Angel Stones Credit Application');
 }
 
-$phpmailer = __DIR__ . '/../crm/vendor/phpmailer/PHPMailer.php';
-$debug_content .= "Checking PHPMailer at: $phpmailer\n";
+// Load PHPMailer
+$phpmailer_path = __DIR__ . '/../crm/vendor/phpmailer/PHPMailer.php';
 $emailSent = false;
-if (file_exists($phpmailer)) {
-    $debug_content .= "PHPMailer file found\n";
-    require_once $phpmailer;
-    require_once __DIR__ . '/../crm/vendor/phpmailer/SMTP.php';
-    require_once __DIR__ . '/../crm/vendor/phpmailer/Exception.php';
-    $mail = new PHPMailer\PHPMailer\PHPMailer();
-    if (defined('SMTP_HOST')) {
-        $debug_content .= "SMTP constants defined, configuring SMTP\n";
-        $mail->isSMTP();
-        $mail->Host = SMTP_HOST;
-        $mail->SMTPAuth = true;
-        $mail->Username = SMTP_USERNAME;
-        $mail->Password = SMTP_PASSWORD;
-        $mail->SMTPSecure = SMTP_SECURE;
-        $mail->Port = SMTP_PORT;
-        $debug_content .= "SMTP configured: " . SMTP_HOST . ":" . SMTP_PORT . "\n";
-    } else {
-        $debug_content .= "SMTP constants not defined\n";
+
+if (file_exists($phpmailer_path)) {
+    try {
+        require_once $phpmailer_path;
+        $mail = new PHPMailer(true);
+        
+        if (defined('SMTP_HOST')) {
+            // SMTP Configuration
+            $mail->isSMTP();
+            $mail->Host = SMTP_HOST;
+            $mail->SMTPAuth = true;
+            $mail->Username = SMTP_USERNAME;
+            $mail->Password = SMTP_PASSWORD;
+            $mail->SMTPSecure = SMTP_SECURE;
+            $mail->Port = SMTP_PORT;
+            $mail->isHTML(true);
+        }
+        
+        // Set from and to addresses
+        $fromEmail = defined('SMTP_FROM_EMAIL') ? SMTP_FROM_EMAIL : 'noreply@theangelstones.com';
+        $fromName = defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : 'Angel Stones';
+        $mail->setFrom($fromEmail, $fromName);
+        $mail->addAddress('da@theangelstones.com', 'Angel Stones Support Team');
+        
+        // CC the applicant if email is provided
+        if (isset($formData['email']) && !empty($formData['email']) && filter_var($formData['email'], FILTER_VALIDATE_EMAIL)) {
+            $mail->addCC($formData['email'], isset($formData['firm_name']) ? $formData['firm_name'] : 'Credit Applicant');
+        }
+        
+        $mail->Subject = 'Angel Stones - New Credit Application';
+        
+    } catch (Exception $e) {
+        $mail = null;
     }
-    $fromEmail = defined('SMTP_FROM_EMAIL') ? SMTP_FROM_EMAIL : 'noreply@theangelstones.com';
-    $fromName  = defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : 'Angel Stones';
-    $mail->setFrom($fromEmail, $fromName);
-    $mail->addAddress('da@theangelstones.com');
-    $mail->Subject = 'New Credit Application';
     $body = '<h2>New Credit Application Submission</h2>';
-    $body .= '<p><strong>Submission Date:</strong> ' . date('F j, Y g:i A') . '</p>';
+    $body .= '<p><strong>Submission Date:</strong> ' . date('F j, Y g:i A T') . '</p>';
 
     // Organize fields by sections
     $body .= '<h3>Business Information</h3>';
@@ -581,29 +599,19 @@ if (file_exists($phpmailer)) {
             $body .= '<p><strong>' . $label . ':</strong> ' . nl2br($val) . '</p>';
         }
     }
-    $mail->Body = $body;
-    $mail->isHTML(true);
-    $mail->addAttachment($pdfFile);
-    try {
-        $emailSent = $mail->send();
-        $debug_content .= "PHPMailer email sent successfully\n";
-    } catch (Exception $e) {
-        $debug_content .= "PHPMailer error: " . $mail->ErrorInfo . "\n";
-        $emailSent = false;
+    if ($mail) {
+        try {
+            $mail->Body = $body;
+            $mail->addAttachment($pdfFile);
+            $emailSent = $mail->send();
+        } catch (Exception $e) {
+            $emailSent = false;
+        }
     }
-} else {
-    $debug_content .= "PHPMailer file not found at: $phpmailer\n";
 }
 
-// Write debug log before fallback
-if ($debug_enabled) {
-    file_put_contents($debug_file, $debug_content);
-}
 
 if (!$emailSent) {
-    if ($debug_enabled) {
-        $debug_content .= "PHPMailer failed, trying fallback mail() function\n";
-    }
     // Simple mail() fallback
     $boundary = md5(time());
     $headers = "From: Credit Application <noreply@theangelstones.com>\r\n";
@@ -628,17 +636,8 @@ if (!$emailSent) {
     }
     $message .= "\r\n--$boundary--";
     $emailSent = mail('da@theangelstones.com', 'New Credit Application', $message, $headers);
-    if ($debug_enabled) {
-        $debug_content .= "Fallback mail() result: " . ($emailSent ? 'success' : 'failed') . "\n";
-    }
 }
 
-// Final debug log update
-if ($debug_enabled) {
-    $debug_content .= "Final email status: " . ($emailSent ? 'sent' : 'failed') . "\n";
-    $debug_content .= "=== END DEBUG ===\n";
-    file_put_contents($debug_file, $debug_content);
-}
 
 header('Location: index.php?status=' . ($emailSent ? 'success' : 'error'));
 exit;

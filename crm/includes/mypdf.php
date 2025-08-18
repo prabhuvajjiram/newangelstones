@@ -14,7 +14,7 @@ class MYPDF extends TCPDF {
         // Center the company name
         $pageWidth = $this->getPageWidth();
         $this->SetXY(0, 15);
-        $this->Cell($pageWidth, 15, 'ANGEL STONES', 0, 1, 'C');
+        $this->Cell($pageWidth, 15, 'ANGEL STONES LLC', 0, 1, 'C');
         
         // Reset text color to black for content
         $this->SetTextColor(0, 0, 0);
@@ -31,9 +31,9 @@ class MYPDF extends TCPDF {
         $this->Cell(0, 25, '', 0, 1, 'C', true);
         $this->SetY(-30);
         $this->SetFont('helvetica', 'B', 10);
-        $this->Cell(0, 5, 'Angel Stones', 0, 1, 'C');
+        $this->Cell(0, 5, 'Angel Stones LLC', 0, 1, 'C');
         $this->SetFont('helvetica', '', 9);
-        $this->Cell(0, 5, 'Quality Stone Products & Services', 0, 1, 'C');
-        $this->Cell(0, 5, 'Phone: 919-535-7574 | Email: info@theangelstones.com', 0, 1, 'C');
+        $this->Cell(0, 5, 'Elevating granite, Preserving memories', 0, 1, 'C');
+        $this->Cell(0, 5, 'Phone: 706-262-7177 | Web: www.angelgranties.com | Email: info@theangelstones.com', 0, 1, 'C');
     }
 } 

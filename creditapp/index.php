@@ -100,11 +100,12 @@ if ($status === 'validation_error' && isset($_GET['errors'])) {
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             padding: 0;
-            margin: 0 auto;
-            max-width: 1400px;
+            margin: 1rem auto 2rem auto;
+            max-width: 1200px;
             position: relative;
-            overflow: hidden;
-            width: 100%;
+            overflow: visible;
+            width: calc(100% - 2rem);
+            min-height: fit-content;
         }
         
         @media (min-width: 768px) {
@@ -425,8 +426,10 @@ if ($status === 'validation_error' && isset($_GET['errors'])) {
         
         @media (max-width: 767px) {
             .app-container {
-                margin: 0.25rem;
+                margin: 0.5rem auto;
                 border-radius: var(--radius-lg);
+                width: calc(100% - 1rem);
+                min-height: auto;
             }
             
             h1 {
@@ -450,7 +453,7 @@ if ($status === 'validation_error' && isset($_GET['errors'])) {
     </style>
 </head>
 <body>
-<div class="container my-4 app-container">
+<div class="app-container">
     <?php if (!empty($errors)): ?>
     <div class="validation-errors">
         <h5><i class="bi bi-exclamation-triangle-fill"></i> Please correct the following errors:</h5>
@@ -824,38 +827,37 @@ if ($status === 'validation_error' && isset($_GET['errors'])) {
             </div>
                 </div>
                 
-                <!-- Authorization Checkbox -->
+                <!-- Unified Authorization & Terms Agreement -->
                 <div class="authorization-box">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" value="1" id="authorize" name="authorization" required>
                         <label class="form-check-label fw-bold" for="authorize">
-                            <i class="bi bi-shield-check text-primary"></i> Digital Authorization & Agreement
+                            <i class="bi bi-shield-check text-primary"></i> Digital Authorization & Terms Agreement
                         </label>
                     </div>
-                    <p class="mt-2 mb-0 small">
-                        By checking this box, I hereby authorize and digitally sign this credit application. I certify that all information provided is true and accurate to the best of my knowledge. I understand that this digital authorization has the same legal effect as a handwritten signature and I agree to all terms and conditions stated above.
-                    </p>
+                    <div class="mt-2 small">
+                        <p class="mb-2">
+                            By checking this box, I hereby authorize and digitally sign this credit application. I certify that all information provided is true and accurate to the best of my knowledge. I understand that this digital authorization has the same legal effect as a handwritten signature.
+                        </p>
+                        <p class="mb-0">
+                            I also agree to Angel Stones' <a href="/terms-of-service.html" target="_blank" class="text-decoration-none">Terms of Service</a>.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" value="1" id="agree" required aria-describedby="termsHelp">
-            <label class="form-check-label" for="agree" id="termsHelp">
-                I agree to the <a href="/terms-of-service.html" target="_blank">terms and conditions</a>.
-            </label>
-        </div>
-
         <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
 
-        <div class="text-center" style="padding: 1rem;">
+        <div class="text-center" style="padding: 1rem 1rem 2rem 1rem;">
             <button type="submit" class="btn btn-primary">Submit Application</button>
         </div>
         
     </form>
-    <footer class="mt-4">
-        <a href="/privacy-policy.html">Privacy Policy</a>
-    </footer>
+    
+    <div class="text-center" style="padding: 1rem; border-top: 1px solid #e2e8f0; margin-top: 1rem; color: #718096;">
+        <a href="/privacy-policy.html" style="color: #4299e1; text-decoration: none;">Privacy Policy</a>
+    </div>
 </div>
 
 <!-- Bootstrap JS -->
@@ -894,6 +896,13 @@ if ($status === 'validation_error' && isset($_GET['errors'])) {
             field.addEventListener('input', function() {
                 this.classList.remove('is-invalid');
             }, { once: true });
+        }
+    }
+    
+    function clearFieldError(fieldName) {
+        const field = document.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+            field.classList.remove('is-invalid');
         }
     }
     
@@ -1086,9 +1095,15 @@ if ($status === 'validation_error' && isset($_GET['errors'])) {
         
         // Real-time input formatting and validation
         
-        // Federal Tax ID formatting (EIN: XX-XXXXXXX or SSN: XXX-XX-XXXX)
+        // Smart Federal Tax ID formatting (FEIN: XX-XXXXXXX or SSN: XXX-XX-XXXX)
         const federalTaxIdField = document.querySelector('[name="federal_tax_id"]');
         if (federalTaxIdField) {
+            // Add helper text
+            const helpText = document.createElement('small');
+            helpText.className = 'form-text text-muted';
+            helpText.innerHTML = 'FEIN: XX-XXXXXXX (business) or SSN: XXX-XX-XXXX (individual)';
+            federalTaxIdField.parentNode.appendChild(helpText);
+            
             federalTaxIdField.addEventListener('input', function(e) {
                 let value = e.target.value.replace(/[^0-9]/g, ''); // Remove all non-digits
                 
@@ -1097,18 +1112,19 @@ if ($status === 'validation_error' && isset($_GET['errors'])) {
                     value = value.substring(0, 9);
                 }
                 
-                // Format based on length
-                if (value.length >= 3) {
-                    if (value.length <= 5) {
-                        // SSN format: XXX-XX
-                        value = value.substring(0, 3) + '-' + value.substring(3);
-                    } else if (value.length <= 9) {
-                        // Complete SSN format: XXX-XX-XXXX or EIN format: XX-XXXXXXX
-                        if (value.length <= 7) {
-                            // Could be EIN: XX-XXXXX
-                            value = value.substring(0, 2) + '-' + value.substring(2);
+                // Smart formatting based on business context
+                if (value.length >= 2) {
+                    const businessType = document.querySelector('[name="business_type"]')?.value;
+                    const isBusiness = businessType && !businessType.includes('Individual') && !businessType.includes('Sole');
+                    
+                    // FEIN format for businesses: XX-XXXXXXX
+                    if (isBusiness && value.length > 2) {
+                        value = value.substring(0, 2) + '-' + value.substring(2);
+                    } else if (value.length >= 3) {
+                        // SSN format for individuals: XXX-XX-XXXX
+                        if (value.length <= 5) {
+                            value = value.substring(0, 3) + '-' + value.substring(3);
                         } else {
-                            // Full SSN: XXX-XX-XXXX
                             value = value.substring(0, 3) + '-' + value.substring(3, 5) + '-' + value.substring(5);
                         }
                     }
@@ -1117,10 +1133,25 @@ if ($status === 'validation_error' && isset($_GET['errors'])) {
                 e.target.value = value;
             });
             
-            // Prevent non-numeric input
-            federalTaxIdField.addEventListener('keypress', function(e) {
-                if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                    e.preventDefault();
+            // Business type change handler to reformat tax ID
+            const businessTypeField = document.querySelector('[name="business_type"]');
+            if (businessTypeField) {
+                businessTypeField.addEventListener('change', function() {
+                    const taxIdValue = federalTaxIdField.value.replace(/[^0-9]/g, '');
+                    if (taxIdValue.length >= 2) {
+                        // Trigger reformatting
+                        federalTaxIdField.value = taxIdValue;
+                        federalTaxIdField.dispatchEvent(new Event('input'));
+                    }
+                });
+            }
+            
+            federalTaxIdField.addEventListener('blur', function(e) {
+                const value = e.target.value.trim();
+                if (value && !validateFederalTaxId(value)) {
+                    showFieldError('federal_tax_id', 'Invalid format. Use XX-XXXXXXX (FEIN) or XXX-XX-XXXX (SSN)');
+                } else {
+                    clearFieldError('federal_tax_id');
                 }
             });
         }
