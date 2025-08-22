@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:map_launcher/map_launcher.dart';
 import '../theme/app_theme.dart';
 import '../services/mautic_service.dart';
+import '../config/security_config.dart';
 
 class ContactScreen extends StatefulWidget {
   const ContactScreen({super.key});
@@ -21,6 +22,7 @@ class _ContactScreenState extends State<ContactScreen> {
   final _phoneController = TextEditingController();
   final _messageController = TextEditingController();
   bool _isSubmitting = false;
+  String? _paymentUrl;
   
   // Email validation method
   bool _isValidEmail(String email) {
@@ -35,12 +37,27 @@ class _ContactScreenState extends State<ContactScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _loadPaymentUrl();
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     _messageController.dispose();
     super.dispose();
+  }
+  
+  Future<void> _loadPaymentUrl() async {
+    final url = await SecurityConfig.getPaymentUrl();
+    if (mounted) {
+      setState(() {
+        _paymentUrl = url;
+      });
+    }
   }
   
   Future<void> _launchUrl(String urlString, BuildContext context) async {
@@ -396,7 +413,9 @@ class _ContactScreenState extends State<ContactScreen> {
                     icon: Icons.credit_card,
                     title: 'Pay Invoice',
                     subtitle: 'Make a secure payment online',
-                    onTap: () => _launchUrl('https://www.convergepay.com/hosted-payments?ssl_txn_auth_token=E%2F8reYrhQjCCZuE850a9TQAAAZZqwm4V', context),
+                    onTap: _paymentUrl != null 
+                        ? () => _launchUrl(_paymentUrl!, context)
+                        : null,
                   ),
                   _buildContactCard(
                     context: context,

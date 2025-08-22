@@ -6,11 +6,27 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/inventory_item.dart';
 import '../utils/cache_entry.dart';
+import '../config/security_config.dart';
 
 class InventoryService {
   static const _baseUrl = 'https://monument.business';
-  static const _token = '097EE598BBACB8A8182BC9D4D7D5CFE609E4DB2AF4A3F1950738C927ECF05B6A';
-  static const _referer = 'https://monument.business/GV/GVOBPInventory/ShowInventoryAll/\$_token';
+  static String? _cachedToken;
+  static String? _cachedReferer;
+
+  static Future<String> _getToken() async {
+    if (_cachedToken == null) {
+      _cachedToken = await SecurityConfig.getMonumentBusinessToken();
+    }
+    return _cachedToken!;
+  }
+
+  static Future<String> _getReferer() async {
+    if (_cachedReferer == null) {
+      final token = await _getToken();
+      _cachedReferer = 'https://monument.business/GV/GVOBPInventory/ShowInventoryAll/$token';
+    }
+    return _cachedReferer!;
+  }
 
   static const Duration _cacheTTL = Duration(hours: 2);
 
@@ -81,10 +97,12 @@ class InventoryService {
   /// Test API connection without blocking app startup
   Future<void> _testApiConnection() async {
     try {
-      final uri = Uri.parse('$_baseUrl/GV/GVOBPInventory/ShowInventoryAll/$_token');
+      final token = await _getToken();
+      final referer = await _getReferer();
+      final uri = Uri.parse('$_baseUrl/GV/GVOBPInventory/ShowInventoryAll/$token');
       final response = await http.get(
         uri,
-        headers: {'Referer': _referer},
+        headers: {'Referer': referer},
       ).timeout(const Duration(seconds: 3));
       
       if (response.statusCode == 200) {
@@ -219,7 +237,7 @@ class InventoryService {
             'pageSize': pageSize.toString(),
             'group': '',
             'filter': '',  // Don't use the filter parameter as it may cause issues
-            'token': _token,
+            'token': await _getToken(),
             'hasdesc': type != null && type.isNotEmpty ? 'false' : 'true',  // Set to false for type filters
             'description': searchQuery ?? '',
             'ptype': type ?? '',

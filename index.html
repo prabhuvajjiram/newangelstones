@@ -642,12 +642,13 @@
 
     <!-- Add these in the head section -->
     <link rel="preload" as="image" 
-          href="images/Factory-1920.webp"
-          imagesrcset="images/Factory-768.webp 768w,
-                       images/Factory-1280.webp 1280w,
-                       images/Factory-1920.webp 1920w"
+          href="images/quarry-cropped-768.jpg"
+          imagesrcset="images/quarry-cropped-300.jpg 300w,
+                       images/quarry-cropped-540.jpg 540w,
+                       images/quarry-cropped-768.jpg 768w,
+                       images/quarry-cropped.jpg 1200w"
           imagesizes="100vw"
-          type="image/webp">
+          type="image/jpeg">
 
     <!-- HTML structure optimized for mobile-first loading -->
     <link rel="preload" as="script" href="js/jquery-3.7.1.min.js" fetchpriority="low">
@@ -917,12 +918,13 @@
                         <div class="col-md-6">
                             <div class="factory-image-container">
                                 <img 
-                                    src="images/Factory-768.webp"
-                                    srcset="images/Factory-768.webp 768w,
-                                            images/Factory-1280.webp 1280w,
-                                            images/Factory-1920.webp 1920w"
+                                    src="images/quarry-cropped-768.jpg"
+                                    srcset="images/quarry-cropped-300.jpg 300w,
+                                            images/quarry-cropped-540.jpg 540w,
+                                            images/quarry-cropped-768.jpg 768w,
+                                            images/quarry-cropped.jpg 1200w"
                                     sizes="(max-width: 768px) 100vw, 50vw"
-                                    alt="Angel Stones Factory"
+                                    alt="Angel Stones Quarry"
                                     class="factory-image" 
                                     width="768" 
                                     height="512"
@@ -1494,7 +1496,7 @@
                             </p>
                         </div>
                         <div class="col-md-6">
-                              <div><a href='https://www.convergepay.com/hosted-payments?ssl_txn_auth_token=E%2F8reYrhQjCCZuE850a9TQAAAZZqwm4V' style='color:#d6b772; font-size:14px; font-family:"Didact Gothic", sans-serif; font-weight:bold; margin-bottom:15px; display:block;'>Pay Invoice</a></div>
+                              <div><a href='https://www.convergepay.com/hosted-payments?ssl_txn_auth_token=t870VMwWR2OcHbk5VrX%2F1QAAAZi9ZdHB' style='color:#d6b772; font-size:14px; font-family:"Didact Gothic", sans-serif; font-weight:bold; margin-bottom:15px; display:block;'>Pay Invoice</a></div>
                             <ul class="social-network">
                                 <li><a href="#" target="_blank" rel="nofollow" aria-label="Visit our Facebook page">Facebook</a></li>
                                 <li><a href="#" target="_blank" rel="nofollow" aria-label="Follow us on Twitter">Twitter</a></li>
@@ -1655,7 +1657,7 @@
         window.addEventListener('load', function() {
             // Delay loading of larger images to prioritize LCP
             setTimeout(function() {
-                const images = ['images/Factory-768.webp', 'images/Factory-1280.webp', 'images/Factory-1920.webp'];
+                const images = ['images/quarry-cropped-300.jpg', 'images/quarry-cropped-540.jpg', 'images/quarry-cropped-768.jpg', 'images/quarry-cropped.jpg'];
                 images.forEach(src => {
                     const img = new Image();
                     img.src = src;

@@ -1,4 +1,8 @@
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../utils/cache_entry.dart';
 
 /// Security configuration for the Angel Granites mobile app
 class SecurityConfig {
@@ -12,6 +16,23 @@ class SecurityConfig {
   /// Request timeout configuration
   static const Duration defaultTimeout = Duration(seconds: 10);
   static const Duration longTimeout = Duration(seconds: 30);
+  
+  /// Configuration caching
+  static const Duration _configCacheTTL = Duration(hours: 24);
+  static CacheEntry<Map<String, dynamic>>? _configCache;
+  static const _storage = FlutterSecureStorage();
+  
+  /// Fallback defaults
+  static const Map<String, dynamic> _defaultConfig = {
+    'api_endpoints': {
+      'monument_business_token': '097EE598BBACB8A8182BC9D4D7D5CFE609E4DB2AF4A3F1950738C927ECF05B6A',
+      'mautic_contact_form_id': 1,
+      'mautic_quote_form_id': 2
+    },
+    'payment': {
+      'url': 'https://www.convergepay.com/hosted-payments?ssl_txn_auth_token=E%2F8reYrhQjCCZuE850a9TQAAAZZqwm4V'
+    }
+  };
   
   /// Security headers for HTTP requests
   static Map<String, String> getSecurityHeaders() {
@@ -68,5 +89,82 @@ class SecurityConfig {
     // - Environment variables
     // - Remote configuration service
     return '097EE598BBACB8A8182BC9D4D7D5CFE609E4DB2AF4A3F1950738C927ECF05B6A';
+  }
+  
+  /// Dynamic configuration methods
+  static Future<String> getPaymentUrl() async {
+    final config = await _getConfig();
+    return config['payment']?['url'] ?? _defaultConfig['payment']!['url'];
+  }
+  
+  static Future<String> getMonumentBusinessToken() async {
+    final config = await _getConfig();
+    return config['api_endpoints']?['monument_business_token'] ?? 
+           _defaultConfig['api_endpoints']!['monument_business_token'];
+  }
+  
+  static Future<int> getMauticContactFormId() async {
+    final config = await _getConfig();
+    return config['api_endpoints']?['mautic_contact_form_id'] ?? 
+           _defaultConfig['api_endpoints']!['mautic_contact_form_id'];
+  }
+  
+  static Future<int> getMauticQuoteFormId() async {
+    final config = await _getConfig();
+    return config['api_endpoints']?['mautic_quote_form_id'] ?? 
+           _defaultConfig['api_endpoints']!['mautic_quote_form_id'];
+  }
+  
+  static Future<bool> isFeatureEnabled(String feature) async {
+    final config = await _getConfig();
+    return config['features']?[feature] ?? false;
+  }
+  
+  /// Fetch configuration with three-layer fallback
+  static Future<Map<String, dynamic>> _getConfig() async {
+    // Use cache if available and not expired
+    if (_configCache != null && !_configCache!.isExpired(_configCacheTTL)) {
+      return _configCache!.data;
+    }
+    
+    try {
+      final response = await http.get(
+        Uri.parse('$angelStonesBaseUrl/api/mobile-config.php'),
+        headers: getSecurityHeaders(),
+      ).timeout(defaultTimeout);
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        _configCache = CacheEntry(data);
+        
+        // Save to secure storage
+        await _storage.write(key: 'mobile_config', value: response.body);
+        debugPrint('✅ Successfully fetched mobile configuration');
+        return data;
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error fetching config: $e');
+    }
+    
+    // Fallback to secure storage
+    try {
+      final cached = await _storage.read(key: 'mobile_config');
+      if (cached != null) {
+        final data = json.decode(cached) as Map<String, dynamic>;
+        debugPrint('📦 Using cached mobile configuration');
+        return data;
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error reading cached config: $e');
+    }
+    
+    // Ultimate fallback to defaults
+    debugPrint('🔄 Using default mobile configuration');
+    return _defaultConfig;
+  }
+  
+  /// Clear configuration cache (useful for testing)
+  static void clearConfigCache() {
+    _configCache = null;
   }
 }

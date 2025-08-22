@@ -1,9 +1,8 @@
 import 'package:http/http.dart' as http;
+import '../config/security_config.dart';
 
 class MauticService {
   static const String _baseUrl = 'https://theangelstones.com/mautic/form/submit';
-  static const int _contactFormId = 1;
-  static const int _quoteFormId = 2;
 
   static Future<bool> submitContactForm({
     required String name,
@@ -12,13 +11,14 @@ class MauticService {
     required String message,
   }) async {
     try {
-      final url = Uri.parse('$_baseUrl?formId=$_contactFormId');
+      final formId = await SecurityConfig.getMauticContactFormId();
+      final url = Uri.parse('$_baseUrl?formId=$formId');
       final body = {
         'mauticform[email]': email,
         'mauticform[f_name]': name,
         'mauticform[phone]': phone ?? '',
         'mauticform[f_message]': message,
-        'mauticform[formId]': _contactFormId.toString(),
+        'mauticform[formId]': formId.toString(),
         'mauticform[return]': '',
       };
 
@@ -42,7 +42,8 @@ class MauticService {
     required int totalQuantity,
   }) async {
     try {
-      final url = Uri.parse('$_baseUrl?formId=$_quoteFormId');
+      final formId = await SecurityConfig.getMauticQuoteFormId();
+      final url = Uri.parse('$_baseUrl?formId=$formId');
       
       // Combine project details and cart items as requested
       final combinedDetails = "PROJECT DETAILS:\n$projectDetails\n\nITEMS REQUESTED:\n$cartItems";
@@ -54,7 +55,7 @@ class MauticService {
         'mauticform[project_details]': combinedDetails,  // Combined details and items
         'mauticform[cart_items]': cartItems,  // Keep this for backward compatibility
         'mauticform[total_quantity]': totalQuantity.toString(),
-        'mauticform[formId]': _quoteFormId.toString(),
+        'mauticform[formId]': formId.toString(),
         'mauticform[return]': '',
         'mauticform[formName]': 'quoteform',
         'mauticform[submit]': '1',

@@ -1,0 +1,26 @@
+{
+    "version": "1.0.0",
+    "last_updated": "2025-08-22T10:40:04-04:00",
+    "cache_duration": 86400,
+    "api_endpoints": {
+      "angel_stones_base": "https://theangelstones.com",
+      "monument_business_base": "https://monument.business",
+      "monument_business_token": "097EE598BBACB8A8182BC9D4D7D5CFE609E4DB2AF4A3F1950738C927ECF05B6A",
+      "mautic_base": "https://theangelstones.com/mautic/form/submit",
+      "mautic_contact_form_id": 1,
+      "mautic_quote_form_id": 2
+    },
+    "payment": {
+      "url": "https://www.convergepay.com/hosted-payments?ssl_txn_auth_token=t870VMwWR2OcHbk5VrX%2F1QAAAZi9ZdHB",
+      "enabled": true
+    },
+    "contact": {
+      "phone": "+1 866-682-5837",
+      "email": "info@theangelstones.com"
+    },
+    "features": {
+      "payment_enabled": true,
+      "contact_form_enabled": true,
+      "inventory_enabled": true
+    }
+  }
