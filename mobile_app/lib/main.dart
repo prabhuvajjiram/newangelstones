@@ -22,27 +22,28 @@ void main() async {
   // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize Firebase
-  await FirebaseService.instance.initialize();
-  
-  // Initialize Firebase Messaging
-  await FirebaseMessagingHandler.setup();
-  
-  // Set up global error handling and forward to Crashlytics
+  // Set up global error handling first (non-blocking)
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
-    FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+    // Firebase Crashlytics will be initialized later
+    try {
+      FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+    } catch (e) {
+      debugPrint('Crashlytics not ready: $e');
+    }
   };
 
   // Handle uncaught async errors
   WidgetsBinding.instance.platformDispatcher.onError = (error, stack) {
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    try {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    } catch (e) {
+      debugPrint('Crashlytics not ready: $e');
+    }
     return true;
   };
   
-  // No need to preload assets for splash screen
-  // Native splash screen will handle the initial display
-  
+  // Start app immediately - Firebase will initialize in background
   runApp(
     MultiProvider(
       providers: [
@@ -107,33 +108,38 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   
   Future<void> _initializeServices() async {
     try {
-      // Initialize API service
-      await _apiService.initialize();
+      // Initialize Firebase first (in background)
+      FirebaseService.instance.initialize().then((_) {
+        // Initialize Firebase Messaging after Firebase is ready
+        FirebaseMessagingHandler.setup();
+        debugPrint('🔥 Firebase services initialized');
+      }).catchError((e) {
+        debugPrint('❌ Firebase initialization error: $e');
+      });
       
-      // Initialize storage service
-      await _storageService.initialize();
+      // Initialize core services (non-blocking)
+      await Future.wait([
+        _apiService.initialize(),
+        _storageService.initialize(),
+      ]);
       
-      // Initialize inventory service
+      // Initialize remaining services
       await _inventoryService.initialize();
-      
-      // Initialize directory service
       await _directoryService.initialize();
 
-      // Kick off offline catalog sync in background
+      // Kick off offline catalog sync in background (non-blocking)
       _offlineCatalogService.syncCatalog();
       
       // Initialize saved items from storage (after widget is built)
-      // We need to wait for the first frame to be built before accessing context
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          // This ensures context is available for Provider access
           _initializeSavedItems();
         }
       });
       
-      debugPrint('All services initialized successfully');
+      debugPrint('✅ Core services initialized successfully');
     } catch (e) {
-      debugPrint('Error initializing services: $e');
+      debugPrint('❌ Error initializing services: $e');
     }
   }
   
