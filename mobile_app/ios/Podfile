@@ -42,6 +42,9 @@ post_install do |installer|
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
       
+      # Enable dSYM generation for all configurations
+      config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
+      
       # Disable code signing for resource bundles
       if config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] != nil && config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'].end_with?('.bundle')
         config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'

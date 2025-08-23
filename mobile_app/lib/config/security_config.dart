@@ -120,6 +120,21 @@ class SecurityConfig {
     return config['features']?[feature] ?? false;
   }
   
+  static Future<String> getContactPhone() async {
+    final config = await _getConfig();
+    return config['contact']?['phone'] ?? '+1 866-682-5837';
+  }
+  
+  static Future<String> getContactEmail() async {
+    final config = await _getConfig();
+    return config['contact']?['email'] ?? 'info@theangelstones.com';
+  }
+  
+  static Future<String> getMauticBaseUrl() async {
+    final config = await _getConfig();
+    return config['api_endpoints']?['mautic_base'] ?? '$angelStonesBaseUrl/mautic/form/submit';
+  }
+  
   /// Fetch configuration with three-layer fallback
   static Future<Map<String, dynamic>> _getConfig() async {
     // Use cache if available and not expired

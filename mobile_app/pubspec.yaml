@@ -1,6 +1,6 @@
 name: angel_granites_app
 description: Mobile app for Angel Granites.
-version: 2.2.3+23 # versionName + versionCode
+version: 2.2.5+25 # versionName + versionCode
 
 
 environment:
@@ -41,6 +41,7 @@ dependencies:
   # Removed shared_preferences dependency
   collection: any
   map_launcher: ^4.0.0
+  cached_network_image: ^3.4.1  # High-performance image caching
 
 dev_dependencies:
   flutter_test:

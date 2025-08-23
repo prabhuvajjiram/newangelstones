@@ -9,9 +9,24 @@ class ProductDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    // Responsive sizing based on screen dimensions
+    final bool isSmallScreen = screenHeight < 700 || screenWidth < 400;
+    final double toolbarHeight = isSmallScreen ? 48.0 : 56.0;
+    final double titleFontSize = isSmallScreen ? 14.0 : 16.0;
+    final int maxTitleLength = isSmallScreen ? 20 : 30;
+    
     return Scaffold(
       appBar: AppBar(
-        title: Text(product.name),
+        toolbarHeight: toolbarHeight,
+        title: Text(
+          product.name.length > maxTitleLength ? 
+            '${product.name.substring(0, maxTitleLength)}...' : 
+            product.name,
+          style: TextStyle(fontSize: titleFontSize),
+        ),
         actions: const [],
       ),
       body: SingleChildScrollView(

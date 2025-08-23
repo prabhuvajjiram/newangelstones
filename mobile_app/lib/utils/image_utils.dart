@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
 
 /// Utility class for handling image loading in a consistent way
@@ -47,34 +48,30 @@ class ImageUtils {
       return defaultErrorWidget;
     }
 
-    // For network images
+    // For network images with caching
     if (isNetworkImage(imageUrl)) {
-      return Image.network(
-        imageUrl,
+      return CachedNetworkImage(
+        imageUrl: imageUrl,
         width: width,
         height: height,
         fit: fit,
-        errorBuilder: (context, error, stackTrace) {
-          debugPrint('❌ Error loading network image: $error');
+        placeholder: (context, url) => placeholderWidget ??
+            Container(
+              width: width,
+              height: height,
+              color: Colors.grey[200],
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+        errorWidget: (context, url, error) {
+          debugPrint('❌ Error loading cached network image: $error');
           return errorWidget ?? defaultErrorWidget;
         },
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return placeholderWidget ??
-              Container(
-                width: width,
-                height: height,
-                color: Colors.grey[200],
-                child: Center(
-                  child: CircularProgressIndicator(
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                            loadingProgress.expectedTotalBytes!
-                        : null,
-                  ),
-                ),
-              );
-        },
+        memCacheWidth: width?.toInt(),
+        memCacheHeight: height?.toInt(),
+        maxWidthDiskCache: 800,
+        maxHeightDiskCache: 800,
       );
     }
     // For asset images

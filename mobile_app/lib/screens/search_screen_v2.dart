@@ -3,15 +3,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import '../models/inventory_item.dart';
 import '../models/product.dart';
-import '../services/inventory_service.dart';
+import '../models/inventory_item.dart';
 import '../services/api_service.dart';
+import '../services/inventory_service.dart';
 import '../services/storage_service.dart';
-import '../navigation/app_router.dart';
+import '../services/accessibility_service.dart';
+import '../widgets/advanced_search_filters.dart';
 import '../state/cart_state.dart';
 import '../services/unified_saved_items_service.dart';
 import '../utils/image_utils.dart';
+import '../navigation/app_router.dart';
 
 class SearchScreenV2 extends StatefulWidget {
   // Accept services directly
@@ -44,14 +46,19 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
   
   Timer? _searchDebounce;
   
+  // Advanced search filters
+  SearchFilters _searchFilters = SearchFilters();
+  List<String> _availableTypes = [];
+  List<String> _availableColors = [];
+  List<String> _availableLocations = [];
+  List<String> _availableFinishes = [];
+  
   @override
   void initState() {
     super.initState();
-    // Auto-focus the search field when the screen opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_searchFocusNode);
-      
-      // Load all product directories to ensure they're in storage
+      _loadFilterOptions();
       _loadAllProductDirectories();
     });
   }
@@ -87,6 +94,67 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
     _searchFocusNode.dispose();
     _searchDebounce?.cancel();
     super.dispose();
+  }
+
+  void _showAdvancedFilters() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.9,
+        builder: (context, scrollController) => AdvancedSearchFilters(
+          filters: _searchFilters,
+          onFiltersChanged: (filters) {
+            debugPrint('🔧 Filters changed: hasActiveFilters=${filters.hasActiveFilters}, activeCount=${filters.activeFilterCount}');
+            setState(() {
+              _searchFilters = filters;
+            });
+            _performSearch(_searchQuery.isEmpty ? '' : _searchQuery);
+          },
+          availableTypes: _availableTypes,
+          availableColors: _availableColors,
+          availableLocations: _availableLocations,
+          availableFinishes: _availableFinishes,
+        ),
+      ),
+    );
+  }
+
+  void _loadFilterOptions() async {
+    try {
+      if (widget.inventoryService != null) {
+        final inventory = await widget.inventoryService!.fetchInventory();
+        
+        final types = <String>{};
+        final colors = <String>{};
+        final locations = <String>{};
+        final finishes = <String>{};
+        
+        for (final item in inventory) {
+          if (item.type.isNotEmpty) types.add(item.type);
+          if (item.color.isNotEmpty) colors.add(item.color);
+          if (item.location.isNotEmpty) locations.add(item.location);
+          if (item.finish.isNotEmpty) finishes.add(item.finish);
+        }
+        
+        setState(() {
+          _availableTypes = types.toList()..sort();
+          _availableColors = colors.toList()..sort();
+          _availableLocations = locations.toList()..sort();
+          _availableFinishes = finishes.toList()..sort();
+        });
+        
+        debugPrint('📋 Loaded filter options:');
+        debugPrint('  Types: ${_availableTypes.length} - ${_availableTypes.take(5).join(", ")}...');
+        debugPrint('  Colors: ${_availableColors.length} - ${_availableColors.take(5).join(", ")}...');
+        debugPrint('  Locations: ${_availableLocations.length} - ${_availableLocations.join(", ")}');
+      }
+    } catch (e) {
+      debugPrint('❌ Error loading filter options: $e');
+    }
   }
 
   void _onSearchChanged(String query) {
@@ -194,7 +262,10 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
   // No special product handling - we only use what's in local storage
   
   Future<void> _performSearch(String query) async {
-    if (query.isEmpty) {
+    debugPrint('🔍 _performSearch called with query: "$query", hasActiveFilters: ${_searchFilters.hasActiveFilters}');
+    
+    if (query.isEmpty && !_searchFilters.hasActiveFilters) {
+      debugPrint('🔍 No query and no filters - clearing results');
       setState(() {
         _productResults = [];
         _colorResults = [];
@@ -213,104 +284,131 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
     
 
     
-    // STEP 1: Search for products in local storage
-    try {
-      // Load all products from local storage
-      final allProducts = await _loadAllLocalProducts();
-      
-      // Filter products by search query
-      final List<Product> matchingProducts = allProducts.where((product) {
-        final name = product.name.toLowerCase();
-        final description = product.description.toLowerCase();
-        final id = product.id.toLowerCase();
-        String numericId = '';
+    // STEP 1: Search for products in local storage (only if no filters are applied)
+    if (!_searchFilters.hasActiveFilters) {
+      try {
+        // Load all products from local storage
+        final allProducts = await _loadAllLocalProducts();
         
-        // Extract numeric part from ID if possible
-        if (id.isNotEmpty) {
-          final RegExp numericRegex = RegExp(r'\d+');
-          final Match? numericMatch = numericRegex.firstMatch(id);
-          if (numericMatch != null) {
-            numericId = numericMatch.group(0) ?? "";
-          }
-        }
-        
-        // Match by name, description, or ID (full or numeric part)
-        bool matches = name.contains(normalizedQuery) || 
-                      description.contains(normalizedQuery) || 
-                      id.contains(normalizedQuery);
-        
-        // No debug logs needed here
-        
-        // Direct match for product codes (case insensitive)
-        if (!matches) {
-          // Check if product ID equals the search query (ignoring case and with/without prefix)
-          String normalizedId = id.toLowerCase().replaceAll(RegExp(r'[\s-]'), '');
+        // Filter products by search query
+        final List<Product> matchingProducts = allProducts.where((product) {
+          final name = product.name.toLowerCase();
+          final description = product.description.toLowerCase();
+          final id = product.id.toLowerCase();
+          String numericId = '';
           
-          // No debug logs needed
-          
-          // Handle AG prefix in query or product ID
-          if (normalizedId.startsWith("ag") && !normalizedQuery.startsWith("ag")) {
-            // Query doesn't have prefix but product does - compare without prefix
-            if (normalizedId.substring(2) == normalizedQuery) {
-              matches = true;
-              // Match found without AG prefix
-            }
-          } else if (!normalizedId.startsWith("ag") && normalizedQuery.startsWith("ag")) {
-            // Query has prefix but product doesn't - compare without prefix
-            if (normalizedId == normalizedQuery.substring(2)) {
-              matches = true;
+          // Extract numeric part from ID if possible
+          if (id.isNotEmpty) {
+            final RegExp numericRegex = RegExp(r'\d+');
+            final Match? numericMatch = numericRegex.firstMatch(id);
+            if (numericMatch != null) {
+              numericId = numericMatch.group(0) ?? "";
             }
           }
-        }
-        
-        // Also check for numeric part matches (e.g., "950" matches "AG-950")
-        if (!matches && numericId.isNotEmpty && normalizedQuery.isNotEmpty) {
-          if (numericId.contains(normalizedQuery) || normalizedQuery.contains(numericId)) {
-            matches = true;
+          
+          // Match by name, description, or ID (full or numeric part)
+          bool matches = name.contains(normalizedQuery) || 
+                        description.contains(normalizedQuery) || 
+                        id.contains(normalizedQuery);
+          
+          // No debug logs needed here
+          
+          // Direct match for product codes (case insensitive)
+          if (!matches) {
+            // Check if product ID equals the search query (ignoring case and with/without prefix)
+            String normalizedId = id.toLowerCase().replaceAll(RegExp(r'[\s-]'), '');
+            
+            // No debug logs needed
+            
+            // Handle AG prefix in query or product ID
+            if (normalizedId.startsWith("ag") && !normalizedQuery.startsWith("ag")) {
+              // Query doesn't have prefix but product does - compare without prefix
+              if (normalizedId.substring(2) == normalizedQuery) {
+                matches = true;
+                // Match found without AG prefix
+              }
+            } else if (!normalizedId.startsWith("ag") && normalizedQuery.startsWith("ag")) {
+              // Query has prefix but product doesn't - compare without prefix
+              if (normalizedId == normalizedQuery.substring(2)) {
+                matches = true;
+              }
+            }
           }
-        }
+          
+          // Also check for numeric part matches (e.g., "950" matches "AG-950")
+          if (!matches && numericId.isNotEmpty && normalizedQuery.isNotEmpty) {
+            if (numericId.contains(normalizedQuery) || normalizedQuery.contains(numericId)) {
+              matches = true;
+            }
+          }
+          
+          return matches;
+        }).toList();
         
-        return matches;
-      }).toList();
-      
-      if (matchingProducts.isNotEmpty) {
-        setState(() {
-          _productResults = matchingProducts;
-        });
-        hasAnyResults = hasAnyResults || matchingProducts.isNotEmpty;
+        if (matchingProducts.isNotEmpty) {
+          setState(() {
+            _productResults = matchingProducts;
+          });
+          hasAnyResults = hasAnyResults || matchingProducts.isNotEmpty;
+        }
+      } catch (e) {
+        debugPrint('Error during search: $e');
       }
-    } catch (e) {
-      debugPrint('Error during search: $e');
+    } else {
+      // Clear product results when filters are active
+      setState(() {
+        _productResults = [];
+      });
     }
     
     // STEP 2: Search inventory items using InventoryService
     try {
       final inventoryService = _getInventoryService();
 
-      // First search directly by query
+      // Fetch all inventory and apply filters
       List<InventoryItem> inventoryResults = await inventoryService.fetchInventory(
-        searchQuery: query,
         pageSize: 10000,
       );
-
-      // If no results, try as a color search
-      if (inventoryResults.isEmpty) {
-        inventoryResults = await inventoryService.fetchInventory(
-          color: query,
-          pageSize: 10000,
-        );
-      }
-
-      // If still none, try as a type search
-      if (inventoryResults.isEmpty) {
-        inventoryResults = await inventoryService.fetchInventory(
-          type: query,
-          pageSize: 10000,
-        );
-      }
-
-      // Fetch all items once to collect colors and types
-      final allItems = await inventoryService.fetchInventory(pageSize: 10000);
+      
+      // Apply text search and filters
+      inventoryResults = inventoryResults.where((item) {
+        // Text search
+        bool matchesText = true;
+        if (query.isNotEmpty) {
+          final normalizedQuery = query.toLowerCase();
+          matchesText = item.description.toLowerCase().contains(normalizedQuery) ||
+                       item.code.toLowerCase().contains(normalizedQuery) ||
+                       item.type.toLowerCase().contains(normalizedQuery) ||
+                       item.color.toLowerCase().contains(normalizedQuery) ||
+                       item.design.toLowerCase().contains(normalizedQuery) ||
+                       item.finish.toLowerCase().contains(normalizedQuery) ||
+                       item.size.toLowerCase().contains(normalizedQuery) ||
+                       item.location.toLowerCase().contains(normalizedQuery);
+        }
+        
+        // Apply advanced filters
+        bool matchesFilters = true;
+        if (_searchFilters.selectedType != null) {
+          matchesFilters = matchesFilters && item.type == _searchFilters.selectedType;
+        }
+        if (_searchFilters.selectedColor != null) {
+          matchesFilters = matchesFilters && item.color == _searchFilters.selectedColor;
+        }
+        if (_searchFilters.selectedLocation != null) {
+          matchesFilters = matchesFilters && item.location == _searchFilters.selectedLocation;
+        }
+        if (_searchFilters.selectedFinish != null) {
+          matchesFilters = matchesFilters && item.finish == _searchFilters.selectedFinish;
+        }
+        if (_searchFilters.inStockOnly) {
+          matchesFilters = matchesFilters && item.quantity > 0;
+        }
+        
+        return matchesText && matchesFilters;
+      }).toList();
+      
+      debugPrint('🔍 Found ${inventoryResults.length} inventory items matching "$query" with filters');
+      debugPrint('🔍 Active filters: type=${_searchFilters.selectedType}, color=${_searchFilters.selectedColor}, location=${_searchFilters.selectedLocation}, finish=${_searchFilters.selectedFinish}, inStock=${_searchFilters.inStockOnly}');
 
       final Set<String> colors = {};
       final Map<String, List<InventoryItem>> typeGroups = {};
@@ -329,42 +427,17 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
         }
       }
       
-      // If we have no results yet, try to find items by color or type
-      if (inventoryResults.isEmpty) {
-        for (final item in allItems) {
-          if (item.color.toLowerCase().contains(normalizedQuery) || 
-              item.type.toLowerCase().contains(normalizedQuery) ||
-              item.description.toLowerCase().contains(normalizedQuery) ||
-              item.code.toLowerCase().contains(normalizedQuery)) {
-            
-            inventoryResults.add(item);
-            
-            // Add to color set if not already there
-            if (item.color.isNotEmpty) {
-              colors.add(item.color);
-            }
-            
-            // Add to type groups
-            if (item.type.isNotEmpty) {
-              if (!typeGroups.containsKey(item.type)) {
-                typeGroups[item.type] = [];
-              }
-              typeGroups[item.type]!.add(item);
-            }
-          }
-        }
-      }
+      // Update state with filtered results
+      setState(() {
+        _typeGroupedResults = typeGroups;
+        _colorResults = colors.toList();
+        _hasResults = inventoryResults.isNotEmpty || _productResults.isNotEmpty;
+      });
       
-      // Remove duplicates
-      inventoryResults = inventoryResults.toSet().toList();
-
-      if (inventoryResults.isNotEmpty || colors.isNotEmpty || typeGroups.isNotEmpty) {
-        setState(() {
-          _colorResults = colors.toList();
-          _typeGroupedResults = typeGroups;
-        });
-
-        hasAnyResults = hasAnyResults || inventoryResults.isNotEmpty;
+      debugPrint('🔍 Updated UI state: _hasResults=$_hasResults, typeGroups=${typeGroups.length}, colors=${colors.length}, products=${_productResults.length}');
+      
+      if (inventoryResults.isNotEmpty) {
+        hasAnyResults = true;
       }
     } catch (e) {
       debugPrint('Error searching inventory: $e');
@@ -385,56 +458,99 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       appBar: AppBar(
         title: const Text('Search'),
         elevation: 0,
+        actions: [
+          // Filter button with badge
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.filter_list, color: Colors.white),
+                onPressed: () {
+                  AccessibilityService.provideFeedback();
+                  _showAdvancedFilters();
+                },
+                tooltip: 'Open search filters',
+              ),
+              if (_searchFilters.hasActiveFilters)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Text(
+                      '${_searchFilters.activeFilterCount}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
       ),
       body: Column(
         children: [
           // Accessible search bar copied from the original search screen
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: _searchController,
-              focusNode: _searchFocusNode,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16.0,
+            child:
+            Semantics(
+              label: 'Search field for products, colors, and inventory items',
+              child: TextField(
+                controller: _searchController,
+                focusNode: _searchFocusNode,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Search products, colors, or inventory...',
+                  hintStyle: const TextStyle(color: Colors.white70),
+                  prefixIcon: const Icon(Icons.search, color: Colors.white70),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.white),
+                          tooltip: 'Clear search',
+                          onPressed: () {
+                            AccessibilityService.provideFeedback();
+                            _searchController.clear();
+                            _onSearchChanged('');
+                          },
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.white30),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.white30),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.white),
+                  ),
+                  filled: true,
+                  fillColor: Colors.black.withValues(alpha: 0.3),
+                ),
+                onChanged: _onSearchChanged,
+                textInputAction: TextInputAction.search,
+                onSubmitted: (_) => _searchFocusNode.unfocus(),
               ),
-              decoration: InputDecoration(
-                hintText: 'Search products, colors, inventory...',
-                hintStyle: const TextStyle(color: Colors.white70),
-                prefixIcon: const Icon(Icons.search, color: Colors.white),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.white),
-                        onPressed: () {
-                          _searchController.clear();
-                          _onSearchChanged('');
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Colors.white30),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Colors.white30),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Colors.white),
-                ),
-                filled: true,
-                fillColor: Colors.black.withValues(alpha: 0.3),
-              ),
-              onChanged: _onSearchChanged,
-              textInputAction: TextInputAction.search,
-              onSubmitted: (_) => _searchFocusNode.unfocus(),
             ),
           ),
           
           // Search results
           Expanded(
-            child: _searchQuery.isEmpty
+            child: (_searchQuery.isEmpty && !_searchFilters.hasActiveFilters)
                 ? _buildEmptyState()
                 : (_isLoading
                     ? const Center(child: CircularProgressIndicator())
@@ -446,10 +562,12 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
   }
   
   Widget _buildEmptyState() {
-    return const Center(
+    return Center(
       child: Text(
-        'Enter a search term to find products, colors, or inventory items',
-        style: TextStyle(
+        _searchFilters.hasActiveFilters 
+          ? 'Apply filters to see results'
+          : 'Enter a search term to find products, colors, or inventory items',
+        style: const TextStyle(
           fontSize: 18,
           color: Colors.white,
           fontWeight: FontWeight.w600,
@@ -461,9 +579,20 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
   
   Widget _buildSearchResults() {
     if (!_hasResults) {
+      String message;
+      if (_searchQuery.isNotEmpty && _searchFilters.hasActiveFilters) {
+        message = 'No results found for "$_searchQuery" with applied filters';
+      } else if (_searchQuery.isNotEmpty) {
+        message = 'No results found for "$_searchQuery"';
+      } else if (_searchFilters.hasActiveFilters) {
+        message = 'No results found with applied filters';
+      } else {
+        message = 'No results found';
+      }
+      
       return Center(
         child: Text(
-          'No results found for "$_searchQuery"',
+          message,
           style: const TextStyle(color: Colors.white70),
           textAlign: TextAlign.center,
         ),

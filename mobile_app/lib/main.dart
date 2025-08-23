@@ -15,6 +15,7 @@ import 'state/saved_items_state.dart';
 import 'package:provider/provider.dart';
 import 'services/firebase_service.dart';
 import 'services/analytics_wrapper.dart';
+import 'firebase/firebase_messaging_handler.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 void main() async {
@@ -23,6 +24,9 @@ void main() async {
   
   // Initialize Firebase
   await FirebaseService.instance.initialize();
+  
+  // Initialize Firebase Messaging
+  await FirebaseMessagingHandler.setup();
   
   // Set up global error handling and forward to Crashlytics
   FlutterError.onError = (FlutterErrorDetails details) {

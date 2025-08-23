@@ -23,6 +23,8 @@ class _ContactScreenState extends State<ContactScreen> {
   final _messageController = TextEditingController();
   bool _isSubmitting = false;
   String? _paymentUrl;
+  String? _contactPhone;
+  String? _contactEmail;
   
   // Email validation method
   bool _isValidEmail(String email) {
@@ -39,7 +41,7 @@ class _ContactScreenState extends State<ContactScreen> {
   @override
   void initState() {
     super.initState();
-    _loadPaymentUrl();
+    _loadConfiguration();
   }
 
   @override
@@ -51,33 +53,90 @@ class _ContactScreenState extends State<ContactScreen> {
     super.dispose();
   }
   
-  Future<void> _loadPaymentUrl() async {
-    final url = await SecurityConfig.getPaymentUrl();
-    if (mounted) {
-      setState(() {
-        _paymentUrl = url;
-      });
+  Future<void> _loadConfiguration() async {
+    try {
+      final results = await Future.wait([
+        SecurityConfig.getPaymentUrl(),
+        SecurityConfig.getContactPhone(),
+        SecurityConfig.getContactEmail(),
+      ]);
+      
+      if (mounted) {
+        setState(() {
+          _paymentUrl = results[0];
+          _contactPhone = results[1];
+          _contactEmail = results[2];
+        });
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error loading configuration: $e');
+      // Set fallback values
+      if (mounted) {
+        setState(() {
+          _paymentUrl = null;
+          _contactPhone = '+1 866-682-5837';
+          _contactEmail = 'info@theangelstones.com';
+        });
+      }
     }
   }
   
   Future<void> _launchUrl(String urlString, BuildContext context) async {
     try {
       final Uri url = Uri.parse(urlString);
-      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-        if (context.mounted) {
+      
+      // For phone numbers, try different launch modes
+      if (urlString.startsWith('tel:')) {
+        // First try with platformDefault mode for better iOS compatibility
+        bool launched = await launchUrl(url, mode: LaunchMode.platformDefault);
+        
+        // If that fails, try externalApplication mode
+        if (!launched) {
+          launched = await launchUrl(url, mode: LaunchMode.externalApplication);
+        }
+        
+        if (!launched && context.mounted) {
+          final phoneNumber = _contactPhone ?? '+1 866-682-5837';
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Could not open $urlString'),
+              content: Text('Could not open phone dialer. Please dial $phoneNumber manually.'),
               behavior: SnackBarBehavior.floating,
               backgroundColor: Colors.red.shade800,
-              duration: const Duration(seconds: 3),
+              duration: const Duration(seconds: 4),
               action: SnackBarAction(
-                label: 'DISMISS',
+                label: 'COPY',
                 textColor: Colors.white,
-                onPressed: () {},
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: phoneNumber));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Phone number copied to clipboard'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
               ),
             ),
           );
+        }
+      } else {
+        // For other URLs, use the standard approach
+        if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Could not open $urlString'),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.red.shade800,
+                duration: const Duration(seconds: 3),
+                action: SnackBarAction(
+                  label: 'DISMISS',
+                  textColor: Colors.white,
+                  onPressed: () {},
+                ),
+              ),
+            );
+          }
         }
       }
     } catch (e) {
@@ -398,15 +457,22 @@ class _ContactScreenState extends State<ContactScreen> {
                     context: context,
                     icon: Icons.phone,
                     title: 'Call Us',
-                    subtitle: '+1 866-682-5837',
-                    onTap: () => _launchUrl('tel:+18666825837', context),
+                    subtitle: _contactPhone ?? '+1 866-682-5837',
+                    onTap: () {
+                      final phone = _contactPhone ?? '+1 866-682-5837';
+                      final telUrl = 'tel:${phone.replaceAll(RegExp(r'[^\d+]'), '')}';
+                      _launchUrl(telUrl, context);
+                    },
                   ),
                   _buildContactCard(
                     context: context,
                     icon: Icons.email,
                     title: 'Email Us',
-                    subtitle: 'info@theangelstones.com',
-                    onTap: () => _launchUrl('mailto:info@theangelstones.com', context),
+                    subtitle: _contactEmail ?? 'info@theangelstones.com',
+                    onTap: () {
+                      final email = _contactEmail ?? 'info@theangelstones.com';
+                      _launchUrl('mailto:$email', context);
+                    },
                   ),
                   _buildContactCard(
                     context: context,

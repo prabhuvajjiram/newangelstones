@@ -1,5 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 
 import '../models/notification_payload.dart';
 import '../config/notification_config.dart';
@@ -17,23 +18,61 @@ class NotificationService {
   NotificationPreferences preferences = NotificationPreferences();
 
   Future<void> initialize() async {
+    // Request notification permissions
+    NotificationSettings settings = await _messaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
+
+    debugPrint('🔔 Notification permissions: ${settings.authorizationStatus}');
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      debugPrint('✅ User granted notification permission');
+    } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
+      debugPrint('⚠️ User granted provisional notification permission');
+    } else {
+      debugPrint('❌ User declined or has not accepted notification permission');
+    }
+
+    // Get and print FCM token for Firebase Console
+    String? token = await _messaging.getToken();
+    if (token != null) {
+      debugPrint('🔑 FCM Token: $token');
+      debugPrint('📱 Copy this token to Firebase Console for testing');
+    }
+
+    // No topic subscription needed - using User segment targeting in Firebase Console
+
+    // Initialize local notifications
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
-    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings();
+    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
     const InitializationSettings initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
     );
+    
     await _localNotifications.initialize(initSettings,
         onDidReceiveNotificationResponse: (response) {
       final payload = response.payload;
       if (payload != null) {
-        // handle deep link if needed
+        debugPrint('📱 Notification tapped with payload: $payload');
+        // Handle deep linking or navigation here
       }
     });
 
-    await _messaging.requestPermission();
+    // Handle foreground notifications
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      debugPrint('📧 Notification received in foreground: ${message.notification?.title}');
       final notification = message.notification;
       if (notification != null) {
         displayNotification(
@@ -45,6 +84,45 @@ class NotificationService {
         );
       }
     });
+
+    // Handle notification taps when app is in background
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      debugPrint('🔔 Notification tapped: ${message.notification?.title}');
+      // Handle navigation based on notification data
+      _handleNotificationTap(message);
+    });
+
+    // Handle notification when app is opened from terminated state
+    RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null) {
+      debugPrint('🚀 App launched from notification: ${initialMessage.notification?.title}');
+      _handleNotificationTap(initialMessage);
+    }
+  }
+
+  void _handleNotificationTap(RemoteMessage message) {
+    // Handle different notification types
+    final data = message.data;
+    final type = data['type'];
+    
+    switch (type) {
+      case 'inventory_update':
+        // Navigate to inventory screen
+        debugPrint('🏪 Navigate to inventory screen');
+        break;
+      case 'promotion':
+        // Navigate to promotions/specials
+        debugPrint('🎉 Navigate to promotions screen');
+        break;
+      case 'order_status':
+        // Navigate to orders
+        debugPrint('📦 Navigate to orders screen');
+        break;
+      default:
+        // Navigate to home or handle generic notification
+        debugPrint('🏠 Navigate to home screen');
+        break;
+    }
   }
 
   Future<String?> getToken() async {

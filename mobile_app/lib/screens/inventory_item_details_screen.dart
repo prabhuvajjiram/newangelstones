@@ -148,14 +148,25 @@ class _InventoryItemDetailsScreenState extends State<InventoryItemDetailsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    // Responsive sizing based on screen dimensions
+    final bool isSmallScreen = screenHeight < 700 || screenWidth < 400;
+    final double toolbarHeight = isSmallScreen ? 48.0 : 56.0;
+    final double titleFontSize = isSmallScreen ? 14.0 : 16.0;
+    final int maxTitleLength = isSmallScreen ? 20 : 30;
+    
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: toolbarHeight,
         title: Text(
           widget.item.description.isNotEmpty ? 
-            (widget.item.description.length > 30 ? 
-              '${widget.item.description.substring(0, 30)}...' : 
+            (widget.item.description.length > maxTitleLength ? 
+              '${widget.item.description.substring(0, maxTitleLength)}...' : 
               widget.item.description) : 
             'Item Details',
+          style: TextStyle(fontSize: titleFontSize),
         ),
         actions: [
           IconButton(

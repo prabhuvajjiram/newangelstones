@@ -9,21 +9,25 @@ import '../utils/cache_entry.dart';
 import '../config/security_config.dart';
 
 class InventoryService {
-  static const _baseUrl = 'https://monument.business';
   static String? _cachedToken;
   static String? _cachedReferer;
+  static String? _cachedBaseUrl;
+
+  static Future<String> _getBaseUrl() async {
+    _cachedBaseUrl ??= SecurityConfig.monumentBusinessBaseUrl;
+    return _cachedBaseUrl!;
+  }
 
   static Future<String> _getToken() async {
-    if (_cachedToken == null) {
-      _cachedToken = await SecurityConfig.getMonumentBusinessToken();
-    }
+    _cachedToken ??= await SecurityConfig.getMonumentBusinessToken();
     return _cachedToken!;
   }
 
   static Future<String> _getReferer() async {
     if (_cachedReferer == null) {
+      final baseUrl = await _getBaseUrl();
       final token = await _getToken();
-      _cachedReferer = 'https://monument.business/GV/GVOBPInventory/ShowInventoryAll/$token';
+      _cachedReferer = '$baseUrl/GV/GVOBPInventory/ShowInventoryAll/$token';
     }
     return _cachedReferer!;
   }
@@ -42,7 +46,7 @@ class InventoryService {
     if (_isInitialized) return;
     
     try {
-      // Preload local inventory data
+      // Preload local inventory data for offline support
       await _loadLocalInventory().timeout(
         const Duration(seconds: 2),
         onTimeout: () {
@@ -97,9 +101,10 @@ class InventoryService {
   /// Test API connection without blocking app startup
   Future<void> _testApiConnection() async {
     try {
+      final baseUrl = await _getBaseUrl();
       final token = await _getToken();
       final referer = await _getReferer();
-      final uri = Uri.parse('$_baseUrl/GV/GVOBPInventory/ShowInventoryAll/$token');
+      final uri = Uri.parse('$baseUrl/GV/GVOBPInventory/ShowInventoryAll/$token');
       final response = await http.get(
         uri,
         headers: {'Referer': referer},
@@ -226,7 +231,8 @@ class InventoryService {
       // Fetch inventory from each location - API only accepts one location at a time
       for (final locationId in _locationIds) {
         try {
-          final uri = Uri.parse('$_baseUrl/GV/GVOBPInventory/GetAllStockdetailsSummaryforall');
+          final baseUrl = await _getBaseUrl();
+          final uri = Uri.parse('$baseUrl/GV/GVOBPInventory/GetAllStockdetailsSummaryforall');
           
           debugPrint('🌐 Fetching inventory for location $locationId');
           
@@ -258,7 +264,7 @@ class InventoryService {
               'X-Requested-With': 'XMLHttpRequest',
               'Cache-Control': 'no-cache',
               'Pragma': 'no-cache',
-              'Referer': _referer,
+              'Referer': await _getReferer(),
               'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Mobile Safari/537.36',
             },
             body: formData,
