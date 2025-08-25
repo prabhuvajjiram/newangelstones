@@ -126,6 +126,10 @@ $errors = [];
 
 
 // Validate required fields
+if (empty($_POST['sales_rep']) || !validatePersonName($_POST['sales_rep'])) {
+    $errors[] = "Sales Rep is required (2-50 characters, letters only)";
+}
+
 $business_name = isset($_POST['firm_name']) ? $_POST['firm_name'] : (isset($_POST['business_name']) ? $_POST['business_name'] : '');
 if (empty($business_name) || !validateBusinessName($business_name)) {
     $errors[] = "Business Name is required (2-100 characters, letters, numbers, and basic punctuation only)";
@@ -235,6 +239,7 @@ foreach ($_POST as $k => $v) {
 
 // Handle specific new fields with proper labels
 $fieldLabels = [
+    'sales_rep' => 'Sales Rep',
     'business_type' => 'Business Type',
     'other_business_type' => 'Other Business Type',
     'federal_tax_id' => 'Federal Tax ID / Primary SSN',
@@ -287,6 +292,24 @@ $pdf->SetFont('helvetica', '', 11);
 $pdf->SetTextColor(127, 140, 141);
 $pdf->Cell(0, 6, 'Submission Date: ' . date('F j, Y \a\t g:i A T'), 0, 1, 'C');
 $pdf->Ln(8);
+
+// Sales Representative Section
+$pdf->SetTextColor(41, 128, 185);
+$pdf->SetFont('helvetica', 'B', 13);
+$pdf->Cell(0, 10, 'SALES REPRESENTATIVE', 0, 1, 'L');
+$pdf->SetDrawColor(41, 128, 185);
+$pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
+$pdf->Ln(8);
+
+if (isset($formData['sales_rep']) && !empty($formData['sales_rep'])) {
+    $pdf->SetFont('helvetica', 'B', 10);
+    $pdf->SetTextColor(52, 73, 94);
+    $pdf->Cell(65, 7, 'Sales Rep:', 0, 0, 'L');
+    $pdf->SetFont('helvetica', '', 10);
+    $pdf->SetTextColor(0, 0, 0);
+    $pdf->MultiCell(0, 7, $formData['sales_rep'], 0, 1);
+    $pdf->Ln(8);
+}
 
 // Business Information Section with improved styling
 $pdf->SetTextColor(41, 128, 185);
@@ -519,10 +542,10 @@ if (file_exists($phpmailer_path)) {
         }
         
         // Set from and to addresses
-        $fromEmail = defined('SMTP_FROM_EMAIL') ? SMTP_FROM_EMAIL : 'noreply@theangelstones.com';
+        $fromEmail = defined('SMTP_FROM_EMAIL') ? SMTP_FROM_EMAIL : 'info@theangelstones.com';
         $fromName = defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : 'Angel Stones';
         $mail->setFrom($fromEmail, $fromName);
-        $mail->addAddress('da@theangelstones.com', 'Angel Stones Support Team');
+        $mail->addAddress('hr@theangelstones.com', 'Angel Stones HR Team');
         
         // CC the applicant if email is provided
         if (isset($formData['email']) && !empty($formData['email']) && filter_var($formData['email'], FILTER_VALIDATE_EMAIL)) {
@@ -536,6 +559,12 @@ if (file_exists($phpmailer_path)) {
     }
     $body = '<h2>New Credit Application Submission</h2>';
     $body .= '<p><strong>Submission Date:</strong> ' . date('F j, Y g:i A T') . '</p>';
+
+    // Sales Representative Section
+    if (isset($formData['sales_rep']) && !empty($formData['sales_rep'])) {
+        $body .= '<h3>Sales Representative</h3>';
+        $body .= '<p><strong>Sales Rep:</strong> ' . nl2br($formData['sales_rep']) . '</p>';
+    }
 
     // Organize fields by sections
     $body .= '<h3>Business Information</h3>';

@@ -30,9 +30,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const style = document.createElement('style');
         style.textContent = `
             .inventory-modal .modal-dialog {
-                max-width: 95%;
-                margin: 1.75rem auto;
-                height: 90vh;
+                max-width: 98%;
+                margin: 1rem auto;
+                height: 95vh;
             }
             .inventory-modal .modal-content {
                 background-color: #212529;
@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 height: 100%;
                 display: flex;
                 flex-direction: column;
+                font-size: 1.1rem;
             }
             .inventory-modal .modal-header {
                 border-bottom: 1px solid #343a40;
@@ -63,22 +64,69 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             /* Scroll indicator styles */
             .inventory-modal .scroll-indicator {
-                position: absolute;
-                bottom: 10px;
-                left: 50%;
-                transform: translateX(-50%);
-                background-color: rgba(0, 0, 0, 0.7);
-                color: white;
-                padding: 5px 15px;
-                border-radius: 20px;
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
+                color: #000000;
+                padding: 12px 24px;
+                border-radius: 25px;
+                border: 3px solid #ffffff;
                 display: none;
-                z-index: 10;
-                animation: fadeInOut 2s infinite;
+                z-index: 1000;
+                font-size: 1.1rem;
+                font-weight: bold;
+                box-shadow: 0 6px 12px rgba(0,0,0,0.5), 0 0 0 2px rgba(212, 175, 55, 0.3);
+                animation: pulse 2s infinite;
+                text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
             }
-            @keyframes fadeInOut {
-                0% { opacity: 0.3; }
-                50% { opacity: 1; }
-                100% { opacity: 0.3; }
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+            /* Navigation buttons for better accessibility */
+            .inventory-modal .nav-buttons {
+                position: fixed;
+                top: 50%;
+                transform: translateY(-50%);
+                z-index: 1000;
+            }
+            .inventory-modal .nav-button-left {
+                left: 10px;
+            }
+            .inventory-modal .nav-button-right {
+                right: 10px;
+            }
+            .inventory-modal .nav-button {
+                background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+                color: #ffffff;
+                border: 4px solid #ffffff;
+                padding: 18px 22px;
+                border-radius: 50%;
+                font-size: 1.8rem;
+                cursor: pointer;
+                box-shadow: 0 8px 16px rgba(0,0,0,0.7), 0 0 0 3px rgba(255, 107, 53, 0.4), inset 0 2px 4px rgba(255,255,255,0.3);
+                transition: all 0.3s ease;
+                font-weight: 900;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                position: relative;
+                z-index: 1001;
+            }
+            .inventory-modal .nav-button:hover {
+                background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+                transform: scale(1.2);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.8), 0 0 0 4px rgba(255, 140, 66, 0.6), inset 0 2px 4px rgba(255,255,255,0.4);
+                border-color: #ffffff;
+            }
+            .inventory-modal .nav-button:disabled {
+                background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+                color: #ffffff;
+                border-color: #adb5bd;
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
             }
             .inventory-modal .table-responsive {
                 overflow-x: auto;
@@ -118,9 +166,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             .inventory-modal .inventory-table th,
             .inventory-modal .inventory-table td {
-                padding: 0.75rem;
+                padding: 1rem;
                 vertical-align: middle;
                 border-top: 1px solid #dee2e6;
+                font-size: 1.1rem;
+                min-width: 120px;
             }
             .inventory-modal .inventory-table thead th {
                 vertical-align: bottom;
@@ -129,6 +179,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 position: sticky;
                 top: 0;
                 z-index: 5;
+                font-weight: bold;
+                font-size: 1.2rem;
+                color: #212529;
             }
             .inventory-modal .inventory-table tbody tr:hover {
                 background-color: #f1f1f1;
@@ -173,17 +226,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 color: #6c757d;
             }
             .inventory-modal .search-container input {
-                padding-left: 35px;
+                padding: 0.75rem 0.75rem 0.75rem 35px;
                 background-color: #343a40;
                 border-color: #495057;
                 color: #f8f9fa;
+                font-size: 1.1rem;
+                border-width: 2px;
             }
             .inventory-modal .search-container input::placeholder {
                 color: #6c757d;
             }
             .inventory-modal .summary-count {
-                color: #f8f9fa;
-                font-size: 0.9rem;
+                color: #adb5bd;
+                font-size: 0.85rem;
+                font-weight: normal;
+                background: transparent;
+                padding: 0;
+                margin: 0;
+                opacity: 0.8;
             }
             .inventory-modal .active-filter select,
             .inventory-modal .active-filter input {
@@ -208,6 +268,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 background-color: #343a40;
                 border-color: #495057;
                 color: #f8f9fa;
+                font-size: 1rem;
+                padding: 0.5rem;
+                border-width: 2px;
+                min-width: 100px;
             }
             .inventory-modal #searchHelp {
                 font-size: 0.85rem;
@@ -240,29 +304,110 @@ document.addEventListener('DOMContentLoaded', function() {
                 border-radius: 6px;
                 border: 3px solid #343a40;
             }
-            /* Responsive styles */
+            /* Enhanced responsive styles for better accessibility */
+            @media (max-width: 1200px) {
+                .inventory-modal .modal-dialog {
+                    max-width: 100%;
+                    margin: 0.5rem;
+                }
+                .inventory-modal .modal-body {
+                    padding: 0.75rem;
+                }
+                .inventory-modal .inventory-table th,
+                .inventory-modal .inventory-table td {
+                    font-size: 1rem;
+                    padding: 0.75rem;
+                }
+            }
             @media (max-width: 767.98px) {
+                .inventory-modal .modal-dialog {
+                    max-width: 100%;
+                    margin: 0.25rem;
+                    height: 98vh;
+                }
+                .inventory-modal .modal-content {
+                    font-size: 0.9rem;
+                }
                 .inventory-modal .sticky-filters {
                     position: static;
                     box-shadow: none;
                 }
-                .inventory-modal .btn {
-                    padding: 0.25rem 0.5rem;
-                    font-size: 0.875rem;
+                .inventory-modal .nav-button {
+                    width: 35px;
+                    height: 35px;
+                    font-size: 0.8rem;
                 }
-                .inventory-modal .form-control {
-                    font-size: 0.875rem;
+                .inventory-modal .nav-button-left {
+                    left: 5px;
+                }
+                .inventory-modal .nav-button-right {
+                    right: 5px;
+                }
+                .inventory-modal .inventory-table th,
+                .inventory-modal .inventory-table td {
+                    font-size: 0.8rem;
+                    padding: 0.4rem;
                 }
                 .inventory-modal .search-container input {
-                    font-size: 1rem;
-                    padding: 0.375rem 0.75rem;
+                    font-size: 0.9rem;
+                    padding: 0.4rem 0.8rem;
                 }
-                .inventory-modal .inventory-table thead tr {
-                    display: flex;
-                    flex-wrap: wrap;
+                .inventory-modal .column-filter {
+                    font-size: 0.8rem;
+                    padding: 0.3rem;
                 }
-                .inventory-modal .inventory-table thead th {
-                    flex: 1 0 50%;
+                .inventory-modal .summary-count {
+                    font-size: 0.75rem;
+                }
+            }
+            @media (max-width: 480px) {
+                .inventory-modal .modal-dialog {
+                    margin: 0.1rem;
+                    height: 99vh;
+                }
+                .inventory-modal .modal-content {
+                    font-size: 0.8rem;
+                }
+                .inventory-modal .nav-button {
+                    width: 30px;
+                    height: 30px;
+                    font-size: 0.7rem;
+                }
+                .inventory-modal .inventory-table th,
+                .inventory-modal .inventory-table td {
+                    font-size: 0.7rem;
+                    padding: 0.3rem;
+                }
+                .inventory-modal .search-container input {
+                    font-size: 0.8rem;
+                    padding: 0.3rem 0.6rem;
+                }
+                .inventory-modal .column-filter {
+                    font-size: 0.7rem;
+                    padding: 0.2rem;
+                }
+            }
+            /* High contrast mode support */
+            @media (prefers-contrast: high) {
+                .inventory-modal .modal-content {
+                    border-width: 3px;
+                    border-color: #ffffff;
+                }
+                .inventory-modal .inventory-table th,
+                .inventory-modal .inventory-table td {
+                    border-width: 2px;
+                }
+                .inventory-modal .btn {
+                    border-width: 3px;
+                }
+            }
+            /* Reduced motion support */
+            @media (prefers-reduced-motion: reduce) {
+                .inventory-modal .scroll-indicator {
+                    animation: none;
+                }
+                .inventory-modal .nav-button {
+                    transition: none;
                 }
             }
         `;
@@ -743,6 +888,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 resetBtn.textContent = 'Reset Filters';
                 modalFooter.appendChild(resetBtn);
 
+                // Summary count display
+                const summaryDiv = document.createElement('div');
+                summaryDiv.className = 'summary-count';
+                summaryDiv.id = 'summaryCount';
+                summaryDiv.textContent = 'Loading...';
+                modalFooter.appendChild(summaryDiv);
+
                 // Refresh data button
                 const refreshBtn = document.createElement('button');
                 refreshBtn.type = 'button';
@@ -977,7 +1129,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div id="searchHelp" class="form-text">Search by description, type, color, or any attribute</div>
                     </div>
                     <div class="d-flex justify-content-end align-items-center mb-2">
-                        <div class="summary-count me-2">Showing ${filteredItems.length} of ${api.totalItems}</div>
                         <span id="activeBadge" class="badge bg-secondary" style="display:none;">Filters Active</span>
                     </div>
                 `;
@@ -1033,7 +1184,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             ${createOptions(locations, currentLocation)}
                                         </select>
                                     </th>
-                                    <th>Quantity</th>
+                                    <th role="columnheader" tabindex="0">Quantity</th>
                                 </tr>
                             </thead>
                             <tbody id="inventoryTableBody">
@@ -1085,6 +1236,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 setupScrollIndicator();
                 filterTable();
                 setupCustomScrollbar();
+                setupKeyboardNavigation();
+                setupNavigationButtons();
                 
                 // Load Font Awesome if not already loaded
                 if (!document.querySelector('link[href*="font-awesome"]')) {
@@ -1393,7 +1546,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (show) visible++;
             });
 
-            const summary = document.querySelector('.summary-count');
+            const summary = document.getElementById('summaryCount');
             if (summary) {
                 summary.textContent = `Showing ${visible} of ${rows.length}`;
             }
@@ -1497,6 +1650,99 @@ document.addEventListener('DOMContentLoaded', function() {
             const container = document.getElementById('inventoryTableContainer');
             if (container && container._customScroll) {
                 container._customScroll.updateThumb();
+            }
+        }
+
+        // Function to set up navigation buttons for horizontal scrolling
+        function setupNavigationButtons() {
+            const leftBtn = document.querySelector('.nav-button-left');
+            const rightBtn = document.querySelector('.nav-button-right');
+            const container = document.getElementById('inventoryTableContainer');
+
+            if (leftBtn && rightBtn && container) {
+                leftBtn.addEventListener('click', () => {
+                    container.scrollBy({ left: -200, behavior: 'smooth' });
+                });
+
+                rightBtn.addEventListener('click', () => {
+                    container.scrollBy({ left: 200, behavior: 'smooth' });
+                });
+
+                // Update button states based on scroll position
+                const updateNavButtons = () => {
+                    const { scrollLeft, scrollWidth, clientWidth } = container;
+                    leftBtn.disabled = scrollLeft <= 0;
+                    rightBtn.disabled = scrollLeft >= scrollWidth - clientWidth - 1;
+                };
+
+                container.addEventListener('scroll', updateNavButtons);
+                updateNavButtons(); // Initial state
+            }
+        }
+
+        // Function to set up keyboard navigation for accessibility
+        function setupKeyboardNavigation() {
+            const container = document.getElementById('inventoryTableContainer');
+            const table = document.getElementById('inventoryTable');
+
+            if (container && table) {
+                // Make container focusable for keyboard navigation
+                container.setAttribute('tabindex', '0');
+                
+                // Add keyboard navigation to table container
+                container.addEventListener('keydown', (e) => {
+                    switch (e.key) {
+                        case 'ArrowLeft':
+                            e.preventDefault();
+                            container.scrollBy({ left: -100, behavior: 'smooth' });
+                            break;
+                        case 'ArrowRight':
+                            e.preventDefault();
+                            container.scrollBy({ left: 100, behavior: 'smooth' });
+                            break;
+                        case 'ArrowUp':
+                            e.preventDefault();
+                            container.scrollBy({ top: -50, behavior: 'smooth' });
+                            break;
+                        case 'ArrowDown':
+                            e.preventDefault();
+                            container.scrollBy({ top: 50, behavior: 'smooth' });
+                            break;
+                        case 'Home':
+                            e.preventDefault();
+                            container.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+                            break;
+                        case 'End':
+                            e.preventDefault();
+                            container.scrollTo({ 
+                                left: container.scrollWidth, 
+                                top: container.scrollHeight, 
+                                behavior: 'smooth' 
+                            });
+                            break;
+                    }
+                });
+
+                // Add focus management for table rows
+                const rows = table.querySelectorAll('tbody tr');
+                rows.forEach((row, index) => {
+                    row.addEventListener('keydown', (e) => {
+                        let targetRow = null;
+                        switch (e.key) {
+                            case 'ArrowUp':
+                                e.preventDefault();
+                                targetRow = rows[Math.max(0, index - 1)];
+                                break;
+                            case 'ArrowDown':
+                                e.preventDefault();
+                                targetRow = rows[Math.min(rows.length - 1, index + 1)];
+                                break;
+                        }
+                        if (targetRow) {
+                            targetRow.focus();
+                        }
+                    });
+                });
             }
         }
 

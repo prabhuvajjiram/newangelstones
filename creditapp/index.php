@@ -489,6 +489,19 @@ if ($status === 'validation_error' && isset($_GET['errors'])) {
     <?php endif; ?>
     <form action="submit.php" method="post" id="creditAppForm">
         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
+        
+        <div class="form-section">
+            <h4>Sales Representative</h4>
+            <div class="form-section-inner">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required">Sales Rep Name</label>
+                        <input type="text" name="sales_rep" class="form-control" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="form-section">
             <h4>1. Business Information</h4>
             <div class="form-section-inner">
@@ -915,6 +928,21 @@ if ($status === 'validation_error' && isset($_GET['errors'])) {
         let hasErrors = false;
         const errors = [];
         
+        // Validate sales rep
+        const salesRepField = document.querySelector('[name="sales_rep"]');
+        if (salesRepField) {
+            const salesRep = salesRepField.value.trim();
+            if (!salesRep || salesRep.length < 2) {
+                errors.push('Sales Rep is required (minimum 2 characters)');
+                showFieldError('sales_rep', 'Sales Rep is required');
+                hasErrors = true;
+            } else if (!validatePersonName(salesRep)) {
+                errors.push('Sales Rep must be a valid name (letters only)');
+                showFieldError('sales_rep', 'Invalid name format');
+                hasErrors = true;
+            }
+        }
+        
         // Validate business name
         const businessNameField = document.querySelector('[name="firm_name"]');
         if (businessNameField) {
@@ -1186,7 +1214,7 @@ if ($status === 'validation_error' && isset($_GET['errors'])) {
         });
         
         // Name fields - only allow letters, spaces, periods, hyphens, apostrophes
-        const nameFields = document.querySelectorAll('[data-officer-field], [data-owner-field], [data-guarantor-field]');
+        const nameFields = document.querySelectorAll('[data-officer-field], [data-owner-field], [data-guarantor-field], [name="sales_rep"]');
         nameFields.forEach(field => {
             field.addEventListener('keypress', function(e) {
                 if (!/[a-zA-Z\s\.\-']/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
