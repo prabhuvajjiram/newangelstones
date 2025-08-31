@@ -8,7 +8,6 @@ $oauth_params = [
     'response_type' => 'code',
     'scope' => 'openid email profile',
     'access_type' => 'offline',
-    'hd' => 'theangelstones.com',
     'prompt' => 'select_account consent'
 ];
 

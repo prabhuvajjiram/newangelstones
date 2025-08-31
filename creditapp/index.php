@@ -480,7 +480,7 @@ if ($status === 'validation_error' && isset($_GET['errors'])) {
         <a href="/creditapp/Angelstones Credit AP 2025 updated 08 2025.pdf" class="btn btn-outline-primary" target="_blank">
             <i class="bi bi-download"></i> Download PDF Form
         </a>
-        <small class="d-block mt-2 text-muted">You can print, fill out, and email the completed form to us.</small>
+        <small class="d-block mt-2 text-muted">You can print, fill out, and email the completed form to hr@theangelstones.com.</small>
     </div>
     <?php if($status==='success'): ?>
         <div class="alert alert-success">Your application has been submitted successfully.</div>

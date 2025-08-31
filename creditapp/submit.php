@@ -237,6 +237,10 @@ foreach ($_POST as $k => $v) {
     }
 }
 
+// Add tracking information
+$formData['ip_address'] = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+$formData['user_agent'] = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+
 // Handle specific new fields with proper labels
 $fieldLabels = [
     'sales_rep' => 'Sales Rep',
@@ -620,8 +624,13 @@ if (file_exists($phpmailer_path)) {
         $body .= '<p><em>The applicant has digitally agreed to the terms and conditions.</em></p>';
     }
 
+    // Add submission tracking information
+    $body .= '<h3>Submission Details</h3>';
+    $body .= '<p><strong>IP Address:</strong> ' . $formData['ip_address'] . '</p>';
+    $body .= '<p><strong>User Agent:</strong> ' . htmlspecialchars($formData['user_agent']) . '</p>';
+
     // Add any remaining fields
-    $processedFields = array_merge($businessFields, $contactFields, $officerFields, $ownerFields, $guarantorFields, ['digital_authorization']);
+    $processedFields = array_merge($businessFields, $contactFields, $officerFields, $ownerFields, $guarantorFields, ['digital_authorization', 'ip_address', 'user_agent']);
     foreach ($formData as $field => $val) {
         if (!in_array($field, $processedFields) && !empty($val)) {
             $label = isset($fieldLabels[$field]) ? $fieldLabels[$field] : ucwords(str_replace('_', ' ', $field));
