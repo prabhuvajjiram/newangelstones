@@ -14,6 +14,7 @@ import '../services/directory_service.dart';
 import '../services/connectivity_service.dart';
 import '../widgets/cart_icon.dart';
 import '../theme/app_theme.dart';
+import '../widgets/splash_screen.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({
@@ -76,40 +77,73 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
   }
 
   Future<void> _initializeServices() async {
-    debugPrint('🔄 Starting service initialization...');
+    debugPrint('🚀 Starting service initialization...');
+    
+    // Show custom splash for minimum 5 seconds to ensure visibility
+    final splashTimer = Future.delayed(const Duration(seconds: 5));
+    
+    // Fallback timer
     Future.delayed(const Duration(seconds: 10), () {
       if (mounted && !_isInitialized) {
-        setState(() {
-          _isInitialized = true;
-          _initError = 'Some services failed to initialize. The app may have limited functionality.';
-        });
+        debugPrint('⏰ Fallback timer triggered');
+        setState(() => _isInitialized = true);
       }
     });
+    
     try {
-      await widget.apiService.initialize().timeout(const Duration(seconds: 2), onTimeout: () => null);
-      await widget.storageService.initialize().timeout(const Duration(seconds: 2), onTimeout: () => null);
-      await widget.inventoryService.initialize().timeout(const Duration(seconds: 2), onTimeout: () => null);
-      await widget.directoryService.initialize().timeout(const Duration(seconds: 2), onTimeout: () => null);
-      await _preloadApiData().timeout(const Duration(seconds: 2), onTimeout: () => null);
+      // Add delay before service initialization to ensure splash shows
+      await Future.delayed(const Duration(milliseconds: 1000));
+      debugPrint('💾 Initializing critical services...');
+      
+      // Initialize critical services
+      await Future.wait([
+        widget.storageService.initialize().timeout(
+          const Duration(seconds: 2), 
+          onTimeout: () {
+            debugPrint('⚠️ Storage service timeout');
+            return null;
+          }
+        ),
+        widget.apiService.initialize().timeout(
+          const Duration(seconds: 2), 
+          onTimeout: () {
+            debugPrint('⚠️ API service timeout');
+            return null;
+          }
+        ),
+      ]);
+      
+      debugPrint('✅ Critical services initialized');
+      
+      // Background initialization (non-blocking)
+      _initializeBackgroundServices();
+      
+      // Wait for minimum splash duration to ensure custom splash is visible
+      debugPrint('⏳ Waiting for splash timer...');
+      await splashTimer;
+      
+      debugPrint('🎯 Splash complete, showing main app');
       if (mounted) setState(() => _isInitialized = true);
-    } catch (e, stackTrace) {
-      debugPrint('⚠️ Error during service initialization: $e');
-      debugPrint('Stack trace: $stackTrace');
-      if (mounted) {
-        setState(() {
-          _initError = e.toString();
-          _isInitialized = true;
-        });
-      }
+    } catch (e) {
+      debugPrint('❌ Service initialization error: $e');
+      await splashTimer;
+      if (mounted) setState(() => _isInitialized = true);
     }
+  }
+  
+  void _initializeBackgroundServices() {
+    // Initialize remaining services in background
+    widget.inventoryService.initialize();
+    widget.directoryService.initialize();
+    _preloadApiData();
   }
 
   Future<void> _preloadApiData() async {
     try {
       await widget.apiService.loadLocalProducts('assets/featured_products.json')
-          .timeout(const Duration(seconds: 3), onTimeout: () => []);
+          .timeout(const Duration(seconds: 2), onTimeout: () => []);
     } catch (e) {
-      debugPrint('⚠️ Error preloading API data: $e');
+      // Continue without preloaded data
     }
   }
 
@@ -281,17 +315,7 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
     );
 
     if (!_isInitialized) {
-      return Stack(
-        children: [
-          mainContent,
-          Container(
-            color: AppTheme.primaryColor.withValues(alpha: 0.8),
-            child: const Center(
-              child: CircularProgressIndicator(color: AppTheme.accentColor),
-            ),
-          ),
-        ],
-      );
+      return const SplashScreen();
     }
 
     if (_initError != null) {

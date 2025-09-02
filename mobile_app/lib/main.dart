@@ -5,7 +5,6 @@ import 'services/storage_service.dart';
 import 'services/inventory_service.dart';
 import 'services/directory_service.dart';
 // Unified service not directly used in main.dart anymore
-import 'services/saved_items_service.dart';
 import 'services/connectivity_service.dart';
 import 'services/offline_catalog_service.dart';
 import 'navigation/app_router.dart';
@@ -13,8 +12,10 @@ import 'theme/app_theme.dart';
 import 'state/cart_state.dart';
 import 'state/saved_items_state.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 import 'services/firebase_service.dart';
 import 'services/analytics_wrapper.dart';
+import 'services/review_prompt_service.dart';
 import 'firebase/firebase_messaging_handler.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
@@ -84,7 +85,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
     WidgetsBinding.instance.addObserver(this);
 
-    // Initialize services in the correct order
+    // Initialize only essential services synchronously
     _apiService = ApiService(storageService: _storageService);
     _connectivityService = ConnectivityService();
     _offlineCatalogService = OfflineCatalogService(
@@ -92,83 +93,121 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       connectivityService: _connectivityService,
     );
     
-    // Initialize router
+    // Initialize router immediately for UI
     _router = AppRouter(
-      apiService: _apiService,
       storageService: _storageService,
+      apiService: _apiService,
       inventoryService: _inventoryService,
       directoryService: _directoryService,
       offlineCatalogService: _offlineCatalogService,
       connectivityService: _connectivityService,
     );
     
-    // Initialize services
+    // Move heavy operations to background
+    _initializeInBackground();
+  }
+  
+  void _initializeInBackground() {
+    // Track app launch (non-blocking)
+    ReviewPromptService.trackAppLaunch();
+    
+    // Initialize services in background
     _initializeServices();
   }
   
   Future<void> _initializeServices() async {
     try {
-      // Initialize Firebase first (in background)
-      FirebaseService.instance.initialize().then((_) {
-        // Initialize Firebase Messaging after Firebase is ready
-        FirebaseMessagingHandler.setup();
-        debugPrint('🔥 Firebase services initialized');
-      }).catchError((e) {
-        debugPrint('❌ Firebase initialization error: $e');
-      });
+      // Initialize storage first (fastest)
+      await _storageService.initialize().timeout(
+        const Duration(seconds: 1),
+        onTimeout: () => debugPrint('⚠️ Storage timeout'),
+      );
       
-      // Initialize core services (non-blocking)
-      await Future.wait([
-        _apiService.initialize(),
-        _storageService.initialize(),
-      ]);
+      // Initialize API service (needed for app functionality)
+      await _apiService.initialize().timeout(
+        const Duration(seconds: 1),
+        onTimeout: () => debugPrint('⚠️ API timeout'),
+      );
       
-      // Initialize remaining services
-      await _inventoryService.initialize();
-      await _directoryService.initialize();
-
-      // Kick off offline catalog sync in background (non-blocking)
-      _offlineCatalogService.syncCatalog();
+      // All other services in background (non-blocking)
+      unawaited(_initializeBackgroundServices());
       
-      // Initialize saved items from storage (after widget is built)
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _initializeSavedItems();
-        }
-      });
-      
-      debugPrint('✅ Core services initialized successfully');
+      debugPrint('✅ Core services initialized');
     } catch (e) {
-      debugPrint('❌ Error initializing services: $e');
+      debugPrint('❌ Error: $e');
     }
+  }
+  
+  Future<void> _initializeBackgroundServices() async {
+    // Stagger initialization to prevent resource contention
+    
+    // Initialize inventory service
+    _inventoryService.initialize().timeout(
+      const Duration(seconds: 2),
+      onTimeout: () => null,
+    );
+    
+    // Small delay before next service
+    await Future.delayed(const Duration(milliseconds: 100));
+    
+    // Initialize directory service
+    _directoryService.initialize().timeout(
+      const Duration(seconds: 2),
+      onTimeout: () => null,
+    );
+    
+    // Initialize Firebase (lowest priority)
+    Future.delayed(const Duration(milliseconds: 500), () {
+      FirebaseService.instance.initialize().then((_) {
+        FirebaseMessagingHandler.setup();
+      }).catchError((e) {
+        debugPrint('Firebase error: $e');
+        return null;
+      });
+    });
+    
+    // Background sync (very low priority)
+    Future.delayed(const Duration(seconds: 1), () {
+      _offlineCatalogService.syncCatalog();
+    });
+    
+    // Saved items (after UI is ready)
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (mounted) _initializeSavedItems();
+    });
+    
+    // Review prompt (much later)
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) {
+        ReviewPromptService.showReviewPromptIfAppropriate(context);
+      }
+    });
   }
   
   Future<void> _initializeSavedItems() async {
     try {
-      // Safety check to ensure we have a valid context
-      if (!mounted) {
-        debugPrint('Context not mounted, skipping saved items initialization');
-        return;
-      }
+      if (!mounted) return;
       
-      // Get the saved items from storage directly
-      final savedItems = await SavedItemsService.getSavedItems();
+      final savedItemsState = Provider.of<SavedItemsState>(context, listen: false);
       
-      // Update the provider with the saved items
-      if (mounted) {
-        final savedItemsState = Provider.of<SavedItemsState>(context, listen: false);
-        savedItemsState.clearSavedItems();
-        for (var item in savedItems) {
-          savedItemsState.addItem(item);
+      // Log analytics in background (non-blocking)
+      Future.delayed(const Duration(milliseconds: 100), () {
+        try {
+          FirebaseService.instance.logEvent(
+            name: 'saved_items_loaded',
+            parameters: {'count': savedItemsState.count},
+          );
+        } catch (e) {
+          // Silently fail if Firebase not ready
         }
-        debugPrint('Saved items initialized from storage: ${savedItems.length} items');
-      }
+      });
       
-      // Log app start event
-      FirebaseService.instance.logEvent(name: 'app_start');
+      debugPrint('Saved items: ${savedItemsState.count} items');
       
-      // Initialize analytics wrapper
-      AnalyticsWrapper();
+      // Initialize analytics wrapper in background
+      Future.delayed(const Duration(milliseconds: 200), () {
+        AnalyticsWrapper();
+      });
     } catch (e) {
       debugPrint('Error initializing saved items: $e');
     }

@@ -1,6 +1,6 @@
 name: angel_granites_app
 description: Mobile app for Angel Granites.
-version: 2.2.5+25 # versionName + versionCode
+version: 2.3.0+26 # versionName + versionCode
 
 
 environment:
@@ -67,14 +67,13 @@ flutter_launcher_icons:
 
 flutter_native_splash:
   color: "#121212"
-  image: "assets/icon/icon.png"
+  # Remove image to show only background color - faster transition
   android: true
   ios: true
   web: true
-  image_dark: "assets/icon/icon.png"
-  color_dark: "#000000"
+  color_dark: "#121212"
+  # Minimal Android 12+ splash - no branding to prevent double logos
   android_12:
-    image: "assets/icon/icon.png"
     icon_background_color: "#121212"
 
 flutter:

@@ -1,0 +1,68 @@
+import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../config/app_config.dart';
+
+class AppStoreUtils {
+  /// Launch the app in Apple App Store
+  static Future<void> openAppStore() async {
+    final Uri appStoreUri = Uri.parse('https://apps.apple.com/us/app/angel-granites/id${AppConfig.appStoreId}');
+    if (await canLaunchUrl(appStoreUri)) {
+      await launchUrl(appStoreUri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  /// Launch the app in Google Play Store
+  static Future<void> openPlayStore() async {
+    final Uri playStoreUri = Uri.parse('https://play.google.com/store/apps/details?id=${AppConfig.playStoreId}');
+    if (await canLaunchUrl(playStoreUri)) {
+      await launchUrl(playStoreUri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  /// Open appropriate store based on platform
+  static Future<void> openAppInStore() async {
+    if (Theme.of(NavigationService.navigatorKey.currentContext!).platform == TargetPlatform.iOS) {
+      await openAppStore();
+    } else {
+      await openPlayStore();
+    }
+  }
+
+  /// Show "Rate App" dialog
+  static void showRateAppDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Rate Our App'),
+          content: const Text('If you enjoy using Angel Granites, please take a moment to rate us on the app store. Your feedback helps us improve!'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Maybe Later'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                openAppInStore();
+              },
+              child: const Text('Rate Now'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Share app with others
+  static Future<void> shareApp() async {
+    // TODO: Implement sharing functionality when share_plus package is added
+    // For now, just open the appropriate store
+    await openAppInStore();
+  }
+}
+
+// Navigation service for context access
+class NavigationService {
+  static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+}
