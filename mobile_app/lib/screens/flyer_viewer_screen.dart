@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../models/product.dart';
 import '../widgets/pdf_viewer_widget.dart';
@@ -12,92 +13,70 @@ class FlyerViewerScreen extends StatefulWidget {
 }
 
 class _FlyerViewerScreenState extends State<FlyerViewerScreen> {
-  // Default to showing PDF viewer if PDF URL is available
-  bool _showPdfViewer = true;
+  bool _showAppBar = true;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.flyer.name),
+      appBar: _showAppBar ? AppBar(
+        title: Text(
+          widget.flyer.name,
+          style: const TextStyle(fontSize: 16),
+          overflow: TextOverflow.ellipsis,
+        ),
+        toolbarHeight: 56, // Compact height
+        elevation: 1,
         actions: [
-          if (widget.flyer.pdfUrl != null && _showPdfViewer)
+          IconButton(
+            icon: const Icon(Icons.fullscreen, size: 20),
+            tooltip: 'Full Screen',
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              setState(() {
+                _showAppBar = false;
+              });
+            },
+          ),
+          if (widget.flyer.pdfUrl != null)
             IconButton(
-              icon: const Icon(Icons.open_in_new),
+              icon: const Icon(Icons.open_in_new, size: 20),
               tooltip: 'Open in External App',
-              onPressed: () => launchUrlString(widget.flyer.pdfUrl!),
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                launchUrlString(widget.flyer.pdfUrl!);
+              },
             ),
         ],
-      ),
-      body: _showPdfViewer && widget.flyer.pdfUrl != null
-          ? PdfViewerWidget(pdfUrl: widget.flyer.pdfUrl!)
-          : Column(
-              children: [
-                Expanded(
-                  child: InteractiveViewer(
-                    child: Image.network(
-                      widget.flyer.imageUrl,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stack) => const Center(
-                        child: Icon(Icons.broken_image, size: 64),
-                      ),
-                    ),
+      ) : null,
+      body: GestureDetector(
+        onTap: () {
+          if (!_showAppBar) {
+            HapticFeedback.lightImpact();
+            setState(() {
+              _showAppBar = true;
+            });
+          }
+        },
+        child: widget.flyer.pdfUrl != null
+            ? PdfViewerWidget(pdfUrl: widget.flyer.pdfUrl!)
+            : InteractiveViewer(
+                child: Image.network(
+                  widget.flyer.imageUrl,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stack) => const Center(
+                    child: Icon(Icons.broken_image, size: 64),
                   ),
                 ),
-                if (widget.flyer.pdfUrl != null)
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, -2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              setState(() {
-                                _showPdfViewer = false;
-                              });
-                            },
-                            icon: const Icon(Icons.image),
-                            label: const Text('View Image'),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => launchUrlString(widget.flyer.pdfUrl!),
-                            icon: const Icon(Icons.open_in_new),
-                            label: const Text('Open Externally'),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-      floatingActionButton: _showPdfViewer
-          ? FloatingActionButton(
+              ),
+      ),
+      floatingActionButton: widget.flyer.pdfUrl != null && _showAppBar
+          ? FloatingActionButton.small(
               onPressed: () {
-                setState(() {
-                  _showPdfViewer = false;
-                });
+                HapticFeedback.lightImpact();
+                launchUrlString(widget.flyer.pdfUrl!);
               },
-              tooltip: 'Back to Image View',
-              child: const Icon(Icons.image),
+              tooltip: 'Open in External App',
+              child: const Icon(Icons.open_in_new, size: 20),
             )
           : null,
     );

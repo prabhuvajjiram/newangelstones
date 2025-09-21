@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
@@ -8,6 +9,7 @@ import '../services/directory_service.dart';
 import '../models/inventory_item.dart';
 import '../services/inventory_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/skeleton_loaders.dart';
 
 class HomeScreen extends StatefulWidget {
   final ApiService apiService;
@@ -56,6 +58,36 @@ class _HomeScreenState extends State<HomeScreen> {
       // Refresh specials
       _futureSpecials = widget.apiService.fetchSpecials(forceRefresh: true);
     });
+  }
+
+  String _getErrorMessage(Object? error) {
+    if (error == null) return 'Something went wrong';
+    
+    final errorString = error.toString().toLowerCase();
+    if (errorString.contains('timeout')) {
+      return 'Connection is slow';
+    } else if (errorString.contains('socket') || errorString.contains('network')) {
+      return 'Check your internet connection';
+    } else if (errorString.contains('404') || errorString.contains('not found')) {
+      return 'Service temporarily unavailable';
+    } else {
+      return 'Unable to load data';
+    }
+  }
+
+  String _getErrorSubtitle(Object? error) {
+    if (error == null) return 'Please try again';
+    
+    final errorString = error.toString().toLowerCase();
+    if (errorString.contains('timeout')) {
+      return 'The server is taking too long to respond';
+    } else if (errorString.contains('socket') || errorString.contains('network')) {
+      return 'Make sure you\'re connected to the internet';
+    } else if (errorString.contains('404') || errorString.contains('not found')) {
+      return 'We\'ll be back shortly';
+    } else {
+      return 'Pull down to refresh or tap try again';
+    }
   }
 
   @override
@@ -224,11 +256,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         future: _futureInventorySummary,
                         builder: (context, snapshot) {
                           if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 24.0),
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 24.0),
                               child: Column(
                                 children: [
-                                  Text(
+                                  const Text(
                                     'Latest Inventory',
                                     style: TextStyle(
                                       fontSize: 20,
@@ -236,13 +268,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                       color: AppTheme.textPrimary,
                                     ),
                                   ),
-                                  SizedBox(height: 24),
-                                  CircularProgressIndicator(),
-                                  SizedBox(height: 16),
-                                  Text(
-                                    'Loading inventory items...',
-                                    style: TextStyle(color: AppTheme.textSecondary),
-                                  ),
+                                  const SizedBox(height: 16),
+                                  // Skeleton loading instead of spinner
+                                  SkeletonLoaders.inventoryItem(),
+                                  SkeletonLoaders.inventoryItem(),
+                                  SkeletonLoaders.inventoryItem(),
                                 ],
                               ),
                             );
@@ -263,23 +293,25 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Icon(Icons.error_outline, size: 40, color: Colors.red[300]),
                                   const SizedBox(height: 16),
                                   Text(
-                                    'Failed to load inventory',
+                                    _getErrorMessage(snapshot.error),
                                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    snapshot.error.toString(),
-                                    style: TextStyle(color: Colors.red[300], fontSize: 14),
+                                    _getErrorSubtitle(snapshot.error),
+                                    style: TextStyle(color: Colors.grey[400], fontSize: 14),
                                     textAlign: TextAlign.center,
                                   ),
                                   const SizedBox(height: 16),
-                                  ElevatedButton(
+                                  ElevatedButton.icon(
                                     onPressed: () {
+                                      HapticFeedback.lightImpact();
                                       setState(() {
                                         _futureInventorySummary = widget.inventoryService.fetchInventory(pageSize: 1000);
                                       });
                                     },
-                                    child: const Text('Retry'),
+                                    icon: const Icon(Icons.refresh),
+                                    label: const Text('Try Again'),
                                   ),
                                 ],
                               ),

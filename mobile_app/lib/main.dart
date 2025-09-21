@@ -23,26 +23,29 @@ void main() async {
   // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Set up global error handling first (non-blocking)
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    // Firebase Crashlytics will be initialized later
-    try {
+  // Initialize Firebase first (required for Crashlytics)
+  try {
+    await FirebaseService.instance.initialize();
+    debugPrint('Firebase initialized successfully');
+    
+    // Now set up Crashlytics error handling
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
       FirebaseCrashlytics.instance.recordFlutterFatalError(details);
-    } catch (e) {
-      debugPrint('Crashlytics not ready: $e');
-    }
-  };
+    };
 
-  // Handle uncaught async errors
-  WidgetsBinding.instance.platformDispatcher.onError = (error, stack) {
-    try {
+    // Handle uncaught async errors
+    WidgetsBinding.instance.platformDispatcher.onError = (error, stack) {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-    } catch (e) {
-      debugPrint('Crashlytics not ready: $e');
-    }
-    return true;
-  };
+      return true;
+    };
+  } catch (e) {
+    debugPrint('Firebase initialization failed: $e');
+    // Set up basic error handling without Crashlytics
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+    };
+  }
   
   // Start app immediately - Firebase will initialize in background
   runApp(
@@ -156,12 +159,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       onTimeout: () => null,
     );
     
-    // Initialize Firebase (lowest priority)
+    // Initialize Firebase messaging (Firebase already initialized)
     Future.delayed(const Duration(milliseconds: 500), () {
-      FirebaseService.instance.initialize().then((_) {
-        FirebaseMessagingHandler.setup();
-      }).catchError((e) {
-        debugPrint('Firebase error: $e');
+      FirebaseMessagingHandler.setup().catchError((e) {
+        debugPrint('Firebase messaging error: $e');
         return null;
       });
     });

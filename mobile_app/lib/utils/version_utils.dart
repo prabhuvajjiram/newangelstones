@@ -1,37 +1,58 @@
 import 'package:flutter/services.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class VersionUtils {
-  static String? _cachedVersion;
-  static String? _cachedBuildNumber;
+  static PackageInfo? _cachedPackageInfo;
   
-  /// Get app version from pubspec.yaml (cached for performance)
-  static Future<String> getAppVersion() async {
-    if (_cachedVersion != null) return _cachedVersion!;
+  /// Get package info (cached for performance)
+  static Future<PackageInfo> _getPackageInfo() async {
+    if (_cachedPackageInfo != null) return _cachedPackageInfo!;
     
+    try {
+      _cachedPackageInfo = await PackageInfo.fromPlatform();
+      return _cachedPackageInfo!;
+    } catch (e) {
+      // Fallback to pubspec reading if PackageInfo fails
+      return await _getFallbackPackageInfo();
+    }
+  }
+  
+  /// Fallback method using pubspec.yaml
+  static Future<PackageInfo> _getFallbackPackageInfo() async {
     try {
       final pubspecContent = await rootBundle.loadString('pubspec.yaml');
       final versionMatch = RegExp(r'version:\s+([0-9]+\.[0-9]+\.[0-9]+)\+([0-9]+)').firstMatch(pubspecContent);
       
       if (versionMatch != null) {
-        _cachedVersion = versionMatch.group(1)!;
-        _cachedBuildNumber = versionMatch.group(2)!;
-        return _cachedVersion!;
+        return PackageInfo(
+          appName: 'Angel Granites',
+          packageName: 'com.angelgranites.app',
+          version: versionMatch.group(1)!,
+          buildNumber: versionMatch.group(2)!,
+        );
       }
     } catch (e) {
-      // Fallback if reading fails
-      return '2.2.5';
+      // Ultimate fallback
     }
     
-    return '2.2.5'; // Fallback version
+    return PackageInfo(
+      appName: 'Angel Granites',
+      packageName: 'com.angelgranites.app',
+      version: '2.4.0',
+      buildNumber: '27',
+    );
   }
   
-  /// Get build number from pubspec.yaml (cached for performance)
+  /// Get app version (cached for performance)
+  static Future<String> getAppVersion() async {
+    final packageInfo = await _getPackageInfo();
+    return packageInfo.version;
+  }
+  
+  /// Get build number (cached for performance)
   static Future<String> getBuildNumber() async {
-    if (_cachedBuildNumber != null) return _cachedBuildNumber!;
-    
-    // This will also populate _cachedBuildNumber
-    await getAppVersion();
-    return _cachedBuildNumber ?? '25';
+    final packageInfo = await _getPackageInfo();
+    return packageInfo.buildNumber;
   }
   
   /// Get full version string (version + build number)
@@ -41,9 +62,20 @@ class VersionUtils {
     return '$version+$buildNumber';
   }
   
+  /// Get app name
+  static Future<String> getAppName() async {
+    final packageInfo = await _getPackageInfo();
+    return packageInfo.appName;
+  }
+  
+  /// Get package name
+  static Future<String> getPackageName() async {
+    final packageInfo = await _getPackageInfo();
+    return packageInfo.packageName;
+  }
+  
   /// Clear version cache (useful for testing or if version changes)
   static void clearCache() {
-    _cachedVersion = null;
-    _cachedBuildNumber = null;
+    _cachedPackageInfo = null;
   }
 }

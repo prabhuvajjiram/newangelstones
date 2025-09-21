@@ -102,7 +102,6 @@ class DesignGalleryScreen extends StatelessWidget {
             itemCount: productImages.length,
             itemBuilder: (context, index) {
               final productImage = productImages[index];
-              final imageUrls = productImages.map((img) => img.imageUrl).toList();
               
               // Implement staggered loading for better performance
               return AnimatedOpacity(
@@ -125,7 +124,7 @@ class DesignGalleryScreen extends StatelessWidget {
                                 builder: (_) => FullScreenImage(
                                   imageUrl: productImage.imageUrl,
                                   tag: 'image_$index',
-                                  galleryImages: imageUrls,
+                                  galleryImages: productImages,
                                   initialIndex: index,
                                 ),
                               ),
