@@ -39,16 +39,17 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = 35
-        
+
         // Read version from pubspec.yaml
         val pubspecFile = File(project.projectDir.parentFile.parentFile, "pubspec.yaml")
         val pubspecContent = pubspecFile.readText()
-        val versionMatch = Regex("""version:\s+([0-9]+\.[0-9]+\.[0-9]+)\+([0-9]+)""").find(pubspecContent)
+        val versionMatch =
+            Regex("""version:\s+([0-9]+\.[0-9]+\.[0-9]+)\+([0-9]+)""").find(pubspecContent)
 
         if (versionMatch != null) {
             versionName = versionMatch.groupValues[1]
             versionCode = versionMatch.groupValues[2].toInt()
-        } 
+        }
     }
 
     buildTypes {

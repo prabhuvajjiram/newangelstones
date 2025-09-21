@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import '../widgets/full_screen_image.dart';
 import '../utils/error_utils.dart';
 import '../models/product_image.dart';
+import '../widgets/skeleton_loaders.dart';
 
 class DesignGalleryScreen extends StatelessWidget {
   final String categoryId;
@@ -135,27 +137,18 @@ class DesignGalleryScreen extends StatelessWidget {
                             child: Stack(
                               fit: StackFit.expand,
                               children: [
-                                // Placeholder shimmer effect while loading
-                                Container(color: Colors.grey.shade200),
-                                // Actual image with fade-in effect
-                                Image.network(
-                                  productImage.imageUrl,
+                                // Cached network image with skeleton loading
+                                CachedNetworkImage(
+                                  imageUrl: productImage.imageUrl,
                                   fit: BoxFit.cover,
-                                  frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                                    if (wasSynchronouslyLoaded) return child;
-                                    return AnimatedOpacity(
-                                      opacity: frame == null ? 0 : 1,
-                                      duration: const Duration(milliseconds: 300),
-                                      curve: Curves.easeOut,
-                                      child: child,
-                                    );
-                                  },
-                                  errorBuilder: (context, error, stack) => const Center(
+                                  memCacheHeight: 300,
+                                  memCacheWidth: 300,
+                                  placeholder: (context, url) => SkeletonLoaders.productCard(height: double.infinity),
+                                  errorWidget: (context, error, stack) => const Center(
                                     child: Icon(Icons.broken_image, size: 40, color: Colors.grey),
                                   ),
-                                  // Add caching for better performance
-                                  cacheHeight: 300,
-                                  cacheWidth: 300,
+                                  fadeInDuration: const Duration(milliseconds: 300),
+                                  fadeOutDuration: const Duration(milliseconds: 100),
                                 ),
                               ],
                             ),

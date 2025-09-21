@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../models/product.dart';
 import '../screens/flyer_viewer_screen.dart';
+import 'skeleton_loaders.dart';
 
 class FlyerSection extends StatelessWidget {
   final String title;
@@ -20,7 +22,7 @@ class FlyerSection extends StatelessWidget {
             future: future,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+                return SkeletonLoaders.productGrid(itemCount: 2);
               } else if (snapshot.hasError) {
                 return Text('Error: ${snapshot.error}');
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -51,29 +53,18 @@ class FlyerSection extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Expanded(
-                            child: Image.network(
-                              flyer.imageUrl,
+                            child: CachedNetworkImage(
+                              imageUrl: flyer.imageUrl,
                               fit: BoxFit.cover,
-                              cacheWidth: 400,
-                              cacheHeight: 300,
-                              loadingBuilder: (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return Container(
-                                  color: Colors.grey.shade200,
-                                  child: Center(
-                                    child: CircularProgressIndicator(
-                                      value: loadingProgress.expectedTotalBytes != null
-                                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                                          : null,
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                );
-                              },
-                              errorBuilder: (context, error, stack) => Container(
+                              memCacheWidth: 400,
+                              memCacheHeight: 300,
+                              placeholder: (context, url) => SkeletonLoaders.productCard(height: double.infinity),
+                              errorWidget: (context, url, error) => Container(
                                 color: Colors.grey.shade200,
                                 child: const Icon(Icons.broken_image, color: Colors.grey),
                               ),
+                              fadeInDuration: const Duration(milliseconds: 200),
+                              fadeOutDuration: const Duration(milliseconds: 100),
                             ),
                           ),
                           Padding(

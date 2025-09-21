@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../services/saved_items_service.dart';
+import 'skeleton_loaders.dart';
 
 class EnhancedProductCard extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -269,11 +271,16 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: widget.product['imageUrl'] != null
-                        ? Image.network(
-                            widget.product['imageUrl'],
+                        ? CachedNetworkImage(
+                            imageUrl: widget.product['imageUrl'],
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => 
+                            memCacheWidth: 300,
+                            memCacheHeight: 300,
+                            placeholder: (context, url) => SkeletonLoaders.productCard(height: double.infinity),
+                            errorWidget: (context, url, error) => 
                                 const Center(child: Icon(Icons.image_not_supported)),
+                            fadeInDuration: const Duration(milliseconds: 200),
+                            fadeOutDuration: const Duration(milliseconds: 100),
                           )
                         : const Center(child: Icon(Icons.photo_library)),
                   ),

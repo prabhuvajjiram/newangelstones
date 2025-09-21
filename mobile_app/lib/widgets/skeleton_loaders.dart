@@ -34,17 +34,22 @@ class SkeletonLoaders {
                 padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      width: double.infinity,
-                      height: 16,
-                      color: Colors.white,
+                    Flexible(
+                      child: Container(
+                        width: double.infinity,
+                        height: 14,
+                        color: Colors.white,
+                      ),
                     ),
-                    const SizedBox(height: 8),
-                    Container(
-                      width: 100,
-                      height: 12,
-                      color: Colors.white,
+                    const SizedBox(height: 6),
+                    Flexible(
+                      child: Container(
+                        width: 80,
+                        height: 10,
+                        color: Colors.white,
+                      ),
                     ),
                   ],
                 ),

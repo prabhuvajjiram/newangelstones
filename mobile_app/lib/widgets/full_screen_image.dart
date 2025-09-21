@@ -53,7 +53,7 @@ class _FullScreenImageState extends State<FullScreenImage> {
     });
   }
 
-  void _shareImage() {
+  Future<void> _shareImage() async {
     final currentProduct = widget.galleryImages[_currentIndex];
     HapticFeedback.lightImpact();
     
@@ -63,11 +63,11 @@ class _FullScreenImageState extends State<FullScreenImage> {
       'image_url': currentProduct.imageUrl,
       'gallery_position': _currentIndex,
     });
-    
-    Share.share(
-      'Check out this ${currentProduct.productCode.isNotEmpty ? currentProduct.productCode : 'design'} from Angel Granites!\n\n${currentProduct.imageUrl}',
+
+    await SharePlus.instance.share(ShareParams(
+      text: 'Check out this ${currentProduct.productCode.isNotEmpty ? currentProduct.productCode : 'design'} from Angel Granites!\n\n${currentProduct.imageUrl}',
       subject: 'Angel Granites - ${currentProduct.productCode}',
-    );
+    ));
   }
 
   void _trackAnalyticsEvent(String eventName, Map<String, Object> parameters) {

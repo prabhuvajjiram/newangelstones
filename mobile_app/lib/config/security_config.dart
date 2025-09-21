@@ -14,8 +14,8 @@ class SecurityConfig {
   static const String monumentBusinessBaseUrl = 'https://monument.business';
   
   /// Request timeout configuration
-  static const Duration defaultTimeout = Duration(seconds: 10);
-  static const Duration longTimeout = Duration(seconds: 30);
+  static const Duration defaultTimeout = Duration(seconds: 30);
+  static const Duration longTimeout = Duration(seconds: 45);
   
   /// Configuration caching
   static const Duration _configCacheTTL = Duration(hours: 24);
@@ -74,20 +74,7 @@ class SecurityConfig {
   
   /// Get environment-specific configuration
   static String getApiToken() {
-    // In production, this should come from secure storage or environment variables
-    // For now, we'll keep it here but add security measures
-    if (kDebugMode) {
-      return '097EE598BBACB8A8182BC9D4D7D5CFE609E4DB2AF4A3F1950738C927ECF05B6A';
-    }
-    // In production, retrieve from secure storage
-    return _getSecureApiToken();
-  }
-  
-  static String _getSecureApiToken() {
-    // TODO: Implement secure token retrieval from:
-    // - Flutter Secure Storage
-    // - Environment variables
-    // - Remote configuration service
+    // This is a public API token for monument.business - safe to hardcode
     return '097EE598BBACB8A8182BC9D4D7D5CFE609E4DB2AF4A3F1950738C927ECF05B6A';
   }
   

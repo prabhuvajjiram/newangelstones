@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
 import '../services/directory_service.dart';
 import 'package:go_router/go_router.dart';
 import '../utils/error_utils.dart';
+import 'skeleton_loaders.dart';
 
 class ProductFolderSection extends StatelessWidget {
   final String title;
@@ -31,7 +33,7 @@ class ProductFolderSection extends StatelessWidget {
             future: future,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+                return SkeletonLoaders.productGrid(itemCount: 4);
               } else if (snapshot.hasError) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   showErrorSnackBar(context, 'Failed to load categories');
@@ -65,29 +67,18 @@ class ProductFolderSection extends StatelessWidget {
                             child: Stack(
                               children: [
                                 Positioned.fill(
-                                  child: Image.network(
-                                    product.imageUrl,
+                                  child: CachedNetworkImage(
+                                    imageUrl: product.imageUrl,
                                     fit: BoxFit.cover,
-                                    cacheWidth: 300,
-                                    cacheHeight: 300,
-                                    loadingBuilder: (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return Container(
-                                        color: Colors.grey.shade200,
-                                        child: Center(
-                                          child: CircularProgressIndicator(
-                                            value: loadingProgress.expectedTotalBytes != null
-                                                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                                                : null,
-                                            strokeWidth: 2,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    errorBuilder: (context, error, stack) => Container(
+                                    memCacheWidth: 300,
+                                    memCacheHeight: 300,
+                                    placeholder: (context, url) => SkeletonLoaders.productCard(height: double.infinity),
+                                    errorWidget: (context, url, error) => Container(
                                       color: Colors.grey.shade200,
                                       child: const Icon(Icons.broken_image, color: Colors.grey),
                                     ),
+                                    fadeInDuration: const Duration(milliseconds: 200),
+                                    fadeOutDuration: const Duration(milliseconds: 100),
                                   ),
                                 ),
                                 // Design count banner removed as requested
