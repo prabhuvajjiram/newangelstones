@@ -12,7 +12,9 @@ import '../services/storage_service.dart';
 import '../services/inventory_service.dart';
 import '../services/directory_service.dart';
 import '../services/connectivity_service.dart';
+import '../services/system_ui_service.dart';
 import '../widgets/cart_icon.dart';
+import '../widgets/edge_to_edge_wrapper.dart';
 import '../theme/app_theme.dart';
 import '../widgets/splash_screen.dart';
 
@@ -50,6 +52,10 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    
+    // Configure system UI for main navigation
+    SystemUIService.instance.configureForScreen('home');
+    
     _initializeServices();
     _connectivityService = widget.connectivityService;
     if (_connectivityService != null) {
@@ -152,11 +158,12 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
     final screenWidth = MediaQuery.of(context).size.width;
     final double dynamicFontSize = screenWidth / 20;
 
-    final Widget mainContent = Scaffold(
-      appBar: AppBar(
-        centerTitle: false,
-        backgroundColor: Colors.black,
-        elevation: 0,
+    final Widget mainContent = EdgeToEdgeWrapper.withBottomNav(
+      child: Scaffold(
+        appBar: AppBar(
+          centerTitle: false,
+          backgroundColor: Colors.black,
+          elevation: 0,
         title: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -312,8 +319,8 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
           ),
         ),
       ),
+    ),
     );
-
     if (!_isInitialized) {
       return const SplashScreen();
     }

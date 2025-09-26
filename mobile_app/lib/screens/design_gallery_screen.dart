@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
+import '../services/system_ui_service.dart';
 import '../widgets/full_screen_image.dart';
 import '../utils/error_utils.dart';
 import '../models/product_image.dart';
@@ -23,14 +24,9 @@ class DesignGalleryScreen extends StatelessWidget {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
-    // Use edge-to-edge mode without modifying system bar colors, which avoids
-    // the deprecated Window.setStatusBarColor and setNavigationBarColor APIs.
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarIconBrightness: Brightness.light,
-      ),
-    );
+    
+    // Configure system UI for gallery mode with Android 15+ compatibility
+    SystemUIService.instance.configureForScreen('gallery');
     
     // Fetch product images with codes
     final futureProductImages = apiService.fetchProductImagesWithCodes(categoryId);

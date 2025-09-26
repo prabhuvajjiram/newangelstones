@@ -7,6 +7,7 @@ import 'services/directory_service.dart';
 // Unified service not directly used in main.dart anymore
 import 'services/connectivity_service.dart';
 import 'services/offline_catalog_service.dart';
+import 'services/system_ui_service.dart';
 import 'navigation/app_router.dart';
 import 'theme/app_theme.dart';
 import 'state/cart_state.dart';
@@ -22,6 +23,9 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 void main() async {
   // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Configure system UI for Android 15+ edge-to-edge compatibility
+  SystemUIService.instance.configureNormalMode();
   
   // Initialize Firebase first (required for Crashlytics)
   try {

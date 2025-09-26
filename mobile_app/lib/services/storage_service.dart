@@ -75,8 +75,8 @@ class StorageService {
 
     final jsonData = await _storage.read(key: _cacheKey);
     if (jsonData != null) {
-      final List<dynamic> data = json.decode(jsonData);
-      return data.map((e) => Product.fromJson(e)).toList();
+      final List<dynamic> data = json.decode(jsonData) as List<dynamic>;
+      return data.map((e) => Product.fromJson(e as Map<String, dynamic>)).toList();
     }
     return null;
   }

@@ -32,26 +32,39 @@ class SkeletonLoaders {
               flex: 1,
               child: Padding(
                 padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Container(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Adapt to very small heights
+                    if (constraints.maxHeight < 20) {
+                      return Container(
                         width: double.infinity,
-                        height: 14,
+                        height: constraints.maxHeight * 0.6,
                         color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Flexible(
-                      child: Container(
-                        width: 80,
-                        height: 10,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
+                      );
+                    }
+                    
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Container(
+                            width: double.infinity,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Expanded(
+                          flex: 1,
+                          child: Container(
+                            width: 80,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
