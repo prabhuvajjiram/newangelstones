@@ -388,9 +388,9 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
                                     // Size row
                                     Row(
                                       children: [
-                                        Text(
+                                        const Text(
                                           'Size: ',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontWeight: FontWeight.w500,
                                             color: Colors.grey,
                                           ),
@@ -409,9 +409,9 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
                                     // Location row
                                     Row(
                                       children: [
-                                        Text(
+                                        const Text(
                                           'Location: ',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontWeight: FontWeight.w500,
                                             color: Colors.grey,
                                           ),
@@ -483,34 +483,34 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
                   headingRowHeight: 56,
                   dataRowMinHeight: 48,
                   dataRowMaxHeight: 72,
-                  columns: [
+                  columns: const [
                     DataColumn(
-                      label: const Text('Description', 
+                      label: Text('Description', 
                         style: TextStyle(fontWeight: FontWeight.bold)),
                       numeric: false,
                     ),
                     DataColumn(
-                      label: const Text('Color', 
+                      label: Text('Color', 
                         style: TextStyle(fontWeight: FontWeight.bold)),
                       numeric: false,
                     ),
                     DataColumn(
-                      label: const Text('Size', 
+                      label: Text('Size', 
                         style: TextStyle(fontWeight: FontWeight.bold)),
                       numeric: true,
                     ),
                     DataColumn(
-                      label: const Text('Location', 
+                      label: Text('Location', 
                         style: TextStyle(fontWeight: FontWeight.bold)),
                       numeric: false,
                     ),
                     DataColumn(
-                      label: const Text('Save', 
+                      label: Text('Save', 
                         style: TextStyle(fontWeight: FontWeight.bold)),
                       numeric: false,
                     ),
                     DataColumn(
-                      label: const Text('Cart', 
+                      label: Text('Cart', 
                         style: TextStyle(fontWeight: FontWeight.bold)),
                       numeric: false,
                     ),

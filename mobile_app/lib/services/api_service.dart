@@ -30,7 +30,7 @@ class ApiService {
         _preloadAsset('assets/featured_products.json'),
         _preloadAsset('assets/colors.json'),
       ]).timeout(
-        const Duration(seconds: 2),
+        const Duration(seconds: 10),
         onTimeout: () {
           debugPrint('⚠️ Asset preloading timed out');
           return [];
@@ -424,7 +424,7 @@ class ApiService {
       debugPrint('🌐 Fetching product categories');
       
       final response = await _secureClient.secureGet(url)
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 15));
       
       if (response.statusCode == 200) {
         final responseBody = utf8.decode(response.bodyBytes);
@@ -589,7 +589,7 @@ class ApiService {
       // Note: Change to get_color_images_enhanced.php when deployed to production
       const url = 'https://theangelstones.com/get_color_images.php';
       final response = await http.get(Uri.parse(url))
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 15));
       
       if (response.statusCode == 200) {
         final responseBody = utf8.decode(response.bodyBytes);
@@ -667,12 +667,12 @@ class ApiService {
                     'material': 'Granite',
                     'additionalProperty': [
                       {
-                        "@type": "PropertyValue",
+                        '@type': 'PropertyValue',
                         'name': 'Material Type',
                         'value': 'Granite'
                       },
                       {
-                        "@type": "PropertyValue",
+                        '@type': 'PropertyValue',
                         'name': 'Color',
                         'value': name
                       }
@@ -743,7 +743,7 @@ class ApiService {
       const url = '${SecurityConfig.angelStonesBaseUrl}/api/specials.php?action=list';
       final response = await _secureClient
           .secureGet(url)
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final responseBody = utf8.decode(response.bodyBytes);

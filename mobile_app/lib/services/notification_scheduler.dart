@@ -11,7 +11,7 @@ Future<void> scheduleDaily(NotificationPayload payload, TimeOfDay time) async {
     'scheduled_channel',
     'Scheduled Notifications',
   );
-  final details = NotificationDetails(android: androidDetails);
+  const details = NotificationDetails(android: androidDetails);
 
   await _plugin.zonedSchedule(
     0,

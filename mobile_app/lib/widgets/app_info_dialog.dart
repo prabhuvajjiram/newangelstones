@@ -93,7 +93,7 @@ class _AppInfoDialogState extends State<AppInfoDialog> {
             const SizedBox(height: 8),
             
             // Tagline
-            Text(
+            const Text(
               AppConfig.tagline,
               style: TextStyle(
                 fontSize: 14,
@@ -116,7 +116,7 @@ class _AppInfoDialogState extends State<AppInfoDialog> {
               ),
               child: Text(
                 'Version $_version',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 12,
                   color: AppTheme.accentColor,
                   fontFamily: 'OpenSans',
@@ -128,10 +128,10 @@ class _AppInfoDialogState extends State<AppInfoDialog> {
             const SizedBox(height: 24),
             
             // Description
-            Text(
+            const Text(
               AppConfig.appDescription,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 color: AppTheme.textSecondary,
                 fontFamily: 'OpenSans',
@@ -148,7 +148,7 @@ class _AppInfoDialogState extends State<AppInfoDialog> {
                   child: OutlinedButton(
                     onPressed: () => _launchUrl(AppConfig.websiteUrl),
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: AppTheme.accentColor),
+                      side: const BorderSide(color: AppTheme.accentColor),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -171,7 +171,7 @@ class _AppInfoDialogState extends State<AppInfoDialog> {
                       AppStoreUtils.showRateAppDialog(context);
                     },
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: AppTheme.accentColor),
+                      side: const BorderSide(color: AppTheme.accentColor),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),

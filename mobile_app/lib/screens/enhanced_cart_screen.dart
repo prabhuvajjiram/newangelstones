@@ -111,9 +111,9 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
               const SizedBox(height: 24),
               AppButton(
                 onPressed: () => context.go('/'),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
+                  children: [
                     Icon(Icons.shopping_bag_outlined),
                     SizedBox(width: 8),
                     Text('Browse Products'),
@@ -201,9 +201,9 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
                       },
                     color: const Color(0xFFFFD700), // Gold color
                     textColor: Colors.black,
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         Icon(Icons.request_quote),
                         SizedBox(width: 8),
                         Text(
@@ -224,9 +224,9 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
                     onPressed: () => context.go('/'),
                     color: const Color(0xFF1E1E1E), // Dark background
                     textColor: const Color(0xFFFFD700), // Gold text
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         Icon(Icons.arrow_back),
                         SizedBox(width: 8),
                         Text(

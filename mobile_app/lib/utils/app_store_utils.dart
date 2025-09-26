@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../config/app_config.dart';
 
@@ -21,10 +22,20 @@ class AppStoreUtils {
 
   /// Open appropriate store based on platform
   static Future<void> openAppInStore() async {
-    if (Theme.of(NavigationService.navigatorKey.currentContext!).platform == TargetPlatform.iOS) {
-      await openAppStore();
-    } else {
-      await openPlayStore();
+    try {
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        await openAppStore();
+      } else {
+        await openPlayStore();
+      }
+    } catch (e) {
+      debugPrint('Error opening app store: $e');
+      // Fallback: try to open both stores
+      try {
+        await openAppStore();
+      } catch (e2) {
+        await openPlayStore();
+      }
     }
   }
 

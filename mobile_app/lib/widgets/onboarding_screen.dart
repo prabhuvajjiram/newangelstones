@@ -68,7 +68,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 padding: const EdgeInsets.all(16.0),
                 child: TextButton(
                   onPressed: widget.onComplete,
-                  child: Text(
+                  child: const Text(
                     'Skip',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
@@ -132,7 +132,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           curve: Curves.easeInOut,
                         );
                       },
-                      child: Text(
+                      child: const Text(
                         'Previous',
                         style: TextStyle(
                           color: AppTheme.textSecondary,

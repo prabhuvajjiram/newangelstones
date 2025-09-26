@@ -48,7 +48,7 @@ class InventoryService {
     try {
       // Preload local inventory data for offline support
       await _loadLocalInventory().timeout(
-        const Duration(seconds: 2),
+        const Duration(seconds: 10),
         onTimeout: () {
           debugPrint('⚠️ Local inventory loading timed out');
           return [];
@@ -108,7 +108,7 @@ class InventoryService {
       final response = await http.get(
         uri,
         headers: {'Referer': referer},
-      ).timeout(const Duration(seconds: 3));
+      ).timeout(const Duration(seconds: 15));
       
       if (response.statusCode == 200) {
         debugPrint('✅ Inventory API connection successful');

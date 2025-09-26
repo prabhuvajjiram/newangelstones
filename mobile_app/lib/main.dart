@@ -15,8 +15,6 @@ import 'state/saved_items_state.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'services/firebase_service.dart';
-import 'services/analytics_wrapper.dart';
-import 'services/review_prompt_service.dart';
 import 'firebase/firebase_messaging_handler.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
@@ -115,9 +113,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
   
   void _initializeInBackground() {
-    // Track app launch (non-blocking)
-    ReviewPromptService.trackAppLaunch();
-    
     // Initialize services in background
     _initializeServices();
   }
@@ -126,13 +121,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     try {
       // Initialize storage first (fastest)
       await _storageService.initialize().timeout(
-        const Duration(seconds: 1),
+        const Duration(seconds: 10),
         onTimeout: () => debugPrint('⚠️ Storage timeout'),
       );
       
       // Initialize API service (needed for app functionality)
       await _apiService.initialize().timeout(
-        const Duration(seconds: 1),
+        const Duration(seconds: 10),
         onTimeout: () => debugPrint('⚠️ API timeout'),
       );
       
@@ -176,47 +171,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       _offlineCatalogService.syncCatalog();
     });
     
-    // Saved items (after UI is ready)
-    Future<void>.delayed(const Duration(milliseconds: 200), () {
-      if (mounted) _initializeSavedItems();
-    });
-    
-    // Review prompt (much later)
-    Future<void>.delayed(const Duration(seconds: 5), () {
-      if (mounted) {
-        ReviewPromptService.showReviewPromptIfAppropriate(context);
-      }
-    });
   }
   
-  Future<void> _initializeSavedItems() async {
-    try {
-      if (!mounted) return;
-      
-      final savedItemsState = Provider.of<SavedItemsState>(context, listen: false);
-      
-      // Log analytics in background (non-blocking)
-      Future.delayed(const Duration(milliseconds: 100), () {
-        try {
-          FirebaseService.instance.logEvent(
-            name: 'saved_items_loaded',
-            parameters: {'count': savedItemsState.count},
-          );
-        } catch (e) {
-          // Silently fail if Firebase not ready
-        }
-      });
-      
-      debugPrint('Saved items: ${savedItemsState.count} items');
-      
-      // Initialize analytics wrapper in background
-      Future.delayed(const Duration(milliseconds: 200), () {
-        AnalyticsWrapper();
-      });
-    } catch (e) {
-      debugPrint('Error initializing saved items: $e');
-    }
-  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {

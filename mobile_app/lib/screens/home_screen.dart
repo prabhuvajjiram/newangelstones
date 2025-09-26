@@ -8,8 +8,10 @@ import '../widgets/product_folder_section.dart';
 import '../services/directory_service.dart';
 import '../models/inventory_item.dart';
 import '../services/inventory_service.dart';
+import '../services/review_prompt_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/skeleton_loaders.dart';
+import '../utils/app_store_utils.dart';
 
 class HomeScreen extends StatefulWidget {
   final ApiService apiService;
@@ -40,12 +42,30 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    
+    // Track app launch for review prompt
+    ReviewPromptService.trackAppLaunch();
+    
     // Try to fetch featured products from server, fall back to local if needed
     _futureFeatured = widget.apiService.fetchFeaturedProducts();
     _futureInventorySummary =
         widget.inventoryService.fetchInventory(pageSize: 1000);
     _futureSpecials = widget.apiService.fetchSpecials();
     _directoryService = widget.directoryService;
+    
+    // Schedule review prompt to show after 5 seconds (regardless of screen)
+    _scheduleReviewPrompt();
+  }
+
+  /// Schedule review prompt to show after 5 seconds using global navigator
+  void _scheduleReviewPrompt() {
+    Future.delayed(const Duration(seconds: 5), () {
+      // Use global navigator context to avoid async gap issues
+      final context = NavigationService.navigatorKey.currentContext;
+      if (context != null && context.mounted) {
+        ReviewPromptService.showReviewPromptIfAppropriate(context);
+      }
+    });
   }
 
   Future<void> _refreshData() async {
@@ -117,17 +137,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   bottomRight: Radius.circular(30),
                 ),
               ),
-              child: Column(
+              child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Centered branding content with styled first line
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
                     child: Center(
                       child: Column(
                         children: [
                           // First line in gold with italic style
-                          const Text(
+                          Text(
                             'Crafted by Angel Stones',
                             textAlign: TextAlign.center,
                             style: TextStyle(
@@ -137,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               fontStyle: FontStyle.italic,
                             ),
                           ),
-                          const Text(
+                          Text(
                             'Elevating Granite, Preserving Memories',
                             textAlign: TextAlign.center,
                             style: TextStyle(
@@ -146,8 +166,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          const Text(
+                          SizedBox(height: 12),
+                          Text(
                             'Discover our handcrafted monuments',
                             textAlign: TextAlign.center,
                             style: TextStyle(
@@ -156,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               fontWeight: FontWeight.w400,
                             ),
                           ),
-                          const Text(
+                          Text(
                             'and timeless memorial stones.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
@@ -489,9 +509,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
-                                  child: Row(
+                                  child: const Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    children: const [
+                                    children: [
                                       Text(
                                         'View Inventory',
                                         style: TextStyle(

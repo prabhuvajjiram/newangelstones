@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../utils/app_store_utils.dart';
 
+/// Review Prompt Service
+/// 
+/// PRODUCTION MODE: Shows review prompt after 3 launches
+/// Shows prompt 5 seconds after home screen loads, regardless of current screen
+/// 
+/// To reset review state for testing, call: ReviewPromptService.resetReviewState()
 class ReviewPromptService {
   static const String _keyFirstLaunch = 'first_launch_date';
   static const String _keyLaunchCount = 'app_launch_count';
@@ -27,7 +33,8 @@ class ReviewPromptService {
     // Increment launch count
     final launchCountStr = await storage.read(key: _keyLaunchCount);
     final launchCount = int.tryParse(launchCountStr ?? '0') ?? 0;
-    await storage.write(key: _keyLaunchCount, value: (launchCount + 1).toString());
+    final newCount = launchCount + 1;
+    await storage.write(key: _keyLaunchCount, value: newCount.toString());
   }
 
   /// Track significant user events (quote requests, saved items, etc.)
@@ -53,16 +60,11 @@ class ReviewPromptService {
     // Get user activity data
     final firstLaunchStr = await storage.read(key: _keyFirstLaunch);
     final launchCountStr = await storage.read(key: _keyLaunchCount);
-    final significantEventsStr = await storage.read(key: _keySignificantEvents);
     final lastPromptStr = await storage.read(key: _keyLastPrompt);
     
     final launchCount = int.tryParse(launchCountStr ?? '0') ?? 0;
-    final significantEvents = int.tryParse(significantEventsStr ?? '0') ?? 0;
     
     if (firstLaunchStr == null) return false;
-    
-    final firstLaunch = DateTime.parse(firstLaunchStr);
-    final daysSinceFirstLaunch = DateTime.now().difference(firstLaunch).inDays;
     
     // Check if enough time passed since last prompt (minimum 7 days)
     if (lastPromptStr != null) {
@@ -71,15 +73,8 @@ class ReviewPromptService {
       if (daysSinceLastPrompt < 7) return false;
     }
     
-    // Show prompt if any of these conditions are met:
-    return (
-      // After 3 days and 5+ launches
-      (daysSinceFirstLaunch >= 3 && launchCount >= 5) ||
-      // After 7 days regardless of launches
-      (daysSinceFirstLaunch >= 7) ||
-      // After 3+ significant events (quotes, saves, etc.)
-      (significantEvents >= 3 && daysSinceFirstLaunch >= 1)
-    );
+    // Show prompt after user has launched app 3+ times
+    return launchCount >= 3;
   }
 
   /// Show review prompt with smart timing
@@ -138,8 +133,21 @@ class ReviewPromptService {
                 Navigator.of(context).pop();
                 // Mark as rated
                 await storage.write(key: _keyUserRated, value: 'true');
-                // Open app store
-                AppStoreUtils.openAppInStore();
+                // Open app store with error handling
+                try {
+                  await AppStoreUtils.openAppInStore();
+                } catch (e) {
+                  debugPrint('Error opening app store: $e');
+                  // Show a fallback message
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please search for "Angel Granites" in your app store'),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                }
               },
               child: const Text('Rate Now ⭐'),
             ),
@@ -157,6 +165,8 @@ class ReviewPromptService {
   /// Reset review prompt state (for testing)
   static Future<void> resetReviewState() async {
     const storage = FlutterSecureStorage();
+    await storage.delete(key: _keyFirstLaunch);
+    await storage.delete(key: _keyLaunchCount);
     await storage.delete(key: _keyLastPrompt);
     await storage.delete(key: _keyUserDeclined);
     await storage.delete(key: _keyUserRated);

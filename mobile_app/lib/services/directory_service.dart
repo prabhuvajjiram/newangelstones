@@ -17,9 +17,9 @@ class DirectoryService {
     
     try {
       // Test API connectivity with a lightweight request
-      final uri = Uri.parse('$_baseUrl/get_directory_files.php?dir=products');
+      final uri = Uri.parse('$_baseUrl/get_directory_files.php?directory=products');
       final response = await http.get(uri).timeout(
-        const Duration(seconds: 3),
+        const Duration(seconds: 15),
         onTimeout: () => throw TimeoutException('Directory API connection timed out'),
       );
       
@@ -53,7 +53,7 @@ class DirectoryService {
     final uri = Uri.parse('$_baseUrl/get_directory_files.php?dir=$folder');
     try {
       final response = await http.get(uri).timeout(
-        const Duration(seconds: 5),
+        const Duration(seconds: 15),
         onTimeout: () {
           debugPrint('⚠️ Timeout fetching design count for $folder');
           throw TimeoutException('Directory API request timed out');
