@@ -118,7 +118,7 @@ class DesignGalleryScreen extends StatelessWidget {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
+                              MaterialPageRoute<void>(
                                 builder: (_) => FullScreenImage(
                                   imageUrl: productImage.imageUrl,
                                   tag: 'image_$index',

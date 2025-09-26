@@ -97,7 +97,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
   }
 
   void _showAdvancedFilters() {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -302,7 +302,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
             final RegExp numericRegex = RegExp(r'\d+');
             final Match? numericMatch = numericRegex.firstMatch(id);
             if (numericMatch != null) {
-              numericId = numericMatch.group(0) ?? "";
+              numericId = numericMatch.group(0) ?? '';
             }
           }
           
@@ -321,13 +321,13 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
             // No debug logs needed
             
             // Handle AG prefix in query or product ID
-            if (normalizedId.startsWith("ag") && !normalizedQuery.startsWith("ag")) {
+            if (normalizedId.startsWith('ag') && !normalizedQuery.startsWith('ag')) {
               // Query doesn't have prefix but product does - compare without prefix
               if (normalizedId.substring(2) == normalizedQuery) {
                 matches = true;
                 // Match found without AG prefix
               }
-            } else if (!normalizedId.startsWith("ag") && normalizedQuery.startsWith("ag")) {
+            } else if (!normalizedId.startsWith('ag') && normalizedQuery.startsWith('ag')) {
               // Query has prefix but product doesn't - compare without prefix
               if (normalizedId == normalizedQuery.substring(2)) {
                 matches = true;
@@ -855,7 +855,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
   void _showQuantityDialog(BuildContext context, InventoryItem item) {
     int quantity = 1;
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) {
         return StatefulBuilder(

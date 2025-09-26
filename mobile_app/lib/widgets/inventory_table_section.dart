@@ -186,7 +186,7 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
   Future<void> _showQuantityDialog(BuildContext context, InventoryItem item) async {
     int quantity = 1;
     
-    await showDialog(
+    await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {

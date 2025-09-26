@@ -25,7 +25,7 @@ class QuoteRequest {
       final itemColor = item['color'] ?? '';
       final itemSize = item['size'] ?? '';
       
-      return '${item['quantity']}x $itemName${itemCode.isNotEmpty ? ' (Code: $itemCode)' : ''}${itemColor.isNotEmpty ? ' (Color: $itemColor)' : ''}${itemSize.isNotEmpty ? ' (Size: $itemSize)' : ''}';
+      return '${item['quantity']}x $itemName${itemCode.toString().isNotEmpty ? ' (Code: $itemCode)' : ''}${itemColor.toString().isNotEmpty ? ' (Color: $itemColor)' : ''}${itemSize.toString().isNotEmpty ? ' (Size: $itemSize)' : ''}';
     }).join('\n');
   }
   
@@ -36,10 +36,10 @@ class QuoteRequest {
       final itemCode = item['code'] ?? '';
       final itemQty = item['quantity'] ?? 1;
       
-      return '$itemQty x $itemName${itemCode.isNotEmpty ? ' (Code: $itemCode)' : ''}';
+      return '$itemQty x $itemName${itemCode.toString().isNotEmpty ? ' (Code: $itemCode)' : ''}';
     }).join('\n');
     
-    return "PROJECT DETAILS:\n$projectDetails\n\nITEMS REQUESTED:\n$itemsList";
+    return 'PROJECT DETAILS:\n$projectDetails\n\nITEMS REQUESTED:\n$itemsList';
   }
 
   // Convert to map for form submission

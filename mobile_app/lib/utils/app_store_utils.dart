@@ -30,7 +30,7 @@ class AppStoreUtils {
 
   /// Show "Rate App" dialog
   static void showRateAppDialog(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(

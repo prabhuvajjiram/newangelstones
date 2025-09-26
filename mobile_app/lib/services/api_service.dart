@@ -163,13 +163,13 @@ class ApiService {
       final response = await _secureClient.secureGet(url);
       
       if (response.statusCode == 200) {
-        final Map<String, dynamic> jsonData = json.decode(response.body);
-        final List<dynamic> files = jsonData['files'] ?? [];
+        final Map<String, dynamic> jsonData = json.decode(response.body) as Map<String, dynamic>;
+        final List<dynamic> files = jsonData['files'] as List<dynamic>? ?? [];
         productImages = files
             .whereType<Map<String, dynamic>>()
             .map((e) => ProductImage(
                   imageUrl: '${SecurityConfig.angelStonesBaseUrl}/${e['path'] ?? ''}',
-                  productCode: _extractProductCode(e['fullname'] ?? e['name'] ?? ''),
+                  productCode: _extractProductCode((e['fullname'] ?? e['name'] ?? '') as String),
                 ))
             .toList();
             
@@ -290,14 +290,14 @@ class ApiService {
       return _productCache!.data;
     }
     try {
-      final url = '${SecurityConfig.angelStonesBaseUrl}/api/color.json';
+      const url = '${SecurityConfig.angelStonesBaseUrl}/api/color.json';
       debugPrint('🌐 Fetching products from: $url');
       
       final response = await _secureClient.secureGet(url);
       
       if (response.statusCode == 200) {
-        final Map<String, dynamic> jsonData = json.decode(response.body);
-        final List<dynamic> items = jsonData['itemListElement'] ?? [];
+        final Map<String, dynamic> jsonData = json.decode(response.body) as Map<String, dynamic>;
+        final List<dynamic> items = jsonData['itemListElement'] as List<dynamic>? ?? [];
         final products = items
             .whereType<Map<String, dynamic>>()
             .map((e) => Product.fromJson(e['item'] as Map<String, dynamic>))
@@ -420,7 +420,7 @@ class ApiService {
       
       // Instead of using a separate featured_products endpoint,
       // we'll fetch the main product categories (not all images)
-      final url = '${SecurityConfig.angelStonesBaseUrl}/get_directory_files.php?directory=products';
+      const url = '${SecurityConfig.angelStonesBaseUrl}/get_directory_files.php?directory=products';
       debugPrint('🌐 Fetching product categories');
       
       final response = await _secureClient.secureGet(url)
@@ -445,7 +445,7 @@ class ApiService {
           items = filesList.where((file) {
             // Only include directories, not individual image files
             if (file is Map<String, dynamic>) {
-              final String path = file['path'] ?? '';
+              final String path = (file['path'] ?? '') as String;
               final bool isDirectory = file['isDirectory'] == true;
               final bool isProductCategory = path.startsWith('products/') && 
                   !path.contains('.jpg') && !path.contains('.png') && 
@@ -456,8 +456,8 @@ class ApiService {
             return false;
           }).map((file) {
             if (file is Map<String, dynamic>) {
-              final String path = file['path'] ?? '';
-              final String name = file['name'] ?? path.split('/').last.replaceAll('.jpg', '').replaceAll('_', ' ');
+              final String path = (file['path'] ?? '') as String;
+              final String name = (file['name'] ?? path.split('/').last.replaceAll('.jpg', '').replaceAll('_', ' ')) as String;
               
               return {
                 'id': path.split('/').last,
@@ -587,7 +587,7 @@ class ApiService {
       
       // Try to fetch from enhanced website API endpoint
       // Note: Change to get_color_images_enhanced.php when deployed to production
-      final url = 'https://theangelstones.com/get_color_images.php';
+      const url = 'https://theangelstones.com/get_color_images.php';
       final response = await http.get(Uri.parse(url))
           .timeout(const Duration(seconds: 10));
       
@@ -622,17 +622,17 @@ class ApiService {
             
             // Create a schema.org compatible structure for the local JSON
             schemaData = {
-              "@context": "https://schema.org",
-              "@type": "ItemList",
-              "name": "Angel Stones Granite Color Varieties",
-              "description": "Explore our premium granite colors for monuments and headstones.",
-              "itemListOrder": "Unordered",
-              "url": "https://www.theangelstones.com/colors",
-              "mainEntityOfPage": {
-                "@type": "WebPage",
-                "@id": "https://www.theangelstones.com/colors"
+              '@context': 'https://schema.org',
+              '@type': 'ItemList',
+              'name': 'Angel Stones Granite Color Varieties',
+              'description': 'Explore our premium granite colors for monuments and headstones.',
+              'itemListOrder': 'Unordered',
+              'url': 'https://www.theangelstones.com/colors',
+              'mainEntityOfPage': {
+                '@type': 'WebPage',
+                '@id': 'https://www.theangelstones.com/colors'
               },
-              "itemListElement": []
+              'itemListElement': <Map<String, dynamic>>[]
             };
             
             // Convert API color items to schema.org format
@@ -641,40 +641,40 @@ class ApiService {
             
             for (var colorItem in colorItems) {
               if (colorItem is Map<String, dynamic>) {
-                final String name = colorItem['name'] ?? 'Unknown Color';
-                final String path = colorItem['path'] ?? '';
-                final String description = colorItem['description'] ?? 
-                    "Premium $name granite for monuments and memorials.";
+                final String name = (colorItem['name'] ?? 'Unknown Color') as String;
+                final String path = (colorItem['path'] ?? '') as String;
+                final String description = (colorItem['description'] ?? 
+                    'Premium $name granite for monuments and memorials.') as String;
                 
                 // Create schema.org ListItem
                 final Map<String, dynamic> listItem = {
-                  "@type": "ListItem",
-                  "position": position++,
-                  "item": {
-                    "@type": "Product",
-                    "name": "$name Granite",
-                    "description": description,
-                    "image": [
+                  '@type': 'ListItem',
+                  'position': position++,
+                  'item': {
+                    '@type': 'Product',
+                    'name': '$name Granite',
+                    'description': description,
+                    'image': [
                       {
-                        "@type": "ImageObject",
-                        "url": "https://www.theangelstones.com/$path",
-                        "width": "800",
-                        "height": "800",
-                        "caption": "$name Granite Color Sample"
+                        '@type': 'ImageObject',
+                        'url': 'https://www.theangelstones.com/$path',
+                        'width': '800',
+                        'height': '800',
+                        'caption': '$name Granite Color Sample'
                       }
                     ],
-                    "category": ["Granite Colors", "Memorial Stones"],
-                    "material": "Granite",
-                    "additionalProperty": [
+                    'category': ['Granite Colors', 'Memorial Stones'],
+                    'material': 'Granite',
+                    'additionalProperty': [
                       {
                         "@type": "PropertyValue",
-                        "name": "Material Type",
-                        "value": "Granite"
+                        'name': 'Material Type',
+                        'value': 'Granite'
                       },
                       {
                         "@type": "PropertyValue",
-                        "name": "Color",
-                        "value": name
+                        'name': 'Color',
+                        'value': name
                       }
                     ]
                   }
@@ -740,7 +740,7 @@ class ApiService {
       // Preload local specials as fallback
       await loadLocalProducts('assets/specials.json');
 
-      final url = '${SecurityConfig.angelStonesBaseUrl}/api/specials.php?action=list';
+      const url = '${SecurityConfig.angelStonesBaseUrl}/api/specials.php?action=list';
       final response = await _secureClient
           .secureGet(url)
           .timeout(const Duration(seconds: 10));

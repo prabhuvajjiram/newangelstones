@@ -1,4 +1,4 @@
-import "package:timezone/timezone.dart" as tz;
+import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../models/notification_payload.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +7,7 @@ class NotificationScheduler {
   final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
 
 Future<void> scheduleDaily(NotificationPayload payload, TimeOfDay time) async {
-  final androidDetails = AndroidNotificationDetails(
+  const androidDetails = AndroidNotificationDetails(
     'scheduled_channel',
     'Scheduled Notifications',
   );

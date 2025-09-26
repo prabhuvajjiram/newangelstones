@@ -71,8 +71,8 @@ class InventoryService {
   Future<List<InventoryItem>> _loadLocalInventory() async {
     try {
       final jsonString = await rootBundle.loadString('assets/inventory.json');
-      final List<dynamic> jsonData = json.decode(jsonString);
-      final items = jsonData.map((item) => InventoryItem.fromJson(item)).toList();
+      final List<dynamic> jsonData = json.decode(jsonString) as List<dynamic>;
+      final items = jsonData.map((item) => InventoryItem.fromJson(item as Map<String, dynamic>)).toList();
       
       // Extract filter values from local data
       for (final item in items) {
@@ -179,9 +179,9 @@ class InventoryService {
     try {
       debugPrint('📂 Loading inventory from local assets');
       final jsonString = await rootBundle.loadString('assets/inventory.json');
-      final List<dynamic> jsonData = json.decode(jsonString);
+      final List<dynamic> jsonData = json.decode(jsonString) as List<dynamic>;
       final items = jsonData
-          .map((item) => InventoryItem.fromJson(item))
+          .map((item) => InventoryItem.fromJson(item as Map<String, dynamic>))
           .toList();
       debugPrint('✅ Successfully loaded ${items.length} items from local assets');
 

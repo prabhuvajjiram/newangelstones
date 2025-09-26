@@ -100,7 +100,7 @@ class AppRouter {
         builder: (context, state) {
           // Extract color filter from extra if provided
           final Map<String, dynamic>? extraParams = state.extra as Map<String, dynamic>?;
-          final String? colorFilter = extraParams?['color'];
+          final String? colorFilter = extraParams?['color'] as String?;
           
           return Scaffold(
             appBar: AppBar(title: const Text('Inventory')),

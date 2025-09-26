@@ -24,36 +24,36 @@ class InventoryItem {
     try {
       final dimensions = _parseDimensions(size);
       if (dimensions.isNotEmpty) {
-        return "${dimensions[0]} inches";
+        return '${dimensions[0]} inches';
       }
     } catch (e) {
       // Unable to parse length from size string
     }
-    return length.isNotEmpty ? "$length inches" : "";
+    return length.isNotEmpty ? '$length inches' : '';
   }
   
   String get heightInInches {
     try {
       final dimensions = _parseDimensions(size);
       if (dimensions.length > 1) {
-        return "${dimensions[1]} inches";
+        return '${dimensions[1]} inches';
       }
     } catch (e) {
       // Unable to parse height from size string
     }
-    return height.isNotEmpty ? "$height inches" : "";
+    return height.isNotEmpty ? '$height inches' : '';
   }
   
   String get widthInInches {
     try {
       final dimensions = _parseDimensions(size);
       if (dimensions.length > 2) {
-        return "${dimensions[2]} inches";
+        return '${dimensions[2]} inches';
       }
     } catch (e) {
       // Unable to parse width from size string
     }
-    return width.isNotEmpty ? "$width inches" : "";
+    return width.isNotEmpty ? '$width inches' : '';
   }
   
   // Parse dimensions from format like "2-0 x 1-0 x 0-8" to inches [24, 12, 8]

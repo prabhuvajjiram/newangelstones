@@ -81,7 +81,7 @@ class SearchSuggestionsService {
     try {
       final data = await _storage.read(key: _recentSearchesKey);
       if (data != null) {
-        final List<dynamic> decoded = jsonDecode(data);
+        final List<dynamic> decoded = jsonDecode(data) as List<dynamic>;
         return decoded.cast<String>();
       }
     } catch (e) {
@@ -107,7 +107,7 @@ class SearchSuggestionsService {
     try {
       final data = await _storage.read(key: _productCodesKey);
       if (data != null) {
-        final List<dynamic> decoded = jsonDecode(data);
+        final List<dynamic> decoded = jsonDecode(data) as List<dynamic>;
         return decoded.cast<String>();
       }
     } catch (e) {

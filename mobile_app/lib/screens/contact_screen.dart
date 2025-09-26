@@ -179,7 +179,7 @@ class _ContactScreenState extends State<ContactScreen> {
       }
       
       if (currentContext.mounted) {
-        showModalBottomSheet(
+        showModalBottomSheet<void>(
           context: context,
           backgroundColor: AppTheme.primaryColor,
           shape: const RoundedRectangleBorder(
@@ -190,8 +190,8 @@ class _ContactScreenState extends State<ContactScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
                     child: Text(
                       'Open with Maps',
                       style: TextStyle(
@@ -794,7 +794,7 @@ class _ContactScreenState extends State<ContactScreen> {
 
   Widget _buildLocationCard(String title, String address, String mapUrl, int delayMilliseconds) {
     return FutureBuilder(
-      future: Future.delayed(Duration(milliseconds: delayMilliseconds)),
+      future: Future<void>.delayed(Duration(milliseconds: delayMilliseconds)),
       builder: (context, snapshot) {
         return AnimatedOpacity(
           opacity: snapshot.connectionState == ConnectionState.done ? 1.0 : 0.0,

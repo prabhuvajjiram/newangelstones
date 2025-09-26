@@ -100,7 +100,7 @@ class ReviewPromptService {
     
     if (!context.mounted) return;
     
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(

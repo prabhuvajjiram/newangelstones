@@ -121,8 +121,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Centered branding content with styled first line
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
                     child: Center(
                       child: Column(
                         children: [

@@ -21,8 +21,8 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
   
   // Helper method to extract type and color from item
   String _getItemDisplayName(Map<String, dynamic> item) {
-    final String type = item['type'] ?? '';
-    final String color = item['color'] ?? '';
+    final String type = (item['type'] ?? '') as String;
+    final String color = (item['color'] ?? '') as String;
     
     if (type.isNotEmpty && color.isNotEmpty) {
       return '$type + $color';
@@ -31,7 +31,7 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
     } else if (color.isNotEmpty) {
       return color;
     } else {
-      return item['name'] ?? 'Product';
+      return (item['name'] ?? 'Product') as String;
     }
   }
 
@@ -465,7 +465,7 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
     CartState cart,
     SavedItemsState savedItemsState,
   ) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (context) => Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
@@ -503,7 +503,7 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
     CartState cart,
     SavedItemsState savedItemsState,
   ) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (context) => Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
@@ -546,15 +546,15 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
   ) {
     // Convert the saved item map to an InventoryItem object
     final inventoryItem = InventoryItem(
-      code: item['code'] ?? '',
-      description: item['description'] ?? '',
-      color: item['color'] ?? '',
-      size: item['size'] ?? '',
-      location: item['location'] ?? '',
-      quantity: item['quantity'] is int ? item['quantity'] : int.tryParse(item['quantity']?.toString() ?? '0') ?? 0,
-      type: item['type'] ?? '',
-      design: item['design'] ?? '',
-      finish: item['finish'] ?? '',
+      code: (item['code'] ?? '') as String,
+      description: (item['description'] ?? '') as String,
+      color: (item['color'] ?? '') as String,
+      size: (item['size'] ?? '') as String,
+      location: (item['location'] ?? '') as String,
+      quantity: item['quantity'] is int ? item['quantity'] as int : int.tryParse(item['quantity']?.toString() ?? '0') ?? 0,
+      type: (item['type'] ?? '') as String,
+      design: (item['design'] ?? '') as String,
+      finish: (item['finish'] ?? '') as String,
     );
     
     // Navigate to the inventory item details screen
@@ -567,7 +567,7 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
 
   // Show dialog to confirm clearing the cart
   void _showClearCartDialog(BuildContext context, CartState cart) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear Cart'),

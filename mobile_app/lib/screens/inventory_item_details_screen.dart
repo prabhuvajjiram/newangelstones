@@ -131,7 +131,7 @@ class _InventoryItemDetailsScreenState extends State<InventoryItemDetailsScreen>
       // Use Navigator.of(context) to ensure proper context handling
       // This will maintain the widget tree and prevent Material widget errors
       Navigator.of(context).push(
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (context) => const EnhancedCartScreen(),
         ),
       );

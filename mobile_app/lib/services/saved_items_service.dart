@@ -44,7 +44,7 @@ class SavedItemsService {
       
       if (savedItemsJson != null && savedItemsJson.isNotEmpty) {
         try {
-          final List<dynamic> decoded = jsonDecode(savedItemsJson);
+          final List<dynamic> decoded = jsonDecode(savedItemsJson) as List<dynamic>;
           final items = decoded.cast<Map<String, dynamic>>();
           developer.log('Retrieved ${items.length} saved items', name: 'SavedItemsService');
           return items;

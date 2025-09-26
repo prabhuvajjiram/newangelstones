@@ -36,7 +36,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
     
     setState(() => _isLoading = true);
     try {
-      final isSaved = await SavedItemsService.isItemSaved(widget.product['id'] ?? '');
+      final isSaved = await SavedItemsService.isItemSaved(widget.product['id']?.toString() ?? '');
       if (mounted) {
         setState(() => _isSaved = isSaved);
       }
@@ -53,7 +53,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
     setState(() => _isLoading = true);
     try {
       if (_isSaved) {
-        await SavedItemsService.removeItem(widget.product['id'] ?? '');
+        await SavedItemsService.removeItem(widget.product['id']?.toString() ?? '');
       } else {
         await SavedItemsService.saveItem(widget.product);
       }
@@ -83,7 +83,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
   }
 
   void _showQuickView() {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -124,7 +124,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
                           image: DecorationImage(
-                            image: NetworkImage(widget.product['imageUrl'] ?? ''),
+                            image: NetworkImage(widget.product['imageUrl']?.toString() ?? ''),
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -133,7 +133,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                       
                       // Product Name
                       Text(
-                        widget.product['name'] ?? 'Product Name',
+                        widget.product['name']?.toString() ?? 'Product Name',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -145,7 +145,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                         Padding(
                           padding: const EdgeInsets.only(top: 4.0, bottom: 12),
                           child: Text(
-                            'Code: ${widget.product['code']}',
+                            'Code: ${widget.product['code']?.toString() ?? ''}',
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 14,
@@ -158,7 +158,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                         Padding(
                           padding: const EdgeInsets.only(bottom: 16.0),
                           child: Text(
-                            widget.product['description'],
+                            widget.product['description']?.toString() ?? '',
                             style: const TextStyle(fontSize: 15, height: 1.5),
                           ),
                         ),
@@ -166,7 +166,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                       // Specifications
                       if (widget.product['specs'] != null && 
                           widget.product['specs'] is Map)
-                        ..._buildSpecs(widget.product['specs']),
+                        ..._buildSpecs(widget.product['specs'] as Map<String, dynamic>? ?? {}),
                       
                       const SizedBox(height: 24),
                     ],
@@ -270,9 +270,9 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                   ),
                   child: AspectRatio(
                     aspectRatio: 1,
-                    child: widget.product['imageUrl'] != null
+                    child: widget.product['imageUrl']?.toString().isNotEmpty == true
                         ? CachedNetworkImage(
-                            imageUrl: widget.product['imageUrl'],
+                            imageUrl: widget.product['imageUrl']?.toString() ?? '',
                             fit: BoxFit.cover,
                             memCacheWidth: 300,
                             memCacheHeight: 300,
@@ -336,7 +336,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                 children: [
                   // Product Name
                   Text(
-                    widget.product['name'] ?? 'Product Name',
+                    widget.product['name']?.toString() ?? 'Product Name',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -350,7 +350,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                     Padding(
                       padding: const EdgeInsets.only(top: 4.0),
                       child: Text(
-                        'Code: ${widget.product['code']}',
+                        'Code: ${widget.product['code']?.toString() ?? ''}',
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 12,
@@ -363,7 +363,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                     Padding(
                       padding: const EdgeInsets.only(top: 4.0),
                       child: Text(
-                        '\$${widget.product['price']}',
+                        '\$${widget.product['price']?.toString() ?? '0'}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.green,

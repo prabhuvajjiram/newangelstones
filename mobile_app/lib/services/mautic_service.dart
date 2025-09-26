@@ -46,7 +46,7 @@ class MauticService {
       final url = Uri.parse('$baseUrl?formId=$formId');
       
       // Combine project details and cart items as requested
-      final combinedDetails = "PROJECT DETAILS:\n$projectDetails\n\nITEMS REQUESTED:\n$cartItems";
+      final combinedDetails = 'PROJECT DETAILS:\n$projectDetails\n\nITEMS REQUESTED:\n$cartItems';
       
       final body = {
         'mauticform[f_name]': name,

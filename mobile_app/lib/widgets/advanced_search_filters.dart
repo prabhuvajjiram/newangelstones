@@ -80,7 +80,7 @@ class SearchFilters {
 
 class AdvancedSearchFilters extends StatefulWidget {
   final SearchFilters filters;
-  final Function(SearchFilters) onFiltersChanged;
+  final void Function(SearchFilters) onFiltersChanged;
   final List<String> availableTypes;
   final List<String> availableColors;
   final List<String> availableSizes;
@@ -330,7 +330,7 @@ class _AdvancedSearchFiltersState extends State<AdvancedSearchFilters> {
     required String? value,
     required List<String> items,
     required String hint,
-    required Function(String?) onChanged,
+    required void Function(String?) onChanged,
   }) {
     return Container(
       width: double.infinity,

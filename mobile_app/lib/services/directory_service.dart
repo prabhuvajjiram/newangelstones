@@ -29,7 +29,7 @@ class DirectoryService {
       
       // Parse response to verify format
       try {
-        final Map<String, dynamic> data = json.decode(response.body);
+        final Map<String, dynamic> data = json.decode(response.body) as Map<String, dynamic>;
         if (!data.containsKey('files')) {
           throw Exception('Invalid API response format');
         }
@@ -60,8 +60,8 @@ class DirectoryService {
         },
       );
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        final List<dynamic> files = data['files'] ?? [];
+        final Map<String, dynamic> data = json.decode(response.body) as Map<String, dynamic>;
+        final List<dynamic> files = data['files'] as List<dynamic>? ?? [];
         final count = files
             .whereType<Map<String, dynamic>>()
             .where((e) {

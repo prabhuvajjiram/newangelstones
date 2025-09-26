@@ -70,7 +70,7 @@ class _SplashScreenState extends State<SplashScreen>
   
   void _startAnimations() async {
     await _logoAnimationController.forward();
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future<void>.delayed(const Duration(milliseconds: 500));
     
     _progressAnimationController.addListener(() {
       final progress = _progressAnimation.value;

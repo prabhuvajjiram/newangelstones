@@ -86,10 +86,10 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
     debugPrint('🚀 Starting service initialization...');
     
     // Show custom splash for minimum 5 seconds to ensure visibility
-    final splashTimer = Future.delayed(const Duration(seconds: 5));
+    final splashTimer = Future<void>.delayed(const Duration(seconds: 5));
     
     // Fallback timer
-    Future.delayed(const Duration(seconds: 10), () {
+    Future<void>.delayed(const Duration(seconds: 10), () {
       if (mounted && !_isInitialized) {
         debugPrint('⏰ Fallback timer triggered');
         setState(() => _isInitialized = true);
@@ -98,7 +98,7 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
     
     try {
       // Add delay before service initialization to ensure splash shows
-      await Future.delayed(const Duration(milliseconds: 1000));
+      await Future<void>.delayed(const Duration(milliseconds: 1000));
       debugPrint('💾 Initializing critical services...');
       
       // Initialize critical services

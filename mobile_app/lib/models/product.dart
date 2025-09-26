@@ -30,7 +30,7 @@ class Product {
     if (imageField is List && imageField.isNotEmpty) {
       final first = imageField.first;
       if (first is Map<String, dynamic>) {
-        imageUrl = first['url'] ?? '';
+        imageUrl = (first['url'] ?? '') as String;
       } else if (first is String) {
         imageUrl = first;
       }
@@ -55,8 +55,8 @@ class Product {
 
     return Product(
       id: (data['sku'] ?? data['id'] ?? '').toString(),
-      name: data['name'] ?? '',
-      description: data['description'] ?? '',
+      name: (data['name'] ?? '') as String,
+      description: (data['description'] ?? '') as String,
       imageUrl: imageUrl,
       price: double.tryParse(priceField?.toString() ?? '') ?? 0.0,
       label: label,

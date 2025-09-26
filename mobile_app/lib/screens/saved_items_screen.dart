@@ -120,7 +120,7 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
                   
                   // Use Navigator.push with MaterialPageRoute for better context preservation
                   Navigator.of(context).push(
-                    MaterialPageRoute(
+                    MaterialPageRoute<void>(
                       builder: (context) => InventoryItemDetailsScreen(item: inventoryItem),
                     ),
                   );

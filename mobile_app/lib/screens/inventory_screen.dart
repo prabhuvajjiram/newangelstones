@@ -265,9 +265,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
     required String title,
     required List<String> options,
     required String? selectedValue,
-    required Function(String?) onSelected,
+    required void Function(String?) onSelected,
   }) async {
-    await showDialog(
+    await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(title),

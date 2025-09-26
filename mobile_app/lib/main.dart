@@ -155,7 +155,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     );
     
     // Small delay before next service
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
     
     // Initialize directory service
     _directoryService.initialize().timeout(
@@ -164,25 +164,25 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     );
     
     // Initialize Firebase messaging (Firebase already initialized)
-    Future.delayed(const Duration(milliseconds: 500), () {
-      FirebaseMessagingHandler.setup().catchError((e) {
+    Future<void>.delayed(const Duration(milliseconds: 500), () {
+      FirebaseMessagingHandler.setup().catchError((Object e) {
         debugPrint('Firebase messaging error: $e');
         return null;
       });
     });
     
     // Background sync (very low priority)
-    Future.delayed(const Duration(seconds: 1), () {
+    Future<void>.delayed(const Duration(seconds: 1), () {
       _offlineCatalogService.syncCatalog();
     });
     
     // Saved items (after UI is ready)
-    Future.delayed(const Duration(milliseconds: 200), () {
+    Future<void>.delayed(const Duration(milliseconds: 200), () {
       if (mounted) _initializeSavedItems();
     });
     
     // Review prompt (much later)
-    Future.delayed(const Duration(seconds: 5), () {
+    Future<void>.delayed(const Duration(seconds: 5), () {
       if (mounted) {
         ReviewPromptService.showReviewPromptIfAppropriate(context);
       }
@@ -285,7 +285,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               ),
             ],
           ),
-          iconTheme: IconThemeData(color: AppTheme.accentColor),
+          iconTheme: const IconThemeData(color: AppTheme.accentColor),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
@@ -310,7 +310,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           ),
           margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         ),
-        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
           backgroundColor: AppTheme.cardColor,
           selectedItemColor: AppTheme.accentColor,
           unselectedItemColor: AppTheme.textSecondary,

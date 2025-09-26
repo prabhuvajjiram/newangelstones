@@ -81,45 +81,45 @@ class SecurityConfig {
   /// Dynamic configuration methods
   static Future<String> getPaymentUrl() async {
     final config = await _getConfig();
-    return config['payment']?['url'] ?? _defaultConfig['payment']!['url'];
+    return (config['payment']?['url'] ?? _defaultConfig['payment']!['url']) as String;
   }
   
   static Future<String> getMonumentBusinessToken() async {
     final config = await _getConfig();
-    return config['api_endpoints']?['monument_business_token'] ?? 
-           _defaultConfig['api_endpoints']!['monument_business_token'];
+    return (config['api_endpoints']?['monument_business_token'] ?? 
+           _defaultConfig['api_endpoints']!['monument_business_token']) as String;
   }
   
   static Future<int> getMauticContactFormId() async {
     final config = await _getConfig();
-    return config['api_endpoints']?['mautic_contact_form_id'] ?? 
-           _defaultConfig['api_endpoints']!['mautic_contact_form_id'];
+    return (config['api_endpoints']?['mautic_contact_form_id'] ?? 
+           _defaultConfig['api_endpoints']!['mautic_contact_form_id']) as int;
   }
   
   static Future<int> getMauticQuoteFormId() async {
     final config = await _getConfig();
-    return config['api_endpoints']?['mautic_quote_form_id'] ?? 
-           _defaultConfig['api_endpoints']!['mautic_quote_form_id'];
+    return (config['api_endpoints']?['mautic_quote_form_id'] ?? 
+           _defaultConfig['api_endpoints']!['mautic_quote_form_id']) as int;
   }
   
   static Future<bool> isFeatureEnabled(String feature) async {
     final config = await _getConfig();
-    return config['features']?[feature] ?? false;
+    return (config['features']?[feature] ?? false) as bool;
   }
   
   static Future<String> getContactPhone() async {
     final config = await _getConfig();
-    return config['contact']?['phone'] ?? '+1 866-682-5837';
+    return (config['contact']?['phone'] ?? '+1 866-682-5837') as String;
   }
   
   static Future<String> getContactEmail() async {
     final config = await _getConfig();
-    return config['contact']?['email'] ?? 'info@theangelstones.com';
+    return (config['contact']?['email'] ?? 'info@theangelstones.com') as String;
   }
   
   static Future<String> getMauticBaseUrl() async {
     final config = await _getConfig();
-    return config['api_endpoints']?['mautic_base'] ?? '$angelStonesBaseUrl/mautic/form/submit';
+    return (config['api_endpoints']?['mautic_base'] ?? '$angelStonesBaseUrl/mautic/form/submit') as String;
   }
   
   /// Fetch configuration with three-layer fallback
