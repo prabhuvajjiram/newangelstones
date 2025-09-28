@@ -113,9 +113,121 @@ function saveDebugHTML($filename, $content) {
 }
 
 /**
+ * Determine if a value resembles a valid shipment identifier
+ */
+function isValidShipmentNumber($value) {
+    if (empty($value)) {
+        return false;
+    }
+
+    if (is_array($value)) {
+        $value = implode(' ', $value);
+    }
+
+    $normalized = trim(preg_replace('/\s+/', ' ', (string) $value));
+
+    // Skip pagination/footer rows like "Pages: 1   Found 18 record(s)."
+    if (stripos($normalized, 'Pages:') === 0 || stripos($normalized, 'Found ') === 0) {
+        return false;
+    }
+
+    // Shipment codes are alphanumeric (optionally with dashes) and at least 3 characters
+    return (bool) preg_match('/^[A-Z0-9\-]{3,}$/i', $normalized);
+}
+
+/**
+ * Build the absolute URL for a shipment’s detail page.
+ */
+function buildDetailUrl($shipmentNumber, $detailRef = null) {
+    $baseUrl = 'https://d36prd.webtracker.wisegrid.net';
+    if (!empty($detailRef)) {
+        return $baseUrl . '/Shipments/ShipmentDetails.aspx?Ref=' . urlencode($detailRef);
+    }
+    return $baseUrl . '/Shipments/ShipmentDetails.aspx?ShipmentNo=' . urlencode($shipmentNumber);
+}
+
+/**
+ * Fetch the detail page HTML for a shipment.
+ */
+function fetchShipmentDetailHtml($shipmentNumber, $cookieJar, $existingCurlHandle = null, $detailRef = null) {
+    $detailUrl = buildDetailUrl($shipmentNumber, $detailRef);
+    $ch = $existingCurlHandle ?: initCurl();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $detailUrl,
+        CURLOPT_POST => false,
+        CURLOPT_COOKIEFILE => $cookieJar,
+        CURLOPT_COOKIEJAR => $cookieJar,
+    ]);
+    logDebug("Fetching detail page for $shipmentNumber", 'DEBUG');
+    $response = curl_exec($ch);
+    if ($response === false) {
+        logDebug("Failed to fetch detail page for $shipmentNumber: " . curl_error($ch), 'WARNING');
+        return null;
+    }
+    list($header, $body) = parseResponse($response, $ch);
+    return $body;
+}
+
+/**
+ * Parse the transport (legs) table from a shipment detail page.
+ */
+function parseTransportTable(DOMXPath $xpath) {
+    $segments = [];
+    $rows = $xpath->query('//table[contains(@id,"TransportGrid")]/tr[not(contains(@class,"DetailsHeader"))]');
+    foreach ($rows as $row) {
+        $cells = $xpath->query('./td', $row);
+        if ($cells->length < 12) {
+            continue;
+        }
+        $segments[] = [
+            'mode'          => trim($cells->item(0)->textContent),
+            'type'          => trim($cells->item(1)->textContent),
+            'parent'        => trim($cells->item(2)->textContent),
+            'bill'          => trim($cells->item(3)->textContent),
+            'vessel'        => trim($cells->item(4)->textContent),
+            'voyage'        => trim($cells->item(5)->textContent),
+            'load_port'     => trim($cells->item(6)->textContent),
+            'discharge_port'=> trim($cells->item(7)->textContent),
+            'departure'     => trim($cells->item(8)->textContent),
+            'arrival'       => trim($cells->item(9)->textContent),
+            'status'        => trim($cells->item(10)->textContent),
+            'carrier'       => trim($cells->item(11)->textContent),
+        ];
+    }
+    return $segments;
+}
+
+/**
+ * Parse the container table from a shipment detail page.
+ */
+function parseContainerTable(DOMXPath $xpath) {
+    $containers = [];
+    $rows = $xpath->query('//table[contains(@id,"PackLinesGrid")]/tr[not(contains(@class,"DetailsHeader"))]');
+    foreach ($rows as $row) {
+        $cells = $xpath->query('./td', $row);
+        if ($cells->length === 0) {
+            continue;
+        }
+        $containers[] = [
+            'pieces'          => trim($cells->item(0)->textContent ?? ''),
+            'pack_type'       => trim($cells->item(1)->textContent ?? ''),
+            'length'          => trim($cells->item(2)->textContent ?? ''),
+            'width'           => trim($cells->item(3)->textContent ?? ''),
+            'height'          => trim($cells->item(4)->textContent ?? ''),
+            'weight'          => trim($cells->item(5)->textContent ?? ''),
+            'volume'          => trim($cells->item(6)->textContent ?? ''),
+            'marks_numbers'   => trim($cells->item(7)->textContent ?? ''),
+            'tariff_number'   => trim($cells->item(8)->textContent ?? ''),
+            'container'       => trim($cells->item(9)->textContent ?? ''),
+        ];
+    }
+    return $containers;
+}
+
+/**
  * Extract shipment data from the HTML table
  */
-function extractShipmentData($html) {
+function extractShipmentData($html, $cookieJar, $ch) {
     try {
         logDebug("Starting shipment data extraction from HTML");
         
@@ -346,10 +458,34 @@ function extractShipmentData($html) {
                 if ($cells->length == 0) {
                     continue; // Skip empty rows
                 }
-                
+
+                $detailRef = null;
+                $detailShipmentNo = null;
+
+                $linkNodes = $xpath->query('.//a', $cells->item($headerIndexes['Shipment#'] ?? -1));
+                if ($linkNodes->length > 0) {
+                    $href  = $linkNodes->item(0)->getAttribute('href');
+                    $query = parse_url(htmlspecialchars_decode($href), PHP_URL_QUERY);
+                    if ($query) {
+                        $params = [];
+                        parse_str($query, $params);
+                        if (!empty($params['Ref'])) {
+                            $detailRef = $params['Ref'];
+                        } elseif (!empty($params['ShipmentNo'])) {
+                            $detailShipmentNo = $params['ShipmentNo'];
+                        }
+                    }
+                }
+
                 // Create a shipment record
                 $shipment = [];
                 $hasData = false;
+
+                if ($detailRef !== null) {
+                    $shipment['detail_ref'] = $detailRef;
+                } elseif ($detailShipmentNo !== null) {
+                    $shipment['detail_shipment_no'] = $detailShipmentNo;
+                }
                 
                 // Process mapped headers
                 foreach ($headerIndexes as $headerText => $columnIndex) {
@@ -484,18 +620,49 @@ function extractShipmentData($html) {
                     logDebug("Completed direct field extraction for " . count($directFieldMap) . " fields", "DEBUG");
                 }
                 
-                // Add standard fields mapping
                 foreach ($standardFieldMapping as $standardField => $sourceField) {
                     if (isset($shipment[$sourceField]) && !isset($shipment[$standardField])) {
                         $shipment[$standardField] = $shipment[$sourceField];
                     }
                 }
-                
+
+                // Enrich with detail-page data before saving this shipment
+                $detailHtml = fetchShipmentDetailHtml(
+                    $shipment['shipment_number'],
+                    $cookieJar,
+                    $ch,
+                    $shipment['detail_ref'] ?? ($shipment['detail_shipment_no'] ?? null)
+                );
+                if ($detailHtml) {
+                    $detailDom = new DOMDocument();
+                    @$detailDom->loadHTML(mb_convert_encoding($detailHtml, 'HTML-ENTITIES', 'UTF-8'));
+                    $detailXpath = new DOMXPath($detailDom);
+
+                    $segments   = parseTransportTable($detailXpath);
+                    $containers = parseContainerTable($detailXpath);
+                    $shipment['container_routes_json'] = json_encode($segments, JSON_UNESCAPED_SLASHES);
+
+                    $payload = $shipment;  // start with all columns we already scraped
+                    $payload['transport_segments'] = $segments;
+                    $payload['container_details']  = $containers;
+
+                    $shipment['full_data'] = json_encode($payload, JSON_UNESCAPED_SLASHES);
+                }
+
+
                 // Only add shipments with data and a shipment number
                 if ($hasData && isset($shipment['shipment_number'])) {
+                    if (!isValidShipmentNumber($shipment['shipment_number'])) {
+                        logDebug("Skipping non-shipment row with value '{$shipment['shipment_number']}'", 'DEBUG');
+                        continue;
+                    }
                     $shipments[] = $shipment;
                 } elseif ($hasData && isset($shipment['Shipment#'])) {
                     $shipment['shipment_number'] = $shipment['Shipment#'];
+                    if (!isValidShipmentNumber($shipment['shipment_number'])) {
+                        logDebug("Skipping non-shipment row with value '{$shipment['shipment_number']}'", 'DEBUG');
+                        continue;
+                    }
                     $shipments[] = $shipment;
                 }
             }
@@ -803,7 +970,7 @@ function getWebtrackerDbConnection() {
 function saveShipmentsToDatabase($shipments) {
     global $headerToColumnMap;
     global $verboseMode;
-    
+    $allowedNonHeaderFields = ['container_routes_json'];
     $pdo = getWebtrackerDbConnection();
     if (!$pdo) {
         throw new Exception("No database connection available");
@@ -824,11 +991,16 @@ function saveShipmentsToDatabase($shipments) {
         logDebug("Found " . count($existingColumns) . " existing columns in the database");
         
         // Collect all required columns from the data
-        $requiredColumns = ['id', 'shipment_number', 'last_updated'];
+        $requiredColumns = ['id', 'shipment_number', 'last_updated', 'container_routes_json'];
         foreach ($shipments as $shipment) {
             foreach ($shipment as $key => $value) {
+                $isMappedHeader = in_array($key, array_values($headerToColumnMap));
+                $isAllowedExtra = in_array($key, $allowedNonHeaderFields);
+                if (!($isMappedHeader || $isAllowedExtra) || $key === 'shipment_number') {
+                    continue;
+                }
                 // Only add database column names, not the original header names
-                if (in_array($key, array_values($headerToColumnMap)) && !in_array($key, $requiredColumns)) {
+                if ($isMappedHeader && !in_array($key, $requiredColumns)) {
                     $requiredColumns[] = $key;
                 }
             }
@@ -859,8 +1031,10 @@ function saveShipmentsToDatabase($shipments) {
             
             // Add other columns
             foreach ($shipment as $key => $value) {
+                $isMappedHeader = in_array($key, array_values($headerToColumnMap));
+                $isAllowedExtra = in_array($key, $allowedNonHeaderFields);
                 // Skip original header columns (only use normalized column names)
-                if (!in_array($key, array_values($headerToColumnMap)) || $key === 'shipment_number') {
+                if (!($isMappedHeader || $isAllowedExtra) || $key === 'shipment_number') {
                     continue;
                 }
                 
@@ -1334,7 +1508,7 @@ function main() {
         logDebug("SUCCESS: Found table in search results");
         
         // Extract shipment data
-        $shipments = extractShipmentData($body);
+        $shipments = extractShipmentData($body, $cookieJar, $ch);
         
         if (empty($shipments)) {
             throw new Exception("No shipment data extracted from the table");

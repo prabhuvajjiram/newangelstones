@@ -31,15 +31,15 @@ try {
                 )";
         $params = [
             $data['name'],
-            $data['email'],
-            $data['phone'],
-            $data['address'],
-            $data['city'],
-            $data['state'],
-            $data['postal_code'],
-            $data['notes'],
-            $data['company_id'],
-            $data['job_title']
+            $data['email'] ?? null,
+            $data['phone'] ?? null,
+            $data['address'] ?? null,
+            $data['city'] ?? null,
+            $data['state'] ?? null,
+            $data['postal_code'] ?? null,
+            $data['notes'] ?? null,
+            !empty($data['company_id']) ? $data['company_id'] : null,
+            $data['job_title'] ?? null
         ];
     } elseif ($data['action'] === 'update') {
         if (empty($data['id'])) {
@@ -53,15 +53,15 @@ try {
                 WHERE id = ?";
         $params = [
             $data['name'],
-            $data['email'],
-            $data['phone'],
-            $data['address'],
-            $data['city'],
-            $data['state'],
-            $data['postal_code'],
-            $data['notes'],
-            $data['company_id'],
-            $data['job_title'],
+            $data['email'] ?? null,
+            $data['phone'] ?? null,
+            $data['address'] ?? null,
+            $data['city'] ?? null,
+            $data['state'] ?? null,
+            $data['postal_code'] ?? null,
+            $data['notes'] ?? null,
+            !empty($data['company_id']) ? $data['company_id'] : null,
+            $data['job_title'] ?? null,
             $data['id']
         ];
     } else {
@@ -79,7 +79,27 @@ try {
     
     echo json_encode($response);
     
+} catch (PDOException $e) {
+    error_log("Database error in save_customer.php: " . $e->getMessage());
+    
+    // Handle specific database errors
+    if ($e->getCode() == 23000) {
+        if (strpos($e->getMessage(), 'customers_company_fk') !== false) {
+            $error_message = 'Invalid company selected. Please select a valid company or leave it empty.';
+        } else {
+            $error_message = 'Database constraint violation. Please check your input data.';
+        }
+    } else {
+        $error_message = 'Database error occurred while saving customer.';
+    }
+    
+    http_response_code(400);
+    echo json_encode([
+        'success' => false,
+        'error' => $error_message
+    ]);
 } catch (Exception $e) {
+    error_log("General error in save_customer.php: " . $e->getMessage());
     http_response_code(400);
     echo json_encode([
         'success' => false,

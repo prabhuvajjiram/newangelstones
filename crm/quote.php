@@ -278,7 +278,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_quote'])) {
                         </div>
                         <div class="col-md-4">
                             <div class="btn-group w-100">
-                                <a href="create_customer.php" class="btn btn-outline-primary" target="_blank">
+                                <a href="customers.php" class="btn btn-outline-primary" target="_blank">
                                     <i class="fas fa-plus"></i> New Customer
                                 </a>
                                 <button type="button" class="btn btn-outline-secondary" id="refreshCustomers">

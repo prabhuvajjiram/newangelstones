@@ -1330,19 +1330,26 @@
                                     </div>
                                     <div class="col-md-6 form-group">
                                         <input name="mauticform[phone]" id="phone" type="tel" 
-                                               class="form-control" placeholder="Phone *" required>
+                                               class="form-control" placeholder="Phone *" required
+                                               pattern="^\+?[0-9\s\-()]{10,}$" title="Please enter a valid phone number with at least 10 digits." inputmode="tel">
                                     </div>
                                     <div class="col-md-12 form-group">
                                         <textarea name="mauticform[f_message]" id="f_message" 
                                                   class="form-control" cols="30" rows="4" 
-                                                  placeholder="Message *" required></textarea>
+                                                  placeholder="Message *" required minlength="10"></textarea>
                                     </div>
                                     <!-- Hidden honeypot field for spam protection -->
                                     <div style="position: absolute; left: -5000px;" aria-hidden="true">
                                         <input type="text" name="mauticform[email2]" tabindex="-1" value="" />
                                     </div>
+                                    <div class="col-md-12">
+                                        <div id="form-messages" class="mt-3" aria-live="polite"></div>
+                                    </div>
                                     <div class="col-md-12 mt-2">
-                                        <button type="submit" id="form-submit">Send Message</button>
+                                        <button type="submit" id="form-submit" class="contact-submit-btn">
+                                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                            <span class="submit-text">Send Message</span>
+                                        </button>
                                         <div id="response"></div>
                                     </div>
                                 </div>
@@ -1352,37 +1359,20 @@
                             <script type="text/javascript">
                             document.addEventListener('DOMContentLoaded', function() {
                                 const form = document.getElementById('contactForm');
-                                const submitBtn = document.getElementById('form-submit');
-                                const submitText = submitBtn.querySelector('.submit-text');
-                                const spinner = submitBtn.querySelector('.spinner-border');
-                                const formMessages = document.getElementById('form-messages');
-                                
-                                // Form validation
-                                function validateForm() {
-                                    let isValid = true;
-                                    const requiredFields = form.querySelectorAll('[required]');
-                                    
-                                    requiredFields.forEach(field => {
-                                        if (!field.value.trim()) {
-                                            isValid = false;
-                                            field.classList.add('is-invalid');
-                                        } else {
-                                            field.classList.remove('is-invalid');
-                                            
-                                            // Email validation
-                                            if (field.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value)) {
-                                                isValid = false;
-                                                field.classList.add('is-invalid');
-                                                showMessage('Please enter a valid email address', 'error');
-                                            }
-                                        }
-                                    });
-                                    
-                                    return isValid;
+                                if (!form) {
+                                    return;
                                 }
-                                
-                                // Show form messages
+
+                                const submitBtn = document.getElementById('form-submit');
+                                const submitText = submitBtn ? submitBtn.querySelector('.submit-text') : null;
+                                const spinner = submitBtn ? submitBtn.querySelector('.spinner-border') : null;
+                                const formMessages = document.getElementById('form-messages');
+
                                 function showMessage(message, type = 'success') {
+                                    if (!formMessages) {
+                                        return;
+                                    }
+
                                     formMessages.innerHTML = `
                                         <div class="alert alert-${type} alert-dismissible fade show" role="alert">
                                             ${message}
@@ -1390,64 +1380,193 @@
                                         </div>
                                     `;
                                 }
-                                
-                                // Form submission
+
+                                function validateField(field) {
+                                    const value = field.value.trim();
+                                    let isValid = true;
+                                    let errorMessage = '';
+
+                                    if (!value) {
+                                        isValid = false;
+                                    } else if (field.type === 'email') {
+                                        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                                            isValid = false;
+                                            errorMessage = 'Please enter a valid email address.';
+                                        }
+                                    } else if (field.type === 'tel') {
+                                        const digits = value.replace(/[^0-9]/g, '');
+                                        if (digits.length < 10 || digits.length > 15) {
+                                            isValid = false;
+                                            errorMessage = 'Please enter a valid phone number (10-15 digits).';
+                                        }
+                                    } else if (field.id === 'f_message') {
+                                        if (value.length < 10) {
+                                            isValid = false;
+                                            errorMessage = 'Message must be at least 10 characters long.';
+                                        }
+                                    }
+
+                                if (!isValid) {
+                                        field.classList.add('is-invalid');
+                                    } else {
+                                        field.classList.remove('is-invalid');
+                                    }
+
+                                    return { isValid, errorMessage };
+                                }
+
+                                function validateForm() {
+                                    let isValid = true;
+                                    const errorMessages = new Set();
+                                    const requiredFields = form.querySelectorAll('[required]');
+
+                                    requiredFields.forEach(field => {
+                                        const { isValid: fieldValid, errorMessage } = validateField(field);
+                                        if (!fieldValid) {
+                                            isValid = false;
+                                            if (errorMessage) {
+                                                errorMessages.add(errorMessage);
+                                            }
+                                        }
+                                    });
+
+                                    if (!isValid) {
+                                        errorMessages.add('Please fill in all required fields.');
+                                    }
+
+                                    return { isValid, errorMessages: Array.from(errorMessages) };
+                                }
+
                                 form.addEventListener('submit', function(e) {
                                     e.preventDefault();
-                                    
-                                    if (!validateForm()) {
-                                        showMessage('Please fill in all required fields correctly.', 'danger');
+
+                                    const { isValid, errorMessages } = validateForm();
+
+                                    if (!isValid) {
+                                        const message = errorMessages.length ? errorMessages.join('<br>') : 'Please fill in all required fields correctly.';
+                                        showMessage(message, 'danger');
                                         return false;
                                     }
-                                    
-                                    // Disable submit button
-                                    submitBtn.disabled = true;
-                                    submitText.textContent = 'Sending...';
-                                    spinner.classList.remove('d-none');
-                                    
-                                    // Submit form via AJAX
+
+                                    if (formMessages) {
+                                        formMessages.innerHTML = '';
+                                    }
+
+                                    if (submitBtn) {
+                                        submitBtn.disabled = true;
+                                    }
+                                    if (submitText) {
+                                        submitText.textContent = 'Sending...';
+                                    } else if (submitBtn) {
+                                        submitBtn.textContent = 'Sending...';
+                                    }
+                                    if (spinner) {
+                                        spinner.classList.remove('d-none');
+                                    }
+
                                     const formData = new FormData(form);
-                                    
+
                                     fetch(form.action, {
                                         method: 'POST',
-                                        body: formData,
-                                        headers: {
-                                            'Accept': 'application/json'
+                                        body: formData
+                                    })
+                                    .then(response => {
+                                        // Check if the response is ok (status 200-299)
+                                        if (response.ok) {
+                                            return response.text();
+                                        } else {
+                                            throw new Error('Network response was not ok');
                                         }
                                     })
-                                    .then(response => response.json())
-                                    .then(data => {
-                                        if (data.success) {
-                                            showMessage('Thank you for your message! We will get back to you soon.', 'success');
-                                            form.reset();
-                                        } else {
-                                            showMessage('There was a problem sending your message. Please try again later.', 'danger');
-                                            console.error('Form submission error:', data);
-                                        }
+                                    .then(responseText => {
+                                        // Mautic typically returns HTML or redirects on success
+                                        // If we get here without an error, consider it successful
+                                        showMessage('Thank you for your message! We will get back to you soon.', 'success');
+                                        form.reset();
                                     })
                                     .catch(error => {
                                         console.error('Error:', error);
                                         showMessage('An error occurred. Please try again later.', 'danger');
                                     })
                                     .finally(() => {
-                                        submitBtn.disabled = false;
-                                        submitText.textContent = 'Send Message';
-                                        spinner.classList.add('d-none');
+                                        if (submitBtn) {
+                                            submitBtn.disabled = false;
+                                        }
+                                        if (submitText) {
+                                            submitText.textContent = 'Send Message';
+                                        } else if (submitBtn) {
+                                            submitBtn.textContent = 'Send Message';
+                                        }
+                                        if (spinner) {
+                                            spinner.classList.add('d-none');
+                                        }
                                     });
                                 });
-                                
-                                // Real-time validation
-                                form.querySelectorAll('input, textarea').forEach(input => {
-                                    input.addEventListener('input', function() {
-                                        if (this.value.trim()) {
-                                            this.classList.remove('is-invalid');
+
+                                form.querySelectorAll('input, textarea').forEach(field => {
+                                    field.addEventListener('input', function() {
+                                        if (field.classList.contains('is-invalid')) {
+                                            validateField(field);
                                         }
+                                    });
+
+                                    field.addEventListener('blur', function() {
+                                        validateField(field);
                                     });
                                 });
                             });
                             </script>
                             
                             <style>
+                            .contact__form .form-group {
+                                margin-bottom: 20px;
+                            }
+                            .contact__form .form-control {
+                                background-color: rgba(255, 255, 255, 0.08);
+                                border: 1px solid rgba(255, 255, 255, 0.25);
+                                border-radius: 10px;
+                                padding: 12px 16px;
+                                color: #ffffff;
+                                height: auto;
+                                transition: border-color 0.2s ease, box-shadow 0.2s ease;
+                            }
+                            .contact__form .form-control::placeholder {
+                                color: rgba(255, 255, 255, 0.6);
+                            }
+                            .contact__form .form-control:focus {
+                                border-color: #d4af37;
+                                box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25);
+                                background-color: rgba(255, 255, 255, 0.12);
+                                color: #ffffff;
+                            }
+                            .contact__form textarea.form-control {
+                                min-height: 140px;
+                                resize: vertical;
+                            }
+                            .contact-submit-btn {
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 10px;
+                                background-color: transparent;
+                                border: 1px solid #d4af37;
+                                color: #d4af37;
+                                padding: 12px 28px;
+                                border-radius: 6px;
+                                font-family: var(--as-font);
+                                text-transform: uppercase;
+                                letter-spacing: 1px;
+                                transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+                            }
+                            .contact-submit-btn:hover,
+                            .contact-submit-btn:focus {
+                                background-color: #d4af37;
+                                color: #1b1b1b;
+                                border-color: #d4af37;
+                            }
+                            .contact-submit-btn:disabled {
+                                opacity: 0.7;
+                                cursor: not-allowed;
+                            }
                             .is-invalid {
                                 border-color: #dc3545 !important;
                                 padding-right: calc(1.5em + 0.75rem);
