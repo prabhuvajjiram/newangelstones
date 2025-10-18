@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fax API - JSON Test Client</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #4ec9b0;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #858585;
+            margin-bottom: 30px;
+        }
+        
+        .panel {
+            background: #252526;
+            border: 1px solid #3c3c3c;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .panel h2 {
+            color: #4ec9b0;
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #3c3c3c;
+            padding-bottom: 10px;
+        }
+        
+        .form-row {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            color: #9cdcfe;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        input[type="text"],
+        input[type="tel"],
+        select,
+        textarea {
+            width: 100%;
+            background: #1e1e1e;
+            border: 1px solid #3c3c3c;
+            color: #d4d4d4;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #007acc;
+        }
+        
+        textarea {
+            min-height: 120px;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+        }
+        
+        .file-upload {
+            background: #1e1e1e;
+            border: 2px dashed #3c3c3c;
+            border-radius: 4px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .file-upload:hover {
+            border-color: #007acc;
+            background: #2d2d30;
+        }
+        
+        .file-upload input[type="file"] {
+            display: none;
+        }
+        
+        .file-list {
+            margin-top: 10px;
+        }
+        
+        .file-item {
+            background: #2d2d30;
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-item button {
+            background: #c94a4a;
+            border: none;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .btn {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #1177bb;
+        }
+        
+        .btn:disabled {
+            background: #3c3c3c;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: #3c3c3c;
+            margin-left: 10px;
+        }
+        
+        .btn-secondary:hover {
+            background: #505050;
+        }
+        
+        pre {
+            background: #1e1e1e;
+            border: 1px solid #3c3c3c;
+            border-radius: 4px;
+            padding: 15px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        .success {
+            color: #4ec9b0;
+        }
+        
+        .error {
+            color: #f48771;
+        }
+        
+        .keyword {
+            color: #c586c0;
+        }
+        
+        .string {
+            color: #ce9178;
+        }
+        
+        .number {
+            color: #b5cea8;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #0e639c;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+        
+        .example-btn {
+            background: #3c3c3c;
+            border: 1px solid #505050;
+            color: #d4d4d4;
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+        
+        .example-btn:hover {
+            background: #505050;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📠 RingCentral Fax API Tester</h1>
+        <p class="subtitle">JSON API Test Client</p>
+        
+        <div class="grid">
+            <div>
+                <div class="panel">
+                    <h2>📝 Fax Configuration</h2>
+                    
+                    <div class="form-row">
+                        <label for="endpoint">Endpoint URL</label>
+                        <input type="text" id="endpoint" title="Fax API endpoint URL" placeholder="https://api.example.com/send_fax" value="http://localhost:8000/chat/api/send_fax.php" aria-label="Endpoint URL">
+                    </div>
+                    
+                    <div class="form-row">
+                        <label>Recipient Fax Number <span class="badge">Required</span></label>
+                        <input type="tel" id="faxNumber" placeholder="+14155551234" value="+17062627693">
+                    </div>
+                    
+                    <div class="form-row">
+                        <label for="resolution">Fax Resolution</label>
+                        <select id="resolution" title="Fax Resolution">
+                            <option value="High">High Quality</option>
+                            <option value="Low">Low Quality (Faster)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <label>Cover Page Text <span class="badge">Optional</span></label>
+                        <textarea id="coverText" placeholder="Enter cover page message..."></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <label for="coverIndex">Cover Page Template <span class="badge">Optional</span></label>
+                        <select id="coverIndex" title="Cover Page Template">
+                            <option value="">No Cover Page</option>
+                            <option value="custom" selected>🏢 Angel Granite Branded (Recommended)</option>
+                            <option value="0">Template 1 - Basic</option>
+                            <option value="1">Template 2 - Standard</option>
+                            <option value="2">Template 3 - Professional</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row" id="customCoverFields" style="display: block;">
+                        <label>Recipient Name <span class="badge">For Branded Cover</span></label>
+                        <input type="text" id="toName" placeholder="John Smith">
+                    </div>
+                    
+                    <div class="form-row" id="customCoverCompany" style="display: block;">
+                        <label>Recipient Company <span class="badge">For Branded Cover</span></label>
+                        <input type="text" id="toCompany" placeholder="ABC Memorial Services">
+                    </div>
+                    
+                    <div class="form-row">
+                        <label>Files <span class="badge">Required</span></label>
+                        <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                            <input type="file" id="fileInput" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.tif,.tiff">
+                            📁 Click to select files or drag & drop
+                        </div>
+                        <div class="file-list" id="fileList"></div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <button class="btn" onclick="sendFax()">Send Fax</button>
+                        <button class="btn btn-secondary" onclick="clearForm()">Clear</button>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h2>📋 Quick Examples</h2>
+                    <button class="example-btn" onclick="loadExample('simple')">Simple Fax</button>
+                    <button class="example-btn" onclick="loadExample('cover')">With Cover Page</button>
+                    <button class="example-btn" onclick="loadExample('multiple')">Multiple Recipients</button>
+                </div>
+            </div>
+            
+            <div>
+                <div class="panel">
+                    <h2>📤 Request JSON</h2>
+                    <pre id="requestJson">{
+  "to": "+17062627693",
+  "faxResolution": "High",
+  "coverIndex": "custom",
+  "to_name": "",
+  "to_company": "",
+  "files": [
+    {
+      "name": "document.pdf",
+      "content": "base64_encoded_content...",
+      "type": "application/pdf"
+    }
+  ]
+}</pre>
+                </div>
+                
+                <div class="panel">
+                    <h2>📥 Response</h2>
+                    <pre id="response">Waiting for request...</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let selectedFiles = [];
+        
+        // File selection handling
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            selectedFiles = Array.from(e.target.files);
+            updateFileList();
+            updateRequestJson();
+        });
+        
+        // Drag and drop
+        const fileUpload = document.querySelector('.file-upload');
+        
+        fileUpload.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUpload.style.borderColor = '#007acc';
+        });
+        
+        fileUpload.addEventListener('dragleave', () => {
+            fileUpload.style.borderColor = '#3c3c3c';
+        });
+        
+        fileUpload.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUpload.style.borderColor = '#3c3c3c';
+            selectedFiles = Array.from(e.dataTransfer.files);
+            updateFileList();
+            updateRequestJson();
+        });
+        
+        // Update file list display
+        function updateFileList() {
+            const fileList = document.getElementById('fileList');
+            
+            if (selectedFiles.length === 0) {
+                fileList.innerHTML = '';
+                return;
+            }
+            
+            fileList.innerHTML = selectedFiles.map((file, index) => `
+                <div class="file-item">
+                    <span>📄 ${file.name} (${formatFileSize(file.size)})</span>
+                    <button onclick="removeFile(${index})">Remove</button>
+                </div>
+            `).join('');
+        }
+        
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+            updateRequestJson();
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+        
+        // Update request JSON display
+        function updateRequestJson() {
+            const requestObj = {
+                to: document.getElementById('faxNumber').value,
+                faxResolution: document.getElementById('resolution').value,
+                files: selectedFiles.map(f => ({
+                    name: f.name,
+                    content: 'base64_encoded_content...',
+                    type: f.type || 'application/pdf'
+                }))
+            };
+            
+            const coverText = document.getElementById('coverText').value;
+            if (coverText) {
+                requestObj.coverPageText = coverText;
+            }
+            
+            const coverIndex = document.getElementById('coverIndex').value;
+            if (coverIndex !== '') {
+                if (coverIndex === 'custom') {
+                    requestObj.coverIndex = 'custom';
+                    const toName = document.getElementById('toName').value;
+                    const toCompany = document.getElementById('toCompany').value;
+                    if (toName) requestObj.to_name = toName;
+                    if (toCompany) requestObj.to_company = toCompany;
+                } else {
+                    requestObj.coverIndex = parseInt(coverIndex);
+                }
+            }
+            
+            document.getElementById('requestJson').textContent = JSON.stringify(requestObj, null, 2);
+        }
+        
+        // Update JSON on input changes
+        ['faxNumber', 'resolution', 'coverText', 'coverIndex', 'toName', 'toCompany'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateRequestJson);
+        });
+        
+        // Show/hide custom cover fields
+        document.getElementById('coverIndex').addEventListener('change', function() {
+            const customFields = document.getElementById('customCoverFields');
+            const customCompany = document.getElementById('customCoverCompany');
+            if (this.value === 'custom') {
+                customFields.style.display = 'block';
+                customCompany.style.display = 'block';
+            } else {
+                customFields.style.display = 'none';
+                customCompany.style.display = 'none';
+            }
+            updateRequestJson();
+        });
+        
+        // Send fax
+        async function sendFax() {
+            if (selectedFiles.length === 0) {
+                alert('Please select at least one file');
+                return;
+            }
+            
+            const faxNumber = document.getElementById('faxNumber').value;
+            if (!faxNumber) {
+                alert('Please enter a fax number');
+                return;
+            }
+            
+            document.getElementById('response').textContent = 'Sending fax...';
+            
+            try {
+                // Read files as base64
+                const filesPromises = selectedFiles.map(file => {
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            const base64 = reader.result.split(',')[1];
+                            resolve({
+                                name: file.name,
+                                content: base64,
+                                type: file.type || 'application/pdf'
+                            });
+                        };
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    });
+                });
+                
+                const files = await Promise.all(filesPromises);
+                
+                // Build request object
+                const requestData = {
+                    to: faxNumber,
+                    faxResolution: document.getElementById('resolution').value,
+                    files: files
+                };
+                
+                const coverText = document.getElementById('coverText').value;
+                if (coverText) {
+                    requestData.coverPageText = coverText;
+                }
+                
+                const coverIndex = document.getElementById('coverIndex').value;
+                if (coverIndex !== '') {
+                    if (coverIndex === 'custom') {
+                        requestData.coverIndex = 'custom';
+                        const toName = document.getElementById('toName').value;
+                        const toCompany = document.getElementById('toCompany').value;
+                        if (toName) requestData.to_name = toName;
+                        if (toCompany) requestData.to_company = toCompany;
+                    } else {
+                        requestData.coverIndex = parseInt(coverIndex);
+                    }
+                }
+                
+                // Send request
+                const endpoint = document.getElementById('endpoint').value;
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const result = await response.json();
+                
+                // Display response
+                displayResponse(result, response.status);
+                
+            } catch (error) {
+                document.getElementById('response').innerHTML = 
+                    `<span class="error">Error: ${error.message}</span>`;
+            }
+        }
+        
+        function displayResponse(result, status) {
+            const responseEl = document.getElementById('response');
+            
+            let html = `<span class="${result.success ? 'success' : 'error'}">`;
+            html += `HTTP ${status} - ${result.success ? 'SUCCESS' : 'ERROR'}\n\n`;
+            html += '</span>';
+            html += JSON.stringify(result, null, 2);
+            
+            responseEl.innerHTML = html;
+        }
+        
+        // Clear form
+        function clearForm() {
+            document.getElementById('faxNumber').value = '+17062627693';
+            document.getElementById('resolution').value = 'High';
+            document.getElementById('coverText').value = '';
+            document.getElementById('coverIndex').value = 'custom';
+            document.getElementById('toName').value = '';
+            document.getElementById('toCompany').value = '';
+            selectedFiles = [];
+            updateFileList();
+            updateRequestJson();
+            document.getElementById('response').textContent = 'Waiting for request...';
+        }
+        
+        // Load example
+        function loadExample(type) {
+            switch(type) {
+                case 'simple':
+                    document.getElementById('faxNumber').value = '+17062627693';
+                    document.getElementById('coverText').value = '';
+                    document.getElementById('coverIndex').value = '';
+                    break;
+                case 'cover':
+                    document.getElementById('faxNumber').value = '+17062627693';
+                    document.getElementById('coverText').value = 'Please find attached the requested documents for the granite monument quote.\n\nIf you have any questions, please contact us at (706) 262-7177.';
+                    document.getElementById('coverIndex').value = 'custom';
+                    document.getElementById('toName').value = 'Valued Customer';
+                    document.getElementById('toCompany').value = 'Memorial Services';
+                    break;
+                case 'multiple':
+                    document.getElementById('faxNumber').value = '+17062627693,+14155555678';
+                    document.getElementById('coverText').value = 'Broadcast message - Special offer on granite monuments';
+                    document.getElementById('coverIndex').value = 'custom';
+                    break;
+            }
+            updateRequestJson();
+        }
+        
+        // Initialize
+        updateRequestJson();
+    </script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/Resources <<
+/Font <<
+/F1 <<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+/F2 <<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica-Bold
+>>
+>>
+>>
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 850
+>>
+stream
+BT
+/F2 24 Tf
+50 720 Td
+(RingCentral Fax API Test) Tj
+ET
+
+BT
+/F1 12 Tf
+50 680 Td
+(Date: 2025-10-18) Tj
+ET
+
+BT
+/F1 12 Tf
+50 660 Td
+(From: Angel Stones / The Angel Stones) Tj
+ET
+
+BT
+/F1 12 Tf
+50 640 Td
+(To: +17062627693) Tj
+ET
+
+BT
+/F2 14 Tf
+50 600 Td
+(Test Message:) Tj
+ET
+
+BT
+/F1 12 Tf
+50 575 Td
+(This is a test fax message sent via the RingCentral Fax API.) Tj
+ET
+
+BT
+/F1 12 Tf
+50 555 Td
+(If you receive this fax, the API integration is working correctly!) Tj
+ET
+
+BT
+/F2 12 Tf
+50 515 Td
+(System Information:) Tj
+ET
+
+BT
+/F1 11 Tf
+50 495 Td
+(- API Endpoint: fax_api.php) Tj
+ET
+
+BT
+/F1 11 Tf
+50 480 Td
+(- Authentication: JWT) Tj
+ET
+
+BT
+/F1 11 Tf
+50 465 Td
+(- Resolution: High Quality) Tj
+ET
+
+BT
+/F1 11 Tf
+50 450 Td
+(- Status: Production Test) Tj
+ET
+
+BT
+/F2 12 Tf
+50 410 Td
+(Contact Information:) Tj
+ET
+
+BT
+/F1 11 Tf
+50 390 Td
+(Website: https://theangelstones.com) Tj
+ET
+
+BT
+/F1 11 Tf
+50 375 Td
+(Email: purchase@theangelstones.com) Tj
+ET
+
+BT
+/F1 11 Tf
+50 360 Td
+(Phone: Contact via website) Tj
+ET
+
+BT
+/F1 10 Tf
+50 100 Td
+(This is an automated test message.) Tj
+ET
+
+BT
+/F1 10 Tf
+50 85 Td
+(Generated: 2025-10-18) Tj
+ET
+endstream
+endobj
+xref
+0 5
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000317 00000 n 
+trailer
+<<
+/Size 5
+/Root 1 0 R
+>>
+startxref
+1217
+%%EOF

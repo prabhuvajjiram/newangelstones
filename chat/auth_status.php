@@ -43,7 +43,7 @@ if ($authType === 'jwt') {
     ]);
     
     // Try to authenticate with JWT
-    $authenticated = $rcClient->authenticate();
+    $authenticated = $rcClient->isAuthenticated();
     
     if ($authenticated) {
         // Get when the token expires
