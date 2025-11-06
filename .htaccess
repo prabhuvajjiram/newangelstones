@@ -13,6 +13,11 @@ RewriteCond %{HTTPS} off
 RewriteCond %{HTTP_USER_AGENT} !Prerender [NC]
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
+# Force WWW (except for prerender bots)
+RewriteCond %{HTTP_HOST} !^www\. [NC]
+RewriteCond %{HTTP_USER_AGENT} !Prerender [NC]
+RewriteRule ^(.*)$ https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
 # Fallback to index.php if file/folder not found (SPA routing support)
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

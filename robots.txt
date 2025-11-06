@@ -39,9 +39,6 @@ Disallow: /*.old$
 Disallow: /*.swp$
 Disallow: /*.tmp$
 
-# Sitemap location
-Sitemap: https://theangelstones.com/sitemap.xml
-
 # Allow query-based and dynamic content for indexing
 Allow: /*?*
 
