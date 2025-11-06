@@ -1,0 +1,13 @@
+# Deny direct access to cache files
+# Cache files should only be accessed by PHP scripts
+
+Order Deny,Allow
+Deny from all
+
+# Prevent directory listing
+Options -Indexes
+
+# Protect cache files
+<FilesMatch "\.(json)$">
+    Deny from all
+</FilesMatch>

@@ -432,27 +432,53 @@ if (basename($_SERVER['SCRIPT_FILENAME']) === basename(__FILE__)) {
         exit;
     }
     
+    // Initialize fax client
+    $faxClient = new RingCentralFaxClient([
+        'clientId' => RINGCENTRAL_CLIENT_ID,
+        'clientSecret' => RINGCENTRAL_CLIENT_SECRET,
+        'serverUrl' => RINGCENTRAL_SERVER,
+        'jwtToken' => defined('RINGCENTRAL_JWT_TOKEN') ? RINGCENTRAL_JWT_TOKEN : '',
+        'authType' => defined('RINGCENTRAL_AUTH_TYPE') ? RINGCENTRAL_AUTH_TYPE : 'jwt',
+        'tokenPath' => __DIR__ . '/secure_storage/rc_token.json'
+    ]);
+    
+    // Handle GET request for status check
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        if (isset($_GET['action']) && $_GET['action'] === 'status') {
+            if (!isset($_GET['message_id'])) {
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'message_id parameter is required'
+                ]);
+                exit;
+            }
+            
+            $result = $faxClient->getFaxStatus($_GET['message_id']);
+            http_response_code($result['success'] ? 200 : ($result['http_code'] ?? 400));
+            echo json_encode($result);
+            exit;
+        } else {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Invalid action. Use ?action=status&message_id=YOUR_MESSAGE_ID'
+            ]);
+            exit;
+        }
+    }
+    
     // Only accept POST requests for sending fax
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         http_response_code(405);
         echo json_encode([
             'success' => false,
-            'error' => 'Method not allowed. Use POST to send fax.'
+            'error' => 'Method not allowed. Use POST to send fax or GET with ?action=status&message_id=ID to check status.'
         ]);
         exit;
     }
     
     try {
-        // Initialize fax client
-        $faxClient = new RingCentralFaxClient([
-            'clientId' => RINGCENTRAL_CLIENT_ID,
-            'clientSecret' => RINGCENTRAL_CLIENT_SECRET,
-            'serverUrl' => RINGCENTRAL_SERVER,
-            'jwtToken' => defined('RINGCENTRAL_JWT_TOKEN') ? RINGCENTRAL_JWT_TOKEN : '',
-            'authType' => defined('RINGCENTRAL_AUTH_TYPE') ? RINGCENTRAL_AUTH_TYPE : 'jwt',
-            'tokenPath' => __DIR__ . '/secure_storage/rc_token.json'
-        ]);
-        
         // Get input data
         $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
         

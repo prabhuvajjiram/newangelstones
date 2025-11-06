@@ -422,7 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.totalItems = 0;
                 this.totalPages = 0;
                 this.forceRefresh = false; // Flag to force refresh and bypass cache
-                this.cacheExpiryMinutes = 1; // Reduce cache expiry to 1 minute for fresher data
+                this.cacheExpiryMinutes = 1440; // Cache for 24 hours (1440 minutes) - inventory doesn't change frequently
                 this.currentFilters = {
                     ptype: '',
                     pcolor: '',
@@ -473,13 +473,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     // Define the location IDs to fetch based on the selected location
-                    let locationIds = ['45555', '45587']; // Default: fetch both locations (Elberton and Tate)
+                    let locationIds = ['45555', '45587']; // Default: fetch both locations (Elberton 45555 and Barre 45587)
                     
                     // If a specific location is selected, only fetch that one
                     if (this.selectedLocation) {
                         if (this.selectedLocation === 'Elberton') {
                             locationIds = ['45555'];
-                        } else if (this.selectedLocation === 'Tate') {
+                        } else if (this.selectedLocation === 'Barre') {
                             locationIds = ['45587'];
                         }
                         // If any other location is selected that we don't recognize, keep both IDs
@@ -487,92 +487,148 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     console.log('Fetching data for locations:', locationIds);
                     
-                    // Prepare request parameters (without locid)
-                    const params = {
-                        ...this.currentFilters,
-                        page: this.currentPage,
-                        pageSize: this.pageSize,
-                        token: '097EE598BBACB8A8182BC9D4D7D5CFE609E4DB2AF4A3F1950738C927ECF05B6A' // Include token in client-side request
+                    // Set a timeout for each request to prevent hanging
+                    const timeout = 15000; // 15 seconds timeout per request
+                    
+                    // Function to fetch all pages for a single location
+                    const fetchAllPagesForLocation = async (locid) => {
+                        console.log(`Fetching ALL pages for location ${locid}...`);
+                        const allItems = [];
+                        let currentPage = 1;
+                        let hasMorePages = true;
+                        let totalItems = 0;
+                        
+                        while (hasMorePages) {
+                            try {
+                                // Prepare request parameters for this page
+                                const params = {
+                                    ...this.currentFilters,
+                                    page: currentPage,
+                                    pageSize: this.pageSize,
+                                    locid: locid,
+                                    token: '097EE598BBACB8A8182BC9D4D7D5CFE609E4DB2AF4A3F1950738C927ECF05B6A',
+                                    timestamp: Date.now() // Prevent caching
+                                };
+                                
+                                console.log(`Fetching page ${currentPage} for location ${locid}...`);
+                                
+                                // Create abort controller for this request
+                                const abortController = new AbortController();
+                                if (!window._inventoryAbortControllers) {
+                                    window._inventoryAbortControllers = [];
+                                }
+                                window._inventoryAbortControllers.push(abortController);
+                                
+                                // Create query string
+                                const queryString = new URLSearchParams(params).toString();
+                                
+                                // Create timeout promise
+                                const timeoutPromise = new Promise((_, reject) => {
+                                    const timeoutId = setTimeout(() => {
+                                        abortController.abort();
+                                        reject(new Error(`Request timeout for location ${locid} page ${currentPage} after ${timeout}ms`));
+                                    }, timeout);
+                                    
+                                    if (!window._inventoryTimeouts) {
+                                        window._inventoryTimeouts = [];
+                                    }
+                                    window._inventoryTimeouts.push(timeoutId);
+                                });
+                                
+                                // Fetch data with timeout
+                                const fetchPromise = fetch(`inventory-proxy.php?${queryString}`, {
+                                    method: 'GET',
+                                    headers: {
+                                        'Cache-Control': 'no-cache',
+                                        'X-Requested-With': 'XMLHttpRequest'
+                                    },
+                                    signal: abortController.signal
+                                })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error(`HTTP error! Status: ${response.status}`);
+                                    }
+                                    return response.json();
+                                });
+                                
+                                const data = await Promise.race([fetchPromise, timeoutPromise]);
+                                
+                                // Validate response
+                                if (!data || data.error) {
+                                    console.error(`Error for location ${locid} page ${currentPage}:`, data?.error || 'Unknown error');
+                                    hasMorePages = false;
+                                    break;
+                                }
+                                
+                                // Get items from response
+                                const items = data.Data || data.data || [];
+                                console.log(`Location ${locid} page ${currentPage}: Got ${items.length} items`);
+                                
+                                if (items.length > 0) {
+                                    // Add location name to each item
+                                    // Use actual location name from API if available, otherwise map by location ID
+                                    const processedItems = items.map(item => ({
+                                        ...item,
+                                        Locationname: item.Locationname || item.locationname || 
+                                            (locid === '45555' ? 'Elberton' : locid === '45587' ? 'Barre' : `Location ${locid}`)
+                                    }));
+                                    
+                                    allItems.push(...processedItems);
+                                    
+                                    // Get total count from first page
+                                    if (currentPage === 1) {
+                                        totalItems = data.Total || data.total || data.totalItems || 0;
+                                        console.log(`Location ${locid} total items from API: ${totalItems}`);
+                                    }
+                                }
+                                
+                                // Check if we have more pages - Multiple conditions:
+                                // 1. If no items returned, we're done
+                                // 2. If items.length < pageSize, we're on the last page
+                                // 3. If we have totalItems and allItems.length >= totalItems, we have everything
+                                if (items.length === 0) {
+                                    hasMorePages = false;
+                                    console.log(`Location ${locid}: No items on page ${currentPage}, stopping`);
+                                } else if (items.length < this.pageSize) {
+                                    hasMorePages = false;
+                                    console.log(`Location ${locid}: Last page reached (got ${items.length} items, pageSize: ${this.pageSize})`);
+                                } else if (totalItems > 0 && allItems.length >= totalItems) {
+                                    hasMorePages = false;
+                                    console.log(`Location ${locid}: All items fetched (${allItems.length} of ${totalItems})`);
+                                } else {
+                                    currentPage++;
+                                    console.log(`Location ${locid}: Continuing to page ${currentPage} (have ${allItems.length} items so far)`);
+                                }
+                                
+                            } catch (error) {
+                                console.error(`Error fetching page ${currentPage} for location ${locid}:`, error);
+                                hasMorePages = false;
+                            }
+                        }
+                        
+                        console.log(`Location ${locid}: Fetched total of ${allItems.length} items across ${currentPage} pages`);
+                        return {
+                            success: true,
+                            Data: allItems,
+                            Total: totalItems || allItems.length,
+                            location: locid
+                        };
                     };
                     
-                    // Set a timeout for each request to prevent hanging
-                    const timeout = 10000; // 10 seconds timeout
+                    // Fetch all pages for each location in parallel
+                    const requests = locationIds.map(locid => fetchAllPagesForLocation(locid));
                     
-                    // Fetch data for each location in parallel with timeout
-                    const requests = locationIds.map(locid => {
-                        const locParams = { ...params, locid };
-                        console.log(`Sending request for location ${locid}:`, locParams);
-                        
-                        // Create a timeout promise
-                        const timeoutPromise = new Promise((_, reject) => {
-                            const timeoutId = setTimeout(() => reject(new Error(`Request timeout for location ${locid} after ${timeout}ms`)), timeout);
-                            
-                            // Store timeout ID for cleanup
-                            if (!window._inventoryTimeouts) {
-                                window._inventoryTimeouts = [];
-                            }
-                            window._inventoryTimeouts.push(timeoutId);
-                        });
-                        
-                        // Use GET method instead of POST to avoid potential CORS issues
-                        // Add timestamp to prevent caching by Cloudflare
-                        locParams.timestamp = Date.now();
-                        const queryString = new URLSearchParams(locParams).toString();
-                        
-                        // Create abort controller for this request
-                        const abortController = new AbortController();
-                        if (!window._inventoryAbortControllers) {
-                            window._inventoryAbortControllers = [];
-                        }
-                        window._inventoryAbortControllers.push(abortController);
-                        
-                        const fetchPromise = fetch(`inventory-proxy.php?${queryString}`, {
-                            method: 'GET',
-                            headers: {
-                                'Cache-Control': 'no-cache',
-                                'X-Requested-With': 'XMLHttpRequest'
-                            },
-                            signal: abortController.signal
-                        })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error(`HTTP error! Status: ${response.status}`);
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            // Validate the response structure
-                            if (!data) {
-                                throw new Error('Empty response received');
-                            }
-                            
-                            // Check for API error messages in the response
-                            if (data.error) {
-                                throw new Error(`API error: ${data.error}`);
-                            }
-                            
-                            return data;
-                        })
-                        .catch(error => {
-                            console.error(`Error fetching data for location ${locid}:`, error);
-                            return { success: false, error: error.message, Data: [] };
-                        });
-                        
-                        // Race between fetch and timeout
-                        return Promise.race([fetchPromise, timeoutPromise]);
-                    });
-                    
-                    // Wait for all requests to complete
+                    // Wait for all location requests to complete
                     const results = await Promise.allSettled(requests);
-                    console.log('API responses received:', results);
+                    console.log('All location data fetched:', results);
                     
-                    // Combine the results
+                    // Combine the results from all locations
                     const combinedData = {
                         Data: [],
                         Total: 0
                     };
                     
-                    // Process each result
+                    // Process each location result
                     let hasValidData = false;
                     results.forEach((result, index) => {
                         const locationId = locationIds[index];
@@ -580,43 +636,26 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Check if the promise was fulfilled
                         if (result.status === 'fulfilled') {
                             const data = result.value;
-                            console.log(`Processing data for location ${locationId}:`, data);
+                            console.log(`Processing data for location ${locationId}:`, {
+                                itemCount: data.Data?.length || 0,
+                                total: data.Total
+                            });
                             
-                            // Check if the result was successful
-                            if (data && (data.success === true || data.success === undefined)) {
-                                // Check if we have data and handle both uppercase and lowercase 'data' property
-                                const items = data.Data || data.data || [];
-                                
-                                if (Array.isArray(items) && items.length > 0) {
-                                    hasValidData = true;
-                                    
-                                    // Add locationname to items if missing
-                                    const processedItems = items.map(item => {
-                                        const locationName = item.Locationname || item.locationname || 
-                                            (locationId === '45555' ? 'Elberton' : 'Tate');
-                                        
-                                        return {
-                                            ...item,
-                                            Locationname: locationName
-                                        };
-                                    });
-                                    
-                                    combinedData.Data = [...combinedData.Data, ...processedItems];
-                                    
-                                    // Add to total count
-                                    const total = data.totalItems || data.Total || items.length;
-                                    combinedData.Total += parseInt(total, 10) || 0;
-                                } else {
-                                    console.warn(`Empty data array for location ${locationId}`);
-                                }
+                            // Check if we have data
+                            if (data && data.success && Array.isArray(data.Data) && data.Data.length > 0) {
+                                hasValidData = true;
+                                combinedData.Data = [...combinedData.Data, ...data.Data];
+                                combinedData.Total += parseInt(data.Total, 10) || data.Data.length;
                             } else {
-                                console.error(`API error for location ${locationId}:`, data?.error || 'Unknown error');
+                                console.warn(`No data for location ${locationId}`);
                             }
                         } else {
                             // Promise was rejected
                             console.error(`Request failed for location ${locationId}:`, result.reason);
                         }
                     });
+                    
+                    console.log(`Combined data: ${combinedData.Data.length} items total (expected: ${combinedData.Total})`);
                     
                     // If no valid data was found, create a sample dataset for testing
                     if (!hasValidData) {
@@ -635,7 +674,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             },
                             {
                                 Qty: 2,
-                                Locationname: 'Tate',
+                                Locationname: 'Barre',
                                 EndProductCode: 'SAMPLE-002',
                                 EndProductDescription: 'Sample Product 2',
                                 Ptype: 'Monument',

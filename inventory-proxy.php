@@ -15,7 +15,13 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
 
+// Cache configuration
+define('CACHE_ENABLED', true);
+define('CACHE_DIR', __DIR__ . '/cache');
+define('CACHE_DURATION', 86400); // 24 hours in seconds (86400 = 24 * 60 * 60)
+
 // Add cache control headers to prevent Cloudflare and browser caching
+// Note: Server-side file cache is separate from browser cache
 header('Cache-Control: no-cache, no-store, must-revalidate');
 header('Pragma: no-cache');
 header('Expires: 0');
@@ -62,6 +68,91 @@ $pdesign = isset($params['pdesign']) ? $params['pdesign'] : '';
 $pfinish = isset($params['pfinish']) ? $params['pfinish'] : '';
 $psize = isset($params['psize']) ? $params['psize'] : '';
 $locid = isset($params['locid']) ? $params['locid'] : '';  // Don't set a default, let the client specify
+
+// Create cache key based on request parameters (excluding timestamp which is just for cache-busting)
+$cache_params = [
+    'page' => $page,
+    'pageSize' => $pageSize,
+    'ptype' => $ptype,
+    'pcolor' => $pcolor,
+    'pdesign' => $pdesign,
+    'pfinish' => $pfinish,
+    'psize' => $psize,
+    'locid' => $locid
+];
+$cache_key = 'inventory_' . md5(json_encode($cache_params)) . '.json';
+$cache_file = CACHE_DIR . '/' . $cache_key;
+
+// Function to check if cache is valid
+function is_cache_valid($cache_file) {
+    if (!CACHE_ENABLED || !file_exists($cache_file)) {
+        return false;
+    }
+    
+    $cache_time = filemtime($cache_file);
+    $current_time = time();
+    $cache_age = $current_time - $cache_time;
+    
+    // Check if cache is still valid (less than CACHE_DURATION seconds old)
+    return $cache_age < CACHE_DURATION;
+}
+
+// Function to get cached data
+function get_cached_data($cache_file) {
+    if (!is_cache_valid($cache_file)) {
+        return null;
+    }
+    
+    $cached_json = file_get_contents($cache_file);
+    $cached_data = json_decode($cached_json, true);
+    
+    if ($cached_data && is_array($cached_data)) {
+        // Add cache info to response
+        $cached_data['cached'] = true;
+        $cached_data['cache_age'] = time() - filemtime($cache_file);
+        $cached_data['cache_expires_in'] = CACHE_DURATION - (time() - filemtime($cache_file));
+        return $cached_data;
+    }
+    
+    return null;
+}
+
+// Function to save data to cache
+function save_to_cache($cache_file, $data) {
+    if (!CACHE_ENABLED) {
+        return false;
+    }
+    
+    // Create cache directory if it doesn't exist
+    if (!is_dir(CACHE_DIR)) {
+        mkdir(CACHE_DIR, 0755, true);
+    }
+    
+    // Save data to cache file
+    $json = json_encode($data);
+    $result = file_put_contents($cache_file, $json);
+    
+    if ($result !== false) {
+        // Set file permissions
+        chmod($cache_file, 0644);
+        return true;
+    }
+    
+    return false;
+}
+
+// Check if we should force refresh (bypass cache)
+$force_refresh = isset($params['force_refresh']) && $params['force_refresh'] === 'true';
+
+// Try to get cached data first (unless force refresh is requested)
+if (!$force_refresh && CACHE_ENABLED) {
+    $cached_data = get_cached_data($cache_file);
+    if ($cached_data !== null) {
+        // Return cached data
+        echo json_encode($cached_data);
+        exit;
+    }
+}
 
 // Request parameters for API call
 $api_params = [
@@ -242,12 +333,24 @@ $result = [
         'psize' => $psize,
         'locid' => $locid
     ],
-    'execution_time' => round(microtime(true) - $start_time, 4) . 's'
+    'execution_time' => round(microtime(true) - $start_time, 4) . 's',
+    'cached' => false, // This is fresh data from API
+    'cache_duration' => CACHE_DURATION . ' seconds (24 hours)'
 ];
+
+// Save the response to cache for future requests
+if (CACHE_ENABLED) {
+    save_to_cache($cache_file, $result);
+}
 
 // Add debug info in development mode
 if (isset($_GET['debug']) && $_GET['debug'] === 'true') {
     $result['debug'] = $debug_info;
+    $result['cache_info'] = [
+        'cache_enabled' => CACHE_ENABLED,
+        'cache_file' => $cache_key,
+        'cache_duration' => CACHE_DURATION . ' seconds'
+    ];
 }
 
 // Return the JSON response
