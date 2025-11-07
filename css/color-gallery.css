@@ -6,7 +6,6 @@
     gap: 1rem;
     scrollbar-width: thin;
     scrollbar-color: #666 #f1f1f1;
-    -webkit-overflow-scrolling: touch;
 }
 
 .color-scroll-container::-webkit-scrollbar {

@@ -1,0 +1,133 @@
+/* Inline Styles Moved to External CSS for Best Practices */
+
+/* Google Tag Manager iframe */
+.gtm-noscript-iframe {
+    display: none;
+    visibility: hidden;
+}
+
+/* Hero video poster images */
+.hero-poster-mobile {
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.hero-video-element {
+    opacity: 1 !important;
+    object-fit: cover !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+}
+
+/* Subtitle styling */
+.subtitle {
+    font-size: 18px;
+    margin-top: 10px;
+}
+
+/* Owl carousel with caption color variable */
+.color-row-carousel {
+    --caption-color: #d4af37;
+}
+
+/* WOW animation visible states - added by animate.css dynamically */
+.wow.fadeInLeft[style*="visibility: visible"] {
+    visibility: visible !important;
+}
+
+/* Address paragraphs */
+.address-no-margin {
+    margin-bottom: 0;
+}
+
+/* Honeypot field for spam protection */
+.honeypot-field {
+    position: absolute;
+    left: -5000px;
+}
+
+/* Map iframe */
+.contact-map-iframe {
+    border: 0;
+}
+
+/* Footer copyright text */
+.as-copy-rights {
+    color: #ffffff;
+}
+
+/* Hidden thumbnail placeholder */
+.hidden-thumbnail {
+    display: none;
+}
+
+/* Special card cursor */
+.special-card {
+    cursor: pointer;
+}
+
+/* View special button */
+.view-special {
+    background: rgba(255,255,255,0.9);
+    color: #333;
+    border: none;
+    font-weight: 600;
+}
+
+/* Special card title */
+.special-card-title {
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+/* PDF viewer wrapper */
+.pdf-viewer-wrapper {
+    height: 70vh;
+    overflow: auto;
+    background: #f8f9fa;
+}
+
+/* App store badges container */
+.app-badges-container {
+    position: fixed;
+    bottom: 15px;
+    right: 60px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    background: rgba(42, 42, 42, 0.9);
+    padding: 12px 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.app-badge-link {
+    display: flex;
+    align-items: center;
+    height: 40px;
+}
+
+.app-badge-img {
+    width: 110px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.app-badge-spacer {
+    width: 10px;
+}
+
+/* Converge payment link */
+.converge-payment-link {
+    color: #d6b772;
+    font-size: 14px;
+    font-family: "Didact Gothic", sans-serif;
+    font-weight: bold;
+    margin-bottom: 15px;
+    display: block;
+}

@@ -10,7 +10,6 @@
         border-radius: 12px;
         overflow-x: auto;
         overflow-y: visible;
-        -webkit-overflow-scrolling: touch;
         scroll-behavior: smooth;
         position: relative;
         scroll-snap-type: x proximity;
@@ -183,7 +182,6 @@
     
     /* Improve touch scrolling */
     .table-responsive {
-        -webkit-overflow-scrolling: touch;
         scroll-snap-type: x proximity;
     }
     

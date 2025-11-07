@@ -86,7 +86,6 @@
                     display: flex !important;
                     overflow-x: auto !important;
                     scroll-snap-type: x mandatory !important;
-                    -webkit-overflow-scrolling: touch !important;
                     scroll-behavior: smooth !important;
                     padding-bottom: 10px !important;
                 }

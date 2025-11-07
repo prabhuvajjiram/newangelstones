@@ -210,12 +210,32 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Function to get or create session-based random seed
+    function getSessionSeed() {
+        let seed = sessionStorage.getItem('category_thumbnail_seed');
+        if (!seed) {
+            seed = Date.now().toString();
+            sessionStorage.setItem('category_thumbnail_seed', seed);
+        }
+        return seed;
+    }
+
+    // Simple hash function to generate consistent random numbers from seed
+    function seededRandom(seed, max) {
+        const hash = seed.split('').reduce((acc, char) => {
+            return ((acc << 5) - acc) + char.charCodeAt(0);
+        }, 0);
+        return Math.abs(hash) % max;
+    }
+
     // Function to display categories
     function displayCategories() {
         const container = document.querySelector('.category-grid');
         if (!container) return;
 
         container.innerHTML = ''; // Clear container
+        
+        const sessionSeed = getSessionSeed();
 
         Object.entries(categories).forEach(([category, images]) => {
             const categoryItem = document.createElement('div');
@@ -234,11 +254,32 @@ document.addEventListener('DOMContentLoaded', function() {
             if (images && images.length > 0) {
                 const img = document.createElement('img');
                 img.alt = category;
-                img.src = addCacheBuster(images[0].path, category);
-                // Simplified error handling
+                // Use seeded random based on category name + session seed for consistent but varied selection
+                let randomIndex = seededRandom(category + sessionSeed, images.length);
+                let attemptedIndices = [randomIndex];
+                
+                img.src = addCacheBuster(images[randomIndex].path, category);
+                
+                // Improved error handling - try next image instead of placeholder
                 img.onerror = function() {
-                    console.error(`Failed to load image: ${img.src}`);
-                    img.src = 'images/placeholder.png';
+                    console.warn(`Failed to load image: ${img.src}`);
+                    
+                    // Try to find another image that hasn't been attempted yet
+                    let nextIndex = -1;
+                    for (let i = 0; i < images.length; i++) {
+                        if (!attemptedIndices.includes(i)) {
+                            nextIndex = i;
+                            break;
+                        }
+                    }
+                    
+                    if (nextIndex !== -1) {
+                        attemptedIndices.push(nextIndex);
+                        img.src = addCacheBuster(images[nextIndex].path, category);
+                    } else {
+                        // All images failed, use placeholder
+                        img.src = 'images/placeholder.png';
+                    }
                 };
                 thumbContainer.appendChild(img);
             }

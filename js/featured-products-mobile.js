@@ -60,7 +60,6 @@
                 display: flex;
                 overflow-x: auto;
                 scroll-snap-type: x mandatory;
-                -webkit-overflow-scrolling: touch;
                 scrollbar-width: none;
                 padding: 10px 0;
                 scroll-behavior: smooth;
@@ -133,7 +132,6 @@
             .products-modal-body {
                 max-height: 75vh;
                 overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
             }
             
             /* Thumbnail grid in modal */

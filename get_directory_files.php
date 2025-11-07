@@ -35,8 +35,11 @@ function getDirectoryFiles($directory) {
     $cacheKey = preg_replace('/[^A-Za-z0-9_-]/', '_', $directory);
     $cacheFile = $cacheDir . '/' . $cacheKey . '.json';
     $cacheTTL = 3600; // 1 hour
+    
+    // Allow cache refresh via ?refresh_cache=1 parameter
+    $forceRefresh = isset($_GET['refresh_cache']) && $_GET['refresh_cache'] == '1';
 
-    if (file_exists($cacheFile) && (time() - filemtime($cacheFile) < $cacheTTL)) {
+    if (!$forceRefresh && file_exists($cacheFile) && (time() - filemtime($cacheFile) < $cacheTTL)) {
         $cached = json_decode(file_get_contents($cacheFile), true);
         if ($cached) {
             return $cached;

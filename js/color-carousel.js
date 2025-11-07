@@ -423,7 +423,6 @@
                 padding: 1rem 0.5rem;
                 scrollbar-width: thin;
                 scroll-behavior: smooth;
-                -webkit-overflow-scrolling: touch;
                 scroll-snap-type: x mandatory;
                 gap: 1rem;
             }

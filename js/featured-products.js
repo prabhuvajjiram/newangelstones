@@ -1,14 +1,19 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Helper function to add cache buster to URL (exclude MBNA_2025 category)
+    // Helper function to add cache buster to URL
     function addCacheBuster(url, category) {
-        // Don't add cache buster for MBNA_2025 category
-        if (category === 'MBNA_2025') {
-            return url;
-        }
-        
-        // Add timestamp cache buster
+        // Add timestamp cache buster for all categories
         const timestamp = Date.now();
         return url.includes('?') ? `${url}&v=${timestamp}` : `${url}?v=${timestamp}`;
+    }
+    
+    // Shuffle array function for randomizing images
+    function shuffleArray(array) {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
     }
     
     // Add styles for fullscreen view if not already present
@@ -307,6 +312,11 @@ document.addEventListener('DOMContentLoaded', function() {
         currentIndex: 0,
         fullscreenViewer: null,
         
+        // Shuffle array method
+        shuffleArray(array) {
+            return shuffleArray(array); // Use the global shuffle function
+        },
+        
         init(categoryName, images = [], directory = '') {
             this.categoryName = categoryName;
             this.images = images;
@@ -502,10 +512,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     .then(data => {
                         if (data.success && data.files) {
                             console.log(`Found ${data.files.length} images for category: ${category}`);
-                            this.images = data.files;
-                            resolve(data.files);
+                            
+                            // Shuffle images for random order on every load
+                            console.log('Before shuffle:', data.files.slice(0, 5).map(f => f.name));
+                            const files = shuffleArray(data.files);
+                            
+                            this.images = files;
+                            resolve(files);
                         } else {
-                            console.error('No files found in response:', data);
                             reject(new Error('No files found in response'));
                         }
                     })

@@ -5,18 +5,6 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
-   <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-Y5TBVH7CY7"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-Y5TBVH7CY7');
-</script>
-
-   <!-- Bing UET Tag -->
-<script>(function(w,d,t,r,u){var f,n,i;w[u]=w[u]||[],f=function(){var o={ti:"187201759", enableAutoSpaTracking: true};o.q=w[u],w[u]=new UET(o),w[u].push("pageLoad")},n=d.createElement(t),n.src=r,n.async=1,n.onload=n.onreadystatechange=function(){var s=this.readyState;s&&s!=="loaded"&&s!=="complete"||(f(),n.onload=n.onreadystatechange=null)},i=d.getElementsByTagName(t)[0],i.parentNode.insertBefore(n,i)})(window,document,"script","//bat.bing.com/bat.js","uetq");</script>
-    
     <!-- SEO optimization for proper Google indexing -->
     <link rel="canonical" href="https://www.theangelstones.com/" />
     <meta name="robots" content="index, follow">
@@ -46,7 +34,7 @@
     </style>
     
     <!-- Preload critical CSS resources from CDN with proper onload handlers -->
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <link rel="preload" href="css/style.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <link rel="preload" href="css/critical.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -101,7 +89,6 @@
                 display: flex !important;
                 overflow-x: auto !important;
                 scroll-snap-type: x mandatory !important;
-                -webkit-overflow-scrolling: touch !important;
                 scroll-behavior: smooth !important;
             }
             
@@ -164,9 +151,6 @@
             }, 1000); // Delay third-party scripts to prioritize core content
         });
     </script>
-
-    <!-- Osano for optional cookies -->
-    <script defer src="https://cmp.osano.com/16BlGRUNRhRsy6cS2/951c545c-64c9-4a8f-886a-b22b0ff1528d/osano.js"></script>
     <!-- Structured Data -->
     <script type="application/ld+json">
     {
@@ -318,22 +302,18 @@
     <meta name="description" content="Leading granite monument manufacturer. Custom headstones, memorial stones & cemetery monuments nationwide. 100+ colors. Wholesale prices.">
     <meta name="Keywords" content="granite monument manufacturer, custom headstones, memorial stones near me, cemetery monuments, granite headstones prices, custom cemetery memorials, grave markers, affordable monuments, granite manufacturers direct"> 
     
-    <!-- Preload Critical Resources with priority hints -->
-    <link rel="preload" href="images/video-poster-mobile.webp" as="image" fetchpriority="high">
-    <link rel="preconnect" href="https://www.googletagmanager.com">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="preconnect" href="https://embed.tawk.to">
-    <link rel="dns-prefetch" href="https://embed.tawk.to">
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="images/video-poster-mobile.webp" as="image">
     
-    <!-- Font loading optimization to prevent layout shifts 
+    <!-- Preconnect to most critical origins only (limit to 3-4) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" href="https://fonts.gstatic.com/s/playfairdisplay/v36/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvXDXbtXK-F2qC0s.woff" as="font" type="font/woff" crossorigin>
-    <link rel="preload" href="https://fonts.gstatic.com/s/didactgothic/v20/ahcfv8qz1zt6hCC5G4F_P4ASlUuYpnLl.woff2" as="font" type="font/woff2" crossorigin>
--->
-    <!-- Preconnect to Google Fonts early -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    
+    <!-- DNS prefetch for less critical origins -->
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+    <link rel="dns-prefetch" href="https://embed.tawk.to">
+    
     <!-- Load fonts with display=swap -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Didact+Gothic&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 
@@ -348,7 +328,7 @@
     </style>
 
     <!-- 06/08/2025 Non-critical CSS loaded asynchronously with CDN where possible - With size hints to prevent layout shifts -
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/style.css" media="all">
     <link rel="stylesheet" href="css/owl.carousel.min.css" media="all">
     <link rel="stylesheet" media="all" href="css/animate.css">
@@ -361,17 +341,18 @@
     <noscript><link rel="stylesheet" href="css/style.min.css"></noscript>
 
 <!-- Defer non-critical CSS -->
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <link rel="preload" href="css/hamburger.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <link rel="preload" href="css/color-carousel.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" href="css/inline-fixes.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 
 <!-- Fallback for when JavaScript is disabled -->
 <noscript>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="css/hamburger.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
   <link rel="stylesheet" href="css/color-carousel.min.css">
+  <link rel="stylesheet" href="css/inline-fixes.css">
 </noscript>
     <!-- Add size containment hints for layout stability -->
     <style>
@@ -475,12 +456,9 @@
         }
         h1, h2, h3, h4, h5 {
             font-family: 'Playfair Display', Georgia, serif;
-            /* Font size must remain stable to prevent shifts */
-            font-size-adjust: 0.5;
         }
         p, span, div {
             font-family: 'Didact Gothic', Arial, sans-serif;
-            font-size-adjust: 0.5;
         }
     </style>
     
@@ -657,8 +635,7 @@
           imagesizes="100vw"
           type="image/jpeg">
 
-    <!-- HTML structure optimized for mobile-first loading -->
-    <link rel="preload" as="script" href="js/jquery-3.7.1.min.js" fetchpriority="low">
+    <!-- Inline critical scripts for FOUC prevention -->
     <script>
         // Remove FOUC when page is fully loaded
         window.addEventListener('DOMContentLoaded', function() {
@@ -818,8 +795,7 @@
         .catch(console.error);
     </script>
     
-    <!-- Add the color gallery script -->
-    <script src="/js/color-gallery.js" defer></script>
+    <!-- color-gallery.js is now included in features.bundle.js -->
     
     <!-- Skip-link for accessibility -->
     <style>
@@ -861,7 +837,7 @@
 </div>
     <div class="menu-overlay"></div>
     <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-56P7KZDV" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-56P7KZDV" height="0" width="0" class="gtm-noscript-iframe"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
 
     <header id="as-header">
@@ -899,28 +875,25 @@
                 <section class="video-container">
                     <!-- Optimized hero image with preloaded assets for fast LCP -->
                     <img 
-                        class="poster-image" 
+                        class="poster-image hero-poster-mobile" 
                         src="images/video-poster-mobile.webp" 
                         alt="Angel Granites" 
                         width="100%" 
-                        height="100%" 
-                        fetchpriority="high"
-                        style="object-fit: cover; position: absolute; top: 0; left: 0;">
+                        height="100%">
 
                     <!-- Video with loading optimization for better LCP -->
                     <video
                         id="hero-video"
+                        class="hero-video-element"
                         playsinline
                         webkit-playsinline
                         muted
                         loop
                         autoplay
-                        fetchpriority="low"
                         loading="lazy"
                         width="1920"
                         height="1080"
-                        poster="images/video-poster-mobile.webp"
-                        style="opacity: 1 !important; object-fit: cover !important; width: 100% !important; height: 100% !important; display: block !important;">
+                        poster="images/video-poster-mobile.webp">
                         <!-- Use MP4 first for better mobile compatibility -->
                         <source src="images/as.mp4" type="video/mp4">
                         <source src="images/as.webm" type="video/webm">
@@ -965,7 +938,7 @@
                                     <img src="images/title-star.svg" alt="Angel Stones">
                                 </div>
                                 <div class="title">Angel Granites</div>
-                                <div class="subtitle" style="font-size: 18px; margin-top: 10px;">A Venture of Angel Stones</div>
+                                <div class="subtitle">A Venture of Angel Stones</div>
                             </div>
                             <p><strong class="color-text">Introduction</strong><br>Angel Granites, established by Angel Stones, is a distinguished US-based company dedicated to crafting timeless granite products. Our extensive range includes meticulously designed monuments, slabs, and other exquisite items. With a commitment to quality, aesthetics, and customer satisfaction, we invite you to explore our offerings.</p>
                             <div class="as-intro animate-box" data-animate-effect="fadeInRight">
@@ -1108,7 +1081,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <!-- Desktop view with owl-carousel -->
-                            <div class="owl-carousel owl-theme color-row" style="--caption-color: #d4af37;">
+                            <div class="owl-carousel owl-theme color-row color-row-carousel">
                                 <!-- Color images will be loaded dynamically by color-carousel.js -->
                                 <!-- Fallback content in case JavaScript is disabled -->
                                 <noscript>
@@ -1331,8 +1304,8 @@
                             <p><b>Email:</b> <a href="mailto:&#105;&#110;&#102;&#111;&#64;&#116;&#104;&#101;&#97;&#110;&#103;&#101;&#108;&#115;&#116;&#111;&#110;&#101;&#115;&#46;&#99;&#111;&#109;">&#105;&#110;&#102;&#111;&#64;&#116;&#104;&#101;&#97;&#110;&#103;&#101;&#108;&#115;&#116;&#111;&#110;&#101;&#115;&#46;&#99;&#111;&#109;</a></p>
                             <p><b>Mailing Address:</b> P.O. Box 370, Elberton, GA 30635 </p>
                             <p><b>Physical Addresses:</b></p>
-                            <p style="margin-bottom: 0;">1187 Old Middleton Rd, Elberton, GA 30635</p>
-                            <p style="margin-bottom: 0;">203 Williams St, Elberton, GA</p>
+                            <p class="address-no-margin">1187 Old Middleton Rd, Elberton, GA 30635</p>
+                            <p class="address-no-margin">203 Williams St, Elberton, GA</p>
                             <p>15 Blackwell St, Barre, VT</p>
                             <p><b>Corporate Address:</b> 5540 Centerview Dr, ste 204,PMB 162836,Raleigh, NC </p>
                         </div>
@@ -1365,7 +1338,7 @@
                                                   placeholder="Message *" required minlength="10"></textarea>
                                     </div>
                                     <!-- Hidden honeypot field for spam protection -->
-                                    <div style="position: absolute; left: -5000px;" aria-hidden="true">
+                                    <div class="honeypot-field" aria-hidden="true">
                                         <input type="text" name="mauticform[email2]" tabindex="-1" value="" />
                                     </div>
                                     <div class="col-md-12">
@@ -1608,24 +1581,6 @@
                             </style>
                         </div>
                     </div>
-                    <div class="map-section map">
-                        <div class="row">
-                            <div class="col-md-12">
-                                <iframe id="contactMap" 
-                                        width="600" height="450" loading="lazy"
-                                        title="Angel Granites Location Map - 1187 Old Middleton Rd, Elberton, GA"
-                                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3321.5307775848397!2d-82.91341548478827!3d34.08893748059733!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88f81452e4c1ab6d%3A0x9f8a9a4c7e18d083!2s1187+Old+Middleton+Rd%2C+Elberton%2C+GA+30635!5e0!3m2!1sen!2sus!4v1709448147692!5m2!1sen!2sus"
-                                        width="100%" 
-                                        height="380" 
-                                        style="border:0"
-                                        allowfullscreen
-                                        loading="lazy"
-                                        referrerpolicy="no-referrer-when-downgrade"
-                                        aria-label="Google Maps showing Angel Granites physical location">
-                                </iframe>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </section>
             <div class="divider-line"></div>
@@ -1635,13 +1590,13 @@
                 <div class="as-narrow-content">
                     <div class="row">
                         <div class="col-md-6">
-                            <p class="as-copy-rights" style="color: #ffffff;">
+                            <p class="as-copy-rights">
                                 &copy; 2024 Angel Granites. All Rights Reserved.<br>
                                 <span class="footer-tagline">Elevating granite, preserving memories</span>
                             </p>
                         </div>
                         <div class="col-md-6">
-                              <div><a href='https://www.convergepay.com/hosted-payments?ssl_txn_auth_token=t870VMwWR2OcHbk5VrX%2F1QAAAZi9ZdHB' style='color:#d6b772; font-size:14px; font-family:"Didact Gothic", sans-serif; font-weight:bold; margin-bottom:15px; display:block;'>Pay Invoice</a></div>
+                              <div><a href='https://www.convergepay.com/hosted-payments?ssl_txn_auth_token=t870VMwWR2OcHbk5VrX%2F1QAAAZi9ZdHB' class='converge-payment-link'>Pay Invoice</a></div>
                             <ul class="social-network">
                                 <li><a href="#" target="_blank" rel="nofollow" aria-label="Visit our Facebook page">Facebook</a></li>
                                 <li><a href="#" target="_blank" rel="nofollow" aria-label="Follow us on Twitter">Twitter</a></li>
@@ -1683,30 +1638,19 @@
     <script src="https://cdn.jsdelivr.net/npm/owl.carousel@2.3.4/dist/owl.carousel.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js" defer></script>
     
-    <!-- Core functionality -->
-    <script src="js/main.js" defer></script>
-    <script src="js/navigation.js" defer></script>
-    <script src="js/modernizr-custom.js" defer></script>
+    <!-- ========================================== -->
+    <!-- BUNDLED SCRIPTS FOR PERFORMANCE           -->
+    <!-- Reduced from 18 files to 2 bundles        -->
+    <!-- ========================================== -->
     
-    <!-- Reverting to original files to ensure functionality -->
-    <script src="js/product-categories.js?v=20250411" defer></script>
-    <script src="js/featured-products.js?v=20250411" defer></script>
+    <!-- Critical Bundle: Initial page render, navigation, feature detection (44KB) -->
+    <script src="js/critical.bundle.js?v=1.0.0" defer></script>
     
-    <!-- Minified versions commented out until thoroughly tested -->
-    <!-- <script src="js/product-categories-fixed.min.js?v=20250527"></script> -->
-    <!-- <script src="js/featured-products.min.js?v=20250527"></script> -->
-    
-    <!-- Additional scripts with defer to optimize loading -->
-    <script src="js/custom.min.js" defer></script>
-    <script src="js/color-carousel.min.js?v=20250411-2" defer></script>
-    <script src="js/color-carousel-mobile.js?v=20250411-2" defer></script>
-    <script src="js/ux-improvements.js?v=20250411" defer></script>
-    <script src="js/featured-products-mobile.js?v=20250411" defer></script>
-    <script src="js/product-categories-mobile.js?v=20250411" defer></script>
-    <script src="js/inventory-modal.js?v=20250714" defer></script>
+    <!-- Features Bundle: Products, modals, carousels, all features (288KB) -->
+    <script src="js/features.bundle.js?v=1.0.0" defer></script>
     
     <!-- Bootstrap is loaded separately but deferred -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
     
     <!-- Protection Script -->
     <script>
@@ -1788,15 +1732,6 @@
         </div>
     </div>
 
-    <!-- Cookie Consent -->
-    <script>
-        window.addEventListener('load', function() {
-            var script = document.createElement('script');
-            script.src = 'https://cmp.osano.com/16BlGRUNRhRsy6cS2/951c545c-64c9-4a8f-886a-b22b0ff1528d/osano.js';
-            script.defer = true;
-            document.body.appendChild(script);
-        });
-    </script>
     <script>
         // Preload larger images after page load
         window.addEventListener('load', function() {
@@ -1810,7 +1745,7 @@
             }, 1000); // 1 second delay
         });
     </script>
-    <script src="js/promotion-banner.js"></script>
+    <!-- promotion-banner.js is now included in features.bundle.js -->
     <!-- Full Collection Modal -->
     <div class="collection-modal" id="collectionModal">
         <div class="modal-content">
@@ -1827,10 +1762,8 @@
             </div>
         </div>
     </div>
-    <script src="js/category-carousel.js"></script>
-    <script src="js/legal-modals.js"></script>
-    <script src="js/inventory-modal.js?v=20250714"></script>
-    <div style="display: none;">
+    <!-- category-carousel.js and legal-modals.js are now included in features.bundle.js -->
+    <div class="hidden-thumbnail">
         <img id="default-thumbnail" src="images/default-thumbnail.jpg" alt="Default Thumbnail">
     </div>
 
@@ -1997,8 +1930,8 @@
     </script>
 
     <!-- PDF.js and turn.js for Specials section -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4/turn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4/turn.min.js" defer></script>
     
     <!-- Direct Specials Integration Script -->
     <script>
@@ -2016,15 +1949,15 @@
                             const specialCard = document.createElement('div');
                             specialCard.className = 'col-md-6 col-lg-4 mb-4';
                             specialCard.innerHTML = `
-                                <div class="special-card" data-special-id="${special.id}" style="cursor: pointer;">
+                                <div class="special-card" data-special-id="${special.id}">
                                     <div class="special-image">
                                         <img src="${special.thumbnail}" alt="${special.title}" class="img-fluid">
                                         <div class="special-overlay">
-                                            <button class="btn btn-light view-special" style="background: rgba(255,255,255,0.9); color: #333; border: none; font-weight: 600;">View Special</button>
+                                            <button class="btn btn-light view-special">View Special</button>
                                         </div>
                                     </div>
                                     <div class="special-info">
-                                        <h4 style="color: #fff; font-weight: 600; margin-bottom: 8px;">${special.title}</h4>
+                                        <h4 class="special-card-title">${special.title}</h4>
                                     </div>
                                 </div>
                             `;
@@ -2084,7 +2017,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="pdf-viewer-wrapper" style="height: 70vh; overflow: auto; background: #f8f9fa;">
+                                    <div class="pdf-viewer-wrapper">
                                         <div id="pdf-viewer" class="pdf-viewer d-flex justify-content-center p-3"></div>
                                         <div class="pdf-loading text-center p-5">
                                             <div class="spinner-border text-primary mb-3" role="status">
@@ -2282,7 +2215,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Load remaining CSS
             const styles = [
-                'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
+                'https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css',
                 'css/hamburger.css',
                 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css',
                 'css/color-carousel.min.css'
@@ -2297,18 +2230,30 @@
         });
         </script>
         
-    <!-- Deep Linking Support -->
-    <script src="js/deep-linking.js"></script>
+    <!-- deep-linking.js is now included in features.bundle.js -->
     
     <!-- App Store Badges -->
-    <div style="position: fixed; bottom: 15px; right: 60px; z-index: 1000; display: flex; align-items: center; background: rgba(42, 42, 42, 0.9); padding: 12px 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);">
-       <a href="https://apps.apple.com/us/app/angel-granties/id6748974666" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; height: 40px;">
-            <img alt="Download on the App Store" src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" style="width: 110px; height: 40px; object-fit: contain;" />
+    <div class="app-badges-container">
+       <a href="https://apps.apple.com/us/app/angel-granties/id6748974666" target="_blank" rel="noopener noreferrer" class="app-badge-link">
+            <img alt="Download on the App Store" src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" class="app-badge-img" />
         </a>
-        <div style="width: 10px;"></div>
-        <a href="https://play.google.com/store/apps/details?id=com.angelgranites.app" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; height: 40px;">
-            <img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" style="width: 110px; height: 40px; object-fit: contain;" />
+        <div class="app-badge-spacer"></div>
+        <a href="https://play.google.com/store/apps/details?id=com.angelgranites.app" target="_blank" rel="noopener noreferrer" class="app-badge-link">
+            <img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" class="app-badge-img" />
         </a>
     </div>
+
+    <!-- Analytics scripts moved to end for better performance -->
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y5TBVH7CY7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-Y5TBVH7CY7');
+    </script>
+
+    <!-- Bing UET Tag -->
+    <script>(function(w,d,t,r,u){var f,n,i;w[u]=w[u]||[],f=function(){var o={ti:"187201759", enableAutoSpaTracking: true};o.q=w[u],w[u]=new UET(o),w[u].push("pageLoad")},n=d.createElement(t),n.src=r,n.async=1,n.onload=n.onreadystatechange=function(){var s=this.readyState;s&&s!=="loaded"&&s!=="complete"||(f(),n.onload=n.onreadystatechange=null)},i=d.getElementsByTagName(t)[0],i.parentNode.insertBefore(n,i)})(window,document,"script","//bat.bing.com/bat.js","uetq");</script>
 </body>
 </html>
