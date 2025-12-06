@@ -2496,17 +2496,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             <button class="nav-button next"><i class="bi bi-chevron-right"></i></button>
                             <div class="main-carousel-slides"></div>
                         </div>
-                        <div class="thumbnails-wrapper">
-                            <div class="thumbnails-scroll-container">
-                                <div class="thumbnails-container"></div>
-                            </div>
-                            <div class="modal-scroll-track products-scroll-track">
-                                <button type="button" class="scroll-nav-btn scroll-up-btn" aria-label="Scroll Up">▲</button>
-                                <div class="scroll-progress-bar">
-                                    <div class="scroll-progress-indicator"></div>
-                                </div>
-                                <button type="button" class="scroll-nav-btn scroll-down-btn" aria-label="Scroll Down">▼</button>
-                            </div>
+                        <div class="thumbnails-scroll-container">
+                            <div class="thumbnails-container"></div>
                         </div>
                     </div>
                 </div>
@@ -2634,31 +2625,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     /* Thumbnails styles */
-                    .thumbnails-wrapper {
-                        display: flex;
+                    .thumbnails-scroll-container {
                         width: 100%;
                         height: 35%;
-                        position: relative;
-                    }
-                    
-                    .thumbnails-scroll-container {
-                        flex: 1;
                         overflow-x: hidden;
-                        overflow-y: auto;
+                        overflow-y: hidden;
+                        position: relative;
                         border-radius: 4px;
                         background-color: #1a1a1a;
-                        padding-right: 10px;
                     }
                     
                     .thumbnails-container {
-                        display: grid;
-                        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                        display: flex;
+                        flex-wrap: nowrap;
                         gap: 10px;
                         padding: 10px;
+                        overflow-x: auto;
+                        overflow-y: hidden;
+                        height: 100%;
+                        scrollbar-width: thin;
+                        scrollbar-color: #555 #333;
                     }
                     
                     .thumbnails-container::-webkit-scrollbar {
-                        width: 8px;
+                        height: 8px;
                     }
                     
                     .thumbnails-container::-webkit-scrollbar-track {
@@ -2669,73 +2659,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     .thumbnails-container::-webkit-scrollbar-thumb {
                         background-color: #555;
                         border-radius: 4px;
-                    }
-                    
-                    /* Product scroll track */
-                    .products-scroll-track {
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        width: 50px;
-                        padding: 10px 5px;
-                        background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.5));
-                        border-left: 1px solid rgba(255,255,255,0.1);
-                    }
-                    
-                    .products-scroll-track .scroll-nav-btn {
-                        width: 36px;
-                        height: 36px;
-                        border-radius: 50%;
-                        background: rgba(255, 255, 255, 0.15);
-                        color: white;
-                        border: 2px solid rgba(255, 255, 255, 0.3);
-                        font-size: 16px;
-                        cursor: pointer;
-                        transition: all 0.25s ease;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-                        flex-shrink: 0;
-                    }
-                    
-                    .products-scroll-track .scroll-nav-btn:hover:not([style*="cursor: default"]) {
-                        background: rgba(255, 255, 255, 0.25);
-                        transform: scale(1.15);
-                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-                        border-color: rgba(255, 255, 255, 0.5);
-                    }
-                    
-                    .products-scroll-track .scroll-progress-bar {
-                        flex: 1;
-                        width: 8px;
-                        background: rgba(255, 255, 255, 0.1);
-                        border-radius: 4px;
-                        margin: 12px 0;
-                        position: relative;
-                        cursor: pointer;
-                        min-height: 100px;
-                        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
-                    }
-                    
-                    .products-scroll-track .scroll-progress-indicator {
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 40px;
-                        background: linear-gradient(180deg, #4a90e2 0%, #357abd 100%);
-                        border-radius: 4px;
-                        transition: top 0.1s ease-out;
-                        box-shadow: 0 2px 8px rgba(74, 144, 226, 0.5),
-                                    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-                        border: 1px solid rgba(255, 255, 255, 0.3);
-                    }
-                    
-                    .products-scroll-track .scroll-progress-bar:hover .scroll-progress-indicator {
-                        background: linear-gradient(180deg, #5a9ff2 0%, #4580cd 100%);
-                        box-shadow: 0 3px 12px rgba(74, 144, 226, 0.7),
-                                    inset 0 1px 0 rgba(255, 255, 255, 0.4);
                     }
                     
                     .thumbnail {
@@ -2790,66 +2713,6 @@ document.addEventListener('DOMContentLoaded', function() {
             this.thumbnailsContainer = this.modal.querySelector('.thumbnails-container');
             this.prevButton = this.modal.querySelector('.nav-button.prev');
             this.nextButton = this.modal.querySelector('.nav-button.next');
-            
-            // Setup scroll navigation for thumbnails
-            this.setupThumbnailScrolling();
-        },
-        
-        setupThumbnailScrolling() {
-            const scrollContainer = this.modal.querySelector('.thumbnails-scroll-container');
-            const scrollUpBtn = this.modal.querySelector('.products-scroll-track .scroll-up-btn');
-            const scrollDownBtn = this.modal.querySelector('.products-scroll-track .scroll-down-btn');
-            const progressIndicator = this.modal.querySelector('.products-scroll-track .scroll-progress-indicator');
-            const progressBar = this.modal.querySelector('.products-scroll-track .scroll-progress-bar');
-            
-            console.log('Products scroll setup:', {
-                scrollContainer: !!scrollContainer,
-                scrollUpBtn: !!scrollUpBtn,
-                scrollDownBtn: !!scrollDownBtn,
-                progressIndicator: !!progressIndicator,
-                progressBar: !!progressBar
-            });
-            
-            if (!scrollContainer || !scrollUpBtn || !scrollDownBtn || !progressIndicator || !progressBar) {
-                console.error('Products scroll track elements missing!');
-                return;
-            }
-            
-            // Scroll button handlers
-            scrollUpBtn.addEventListener('click', () => {
-                scrollContainer.scrollBy({ top: -250, behavior: 'smooth' });
-            });
-            
-            scrollDownBtn.addEventListener('click', () => {
-                scrollContainer.scrollBy({ top: 250, behavior: 'smooth' });
-            });
-            
-            // Click on progress bar to jump to position
-            progressBar.addEventListener('click', (e) => {
-                const rect = progressBar.getBoundingClientRect();
-                const clickY = e.clientY - rect.top;
-                const percentage = clickY / rect.height;
-                const scrollTo = percentage * (scrollContainer.scrollHeight - scrollContainer.clientHeight);
-                scrollContainer.scrollTo({ top: scrollTo, behavior: 'smooth' });
-            });
-            
-            // Update progress indicator and button states
-            const updateScrollUI = () => {
-                const scrollPercent = scrollContainer.scrollTop / (scrollContainer.scrollHeight - scrollContainer.clientHeight);
-                const indicatorHeight = 40;
-                const maxTop = progressBar.clientHeight - indicatorHeight;
-                progressIndicator.style.top = `${scrollPercent * maxTop}px`;
-                
-                scrollUpBtn.style.opacity = scrollContainer.scrollTop > 20 ? '1' : '0.4';
-                scrollUpBtn.style.cursor = scrollContainer.scrollTop > 20 ? 'pointer' : 'default';
-                
-                const isAtBottom = scrollContainer.scrollTop >= scrollContainer.scrollHeight - scrollContainer.clientHeight - 20;
-                scrollDownBtn.style.opacity = isAtBottom ? '0.4' : '1';
-                scrollDownBtn.style.cursor = isAtBottom ? 'default' : 'pointer';
-            };
-            
-            scrollContainer.addEventListener('scroll', updateScrollUI);
-            setTimeout(updateScrollUI, 100);
         },
     };
 
@@ -3045,10 +2908,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const $container = $('#variety-of-granites .owl-carousel');
         
         // Replace owl carousel with scrollable row
-        $container.removeClass('owl-carousel owl-theme owl-loaded');
+        $container.removeClass('owl-carousel owl-theme');
         $container.empty();
         $container.addClass('color-scroll-container');
-        $container.attr('style', 'background:transparent !important;');
 
         // Add colors to scrollable row
         colors.forEach((color, index) => {
@@ -3063,28 +2925,35 @@ document.addEventListener('DOMContentLoaded', function() {
                      itemprop="itemListElement" 
                      itemscope 
                      itemtype="https://schema.org/ListItem"
-                     data-color-name="${color.name}"
-                     data-index="${index}"
-                     style="background:transparent !important;">
+                     data-color-name="${color.name}">
                     <meta itemprop="position" content="${index + 1}" />
-                    <img src="${color.thumbnail || color.path || color.image}" 
-                         alt="${color.name} Granite" 
-                         loading="lazy"
-                         class="img-fluid">
-                    <div class="color-name" style="background:transparent !important;color:#fff !important;">${color.name}</div>
+                    <div class="color-item-inner" 
+                         itemscope 
+                         itemtype="https://schema.org/Product" 
+                         itemid="#${formattedName}">
+                        <meta itemprop="name" content="${color.name} Granite">
+                        <meta itemprop="description" content="${color.description || 'Premium quality ' + color.name + ' granite'}">
+                        <meta itemprop="image" content="${color.image}">
+                        <div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+                            <meta itemprop="priceCurrency" content="USD">
+                            <meta itemprop="price" content="0">
+                            <link itemprop="availability" href="https://schema.org/InStock" />
+                        </div>
+                        <img src="${color.thumbnail || color.image}" 
+                             alt="${color.name} Granite" 
+                             loading="lazy"
+                             class="img-fluid"
+                             itemprop="image">
+                        <div class="color-name" itemprop="name">${color.name}</div>
+                    </div>
                 </div>`;
             $container.append(item);
         });
 
         // Add loading animation to images
         $container.find('img').on('load', function() {
-            $(this).closest('.color-item, .color-scroll-item').addClass('loaded');
+            $(this).closest('.color-scroll-item').addClass('loaded');
         });
-        
-        console.log(`Populated ${colors.length} colors to display`);
-        
-        // Make sure items are clickable
-        $container.find('.color-item').css('cursor', 'pointer');
 
         // Add or update the View All Colors button
         const $carouselContainer = $container.closest('.col-md-12');
@@ -3092,14 +2961,18 @@ document.addEventListener('DOMContentLoaded', function() {
         
         $carouselContainer.append(`
             <div class="view-all-colors-container text-center mt-4">
-                <button class="btn btn-outline-light view-all-colors-btn">
+                <button class="btn btn-primary view-all-colors-btn">
                     <i class="bi bi-grid-3x3-gap me-2"></i>
                     View All ${colors.length} Colors
                 </button>
             </div>
         `);
         
-        // Don't add badge to header - keep it clean
+        // Update the carousel header with count
+        const $header = $container.closest('.section-padding').find('.section-header .title');
+        if ($header.length && !$header.find('.badge').length) {
+            $header.append(` <span class="badge bg-primary">${colors.length} colors</span>`);
+        }
     }
 
     /**
@@ -3113,8 +2986,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Color image click in scrollable row
-        $(document).on('click', '.color-item, .color-scroll-item', function(e) {
-            const index = $(this).index();
+        $(document).on('click', '.color-scroll-item', function(e) {
+            const index = $(this).data('index');
             showColorFullscreen(index);
         });
 
@@ -3143,16 +3016,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Close fullscreen view on X button click
         $(document).on('click', '.color-fullscreen-close', function(e) {
-            e.preventDefault();
             e.stopPropagation();
             closeColorFullscreen();
-        });
-        
-        // Close on ESC key
-        $(document).on('keydown', function(e) {
-            if (e.key === 'Escape' && $('body').hasClass('color-fullscreen-active')) {
-                closeColorFullscreen();
-            }
         });
 
         // Keyboard navigation
@@ -3221,9 +3086,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             <h5 class="modal-title">All Colors (${colors.length})</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body-wrapper">
-                            <div class="modal-body" id="colors-modal-body">
-                                <div class="row g-3">
+                        <div class="modal-body">
+                            <div class="row g-3">
         `;
 
         // Add color grid items
@@ -3245,14 +3109,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         modalHtml += `
-                                </div>
-                            </div>
-                            <div class="modal-scroll-track">
-                                <button type="button" class="scroll-nav-btn scroll-up-btn" aria-label="Scroll Up">▲</button>
-                                <div class="scroll-progress-bar">
-                                    <div class="scroll-progress-indicator"></div>
-                                </div>
-                                <button type="button" class="scroll-nav-btn scroll-down-btn" aria-label="Scroll Down">▼</button>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -3270,55 +3126,6 @@ document.addEventListener('DOMContentLoaded', function() {
         $('body').append(modalHtml);
         const modal = new bootstrap.Modal(document.getElementById(modalId));
         modal.show();
-
-        // Setup scroll navigation
-        const modalBody = document.getElementById('colors-modal-body');
-        const colorModal = document.getElementById(modalId);
-        const scrollUpBtn = colorModal.querySelector('.scroll-up-btn');
-        const scrollDownBtn = colorModal.querySelector('.scroll-down-btn');
-        const progressIndicator = colorModal.querySelector('.scroll-progress-indicator');
-        const progressBar = colorModal.querySelector('.scroll-progress-bar');
-        
-        if (!modalBody || !scrollUpBtn || !scrollDownBtn || !progressIndicator || !progressBar) {
-            console.error('Color modal scroll elements not found');
-            return;
-        }
-        
-        // Scroll button handlers
-        scrollUpBtn.addEventListener('click', () => {
-            modalBody.scrollBy({ top: -250, behavior: 'smooth' });
-        });
-        
-        scrollDownBtn.addEventListener('click', () => {
-            modalBody.scrollBy({ top: 250, behavior: 'smooth' });
-        });
-        
-        // Click on progress bar to jump to position
-        progressBar.addEventListener('click', (e) => {
-            const rect = progressBar.getBoundingClientRect();
-            const clickY = e.clientY - rect.top;
-            const percentage = clickY / rect.height;
-            const scrollTo = percentage * (modalBody.scrollHeight - modalBody.clientHeight);
-            modalBody.scrollTo({ top: scrollTo, behavior: 'smooth' });
-        });
-        
-        // Update progress indicator and button states
-        function updateScrollUI() {
-            const scrollPercent = modalBody.scrollTop / (modalBody.scrollHeight - modalBody.clientHeight);
-            const indicatorHeight = 40; // Height of indicator in pixels
-            const maxTop = progressBar.clientHeight - indicatorHeight;
-            progressIndicator.style.top = `${scrollPercent * maxTop}px`;
-            
-            scrollUpBtn.style.opacity = modalBody.scrollTop > 20 ? '1' : '0.4';
-            scrollUpBtn.style.cursor = modalBody.scrollTop > 20 ? 'pointer' : 'default';
-            
-            const isAtBottom = modalBody.scrollTop >= modalBody.scrollHeight - modalBody.clientHeight - 20;
-            scrollDownBtn.style.opacity = isAtBottom ? '0.4' : '1';
-            scrollDownBtn.style.cursor = isAtBottom ? 'default' : 'pointer';
-        }
-        
-        modalBody.addEventListener('scroll', updateScrollUI);
-        setTimeout(updateScrollUI, 100);
 
         // Clean up modal on hide
         $(`#${modalId}`).on('hidden.bs.modal', function() {
@@ -3338,25 +3145,23 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Create fullscreen container if it doesn't exist
         if ($('.color-fullscreen-container').length === 0) {
-            const fullscreenHtml = `
+            $('body').append(`
                 <div class="color-fullscreen-container">
                     <div class="color-fullscreen-content">
                         <img src="${color.path}" alt="${safeName}" class="img-fluid">
                         <div class="color-fullscreen-caption">${safeName}</div>
                     </div>
-                    <button class="color-fullscreen-nav color-fullscreen-prev" aria-label="Previous">‹</button>
-                    <button class="color-fullscreen-nav color-fullscreen-next" aria-label="Next">›</button>
-                    <button class="color-fullscreen-close" aria-label="Close"></button>
+                    <button class="color-fullscreen-nav color-fullscreen-prev">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <button class="color-fullscreen-nav color-fullscreen-next">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                    <button class="color-fullscreen-close">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
                 </div>
-            `;
-            $('body').append(fullscreenHtml);
-            console.log('Created fullscreen modal with buttons');
-            
-            // Verify buttons exist
-            setTimeout(() => {
-                const buttonsCount = $('.color-fullscreen-nav, .color-fullscreen-close').length;
-                console.log(`Fullscreen buttons found: ${buttonsCount}`);
-            }, 100);
+            `);
         } else {
             // Update existing fullscreen view
             const $fullscreen = $('.color-fullscreen-container');
@@ -3374,10 +3179,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function closeColorFullscreen() {
         $('body').removeClass('color-fullscreen-active');
         
-        // Remove the fullscreen container immediately
-        setTimeout(function() {
-            $('.color-fullscreen-container').remove();
-        }, 300);
+        // Keep the element in DOM but hide it for better performance
+        $('.color-fullscreen-container')
+            .one('transitionend', function() {
+                if (!$('body').hasClass('color-fullscreen-active')) {
+                    $(this).remove();
+                }
+            });
     }
 
     /**
@@ -3431,50 +3239,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 background: linear-gradient(to right, #fff, #f8f9fa, #fff);
             }
             
-            .color-item,
             .color-scroll-item {
                 flex: 0 0 auto;
                 width: 150px;
                 cursor: pointer;
                 transition: transform 0.2s ease;
                 scroll-snap-align: start;
-                background: transparent !important;
-                position: relative;
             }
             
-            .color-item:hover,
             .color-scroll-item:hover {
                 transform: translateY(-5px);
-                background: transparent !important;
-            }
-            
-            .color-scroll-container .color-item img {
-                width: 100%;
-                height: auto;
-                border-radius: 8px;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-                transition: transform 0.3s ease;
-                display: block;
-                margin-bottom: 0.5rem !important;
-                background: transparent !important;
-            }
-            
-            .color-scroll-container .color-item:hover {
-                background: transparent !important;
-            }
-            
-            .color-scroll-container .color-item:hover img {
-                transform: scale(1.05);
-            }
-            
-            .color-name {
-                margin-top: 0.5rem;
-                font-size: 0.9rem;
-                color: #fff !important;
-                text-align: center;
-                background: transparent !important;
-                padding: 0.25rem 0;
-                display: block;
             }
             
             .color-scroll-image {
@@ -3524,19 +3298,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 left: 0;
                 right: 0;
                 bottom: 0;
-                background-color: rgba(0, 0, 0, 0.95);
-                z-index: 99999;
-                display: none;
+                background-color: rgba(0, 0, 0, 0.9);
+                z-index: 2000;
+                display: flex;
                 align-items: center;
                 justify-content: center;
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity 0.3s ease, visibility 0.3s ease;
             }
             
-            body.color-fullscreen-active .color-fullscreen-container {
-                display: flex;
-            }
-            
-            body.color-fullscreen-active {
-                overflow: hidden;
+            .color-fullscreen-active .color-fullscreen-container {
+                opacity: 1;
+                visibility: visible;
             }
             
             .color-fullscreen-content {
@@ -3544,17 +3318,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 max-height: 90vh;
                 position: relative;
                 text-align: center;
-                padding: 20px;
             }
             
             .color-fullscreen-content img {
-                max-height: 70vh;
-                max-width: 800px;
-                width: auto;
-                height: auto;
+                max-height: 80vh;
+                max-width: 100%;
                 border-radius: 8px;
-                box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-                object-fit: contain;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             }
             
             .color-fullscreen-caption {
@@ -3565,167 +3335,60 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             .color-fullscreen-nav {
-                position: fixed !important;
+                position: fixed;
                 top: 50%;
                 transform: translateY(-50%);
-                width: 70px;
-                height: 70px;
-                background-color: rgba(0, 0, 0, 0.85) !important;
-                border: 4px solid rgba(255, 255, 255, 0.95) !important;
+                width: 50px;
+                height: 50px;
+                background-color: rgba(255, 255, 255, 0.2);
+                border: none;
                 border-radius: 50%;
-                color: white !important;
-                font-size: 3.5rem;
-                display: flex !important;
+                color: white;
+                font-size: 1.5rem;
+                display: flex;
                 align-items: center;
                 justify-content: center;
-                visibility: visible !important;
-                opacity: 1 !important;
                 cursor: pointer;
-                transition: all 0.2s ease;
-                z-index: 100000 !important;
-                line-height: 1;
-                font-weight: 300;
-                pointer-events: auto !important;
+                transition: background-color 0.2s ease;
+                z-index: 2100;
             }
             
             .color-fullscreen-nav:hover {
-                background-color: rgba(255, 255, 255, 1);
-                color: #000;
-                transform: translateY(-50%) scale(1.15);
-                border-color: #000;
+                background-color: rgba(255, 255, 255, 0.3);
             }
             
             .color-fullscreen-prev {
-                left: 30px !important;
+                left: 20px;
             }
             
             .color-fullscreen-next {
-                right: 30px !important;
+                right: 20px;
             }
             
             .color-fullscreen-close {
-                position: fixed !important;
-                top: 20px !important;
-                right: 40px !important;
-                width: 70px !important;
-                height: 70px !important;
-                background-color: rgba(0, 0, 0, 0.85) !important;
-                border: 4px solid rgba(255, 255, 255, 1) !important;
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                width: 40px;
+                height: 40px;
+                background-color: rgba(255, 255, 255, 0.2);
+                border: none;
                 border-radius: 50%;
-                color: white !important;
-                font-size: 2rem !important;
-                display: flex !important;
+                color: white;
+                font-size: 1.2rem;
+                display: flex;
                 align-items: center;
                 justify-content: center;
-                visibility: visible !important;
-                opacity: 1 !important;
                 cursor: pointer;
-                transition: all 0.2s ease;
-                z-index: 100000 !important;
-                font-weight: bold;
-                pointer-events: auto !important;
+                transition: background-color 0.2s ease;
+                z-index: 2100;
             }
             
             .color-fullscreen-close:hover {
-                background-color: rgba(255, 255, 255, 1);
-                color: #000;
-                transform: scale(1.15);
-                border-color: #000;
-            }
-            
-            .color-fullscreen-close::before {
-                content: '×';
-                font-size: 3rem;
-                line-height: 0.8;
+                background-color: rgba(255, 255, 255, 0.3);
             }
             
             /* Grid View in Modal */
-            .modal-body-wrapper {
-                display: flex;
-                position: relative;
-                max-height: 70vh;
-            }
-            
-            #all-colors-modal .modal-body {
-                flex: 1;
-                overflow-y: auto;
-                overflow-x: hidden;
-                padding-right: 15px;
-            }
-            
-            /* Custom Scroll Track */
-            #all-colors-modal .modal-scroll-track,
-            .modal-scroll-track {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                width: 50px;
-                padding: 10px 5px;
-                background: linear-gradient(to bottom, rgba(0,0,0,0.03), rgba(0,0,0,0.08));
-                border-left: 1px solid rgba(0,0,0,0.1);
-            }
-            
-            #all-colors-modal .scroll-nav-btn,
-            .scroll-nav-btn {
-                width: 36px;
-                height: 36px;
-                border-radius: 50%;
-                background: rgba(0, 0, 0, 0.75);
-                color: white;
-                border: 2px solid rgba(255, 255, 255, 0.2);
-                font-size: 16px;
-                cursor: pointer;
-                transition: all 0.25s ease;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-                flex-shrink: 0;
-            }
-            
-            #all-colors-modal .scroll-nav-btn:hover:not([style*="cursor: default"]),
-            .scroll-nav-btn:hover:not([style*="cursor: default"]) {
-                background: rgba(0, 0, 0, 0.95);
-                transform: scale(1.15);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-                border-color: rgba(255, 255, 255, 0.4);
-            }
-            
-            #all-colors-modal .scroll-progress-bar,
-            .scroll-progress-bar {
-                flex: 1;
-                width: 8px;
-                background: rgba(0, 0, 0, 0.15);
-                border-radius: 4px;
-                margin: 12px 0;
-                position: relative;
-                cursor: pointer;
-                min-height: 200px;
-                box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
-            }
-            
-            #all-colors-modal .scroll-progress-indicator,
-            .scroll-progress-indicator {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 40px;
-                background: linear-gradient(180deg, #4a90e2 0%, #357abd 100%);
-                border-radius: 4px;
-                transition: top 0.1s ease-out;
-                box-shadow: 0 2px 8px rgba(74, 144, 226, 0.4),
-                            inset 0 1px 0 rgba(255, 255, 255, 0.3);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-            }
-            
-            #all-colors-modal .scroll-progress-bar:hover .scroll-progress-indicator,
-            .scroll-progress-bar:hover .scroll-progress-indicator {
-                background: linear-gradient(180deg, #5a9ff2 0%, #4580cd 100%);
-                box-shadow: 0 3px 12px rgba(74, 144, 226, 0.6),
-                            inset 0 1px 0 rgba(255, 255, 255, 0.4);
-            }
-            
             .color-grid-item {
                 cursor: pointer;
                 transition: transform 0.2s ease;
@@ -3770,17 +3433,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 .color-fullscreen-nav {
-                    width: 50px !important;
-                    height: 50px !important;
-                    font-size: 2rem !important;
+                    width: 40px;
+                    height: 40px;
+                    font-size: 1.2rem;
                 }
                 
                 .color-fullscreen-close {
-                    top: 15px !important;
-                    right: 20px !important;
-                    width: 60px !important;
-                    height: 60px !important;
-                    font-size: 1.8rem !important;
+                    width: 36px;
+                    height: 36px;
+                    font-size: 1.1rem;
                 }
             }
             
@@ -3802,32 +3463,18 @@ document.addEventListener('DOMContentLoaded', function() {
         $('<style id="color-carousel-styles">' + styles + '</style>').appendTo('head');
     }
 
-    // Initialize on document ready - with jQuery availability check
-    function initWhenReady() {
-        if (typeof jQuery === 'undefined' || typeof $ === 'undefined') {
-            // jQuery not loaded yet, wait a bit
-            setTimeout(initWhenReady, 100);
-            return;
-        }
+    // Initialize on document ready
+    $(document).ready(function() {
+        // Add styles first
+        addColorCarouselStyles();
         
-        $(document).ready(function() {
-            // Add styles first
-            addColorCarouselStyles();
-            
-            // Then initialize the carousel if the container exists
-            if ($('#variety-of-granites').length) {
-                console.log('Initializing color carousel...');
-                initColorCarousel();
-            } else {
-                console.log('Color carousel container not found');
-            }
-        });
-    }
-    
-    // Start initialization
-    initWhenReady();
+        // Then initialize the carousel if the container exists
+        if ($('#variety-of-granites').length) {
+            initColorCarousel();
+        }
+    });
 
-})(typeof jQuery !== 'undefined' ? jQuery : window.jQuery || window.$);
+})(jQuery);
 /**
  * Ultra-Lightweight Mobile Color Carousel
  * Performance-first approach with minimal code and accessibility improvements
@@ -5383,9 +5030,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 let timeoutId;
                 const timeoutPromise = new Promise((_, reject) => {
                     timeoutId = setTimeout(() => {
-                        console.log('Request timeout triggered after 60 seconds');
-                        reject(new Error('Request timeout after 60 seconds'));
-                    }, 60000);
+                        console.log('Request timeout triggered after 15 seconds');
+                        reject(new Error('Request timeout after 15 seconds'));
+                    }, 15000);
                     
                     // Track this timeout for cleanup
                     window._inventoryTimeouts.push(timeoutId);
@@ -5580,12 +5227,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                     const rowText = Object.values(item).join(' ').toLowerCase();
                                     const highlight = searchVal && rowText.includes(searchVal) ? ' search-highlight' : '';
-                                    
-                                    // Create safe JSON string for data attribute
-                                    const itemData = JSON.stringify(item).replace(/"/g, '&quot;');
 
                                     return `
-                                    <tr class="${highlight.trim()} inventory-row" data-item='${itemData}' style="cursor: pointer;">
+                                    <tr class="${highlight.trim()}">
                                         <!-- Product Code column hidden per client request -->
                                         <td>${getField('EndProductDescription')}</td>
                                         <td>${getField('Ptype')}</td>
@@ -5620,7 +5264,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 setupCustomScrollbar();
                 setupKeyboardNavigation();
                 setupNavigationButtons();
-                setupRowClickHandlers();
                 
                 // Load Font Awesome if not already loaded
                 if (!document.querySelector('link[href*="font-awesome"]')) {
@@ -6034,208 +5677,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (container && container._customScroll) {
                 container._customScroll.updateThumb();
             }
-        }
-
-        // Function to setup click handlers for inventory rows
-        function setupRowClickHandlers() {
-            const rows = document.querySelectorAll('.inventory-row');
-            rows.forEach(row => {
-                row.addEventListener('click', function() {
-                    const itemData = this.getAttribute('data-item');
-                    if (itemData) {
-                        try {
-                            const item = JSON.parse(itemData);
-                            showItemDetailModal(item);
-                        } catch (e) {
-                            console.error('Error parsing item data:', e);
-                        }
-                    }
-                });
-                
-                // Add hover effect
-                row.addEventListener('mouseenter', function() {
-                    this.style.backgroundColor = '#f8f9fa';
-                });
-                row.addEventListener('mouseleave', function() {
-                    this.style.backgroundColor = '';
-                });
-            });
-        }
-        
-        // Function to show item detail modal
-        function showItemDetailModal(item) {
-            // Get the product code
-            const epcode = item.EndProductCode || item.endproductcode || '';
-            
-            if (!epcode) {
-                alert('Product code not available for this item');
-                return;
-            }
-            
-            // Create loading modal first
-            const loadingModalHtml = `
-                <div class="modal fade" id="itemDetailModal" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-                        <div class="modal-content" style="background: #2c2c2c; color: #fff;">
-                            <div class="modal-header" style="border-bottom: 1px solid #444;">
-                                <h5 class="modal-title">Loading Product Details...</h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body text-center" style="padding: 3rem;">
-                                <div class="spinner-border text-warning" role="status" style="width: 3rem; height: 3rem;">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                                <p class="mt-3">Fetching detailed information...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Remove existing modal if any
-            const existingModal = document.getElementById('itemDetailModal');
-            if (existingModal) {
-                existingModal.remove();
-            }
-            
-            // Add loading modal to body
-            document.body.insertAdjacentHTML('beforeend', loadingModalHtml);
-            
-            // Show loading modal
-            const modal = new bootstrap.Modal(document.getElementById('itemDetailModal'));
-            modal.show();
-            
-            // Fetch detailed data from API
-            fetch(`inventory-proxy.php?action=getDetails&epcode=${encodeURIComponent(epcode)}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.success || !data.stones || data.stones.length === 0) {
-                        updateModalWithError('No detailed information available for this product.');
-                        return;
-                    }
-                    
-                    // Update modal with detailed information
-                    updateModalWithDetails(item, data.stones);
-                })
-                .catch(error => {
-                    console.error('Error fetching details:', error);
-                    updateModalWithError('Failed to load detailed information: ' + error.message);
-                });
-        }
-        
-        // Function to update modal with error
-        function updateModalWithError(errorMessage) {
-            const modalBody = document.querySelector('#itemDetailModal .modal-body');
-            const modalTitle = document.querySelector('#itemDetailModal .modal-title');
-            
-            if (modalTitle) {
-                modalTitle.textContent = 'Error';
-            }
-            
-            if (modalBody) {
-                modalBody.innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle"></i> ${errorMessage}
-                    </div>
-                `;
-            }
-        }
-        
-        // Function to update modal with detailed stone information
-        function updateModalWithDetails(item, stones) {
-            const modalTitle = document.querySelector('#itemDetailModal .modal-title');
-            const modalBody = document.querySelector('#itemDetailModal .modal-body');
-            
-            if (!modalTitle || !modalBody) return;
-            
-            // Debug: Log the first stone to see the structure
-            console.log('Stone data structure:', stones[0]);
-            
-            modalTitle.textContent = `${item.EndProductDescription || 'Product Details'} (${stones.length} stones)`;
-            
-            // Build stones table HTML
-            let stonesHtml = `
-                <div class="product-summary mb-4" style="background: #1a1a1a; padding: 1.5rem; border-radius: 8px;">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <label style="color: #d4af37; font-weight: bold;">Product Code:</label>
-                            <p style="font-size: 1.1rem;">${item.EndProductCode || 'N/A'}</p>
-                        </div>
-                        <div class="col-md-3">
-                            <label style="color: #d4af37; font-weight: bold;">Type:</label>
-                            <p style="font-size: 1.1rem;">${item.Ptype || 'N/A'}</p>
-                        </div>
-                        <div class="col-md-3">
-                            <label style="color: #d4af37; font-weight: bold;">Color:</label>
-                            <p style="font-size: 1.1rem;">${item.PColor || 'N/A'}</p>
-                        </div>
-                        <div class="col-md-3">
-                            <label style="color: #d4af37; font-weight: bold;">Total Stones:</label>
-                            <p style="font-size: 1.1rem; color: #d4af37;">${stones.length}</p>
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-md-4">
-                            <label style="color: #d4af37; font-weight: bold;">Design:</label>
-                            <p style="font-size: 1.1rem;">${item.PDesign || 'N/A'}</p>
-                        </div>
-                        <div class="col-md-4">
-                            <label style="color: #d4af37; font-weight: bold;">Finish:</label>
-                            <p style="font-size: 1.1rem;">${item.PFinish || 'N/A'}</p>
-                        </div>
-                        <div class="col-md-4">
-                            <label style="color: #d4af37; font-weight: bold;">Size:</label>
-                            <p style="font-size: 1.1rem;">${item.Size || 'N/A'}</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <h6 style="color: #d4af37; margin-bottom: 1rem;">Individual Stones:</h6>
-                <div class="table-responsive">
-                    <table class="table table-dark table-striped table-hover">
-                        <thead>
-                            <tr style="background: #1a1a1a;">
-                                <th>#</th>
-                                <th>Stock ID</th>
-                                <th>Weight (lbs)</th>
-                                <th>Container #</th>
-                                <th>Crate #</th>
-                                <th>Location</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
-            
-            stones.forEach((stone, index) => {
-                // Map the actual API field names
-                const stoneCode = stone.StockId || stone.stockid || `Stone #${index + 1}`;
-                const weight = stone.Weight || stone.weight || 'N/A';
-                const containerNum = stone.Container || stone.container || 'N/A';
-                const crateNum = stone.CrateNo || stone.crateno || stone.CrateNumber || 'N/A';
-                const location = stone.LocationName || stone.locationname || stone.Locationname || 'N/A';
-                
-                const weightDisplay = weight !== 'N/A' ? parseFloat(weight).toFixed(2) : 'N/A';
-                
-                stonesHtml += `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td><strong>${stoneCode}</strong></td>
-                        <td>${weightDisplay}</td>
-                        <td>${containerNum}</td>
-                        <td>${crateNum}</td>
-                        <td>${location}</td>
-                    </tr>
-                `;
-            });
-            
-            stonesHtml += `
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            
-            modalBody.innerHTML = stonesHtml;
-            modalBody.style.padding = '2rem';
         }
 
         // Function to set up navigation buttons for horizontal scrolling

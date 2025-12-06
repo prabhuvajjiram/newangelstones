@@ -9,8 +9,8 @@ import '../utils/cache_entry.dart';
 import '../config/security_config.dart';
 
 class InventoryService {
-  static String? _cachedToken;
-  static String? _cachedReferer;
+  static String? _cachedApiKey;
+  static int? _cachedOrgId;
   static String? _cachedBaseUrl;
 
   static Future<String> _getBaseUrl() async {
@@ -18,18 +18,14 @@ class InventoryService {
     return _cachedBaseUrl!;
   }
 
-  static Future<String> _getToken() async {
-    _cachedToken ??= await SecurityConfig.getMonumentBusinessToken();
-    return _cachedToken!;
+  static Future<String> _getApiKey() async {
+    _cachedApiKey ??= await SecurityConfig.getMonumentBusinessApiKey();
+    return _cachedApiKey!;
   }
-
-  static Future<String> _getReferer() async {
-    if (_cachedReferer == null) {
-      final baseUrl = await _getBaseUrl();
-      final token = await _getToken();
-      _cachedReferer = '$baseUrl/GV/GVOBPInventory/ShowInventoryAll/$token';
-    }
-    return _cachedReferer!;
+  
+  static Future<int> _getOrgId() async {
+    _cachedOrgId ??= await SecurityConfig.getMonumentBusinessOrgId();
+    return _cachedOrgId!;
   }
 
   static const Duration _cacheTTL = Duration(hours: 2);
@@ -102,12 +98,31 @@ class InventoryService {
   Future<void> _testApiConnection() async {
     try {
       final baseUrl = await _getBaseUrl();
-      final token = await _getToken();
-      final referer = await _getReferer();
-      final uri = Uri.parse('$baseUrl/GV/GVOBPInventory/ShowInventoryAll/$token');
-      final response = await http.get(
+      final apiKey = await _getApiKey();
+      final orgId = await _getOrgId();
+      final uri = Uri.parse('$baseUrl/Api/Inventory/GetAllStock');
+      
+      final requestBody = json.encode({
+        'orgid': orgId,
+        'hasdesc': false,
+        'description': '',
+        'ptype': '',
+        'pcolor': '',
+        'pdesign': '',
+        'pfinish': '',
+        'psize': '',
+        'locid': '',
+        'page': 1,
+        'pagesize': 10
+      });
+      
+      final response = await http.post(
         uri,
-        headers: {'Referer': referer},
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': apiKey,
+        },
+        body: requestBody,
       ).timeout(const Duration(seconds: 15));
       
       if (response.statusCode == 200) {
@@ -150,14 +165,112 @@ class InventoryService {
     'Blue Pearl'
   ];
 
-  // List of location IDs to fetch inventory from
-  final List<String> _locationIds = ['45587', '45555'];
-  
-  // Map of location IDs to names
+  // Map of location IDs to names (for display purposes)
   final Map<String, String> _locationNames = {
     '45587': 'Main Warehouse',
     '45555': 'Secondary Location',
   };
+  
+  /// Fetch inventory from new API with pagination support
+  /// Returns all items by fetching multiple pages if needed
+  Future<List<InventoryItem>> _fetchFromNewApi({
+    String? locationId,
+    String? searchQuery,
+    String? type,
+    String? color,
+    int initialPageSize = 1000,
+  }) async {
+    final baseUrl = await _getBaseUrl();
+    final apiKey = await _getApiKey();
+    final orgId = await _getOrgId();
+    final uri = Uri.parse('$baseUrl/Api/Inventory/GetAllStock');
+    
+    List<InventoryItem> allItems = [];
+    int currentPage = 1;
+    bool hasMorePages = true;
+    
+    while (hasMorePages) {
+      try {
+        final requestBody = json.encode({
+          'orgid': orgId,
+          'hasdesc': false,
+          'description': searchQuery ?? '',
+          'ptype': type ?? '',
+          'pcolor': color ?? '',
+          'pdesign': '',
+          'pfinish': '',
+          'psize': '',
+          'locid': locationId ?? '', // Empty string for all locations
+          'page': currentPage,
+          'pagesize': initialPageSize
+        });
+        
+        debugPrint('🌐 Fetching page $currentPage for location ${locationId ?? "all"} (pagesize: $initialPageSize)');
+        
+        final response = await http.post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': apiKey,
+          },
+          body: requestBody,
+        ).timeout(const Duration(seconds: 30));
+        
+        if (response.statusCode == 200) {
+          final responseBody = utf8.decode(response.bodyBytes);
+          final dynamic data = json.decode(responseBody);
+          
+          if (data is Map && data['Data'] is List) {
+            final List<dynamic> pageItems = data['Data'] as List<dynamic>;
+            debugPrint('📦 Retrieved ${pageItems.length} items from page $currentPage');
+            
+            // Add items to our collection
+            for (final item in pageItems) {
+              final Map<String, dynamic> itemMap = {...item as Map<String, dynamic>};
+              
+              // Add location name if we're fetching from specific location
+              if (locationId != null && locationId.isNotEmpty) {
+                itemMap['Location'] = _locationNames[locationId] ?? 'Unknown';
+              }
+              
+              // Extract type and color for filter options
+              if (itemMap.containsKey('PColor') && itemMap['PColor'] != null) {
+                final color = itemMap['PColor'].toString().trim();
+                if (color.isNotEmpty) _availableColors.add(color);
+              }
+              
+              if (itemMap.containsKey('PType') && itemMap['PType'] != null) {
+                final type = itemMap['PType'].toString().trim();
+                if (type.isNotEmpty) _availableTypes.add(type);
+              }
+              
+              allItems.add(InventoryItem.fromJson(itemMap));
+            }
+            
+            // Check if we need to fetch more pages
+            // If we got fewer items than pageSize, we've reached the last page
+            if (pageItems.length < initialPageSize) {
+              hasMorePages = false;
+              debugPrint('✅ Reached last page. Total items: ${allItems.length}');
+            } else {
+              currentPage++;
+            }
+          } else {
+            debugPrint('⚠️ Unexpected response format from new API');
+            hasMorePages = false;
+          }
+        } else {
+          debugPrint('❌ API returned status ${response.statusCode}');
+          hasMorePages = false;
+        }
+      } catch (e) {
+        debugPrint('⚠️ Error fetching page $currentPage: $e');
+        hasMorePages = false;
+      }
+    }
+    
+    return allItems;
+  }
   
   // Getter methods for available filter options
   List<String> get availableTypes {
@@ -223,209 +336,20 @@ class InventoryService {
       return _inventoryCache!.data;
     }
     try {
-      debugPrint('🔍 Fetching inventory from direct API endpoints');
+      debugPrint('🔍 Fetching inventory from new API endpoint');
       
-      // Create a list to hold inventory items from all locations
-      List<InventoryItem> allItems = [];
+      // Fetch all items using new API (fetches all locations if no specific locid)
+      // The new API with empty locid returns all locations in one call
+      final allItems = await _fetchFromNewApi(
+        searchQuery: searchQuery,
+        type: type,
+        color: color,
+        initialPageSize: pageSize,
+      );
       
-      // Fetch inventory from each location - API only accepts one location at a time
-      for (final locationId in _locationIds) {
-        try {
-          final baseUrl = await _getBaseUrl();
-          final uri = Uri.parse('$baseUrl/GV/GVOBPInventory/GetAllStockdetailsSummaryforall');
-          
-          debugPrint('🌐 Fetching inventory for location $locationId');
-          
-          // Create form data with filters - API only accepts one locid parameter
-          final Map<String, String> formData = {
-            'sort': '',
-            'page': page.toString(),
-            'pageSize': pageSize.toString(),
-            'group': '',
-            'filter': '',  // Don't use the filter parameter as it may cause issues
-            'token': await _getToken(),
-            'hasdesc': type != null && type.isNotEmpty ? 'false' : 'true',  // Set to false for type filters
-            'description': searchQuery ?? '',
-            'ptype': type ?? '',
-            'pcolor': color ?? '',
-            'pdesign': '',
-            'pfinish': '',
-            'psize': '',
-            'locid': locationId,  // Only one location ID per request
-          };
-          
-          debugPrint('🔍 Applying filters - Search: $searchQuery, Type: $type, Color: $color');
-          
-          // Make the POST request
-          final response = await http.post(
-            uri,
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-              'X-Requested-With': 'XMLHttpRequest',
-              'Cache-Control': 'no-cache',
-              'Pragma': 'no-cache',
-              'Referer': await _getReferer(),
-              'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Mobile Safari/537.36',
-            },
-            body: formData,
-          );
-          
-          debugPrint('📥 Response status for location $locationId: ${response.statusCode}');
-          
-          if (response.statusCode == 200) {
-            // Log the raw response body for debugging
-            final responseBody = utf8.decode(response.bodyBytes);
-            debugPrint('📦 Raw response from location $locationId (first 500 chars): ${responseBody.length > 500 ? '${responseBody.substring(0, 500)}...' : responseBody}');
-            
-            // Check for empty response body before attempting to parse
-            if (responseBody.trim().isEmpty) {
-              debugPrint('⚠️ Empty response body from location $locationId');
-              continue; // Skip this location and try the next one
-            }
-            
-            try {
-              final dynamic data = json.decode(responseBody);
-              
-              // Log the parsed data structure
-              debugPrint('🔍 Parsed response type: ${data.runtimeType}');
-              if (data is Map) {
-                debugPrint('📊 Response keys: ${data.keys.join(', ')}');
-                if (data.containsKey('Data') || data.containsKey('data')) {
-                  final itemsData = data['Data'] ?? data['data'];
-                  if (itemsData is List) {
-                    debugPrint('📊 Found ${itemsData.length} items in Data/data array');
-                  }
-                }
-              }
-              
-              // Handle error response
-              if (data is Map && data.containsKey('success') && data['success'] == false) {
-                final error = data['error'] ?? 'Failed to load inventory';
-                debugPrint('❌ API Error for location $locationId: $error');
-                continue; // Skip this location and try the next one
-              }
-              
-              // Process successful response - handle different response formats
-              if (data is List) {
-                // Direct array response
-                final items = data.map((item) {
-                  // Add location name to each item
-                  final Map<String, dynamic> itemWithLocation = {...item as Map<String, dynamic>};
-                  itemWithLocation['Location'] = _locationNames[locationId] ?? 'Unknown';
-                  
-                  // Extract type and color for filter options
-                  if (itemWithLocation.containsKey('PColor') && itemWithLocation['PColor'] != null) {
-                    final color = itemWithLocation['PColor'].toString().trim();
-                    if (color.isNotEmpty) _availableColors.add(color);
-                  }
-                  
-                  if (itemWithLocation.containsKey('PType') && itemWithLocation['PType'] != null) {
-                    final type = itemWithLocation['PType'].toString().trim();
-                    if (type.isNotEmpty) _availableTypes.add(type);
-                  }
-                  
-                  return InventoryItem.fromJson(itemWithLocation);
-                }).toList();
-                allItems.addAll(items);
-                debugPrint('✅ Successfully loaded ${items.length} items from direct array response for location ${_locationNames[locationId]}');
-              } else if (data is Map && (data['Data'] is List || data['data'] is List)) {
-                // Response with Data/data array
-                final itemsData = (data['Data'] ?? data['data']) as List;
-                final items = itemsData.map((item) {
-                  // Add location name to each item
-                  final Map<String, dynamic> itemWithLocation = {...item as Map<String, dynamic>};
-                  itemWithLocation['Location'] = _locationNames[locationId] ?? 'Unknown';
-                  
-                  // Extract type and color for filter options
-                  if (itemWithLocation.containsKey('PColor') && itemWithLocation['PColor'] != null) {
-                    final color = itemWithLocation['PColor'].toString().trim();
-                    if (color.isNotEmpty) _availableColors.add(color);
-                  }
-                  
-                  if (itemWithLocation.containsKey('PType') && itemWithLocation['PType'] != null) {
-                    final type = itemWithLocation['PType'].toString().trim();
-                    if (type.isNotEmpty) _availableTypes.add(type);
-                  }
-                  
-                  return InventoryItem.fromJson(itemWithLocation);
-                }).toList();
-                allItems.addAll(items);
-                debugPrint('✅ Successfully loaded ${items.length} items from Data/data array for location ${_locationNames[locationId]}');
-              } else {
-                debugPrint('⚠️ Unexpected response format from location $locationId');
-                debugPrint('Response type: ${data.runtimeType}');
-                if (data is Map) {
-                  debugPrint('Available keys: ${data.keys.join(', ')}');
-                }
-              }
-            } catch (e) {
-              debugPrint('! Error processing response from location $locationId: $e');
-              // Don't immediately continue - try to handle common error cases
-              
-              // If it's a format exception, try to handle empty or malformed JSON
-              if (e is FormatException) {
-                debugPrint('⚠️ JSON parsing error. Checking if response is usable in any way...');
-                
-                // Check if response contains any useful text that might be parseable
-                if (responseBody.contains('{') && responseBody.contains('}')) {
-                  debugPrint('🔄 Attempting to clean and parse malformed JSON');
-                  try {
-                    // Try to extract valid JSON by finding the first { and last }
-                    final startIndex = responseBody.indexOf('{');
-                    final endIndex = responseBody.lastIndexOf('}') + 1;
-                    if (startIndex >= 0 && endIndex > startIndex) {
-                      final cleanedJson = responseBody.substring(startIndex, endIndex);
-                      final data = json.decode(cleanedJson);
-                      
-                      // Process the cleaned JSON
-                      if (data is Map) {
-                        if (data.containsKey('Data') || data.containsKey('data')) {
-                          final itemsData = data['Data'] ?? data['data'];
-                          if (itemsData is List) {
-                            debugPrint('📊 Found ${itemsData.length} items in cleaned JSON');
-                            final items = itemsData.map((item) {
-                              // Add location name to each item
-                              final Map<String, dynamic> itemWithLocation = {...item as Map<String, dynamic>};
-                              itemWithLocation['Location'] = _locationNames[locationId] ?? 'Unknown';
-                              
-                              // Extract type and color for filter options
-                              if (itemWithLocation.containsKey('PColor') && itemWithLocation['PColor'] != null) {
-                                final color = itemWithLocation['PColor'].toString().trim();
-                                if (color.isNotEmpty) _availableColors.add(color);
-                              }
-                              
-                              if (itemWithLocation.containsKey('PType') && itemWithLocation['PType'] != null) {
-                                final type = itemWithLocation['PType'].toString().trim();
-                                if (type.isNotEmpty) _availableTypes.add(type);
-                              }
-                              
-                              return InventoryItem.fromJson(itemWithLocation);
-                            }).toList();
-                            allItems.addAll(items);
-                            debugPrint('✅ Successfully recovered ${items.length} items from cleaned JSON');
-                          }
-                        }
-                      }
-                    }
-                  } catch (cleaningError) {
-                    debugPrint('⚠️ Failed to clean malformed JSON: $cleaningError');
-                  }
-                }
-              }
-              
-              continue; // Skip this location and try the next one
-            }
-          } else {
-            debugPrint('❌ Failed to load inventory from location $locationId: ${response.statusCode}');
-            debugPrint('Response body: ${response.body}');
-          }
-        } catch (e) {
-          debugPrint('⚠️ Error fetching inventory from location $locationId: $e');
-          // Continue to next location even if one fails
-        }
-      }
+      debugPrint('📊 Retrieved ${allItems.length} total items from API');
       
-      // Apply client-side filtering for search query if needed
+      // Apply client-side filtering for search query if needed (backup)
       List<InventoryItem> filteredItems = allItems;
       
       if (normalizedSearchQuery != null && normalizedSearchQuery.isNotEmpty) {
@@ -547,6 +471,58 @@ class InventoryService {
     } catch (e) {
       debugPrint('Unknown error while loading inventory: $e');
       throw Exception('Unable to load inventory');
+    }
+  }
+
+  /// Fetch detailed information for a specific inventory item
+  /// Uses GetAllStockDetailedSummary endpoint which returns individual stone records
+  /// Each record represents a physical stone with its specific Container and CrateNo
+  Future<List<InventoryItem>> getItemDetailedRecords(String endProductCode) async {
+    try {
+      final baseUrl = await _getBaseUrl();
+      final apiKey = await _getApiKey();
+      final orgId = await _getOrgId();
+      final uri = Uri.parse('$baseUrl/Api/Inventory/GetAllStockDetailedSummary');
+      
+      debugPrint('🔍 Fetching detailed records for: $endProductCode');
+      
+      final requestBody = json.encode({
+        'orgid': orgId,
+        'locid': '',
+        'container': '',
+        'epcode': endProductCode,
+        'page': 1,
+        'pagesize': 100,
+      });
+
+      final response = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': apiKey,
+        },
+        body: requestBody,
+      ).timeout(const Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final items = data['Data'] as List?;
+        
+        if (items != null && items.isNotEmpty) {
+          debugPrint('✅ Found ${items.length} stone records for $endProductCode');
+          // Return all stone records (each with its own Container/CrateNo)
+          return items.map((item) => InventoryItem.fromJson(item as Map<String, dynamic>)).toList();
+        } else {
+          debugPrint('⚠️ No detailed records found for $endProductCode');
+          return [];
+        }
+      } else {
+        debugPrint('❌ Failed to fetch item details: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      debugPrint('❌ Error fetching item details: $e');
+      return [];
     }
   }
 

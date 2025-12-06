@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../models/inventory_item.dart';
 import '../services/unified_saved_items_service.dart';
+import '../services/inventory_service.dart';
 import '../state/saved_items_state.dart';
 import '../state/cart_state.dart';
 import '../screens/enhanced_cart_screen.dart';
@@ -22,11 +23,30 @@ class InventoryItemDetailsScreen extends StatefulWidget {
 class _InventoryItemDetailsScreenState extends State<InventoryItemDetailsScreen> {
   int quantity = 1;
   bool isSaved = false;
+  List<InventoryItem> stoneRecords = [];
+  bool isLoadingDetails = false;
   
   @override
   void initState() {
     super.initState();
     _checkIfItemIsSaved();
+    _loadDetailedInfo();
+  }
+  
+  Future<void> _loadDetailedInfo() async {
+    setState(() {
+      isLoadingDetails = true;
+    });
+    
+    final inventoryService = InventoryService();
+    final records = await inventoryService.getItemDetailedRecords(widget.item.code);
+    
+    if (mounted) {
+      setState(() {
+        stoneRecords = records;
+        isLoadingDetails = false;
+      });
+    }
   }
   
   void _checkIfItemIsSaved() {
@@ -216,17 +236,96 @@ class _InventoryItemDetailsScreenState extends State<InventoryItemDetailsScreen>
             _buildInfoRow(context, 'Length', widget.item.lengthInInches.isNotEmpty ? widget.item.lengthInInches : 'Not specified'),
             _buildInfoRow(context, 'Height', widget.item.heightInInches.isNotEmpty ? widget.item.heightInInches : 'Not specified'),
             _buildInfoRow(context, 'Width', widget.item.widthInInches.isNotEmpty ? widget.item.widthInInches : 'Not specified'),
-            _buildInfoRow(context, 'Weight', widget.item.weight.isNotEmpty ? '${widget.item.weight} lbs' : 'Not specified'),
+            _buildInfoRow(context, 'Weight', widget.item.weight.isNotEmpty ? '${widget.item.weight} lbs' : stoneRecords.isNotEmpty && stoneRecords[0].weight.isNotEmpty ? '${stoneRecords[0].weight} lbs' : 'Not specified'),
             
             const SizedBox(height: 24),
             // Inventory information section
             _buildSectionHeader(context, 'Inventory Information'),
             const SizedBox(height: 8),
-            _buildInfoRow(context, 'Available', widget.item.quantity.toString()),
+            _buildInfoRow(context, 'Total Available', widget.item.quantity.toString()),
             _buildInfoRow(context, 'Location', widget.item.location),
-            _buildInfoRow(context, 'Status', 'In-Stock'),
-            // Removed Last Updated field
-            // Removed Additional Notes section
+            _buildInfoRow(context, 'Status', stoneRecords.isNotEmpty && stoneRecords[0].status.isNotEmpty ? stoneRecords[0].status : 'In-Stock'),
+            if (stoneRecords.isNotEmpty && stoneRecords[0].sublocation.isNotEmpty)
+              _buildInfoRow(context, 'Sublocation', stoneRecords[0].sublocation),
+            
+            // Show individual stone records with Container and Crate info
+            if (stoneRecords.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              _buildSectionHeader(context, 'Individual Stones (${stoneRecords.length})'),
+              const SizedBox(height: 8),
+              ...stoneRecords.asMap().entries.map((entry) {
+                final index = entry.key;
+                final stone = entry.value;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Stone #${index + 1}',
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        if (stone.container.isNotEmpty)
+                          _buildInfoRow(context, 'Container', stone.container),
+                        if (stone.crateNo.isNotEmpty)
+                          _buildInfoRow(context, 'Crate Number', stone.crateNo),
+                        if (stone.stockId > 0)
+                          _buildInfoRow(context, 'Stock ID', stone.stockId.toString()),
+                        if (stone.hasComments && stone.comments.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Notes:',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  stone.comments,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ],
+            
+            // Show loading indicator while fetching details
+            if (isLoadingDetails) ...[
+              const SizedBox(height: 24),
+              const Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    SizedBox(width: 12),
+                    Text('Loading detailed information...'),
+                  ],
+                ),
+              ),
+            ],
             
             const SizedBox(height: 32),
             // Quantity selector and Add to Cart button

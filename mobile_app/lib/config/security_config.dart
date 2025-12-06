@@ -25,7 +25,6 @@ class SecurityConfig {
   /// Fallback defaults
   static const Map<String, dynamic> _defaultConfig = {
     'api_endpoints': {
-      'monument_business_token': '097EE598BBACB8A8182BC9D4D7D5CFE609E4DB2AF4A3F1950738C927ECF05B6A',
       'mautic_contact_form_id': 1,
       'mautic_quote_form_id': 2
     },
@@ -84,10 +83,15 @@ class SecurityConfig {
     return (config['payment']?['url'] ?? _defaultConfig['payment']!['url']) as String;
   }
   
-  static Future<String> getMonumentBusinessToken() async {
+  static Future<String> getMonumentBusinessApiKey() async {
     final config = await _getConfig();
-    return (config['api_endpoints']?['monument_business_token'] ?? 
-           _defaultConfig['api_endpoints']!['monument_business_token']) as String;
+    return (config['api_endpoints']?['monument_business_api_key'] ?? 
+           'e8l3DUB3i8gUT3ubYiEu73aOh80t6b5hW8mqhAOJOOvROxS5k3lASFHVxRY6Ky5U') as String;
+  }
+  
+  static Future<int> getMonumentBusinessOrgId() async {
+    final config = await _getConfig();
+    return (config['api_endpoints']?['monument_business_org_id'] ?? 2) as int;
   }
   
   static Future<int> getMauticContactFormId() async {

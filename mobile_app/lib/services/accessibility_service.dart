@@ -14,7 +14,14 @@ class AccessibilityService {
 
   /// Announces text to screen readers
   static void announce(BuildContext context, String message) {
-    SemanticsService.announce(message, TextDirection.ltr);
+    // Use MediaQuery to get the FlutterView for the current context
+    final view = View.of(context);
+    SemanticsService.sendAnnouncement(
+      view,
+      message,
+      TextDirection.ltr,
+      assertiveness: Assertiveness.polite,
+    );
   }
 
   /// Creates semantic labels for images

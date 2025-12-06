@@ -410,6 +410,168 @@ document.addEventListener('DOMContentLoaded', function() {
                     transition: none;
                 }
             }
+            /* Split Panel Styles */
+            .inventory-modal .split-view {
+                display: flex;
+                gap: 0;
+                height: 600px;
+            }
+            .inventory-modal .table-panel {
+                flex: 1 1 auto;
+                min-width: 0;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                transition: none;
+            }
+            .inventory-modal .table-panel.with-details {
+                flex: 0 0 55%;
+                min-width: 400px;
+            }
+            
+            /* Mobile Responsive Styles */
+            @media (max-width: 768px) {
+                .inventory-modal .split-view {
+                    flex-direction: column;
+                    height: auto;
+                }
+                .inventory-modal .table-panel {
+                    flex: 1 1 auto;
+                    max-height: 40vh;
+                }
+                .inventory-modal .table-panel.with-details {
+                    flex: 1 1 auto;
+                    max-height: 30vh;
+                }
+                .inventory-modal .details-panel {
+                    flex: 1 1 auto;
+                    max-height: 50vh;
+                    border-left: none;
+                    border-top: 3px solid #d4af37;
+                }
+                .inventory-modal .modal-dialog {
+                    max-width: 95%;
+                    margin: 0.5rem;
+                }
+                .inventory-modal .stone-card {
+                    margin-bottom: 0.75rem;
+                    padding: 0.75rem;
+                }
+                .inventory-modal .details-header {
+                    padding: 1rem;
+                }
+                .inventory-modal .details-header h5 {
+                    font-size: 1.1rem;
+                }
+                .inventory-modal .details-header small {
+                    font-size: 0.85rem;
+                }
+                .inventory-table {
+                    font-size: 0.85rem;
+                }
+                .inventory-table th,
+                .inventory-table td {
+                    padding: 0.4rem !important;
+                }
+            }
+            
+            .inventory-modal .details-panel {
+                flex: 0 0 45%;
+                background-color: #f8f9fa;
+                border-left: 2px solid #d4af37;
+                overflow-y: auto;
+                overflow-x: hidden;
+                display: none;
+                padding: 0;
+                position: relative;
+            }
+            .inventory-modal .details-panel.show {
+                display: block;
+            }
+            .inventory-modal .details-panel .close-details {
+                position: sticky;
+                top: 1rem;
+                float: right;
+                margin: 1rem 1rem 0 0;
+                background: #fff;
+                border: 2px solid #d4af37;
+                border-radius: 50%;
+                width: 36px;
+                height: 36px;
+                font-size: 1.8rem;
+                line-height: 1;
+                color: #333;
+                cursor: pointer;
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                transition: all 0.2s ease;
+            }
+            .inventory-modal .details-panel .close-details:hover {
+                background: #d4af37;
+                color: #fff;
+                transform: rotate(90deg) scale(1.1);
+            }
+            .inventory-modal .stone-card {
+                background-color: #fff;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                padding: 1rem;
+                margin-bottom: 1rem;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .inventory-modal .stone-card h6 {
+                color: #d4af37;
+                font-weight: bold;
+                margin-bottom: 0.75rem;
+                border-bottom: 2px solid #d4af37;
+                padding-bottom: 0.5rem;
+            }
+            .inventory-modal .info-row {
+                display: flex;
+                justify-content: space-between;
+                padding: 0.5rem 0;
+                border-bottom: 1px solid #e9ecef;
+            }
+            .inventory-modal .info-row:last-child {
+                border-bottom: none;
+            }
+            .inventory-modal .info-label {
+                font-weight: bold;
+                color: #495057;
+            }
+            .inventory-modal .info-value {
+                color: #212529;
+            }
+            .inventory-modal .details-header {
+                background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+                color: #fff;
+                padding: 1.5rem;
+                margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+                border-radius: 0;
+            }
+            .inventory-modal .details-header h5 {
+                color: #d4af37;
+                margin: 0 0 0.5rem 0;
+            }
+            .inventory-modal .details-loading {
+                text-align: center;
+                padding: 3rem 1rem;
+                color: #666;
+            }
+            .inventory-table tbody tr {
+                cursor: pointer;
+                transition: background-color 0.2s ease;
+            }
+            .inventory-table tbody tr:hover {
+                background-color: #e9ecef !important;
+            }
+            .inventory-table tbody tr.selected {
+                background-color: #fff3cd !important;
+                border-left: 3px solid #d4af37;
+            }
         `;
         document.head.appendChild(style);
 
@@ -843,6 +1005,226 @@ document.addEventListener('DOMContentLoaded', function() {
             return txt.value;
         }
         
+        // Function to close item details panel
+        window.closeItemDetails = function() {
+            const detailsPanel = document.getElementById('detailsPanel');
+            const tablePanel = document.getElementById('tablePanel');
+            const selectedRows = document.querySelectorAll('.inventory-table tbody tr.selected');
+            
+            if (detailsPanel) {
+                detailsPanel.classList.remove('show');
+                // Reset content to default state
+                const content = document.getElementById('detailsPanelContent');
+                if (content) {
+                    content.innerHTML = `
+                        <div class="details-loading">
+                            <i class="fas fa-hand-pointer fa-3x mb-3" style="color: #d4af37;"></i>
+                            <p>Click on any item to view details</p>
+                        </div>
+                    `;
+                }
+            }
+            if (tablePanel) {
+                tablePanel.classList.remove('with-details');
+            }
+            selectedRows.forEach(row => row.classList.remove('selected'));
+        };
+        
+        // Function to fetch detailed stone records for an item
+        async function fetchItemDetails(endProductCode) {
+            try {
+                const response = await fetch('inventory-proxy.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `action=getDetails&epcode=${encodeURIComponent(endProductCode)}`
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch item details');
+                }
+                
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching item details:', error);
+                throw error;
+            }
+        }
+        
+        // Function to show item details in split panel
+        async function showItemDetails(endProductCode, basicItem, clickedRow) {
+            const detailsPanel = document.getElementById('detailsPanel');
+            const tablePanel = document.getElementById('tablePanel');
+            const content = document.getElementById('detailsPanelContent');
+            
+            if (!detailsPanel || !content) {
+                console.error('Details panel not found');
+                return;
+            }
+            
+            // Remove previous selection and add to clicked row
+            document.querySelectorAll('.inventory-table tbody tr.selected').forEach(row => {
+                row.classList.remove('selected');
+            });
+            if (clickedRow) {
+                clickedRow.classList.add('selected');
+            }
+            
+            // Show panels
+            tablePanel.classList.add('with-details');
+            detailsPanel.classList.add('show');
+            
+            // Show loading state
+            content.innerHTML = `
+                <div class="details-loading">
+                    <div class="spinner-border" role="status" style="color: #d4af37;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3">Loading stone details...</p>
+                </div>
+            `;
+            
+            try {
+                const data = await fetchItemDetails(endProductCode);
+                const stones = data.stones || [];
+                
+                if (stones.length === 0) {
+                    content.innerHTML = `
+                        <div class="details-header">
+                            <h5>Item Details</h5>
+                            <small style="color: #adb5bd;">${basicItem.description}</small>
+                        </div>
+                        <div style="padding: 1rem;">
+                            <div class="stone-card">
+                                <h6>Product Information</h6>
+                                <div class="info-row">
+                                    <span class="info-label">Type:</span>
+                                    <span class="info-value">${basicItem.type}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Color:</span>
+                                    <span class="info-value">${basicItem.color}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Size:</span>
+                                    <span class="info-value">${basicItem.size}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Total Quantity:</span>
+                                    <span class="info-value">${basicItem.quantity}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Location:</span>
+                                    <span class="info-value">${basicItem.location}</span>
+                                </div>
+                            </div>
+                            <p class="text-muted mt-3"><i class="fas fa-info-circle"></i> Detailed stone records not available.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Show basic info and individual stones
+                let html = `
+                    <div class="details-header">
+                        <h5>Item Details</h5>
+                        <small style="color: #adb5bd;">${basicItem.description}</small>
+                    </div>
+                    <div style="padding: 0;">
+                        <div class="stone-card">
+                            <h6><i class="fas fa-info-circle"></i> Product Summary</h6>
+                            <div class="info-row">
+                                <span class="info-label">Type:</span>
+                                <span class="info-value">${basicItem.type}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Color:</span>
+                                <span class="info-value">${basicItem.color}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Size:</span>
+                                <span class="info-value">${basicItem.size}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Total Available:</span>
+                                <span class="info-value" style="color: #28a745; font-weight: bold;">${basicItem.quantity}</span>
+                            </div>
+                        </div>
+                        
+                        <h6 class="mt-3 mb-3" style="color: #495057; padding: 0 1rem;"><i class="fas fa-cubes"></i> Individual Stones (${stones.length})</h6>
+                    </div>
+                `;
+                
+                stones.forEach((stone, index) => {
+                    html += `
+                        <div class="stone-card">
+                            <h6>Stone #${index + 1}</h6>
+                            ${stone.Container ? `
+                                <div class="info-row">
+                                    <span class="info-label">Container:</span>
+                                    <span class="info-value">${stone.Container}</span>
+                                </div>
+                            ` : ''}
+                            ${stone.CrateNo ? `
+                                <div class="info-row">
+                                    <span class="info-label">Crate Number:</span>
+                                    <span class="info-value">${stone.CrateNo}</span>
+                                </div>
+                            ` : ''}
+                            ${stone.LocationName ? `
+                                <div class="info-row">
+                                    <span class="info-label">Location:</span>
+                                    <span class="info-value">${stone.LocationName}</span>
+                                </div>
+                            ` : ''}
+                            ${stone.SublocationName ? `
+                                <div class="info-row">
+                                    <span class="info-label">Sublocation:</span>
+                                    <span class="info-value">${stone.SublocationName}</span>
+                                </div>
+                            ` : ''}
+                            ${stone.Weight ? `
+                                <div class="info-row">
+                                    <span class="info-label">Weight:</span>
+                                    <span class="info-value">${stone.Weight} lbs</span>
+                                </div>
+                            ` : ''}
+                            ${stone.Status ? `
+                                <div class="info-row">
+                                    <span class="info-label">Status:</span>
+                                    <span class="info-value">${stone.Status}</span>
+                                </div>
+                            ` : ''}
+                            ${stone.StockId ? `
+                                <div class="info-row">
+                                    <span class="info-label">Stock ID:</span>
+                                    <span class="info-value">${stone.StockId}</span>
+                                </div>
+                            ` : ''}
+                            ${stone.Comments ? `
+                                <div class="info-row">
+                                    <span class="info-label">Notes:</span>
+                                    <span class="info-value">${stone.Comments}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+                
+                content.innerHTML = html;
+            } catch (error) {
+                content.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Error loading details</strong>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
         // Function to create the modal HTML if it doesn't exist
         function createModal() {
             // Check if modal already exists
@@ -1172,93 +1554,108 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 `;
                 
-                // Build the table HTML
+                // Build the table HTML with split-view structure
                 const tableHtml = `
-                    <div class="table-scroll-wrapper" style="max-height: 65vh;">
-                        <div id="inventoryTableContainer" class="table-responsive" style="max-height: 65vh; overflow-y: auto; overflow-x: auto;">
-                            <table id="inventoryTable" class="inventory-table table table-striped table-sm table-hover table-bordered align-middle w-100">
-                            <thead>
-                                <tr>
-                                    <!-- Product Code column hidden per client request -->
-                                    <th>Description</th>
-                                    <th>
-                                        Type
-                                        <select class="form-select form-select-sm column-filter mt-1" id="typeFilter" data-col-index="1">
-                                            <option value="" ${currentPtype === '' ? 'selected' : ''}>All</option>
-                                            ${createOptions(productTypes, currentPtype)}
-                                        </select>
-                                    </th>
-                                    <th>
-                                        Color
-                                        <select class="form-select form-select-sm column-filter mt-1" id="colorFilter" data-col-index="2">
-                                            <option value="" ${currentPcolor === '' ? 'selected' : ''}>All</option>
-                                            ${createOptions(productColors, currentPcolor)}
-                                        </select>
-                                    </th>
-                                    <th>
-                                        Design
-                                        <select class="form-select form-select-sm column-filter mt-1" id="designFilter" data-col-index="3">
-                                            <option value="" ${currentPdesign === '' ? 'selected' : ''}>All</option>
-                                            ${createOptions(productDesigns, currentPdesign)}
-                                        </select>
-                                    </th>
-                                    <th>
-                                        Finish
-                                        <select class="form-select form-select-sm column-filter mt-1" id="finishFilter" data-col-index="4">
-                                            <option value="" ${currentPfinish === '' ? 'selected' : ''}>All</option>
-                                            ${createOptions(productFinishes, currentPfinish)}
-                                        </select>
-                                    </th>
-                                    <th>
-                                        Size
-                                        <select class="form-select form-select-sm column-filter mt-1" id="sizeFilter" data-col-index="5">
-                                            <option value="" ${currentPsize === '' ? 'selected' : ''}>All</option>
-                                            ${createOptions(productSizes, currentPsize)}
-                                        </select>
-                                    </th>
-                                    <th>
-                                        Location
-                                        <select class="form-select form-select-sm column-filter mt-1" id="locationFilter" data-col-index="6">
-                                            <option value="" ${currentLocation === '' ? 'selected' : ''}>All</option>
-                                            ${createOptions(locations, currentLocation)}
-                                        </select>
-                                    </th>
-                                    <th role="columnheader" tabindex="0">Quantity</th>
-                                </tr>
-                            </thead>
-                            <tbody id="inventoryTableBody">
-                                ${filteredItems.map(item => {
-                                    // Helper function to get field value with case-insensitive matching
-                                    const getField = (fieldName) => {
-                                        if (item[fieldName] !== undefined) return item[fieldName];
+                    <div class="split-view">
+                        <div class="table-panel" id="tablePanel">
+                            <div class="table-scroll-wrapper" style="max-height: 65vh;">
+                                <div id="inventoryTableContainer" class="table-responsive" style="max-height: 65vh; overflow-y: auto; overflow-x: auto;">
+                                    <table id="inventoryTable" class="inventory-table table table-striped table-sm table-hover table-bordered align-middle w-100">
+                                    <thead>
+                                        <tr>
+                                            <!-- Product Code column hidden per client request -->
+                                            <th>Description</th>
+                                            <th>
+                                                Type
+                                                <select class="form-select form-select-sm column-filter mt-1" id="typeFilter" data-col-index="1">
+                                                    <option value="" ${currentPtype === '' ? 'selected' : ''}>All</option>
+                                                    ${createOptions(productTypes, currentPtype)}
+                                                </select>
+                                            </th>
+                                            <th>
+                                                Color
+                                                <select class="form-select form-select-sm column-filter mt-1" id="colorFilter" data-col-index="2">
+                                                    <option value="" ${currentPcolor === '' ? 'selected' : ''}>All</option>
+                                                    ${createOptions(productColors, currentPcolor)}
+                                                </select>
+                                            </th>
+                                            <th>
+                                                Design
+                                                <select class="form-select form-select-sm column-filter mt-1" id="designFilter" data-col-index="3">
+                                                    <option value="" ${currentPdesign === '' ? 'selected' : ''}>All</option>
+                                                    ${createOptions(productDesigns, currentPdesign)}
+                                                </select>
+                                            </th>
+                                            <th>
+                                                Finish
+                                                <select class="form-select form-select-sm column-filter mt-1" id="finishFilter" data-col-index="4">
+                                                    <option value="" ${currentPfinish === '' ? 'selected' : ''}>All</option>
+                                                    ${createOptions(productFinishes, currentPfinish)}
+                                                </select>
+                                            </th>
+                                            <th>
+                                                Size
+                                                <select class="form-select form-select-sm column-filter mt-1" id="sizeFilter" data-col-index="5">
+                                                    <option value="" ${currentPsize === '' ? 'selected' : ''}>All</option>
+                                                    ${createOptions(productSizes, currentPsize)}
+                                                </select>
+                                            </th>
+                                            <th>
+                                                Location
+                                                <select class="form-select form-select-sm column-filter mt-1" id="locationFilter" data-col-index="6">
+                                                    <option value="" ${currentLocation === '' ? 'selected' : ''}>All</option>
+                                                    ${createOptions(locations, currentLocation)}
+                                                </select>
+                                            </th>
+                                            <th role="columnheader" tabindex="0">Quantity</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="inventoryTableBody">
+                                        ${filteredItems.map(item => {
+                                            // Helper function to get field value with case-insensitive matching
+                                            const getField = (fieldName) => {
+                                                if (item[fieldName] !== undefined) return item[fieldName];
 
-                                        // Try lowercase matching
-                                        const lowerField = fieldName.toLowerCase();
-                                        const key = Object.keys(item).find(k => k.toLowerCase() === lowerField);
-                                        return key ? item[key] : '';
-                                    };
+                                                // Try lowercase matching
+                                                const lowerField = fieldName.toLowerCase();
+                                                const key = Object.keys(item).find(k => k.toLowerCase() === lowerField);
+                                                return key ? item[key] : '';
+                                            };
 
-                                    const rowText = Object.values(item).join(' ').toLowerCase();
-                                    const highlight = searchVal && rowText.includes(searchVal) ? ' search-highlight' : '';
+                                            const rowText = Object.values(item).join(' ').toLowerCase();
+                                            const highlight = searchVal && rowText.includes(searchVal) ? ' search-highlight' : '';
 
-                                    return `
-                                    <tr class="${highlight.trim()}">
-                                        <!-- Product Code column hidden per client request -->
-                                        <td>${getField('EndProductDescription')}</td>
-                                        <td>${getField('Ptype')}</td>
-                                        <td>${getField('PColor')}</td>
-                                        <td>${getField('PDesign')}</td>
-                                        <td>${getField('PFinish')}</td>
-                                        <td>${getField('Size')}</td>
-                                        <td>${getField('Locationname')}</td>
-                                        <td>${getField('Qty') || 0}</td>
-                                    </tr>
-                                    `;
-                                }).join('')}
-                            </tbody>
-                        </table>
+                                            return `
+                                            <tr class="${highlight.trim()} clickable-row" data-code="${getField('EndProductCode')}" style="cursor: pointer;">
+                                                <!-- Product Code column hidden per client request -->
+                                                <td>${getField('EndProductDescription')}</td>
+                                                <td>${getField('Ptype')}</td>
+                                                <td>${getField('PColor')}</td>
+                                                <td>${getField('PDesign')}</td>
+                                                <td>${getField('PFinish')}</td>
+                                                <td>${getField('Size')}</td>
+                                                <td>${getField('Locationname')}</td>
+                                                <td>${getField('Qty') || 0}</td>
+                                            </tr>
+                                            `;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                                </div>
+                                <div class="scrollbar-track"><div class="scrollbar-thumb"></div></div>
+                            </div>
                         </div>
-                        <div class="scrollbar-track"><div class="scrollbar-thumb"></div></div>
+                        <div class="details-panel" id="detailsPanel">
+                            <div style="position: sticky; top: 0; z-index: 100; background: #f8f9fa; padding: 0.5rem 0.5rem 0 0; text-align: right;">
+                                <button class="close-details" onclick="window.closeItemDetails()">&times;</button>
+                            </div>
+                            <div id="detailsPanelContent" style="padding: 0 1.5rem 1.5rem 1.5rem;">
+                                <div class="details-loading">
+                                    <i class="fas fa-hand-pointer fa-3x mb-3" style="color: #d4af37;"></i>
+                                    <p>Click on any item to view details</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 `;
                 
@@ -1277,6 +1674,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 setupCustomScrollbar();
                 setupKeyboardNavigation();
                 setupNavigationButtons();
+                
+                // Set up row click listeners AFTER table is fully rendered
+                setupRowClickListeners(filteredItems);
                 
                 // Load Font Awesome if not already loaded
                 if (!document.querySelector('link[href*="font-awesome"]')) {
@@ -1719,6 +2119,44 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // Function to set up row click listeners for showing details
+        function setupRowClickListeners(items) {
+            const rows = document.querySelectorAll('#inventoryTable tbody tr.clickable-row');
+            
+            rows.forEach(row => {
+                row.addEventListener('click', function(e) {
+                    // Prevent event bubbling
+                    e.stopPropagation();
+                    
+                    // Don't trigger if clicking on a dropdown, filter, or button
+                    if (e.target.closest('.dropdown, select, button, input')) {
+                        return;
+                    }
+                    
+                    const code = this.getAttribute('data-code');
+                    if (code) {
+                        // Find the item data
+                        const item = items.find(i => {
+                            const itemCode = i.EndProductCode || i.endProductCode || i.code;
+                            return itemCode === code;
+                        });
+                        
+                        if (item) {
+                            const basicItem = {
+                                description: item.EndProductDescription || item.description || '',
+                                type: item.Ptype || item.type || '',
+                                color: item.PColor || item.color || '',
+                                size: item.Size || item.size || '',
+                                quantity: item.Qty || item.quantity || 0,
+                                location: item.Locationname || item.location || ''
+                            };
+                            showItemDetails(code, basicItem, this);
+                        }
+                    }
+                });
+            });
+        }
+        
         // Function to set up keyboard navigation for accessibility
         function setupKeyboardNavigation() {
             const container = document.getElementById('inventoryTableContainer');

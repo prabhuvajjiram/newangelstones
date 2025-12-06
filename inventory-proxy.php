@@ -33,8 +33,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// API endpoint URL
-$url = 'https://monument.business/GV/GVOBPInventory/GetAllStockdetailsSummaryforall';
+// API endpoint URL and credentials
+$api_url = 'https://monument.business/Api/Inventory/GetAllStock';
+$api_key = 'e8l3DUB3i8gUT3ubYiEu73aOh80t6b5hW8mqhAOJOOvROxS5k3lASFHVxRY6Ky5U';
+$org_id = 2;
 
 // Enable error reporting for debugging (should be disabled in production)
 error_reporting(E_ALL);
@@ -56,8 +58,107 @@ $request_log = [
 // Combine GET and POST parameters to handle both request types
 $params = array_merge($_GET, $_POST);
 
-// Check if token is provided in the request, otherwise use the default
-$token = isset($params['token']) ? $params['token'] : '097EE598BBACB8A8182BC9D4D7D5CFE609E4DB2AF4A3F1950738C927ECF05B6A';
+// Check if this is a request for item details
+if (isset($params['action']) && $params['action'] === 'getDetails' && isset($params['epcode'])) {
+    $epcode = $params['epcode'];
+    
+    // Auto-cleanup old cache files (older than 7 days) - runs randomly 1% of the time
+    if (CACHE_ENABLED && rand(1, 100) === 1) {
+        $seven_days_ago = time() - (7 * 24 * 60 * 60);
+        $cache_files = glob(CACHE_DIR . '/detail_*.json');
+        $deleted_count = 0;
+        foreach ($cache_files as $file) {
+            if (filemtime($file) < $seven_days_ago) {
+                @unlink($file);
+                $deleted_count++;
+            }
+        }
+        // Log cleanup for monitoring (optional - comment out in production if not needed)
+        if ($deleted_count > 0) {
+            error_log("Inventory cache cleanup: Deleted $deleted_count old detail cache files");
+        }
+    }
+    
+    // Use separate cache for detailed records
+    $detail_cache_file = CACHE_DIR . '/detail_' . md5($epcode) . '.json';
+    
+    // Check cache first
+    if (CACHE_ENABLED && file_exists($detail_cache_file)) {
+        $cache_age = time() - filemtime($detail_cache_file);
+        if ($cache_age < CACHE_DURATION) {
+            $cached_data = file_get_contents($detail_cache_file);
+            if ($cached_data !== false) {
+                echo $cached_data;
+                exit;
+            }
+        }
+    }
+    
+    // Fetch from detailed API
+    $detail_api_url = 'https://monument.business/Api/Inventory/GetAllStockDetailedSummary';
+    $detail_params = [
+        'orgid' => $org_id,
+        'epcode' => $epcode
+    ];
+    
+    $ch = curl_init($detail_api_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($detail_params));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/json',
+        'X-API-Key: ' . $api_key
+    ]);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+    
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    
+    if ($curl_error || $http_code !== 200) {
+        echo json_encode([
+            'success' => false,
+            'error' => $curl_error ?: 'API returned status code: ' . $http_code,
+            'stones' => []
+        ]);
+        exit;
+    }
+    
+    $data = json_decode($response, true);
+    
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        echo json_encode([
+            'success' => false,
+            'error' => 'Failed to parse API response',
+            'stones' => []
+        ]);
+        exit;
+    }
+    
+    // Extract stones from response
+    $stones = [];
+    if (isset($data['Data']) && is_array($data['Data'])) {
+        $stones = $data['Data'];
+    }
+    
+    $result = [
+        'success' => true,
+        'stones' => $stones,
+        'count' => count($stones)
+    ];
+    
+    // Cache the result
+    if (CACHE_ENABLED) {
+        if (!is_dir(CACHE_DIR)) {
+            mkdir(CACHE_DIR, 0755, true);
+        }
+        file_put_contents($detail_cache_file, json_encode($result));
+    }
+    
+    echo json_encode($result);
+    exit;
+}
 
 // Get parameters from request or set defaults
 $page = isset($params['page']) ? intval($params['page']) : 1;
@@ -67,7 +168,9 @@ $pcolor = isset($params['pcolor']) ? $params['pcolor'] : '';
 $pdesign = isset($params['pdesign']) ? $params['pdesign'] : '';
 $pfinish = isset($params['pfinish']) ? $params['pfinish'] : '';
 $psize = isset($params['psize']) ? $params['psize'] : '';
-$locid = isset($params['locid']) ? $params['locid'] : '';  // Don't set a default, let the client specify
+$locid = isset($params['locid']) ? $params['locid'] : '';  // Empty string for all locations
+$description = isset($params['description']) ? $params['description'] : '';
+$hasdesc = isset($params['hasdesc']) ? $params['hasdesc'] === 'true' : false;
 
 // Create cache key based on request parameters (excluding timestamp which is just for cache-busting)
 $cache_params = [
@@ -154,22 +257,19 @@ if (!$force_refresh && CACHE_ENABLED) {
     }
 }
 
-// Request parameters for API call
+// Request parameters for API call (new JSON format)
 $api_params = [
-    'sort' => '',
-    'page' => $page,
-    'pageSize' => $pageSize,
-    'group' => '',
-    'filter' => '',
-    'token' => $token,
-    'hasdesc' => 'false',
-    'description' => '',
+    'orgid' => $org_id,
+    'hasdesc' => $hasdesc,
+    'description' => $description,
     'ptype' => $ptype,
     'pcolor' => $pcolor,
     'pdesign' => $pdesign,
     'pfinish' => $pfinish,
     'psize' => $psize,
-    'locid' => $locid
+    'locid' => $locid,
+    'page' => $page,
+    'pagesize' => $pageSize
 ];
 
 // Function to handle errors and return consistent JSON response
@@ -197,23 +297,20 @@ function return_error($message, $code = 500, $additional_data = []) {
 // Initialize cURL session
 $ch = curl_init();
 
-// Set cURL options with better error handling
+// Set cURL options with new JSON API format
 curl_setopt_array($ch, [
-    CURLOPT_URL => $url,
+    CURLOPT_URL => $api_url,
     CURLOPT_POST => true,
-    CURLOPT_POSTFIELDS => http_build_query($api_params),
+    CURLOPT_POSTFIELDS => json_encode($api_params),
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_FOLLOWLOCATION => true,
     CURLOPT_SSL_VERIFYPEER => false, // For development only - should be true in production
     CURLOPT_SSL_VERIFYHOST => false, // For development only - should be 2 in production
-    CURLOPT_TIMEOUT => 30,
-    CURLOPT_CONNECTTIMEOUT => 10,
+    CURLOPT_TIMEOUT => 60,
+    CURLOPT_CONNECTTIMEOUT => 15,
     CURLOPT_HTTPHEADER => [
-        'Content-Type: application/x-www-form-urlencoded; charset=UTF-8',
-        'X-Requested-With: XMLHttpRequest',
-        'Cache-Control: no-cache',
-        'Pragma: no-cache',
-        'Referer: https://monument.business/GV/GVOBPInventory/ShowInventoryAll/' . $token
+        'Content-Type: application/json',
+        'X-API-Key: ' . $api_key
     ]
 ]);
 
@@ -246,8 +343,8 @@ if ($http_code != 200) {
     );
 }
 
-// Close cURL session
-curl_close($ch);
+// Note: curl_close() is no longer needed in PHP 8.0+ (deprecated in 8.5)
+// cURL handles are automatically closed when they go out of scope
 
 // Calculate execution time so far
 $execution_time = microtime(true) - $start_time;
@@ -300,18 +397,23 @@ if (isset($data['Data']) && is_array($data['Data'])) {
     $items = $data['data'];
 }
 
-// Get total items count
-$total = 0;
-if (isset($data['Total'])) {
-    $total = intval($data['Total']);
-} elseif (isset($data['total'])) {
-    $total = intval($data['total']);
+// Get total rows from new API (TotalRows field shows items in current response)
+$totalRows = 0;
+if (isset($data['TotalRows'])) {
+    $totalRows = intval($data['TotalRows']);
+} elseif (isset($data['totalRows'])) {
+    $totalRows = intval($data['totalRows']);
 } elseif (is_array($items)) {
-    $total = count($items);
+    $totalRows = count($items);
 }
 
-// Calculate total pages
-$totalPages = ceil($total / $pageSize) ?: 1;
+// Note: TotalRows in new API = number of items in current response, not total available
+// Pagination logic: keep fetching pages while TotalRows == pageSize
+$hasNextPage = $totalRows >= $pageSize;
+$totalPages = 0; // We don't know total pages without fetching all data
+
+// Calculate total pages (this is an estimate based on current page)
+$totalPages = $hasNextPage ? $page + 1 : $page;
 
 // Prepare the successful response
 $result = [
@@ -320,9 +422,9 @@ $result = [
     'pagination' => [
         'page' => $page,
         'pageSize' => $pageSize,
-        'totalItems' => $total,
-        'totalPages' => $totalPages,
-        'hasNextPage' => $page < $totalPages,
+        'totalItems' => $totalRows, // Items in current response
+        'totalPages' => $totalPages, // Estimated
+        'hasNextPage' => $hasNextPage,
         'hasPrevPage' => $page > 1
     ],
     'filters' => [
@@ -331,11 +433,14 @@ $result = [
         'pdesign' => $pdesign,
         'pfinish' => $pfinish,
         'psize' => $psize,
-        'locid' => $locid
+        'locid' => $locid,
+        'description' => $description,
+        'hasdesc' => $hasdesc
     ],
     'execution_time' => round(microtime(true) - $start_time, 4) . 's',
     'cached' => false, // This is fresh data from API
-    'cache_duration' => CACHE_DURATION . ' seconds (24 hours)'
+    'cache_duration' => CACHE_DURATION . ' seconds (24 hours)',
+    'api_version' => '2.0' // New API version
 ];
 
 // Save the response to cache for future requests

@@ -5,7 +5,8 @@
     "api_endpoints": {
       "angel_stones_base": "https://theangelstones.com",
       "monument_business_base": "https://monument.business",
-      "monument_business_token": "097EE598BBACB8A8182BC9D4D7D5CFE609E4DB2AF4A3F1950738C927ECF05B6A",
+      "monument_business_api_key": "e8l3DUB3i8gUT3ubYiEu73aOh80t6b5hW8mqhAOJOOvROxS5k3lASFHVxRY6Ky5U",
+      "monument_business_org_id": 2,
       "mautic_base": "https://theangelstones.com/mautic/form/submit",
       "mautic_contact_form_id": 1,
       "mautic_quote_form_id": 2

@@ -20,16 +20,21 @@
             contain-intrinsic-size: 1px 500px;
         }
         
-        /* Add font-display: optional to reduce layout shifts */
+        /* Add font-display: swap for optimal performance */
         @font-face {
             font-family: 'Playfair Display';
-            font-display: optional;
+            font-display: swap;
             src: local('Playfair Display');
         }
         @font-face {
             font-family: 'Didact Gothic';
-            font-display: optional;
+            font-display: swap;
             src: local('Didact Gothic');
+        }
+        
+        /* Prevent CLS by reserving space for common elements */
+        img:not([width]):not([height]) {
+            aspect-ratio: attr(width) / attr(height);
         }
     </style>
     
@@ -315,7 +320,7 @@
     <link rel="dns-prefetch" href="https://embed.tawk.to">
     
     <!-- Load fonts with display=swap -->
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Didact+Gothic&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Didact+Gothic&display=swap" rel="stylesheet" media="print" onload="this.media='all'; this.onload=null;">
 
     <!-- Fallback for when JavaScript is disabled -->
     <noscript>
@@ -366,29 +371,7 @@
         .variety-of-granites img, .color-item img, .owl-carousel.color-row img {
             aspect-ratio: 1/1; /* Square aspect ratio for granite colors */
             height: auto;
-            margin-bottom: 0.5rem !important; /* Reduced space */
-        }
-        
-        /* Color carousel specific overrides - simple and performant */
-        #variety-of-granites .color-scroll-container {
-            background: transparent !important;
-        }
-        
-        #variety-of-granites .color-item {
-            background: transparent !important;
-        }
-        
-        #variety-of-granites .color-item img {
-            margin-bottom: 0.5rem !important;
-        }
-        
-        #variety-of-granites .color-name {
-            color: #fff !important;
-            background: transparent !important;
-            text-align: center;
-            font-size: 0.9rem;
-            margin: 0 !important;
-            padding: 0.25rem 0 !important;
+            margin-bottom: 30px; /* Space for the color caption */
         }
         
         /* Fix for caption display */
@@ -955,9 +938,9 @@
                         <div class="col-md-6">
                             <div class="section-header welcome">
                                 <div class="subtitle">
-                                    <img src="images/title-star.svg" alt="Angel Stones">
+                                    <img src="images/title-star.svg" alt="Angel Stones" width="30" height="30">
                                         Welcome to
-                                    <img src="images/title-star.svg" alt="Angel Stones">
+                                    <img src="images/title-star.svg" alt="Angel Stones" width="30" height="30">
                                 </div>
                                 <div class="title">Angel Granites</div>
                                 <div class="subtitle">A Venture of Angel Stones</div>
@@ -1037,7 +1020,7 @@
                             <div class="category-item">
                                 <a href="?category=mbna_2025" class="category-link" data-collection="mbna_2025-collection">
                                     <div class="category-image">
-                                        <img src="images/products/MBNA_2025/AG-116.jpg" alt="MBNA 2025" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                        <img src="images/products/MBNA_2025/AG-116.jpg" alt="MBNA 2025" width="350" height="350" loading="lazy" decoding="async" onerror="this.src='images/default-thumbnail.jpg'">
                                     </div>
                                     <h4>MBNA 2025</h4>
                                     <span class="category-count">26 Designs</span>
@@ -1046,7 +1029,7 @@
                             <div class="category-item">
                                 <a href="?category=monuments" class="category-link" data-collection="monuments-collection">
                                     <div class="category-image">
-                                        <img src="images/products/Monuments/granite-monuments-project02.jpg" alt="Monuments" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                        <img src="images/products/Monuments/granite-monuments-project02.jpg" alt="Monuments" width="350" height="350" loading="lazy" decoding="async" onerror="this.src='images/default-thumbnail.jpg'">
                                     </div>
                                     <h4>In-stock, ready to ship special designs</h4>
                                     <span class="category-count">28 Designs</span>
@@ -1055,7 +1038,7 @@
                             <div class="category-item">
                                 <a href="?category=columbarium" class="category-link" data-collection="columbarium-collection">
                                     <div class="category-image">
-                                        <img src="images/products/columbarium/customized-designs-project03.jpg" alt="Columbarium" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                        <img src="images/products/columbarium/customized-designs-project03.jpg" alt="Columbarium" width="350" height="350" loading="lazy" decoding="async" onerror="this.src='images/default-thumbnail.jpg'">
                                     </div>
                                     <h4>Columbarium</h4>
                                     <span class="category-count">1 Design</span>
@@ -1064,7 +1047,7 @@
                             <div class="category-item">
                                 <a href="?category=designs" class="category-link" data-collection="Designs-collection">
                                     <div class="category-image">
-                                        <img src="images/products/Designs/chess.jpg" alt="Designs" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                        <img src="images/products/Designs/chess.jpg" alt="Designs" width="350" height="350" loading="lazy" decoding="async" onerror="this.src='images/default-thumbnail.jpg'">
                                     </div>
                                     <h4>Designs</h4>
                                     <span class="category-count">1 Designs</span>
@@ -1073,7 +1056,7 @@
                             <div class="category-item">
                                 <a href="?category=benches" class="category-link" data-collection="benches-collection">
                                     <div class="category-image">
-                                        <img src="images/products/Benches/Fountain2.jpg" alt="Benches" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                        <img src="images/products/Benches/Fountain2.jpg" alt="Benches" width="350" height="350" loading="lazy" decoding="async" onerror="this.src='images/default-thumbnail.jpg'">
                                     </div>
                                     <h4>Benches</h4>
                                     <span class="category-count">3 Designs</span>
@@ -1668,8 +1651,8 @@
     <!-- Critical Bundle: Initial page render, navigation, feature detection (44KB) -->
     <script src="js/critical.bundle.js?v=1.0.0" defer></script>
     
-    <!-- Features Bundle: Products, modals, carousels, all features (288KB) -->
-    <script src="js/features.bundle.js?v=2.8.0" defer></script>
+    <!-- Features Bundle: Products, modals, carousels, all features (includes updated inventory-modal) -->
+    <script src="js/features.bundle.js?v=2.3.0" defer></script>
     
     <!-- Bootstrap is loaded separately but deferred -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>

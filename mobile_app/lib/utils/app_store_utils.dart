@@ -67,8 +67,13 @@ class AppStoreUtils {
 
   /// Share app with others
   static Future<void> shareApp() async {
-    // TODO: Implement sharing functionality when share_plus package is added
-    // For now, just open the appropriate store
+    // When share_plus package is added, uncomment the lines below:
+    // final String shareText = defaultTargetPlatform == TargetPlatform.iOS
+    //     ? 'Check out Angel Granites app: https://apps.apple.com/us/app/angel-granites/id${AppConfig.appStoreId}'
+    //     : 'Check out Angel Granites app: https://play.google.com/store/apps/details?id=${AppConfig.playStoreId}';
+    // Share.share(shareText);
+    
+    // For now, open the store directly
     await openAppInStore();
   }
 }

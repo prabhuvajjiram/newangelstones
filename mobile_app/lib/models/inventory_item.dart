@@ -6,16 +6,25 @@ class InventoryItem {
   final String location;       // Locationname
   final int quantity;          // Qty
   final int productId;         // EndProductId
-  final String type;           // Ptype
-  final String design;         // PDesign
-  final String finish;         // PFinish
+  final String type;           // Ptype / ProductType
+  final String design;         // PDesign / Design
+  final String finish;         // PFinish / Finish
   
-  // Additional fields that might be in the API or useful for display
+  // Detailed fields from GetAllStockDetailedSummary API
+  final String container;      // Container (e.g., "AS-16")
+  final String crateNo;        // CrateNo (e.g., "15")
+  final String weight;         // Weight in lbs
+  final String status;         // Status (e.g., "In-Stock")
+  final String sublocation;    // SublocationName (e.g., "Warehouse")
+  final String comments;       // Comments
+  final int stockId;           // StockId
+  final int locationId;        // Locid
+  final bool hasComments;      // Hascomments
+  
+  // Additional fields that might be useful for display
   final String length;
   final String width;
   final String height;
-  final String weight;
-  final String status;
   final String lastUpdated;
   final String notes;
   
@@ -99,11 +108,18 @@ class InventoryItem {
     this.type = '',
     this.design = '',
     this.finish = '',
+    this.container = '',
+    this.crateNo = '',
+    this.weight = '',
+    this.status = '',
+    this.sublocation = '',
+    this.comments = '',
+    this.stockId = 0,
+    this.locationId = 0,
+    this.hasComments = false,
     this.length = '',
     this.width = '',
     this.height = '',
-    this.weight = '',
-    this.status = '',
     this.lastUpdated = '',
     this.notes = '',
   });
@@ -139,23 +155,50 @@ class InventoryItem {
       final idStr = getField(['EndProductId', 'ProductId', 'product_id']);
       return int.tryParse(idStr) ?? 0;
     }
+    
+    // Parse stock ID as integer
+    int getStockId() {
+      final idStr = getField(['StockId', 'stock_id']);
+      return int.tryParse(idStr) ?? 0;
+    }
+    
+    // Parse location ID as integer
+    int getLocationId() {
+      final idStr = getField(['Locid', 'LocationId', 'location_id']);
+      return int.tryParse(idStr) ?? 0;
+    }
+    
+    // Parse boolean fields
+    bool getHasComments() {
+      final value = json['Hascomments'] ?? json['hasComments'] ?? json['has_comments'];
+      if (value is bool) return value;
+      if (value is String) return value.toLowerCase() == 'true';
+      return false;
+    }
 
     return InventoryItem(
       code: getField(['EndProductCode', 'code']),
       description: getField(['EndProductDescription', 'description']),
-      color: getField(['PColor', 'color']),
+      color: getField(['PColor', 'Color', 'color']),
       size: getField(['Size', 'size']),
-      location: getField(['Locationname', 'Location', 'LocName', 'location']),
+      location: getField(['Locationname', 'LocationName', 'Location', 'LocName', 'location']),
       quantity: getQuantity(),
       productId: getProductId(),
-      type: getField(['Ptype', 'Type', 'type']),
+      type: getField(['Ptype', 'ProductType', 'Type', 'type']),
       design: getField(['PDesign', 'Design', 'design']),
       finish: getField(['PFinish', 'Finish', 'finish']),
+      container: getField(['Container', 'container']),
+      crateNo: getField(['CrateNo', 'CrateNumber', 'crate_no', 'crate_number']),
+      weight: getField(['Weight', 'weight']),
+      status: getField(['Status', 'status']),
+      sublocation: getField(['SublocationName', 'Sublocation', 'sublocation']),
+      comments: getField(['Comments', 'comments']),
+      stockId: getStockId(),
+      locationId: getLocationId(),
+      hasComments: getHasComments(),
       length: getField(['Length', 'length']),
       width: getField(['Width', 'width']),
       height: getField(['Height', 'height']),
-      weight: getField(['Weight', 'weight']),
-      status: getField(['Status', 'status']),
       lastUpdated: getField(['LastUpdated', 'last_updated', 'updated_at']),
       notes: getField(['Notes', 'notes', 'additional_info']),
     );
