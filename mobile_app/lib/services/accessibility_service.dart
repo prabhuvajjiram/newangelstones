@@ -3,7 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter/semantics.dart';
 
 class AccessibilityService {
-  static const AccessibilityService _instance = AccessibilityService._internal();
+  static const AccessibilityService _instance =
+      AccessibilityService._internal();
   factory AccessibilityService() => _instance;
   const AccessibilityService._internal();
 
@@ -14,14 +15,9 @@ class AccessibilityService {
 
   /// Announces text to screen readers
   static void announce(BuildContext context, String message) {
-    // Use the non-deprecated sendAnnouncement API introduced in Flutter 3.35+
-    // Get the FlutterView for the current context
-    final view = View.of(context);
-    SemanticsService.sendAnnouncement(
-      view,
+    SemanticsService.announce(
       message,
       TextDirection.ltr,
-      assertiveness: Assertiveness.polite,
     );
   }
 
@@ -46,18 +42,21 @@ class AccessibilityService {
   }
 
   /// Creates semantic labels for navigation items
-  static String getNavigationSemanticLabel(String destination, {bool isSelected = false}) {
+  static String getNavigationSemanticLabel(String destination,
+      {bool isSelected = false}) {
     final status = isSelected ? 'selected' : 'not selected';
     return '$destination tab, $status';
   }
 
   /// Creates semantic labels for inventory items
-  static String getInventorySemanticLabel(String type, String color, String location, int quantity) {
+  static String getInventorySemanticLabel(
+      String type, String color, String location, int quantity) {
     return '$type in $color color, located at $location, quantity $quantity';
   }
 
   /// Creates semantic labels for search results
-  static String getSearchResultSemanticLabel(String title, String type, {int? count}) {
+  static String getSearchResultSemanticLabel(String title, String type,
+      {int? count}) {
     if (count != null) {
       return '$title, $type, $count items';
     }
