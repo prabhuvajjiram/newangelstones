@@ -14,7 +14,8 @@ class AccessibilityService {
 
   /// Announces text to screen readers
   static void announce(BuildContext context, String message) {
-    // Use MediaQuery to get the FlutterView for the current context
+    // Use the non-deprecated sendAnnouncement API introduced in Flutter 3.35+
+    // Get the FlutterView for the current context
     final view = View.of(context);
     SemanticsService.sendAnnouncement(
       view,
