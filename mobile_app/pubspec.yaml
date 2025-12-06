@@ -70,14 +70,21 @@ flutter_launcher_icons:
 
 flutter_native_splash:
   color: "#121212"
-  # Remove image to show only background color - faster transition
+  image: assets/splash_logo.png
   android: true
   ios: true
   web: true
   color_dark: "#121212"
-  # Minimal Android 12+ splash - no branding to prevent double logos
+  image_dark: assets/splash_logo.png
+  # Centered logo display
+  android_gravity: center
+  ios_content_mode: center
+  fullscreen: true
+  # Android 12+ - simple centered logo only
   android_12:
+    image: assets/splash_logo.png
     icon_background_color: "#121212"
+    image_dark: assets/splash_logo.png
 
 flutter:
   uses-material-design: true
