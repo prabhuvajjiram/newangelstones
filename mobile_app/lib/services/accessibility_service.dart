@@ -15,10 +15,21 @@ class AccessibilityService {
 
   /// Announces text to screen readers
   static void announce(BuildContext context, String message) {
-    SemanticsService.announce(
-      message,
-      TextDirection.ltr,
-    );
+    // Use the modern sendAnnouncement API if available (Flutter 3.35+)
+    // Falls back gracefully if the API doesn't exist yet
+    try {
+      final view = View.of(context);
+      SemanticsService.sendAnnouncement(
+        view,
+        message,
+        TextDirection.ltr,
+        assertiveness: Assertiveness.polite,
+      );
+    } catch (e) {
+      // Fallback for older Flutter versions or if View is not available
+      // ignore: deprecated_member_use
+      SemanticsService.announce(message, TextDirection.ltr);
+    }
   }
 
   /// Creates semantic labels for images
