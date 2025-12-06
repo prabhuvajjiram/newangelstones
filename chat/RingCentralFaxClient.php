@@ -281,6 +281,9 @@ class RingCentralFaxClient {
                 $fileContent = $file['content'];
                 $mimeType = $file['type'] ?? 'application/pdf';
                 
+                // Auto-decode base64 content if needed (backward compatible)
+                $fileContent = $this->decodeContentIfNeeded($fileContent);
+                
                 $body .= "--$boundary\r\n";
                 $body .= "Content-Disposition: form-data; name=\"attachment\"; filename=\"$fileName\"\r\n";
                 $body .= "Content-Type: $mimeType\r\n\r\n";
@@ -339,5 +342,51 @@ class RingCentralFaxClient {
                 'http_code' => $httpCode
             ];
         }
+    }
+    
+    /**
+     * Decode content if it's base64 encoded (backward compatible)
+     * 
+     * Detects if content is base64 and decodes it automatically.
+     * If content is already binary, returns it as-is.
+     * 
+     * @param string $content Content to decode
+     * @return string Decoded content or original if not base64
+     */
+    private function decodeContentIfNeeded($content) {
+        // Empty content - return as-is
+        if (empty($content)) {
+            return $content;
+        }
+        
+        // Check if content looks like base64:
+        // - Contains only valid base64 characters (A-Z, a-z, 0-9, +, /, =)
+        // - Length is multiple of 4 (with padding)
+        // - No binary characters that would indicate it's already decoded
+        
+        // If content has null bytes or other binary characters, it's already decoded
+        if (strpos($content, "\0") !== false) {
+            return $content; // Already binary
+        }
+        
+        // Check if it's valid base64 string
+        $isBase64 = preg_match('/^[A-Za-z0-9+\/]+={0,2}$/', $content);
+        
+        if ($isBase64 && strlen($content) % 4 === 0) {
+            // Try to decode
+            $decoded = base64_decode($content, true);
+            
+            // Verify it decoded successfully
+            if ($decoded !== false) {
+                // Additional check: re-encode and compare to ensure it was actually base64
+                if (base64_encode($decoded) === $content) {
+                    $this->log("Detected and decoded base64 content (" . strlen($content) . " -> " . strlen($decoded) . " bytes)");
+                    return $decoded;
+                }
+            }
+        }
+        
+        // Not base64 or decode failed - return original
+        return $content;
     }
 }

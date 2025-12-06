@@ -178,13 +178,22 @@ class RingCentralFaxClient {
             
             $toFax = is_array($params['to']) ? $params['to'][0] : $params['to'];
             
+            // Calculate page count from attachments or attachment_data
+            $pageCount = 1; // Cover page
+            if (isset($params['attachments'])) {
+                $pageCount += count($params['attachments']);
+            }
+            if (isset($params['attachment_data'])) {
+                $pageCount += count($params['attachment_data']);
+            }
+            
             $coverOptions = [
                 'to_name' => $params['to_name'] ?? '',
                 'to_company' => $params['to_company'] ?? '',
                 'to_fax' => $toFax,
                 'from_name' => $params['from_name'] ?? 'Angel Granites',
                 'message' => $params['coverPageText'] ?? '',
-                'pages' => (isset($params['attachments']) ? count($params['attachments']) : 0) + 1,
+                'pages' => $pageCount,
                 'urgent' => $params['urgent'] ?? false,
                 'confidential' => $params['confidential'] ?? false
             ];
@@ -193,10 +202,22 @@ class RingCentralFaxClient {
                 $coverPath = AngelGraniteCoverPage::generate($coverOptions);
                 
                 // Add cover page as first attachment
-                if (!isset($params['attachments'])) {
-                    $params['attachments'] = [];
+                // Check if using attachments (file paths) or attachment_data (multipart uploads)
+                if (isset($params['attachment_data'])) {
+                    // Multipart upload - add cover page to attachment_data
+                    $coverContent = file_get_contents($coverPath);
+                    array_unshift($params['attachment_data'], [
+                        'name' => basename($coverPath),
+                        'content' => $coverContent,
+                        'type' => 'application/pdf'
+                    ]);
+                } else {
+                    // File path upload - add to attachments array
+                    if (!isset($params['attachments'])) {
+                        $params['attachments'] = [];
+                    }
+                    array_unshift($params['attachments'], $coverPath);
                 }
-                array_unshift($params['attachments'], $coverPath);
                 
                 // Remove coverIndex and coverPageText since we're using custom cover
                 unset($params['coverIndex']);
@@ -272,6 +293,9 @@ class RingCentralFaxClient {
                 $fileName = $file['name'] ?? 'document.pdf';
                 $fileContent = $file['content'] ?? '';
                 $mimeType = $file['type'] ?? 'application/pdf';
+                
+                // Auto-decode base64 content if needed (backward compatible)
+                $fileContent = $this->decodeContentIfNeeded($fileContent);
                 
                 $body .= "--{$boundary}\r\n";
                 $body .= "Content-Disposition: form-data; name=\"attachment\"; filename=\"{$fileName}\"\r\n";
@@ -380,6 +404,52 @@ class RingCentralFaxClient {
                 'http_code' => $httpCode
             ];
         }
+    }
+    
+    /**
+     * Decode content if it's base64 encoded (backward compatible)
+     * 
+     * Detects if content is base64 and decodes it automatically.
+     * If content is already binary, returns it as-is.
+     * 
+     * @param string $content Content to decode
+     * @return string Decoded content or original if not base64
+     */
+    private function decodeContentIfNeeded($content) {
+        // Empty content - return as-is
+        if (empty($content)) {
+            return $content;
+        }
+        
+        // Check if content looks like base64:
+        // - Contains only valid base64 characters (A-Z, a-z, 0-9, +, /, =)
+        // - Length is multiple of 4 (with padding)
+        // - No binary characters that would indicate it's already decoded
+        
+        // If content has null bytes or other binary characters, it's already decoded
+        if (strpos($content, "\0") !== false) {
+            return $content; // Already binary
+        }
+        
+        // Check if it's valid base64 string
+        $isBase64 = preg_match('/^[A-Za-z0-9+\/]+={0,2}$/', $content);
+        
+        if ($isBase64 && strlen($content) % 4 === 0) {
+            // Try to decode
+            $decoded = base64_decode($content, true);
+            
+            // Verify it decoded successfully
+            if ($decoded !== false) {
+                // Additional check: re-encode and compare to ensure it was actually base64
+                if (base64_encode($decoded) === $content) {
+                    $this->log("Detected and decoded base64 content (" . strlen($content) . " -> " . strlen($decoded) . " bytes)");
+                    return $decoded;
+                }
+            }
+        }
+        
+        // Not base64 or decode failed - return original
+        return $content;
     }
     
     /**
@@ -501,8 +571,26 @@ if (basename($_SERVER['SCRIPT_FILENAME']) === basename(__FILE__)) {
                 'coverPageText' => $_POST['coverPageText'] ?? '',
             ];
             
+            // Handle coverIndex - keep as string to allow 'custom'
             if (isset($_POST['coverIndex'])) {
-                $params['coverIndex'] = (int)$_POST['coverIndex'];
+                $params['coverIndex'] = $_POST['coverIndex'];
+            }
+            
+            // Add custom cover page parameters if provided
+            if (isset($_POST['to_name'])) {
+                $params['to_name'] = $_POST['to_name'];
+            }
+            if (isset($_POST['to_company'])) {
+                $params['to_company'] = $_POST['to_company'];
+            }
+            if (isset($_POST['from_name'])) {
+                $params['from_name'] = $_POST['from_name'];
+            }
+            if (isset($_POST['urgent'])) {
+                $params['urgent'] = filter_var($_POST['urgent'], FILTER_VALIDATE_BOOLEAN);
+            }
+            if (isset($_POST['confidential'])) {
+                $params['confidential'] = filter_var($_POST['confidential'], FILTER_VALIDATE_BOOLEAN);
             }
             
             // Handle uploaded files
