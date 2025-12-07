@@ -11,14 +11,30 @@ class ProductSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get screen width for responsive sizing
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 375;
+    
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: EdgeInsets.symmetric(
+        horizontal: isSmallScreen ? 8.0 : 12.0,
+        vertical: 8.0,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: isSmallScreen ? 16 : 18,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
           FutureBuilder<List<Product>>(
             future: future,
             builder: (context, snapshot) {
@@ -36,9 +52,14 @@ class ProductSection extends StatelessWidget {
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.75,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  // 3 columns for portrait, more for landscape
+                  crossAxisCount: MediaQuery.of(context).orientation == Orientation.portrait ? 3 : 4,
+                  // Adjusted for better proportions
+                  childAspectRatio: 0.68,
+                  // Tighter spacing
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
                 ),
                 itemCount: products.length,
                 itemBuilder: (context, index) {

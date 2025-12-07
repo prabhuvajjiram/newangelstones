@@ -269,53 +269,69 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
         },
         child: _pages[_currentIndex],
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
-          ),
-          child: BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
-            elevation: 8,
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: AppTheme.cardColor,
-            selectedItemColor: AppTheme.accentColor,
-            unselectedItemColor: AppTheme.textSecondary,
-            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
-            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 11),
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.color_lens),
-                label: 'Colors',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.inventory),
-                label: 'Inventory',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.contact_page),
-                label: 'Contact',
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 8,
+                offset: const Offset(0, -1),
               ),
             ],
+          ),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+            child: BottomNavigationBar(
+              currentIndex: _currentIndex,
+              onTap: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+              elevation: 0,
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: AppTheme.cardColor,
+              selectedItemColor: AppTheme.accentColor,
+              unselectedItemColor: AppTheme.textSecondary,
+              // Compact font sizes for portrait mode
+              selectedLabelStyle: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 11,
+                letterSpacing: 0.3,
+              ),
+              unselectedLabelStyle: const TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 10,
+                letterSpacing: 0.2,
+              ),
+              // Reduced icon size for better proportion
+              iconSize: 22,
+              // Compact spacing
+              selectedFontSize: 11,
+              unselectedFontSize: 10,
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home_rounded),
+                  label: 'Home',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.palette_rounded),
+                  label: 'Colors',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.inventory_2_rounded),
+                  label: 'Stock',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.contact_page_rounded),
+                  label: 'Contact',
+                ),
+              ],
+            ),
           ),
         ),
       ),

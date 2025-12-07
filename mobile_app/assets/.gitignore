@@ -1,0 +1,13 @@
+# Ignore duplicate files created by macOS
+* 2.*
+* 3.*
+* 4.*
+* 5.*
+
+# Ignore macOS metadata
+.DS_Store
+.metadata_never_index
+
+# Ignore temporary files
+*.tmp
+*.temp

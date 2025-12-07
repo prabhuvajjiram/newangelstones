@@ -11,18 +11,35 @@ class FlyerSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 375;
+    
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: EdgeInsets.symmetric(
+        horizontal: isSmallScreen ? 6.0 : 8.0,
+        vertical: 6.0,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
+          if (title.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 16 : 17,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ),
+          if (title.isNotEmpty) const SizedBox(height: 10),
           FutureBuilder<List<Product>>(
             future: future,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return SkeletonLoaders.productGrid(itemCount: 2);
+                return SkeletonLoaders.productGrid(itemCount: 6);
               } else if (snapshot.hasError) {
                 return Text('Error: ${snapshot.error}');
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -32,9 +49,12 @@ class FlyerSection extends StatelessWidget {
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.75,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  // 3 columns portrait, 4 landscape for flyers too
+                  crossAxisCount: MediaQuery.of(context).orientation == Orientation.portrait ? 3 : 4,
+                  childAspectRatio: 0.68,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
                 ),
                 itemCount: flyers.length,
                 itemBuilder: (context, index) {
@@ -49,6 +69,12 @@ class FlyerSection extends StatelessWidget {
                       );
                     },
                     child: Card(
+                      margin: EdgeInsets.zero,
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      clipBehavior: Clip.antiAlias,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -56,20 +82,33 @@ class FlyerSection extends StatelessWidget {
                             child: CachedNetworkImage(
                               imageUrl: flyer.imageUrl,
                               fit: BoxFit.cover,
-                              memCacheWidth: 400,
+                              memCacheWidth: 300,
                               memCacheHeight: 300,
                               placeholder: (context, url) => SkeletonLoaders.productCard(height: double.infinity),
                               errorWidget: (context, url, error) => Container(
                                 color: Colors.grey.shade200,
-                                child: const Icon(Icons.broken_image, color: Colors.grey),
+                                child: const Icon(Icons.broken_image, size: 32, color: Colors.grey),
                               ),
                               fadeInDuration: const Duration(milliseconds: 200),
                               fadeOutDuration: const Duration(milliseconds: 100),
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(flyer.name, style: const TextStyle(fontSize: 16)),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6.0,
+                              vertical: 6.0,
+                            ),
+                            child: Text(
+                              flyer.name,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.2,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ],
                       ),

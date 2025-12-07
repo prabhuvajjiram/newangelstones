@@ -7,6 +7,8 @@ import 'package:map_launcher/map_launcher.dart';
 import '../theme/app_theme.dart';
 import '../services/mautic_service.dart';
 import '../config/security_config.dart';
+import 'webview_screen.dart';
+import 'asset_sync_screen.dart';
 
 class ContactScreen extends StatefulWidget {
   const ContactScreen({super.key});
@@ -340,11 +342,11 @@ class _ContactScreenState extends State<ContactScreen> {
     VoidCallback? onTap,
   }) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      elevation: 4,
+      elevation: 2,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -354,24 +356,24 @@ class _ContactScreenState extends State<ContactScreen> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 6,
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
             ],
           ),
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: AppTheme.accentColor.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: AppTheme.accentColor, size: 24),
+                child: Icon(icon, color: AppTheme.accentColor, size: 20),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -381,16 +383,16 @@ class _ContactScreenState extends State<ContactScreen> {
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: AppTheme.accentColor,
                             fontWeight: FontWeight.w700,
-                            fontSize: 16,
+                            fontSize: 14,
                           ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 3),
                     Text(
                       subtitle,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Colors.white.withValues(alpha: 0.9),
-                            fontSize: 14,
-                            height: 1.4,
+                            fontSize: 12,
+                            height: 1.3,
                           ),
                     ),
                   ],
@@ -398,7 +400,7 @@ class _ContactScreenState extends State<ContactScreen> {
               ),
               Icon(Icons.chevron_right, 
                 color: AppTheme.accentColor.withValues(alpha: 0.7),
-                size: 24,
+                size: 20,
               ),
             ],
           ),
@@ -416,9 +418,9 @@ class _ContactScreenState extends State<ContactScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
+            // Header - Compact
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -436,13 +438,18 @@ class _ContactScreenState extends State<ContactScreen> {
                     header: true,
                     child: Text(
                       'Get in Touch',
-                      style: Theme.of(context).textTheme.displayLarge,
+                      style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   Text(
-                    'We create beautiful, lasting memorials that honor your loved ones.',
-                    style: Theme.of(context).textTheme.bodyLarge,
+                    'We create beautiful, lasting memorials',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontSize: 13,
+                    ),
                   ),
                 ],
               ),
@@ -450,7 +457,7 @@ class _ContactScreenState extends State<ContactScreen> {
             
             // Contact Methods
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
               child: Column(
                 children: [
                   _buildContactCard(
@@ -480,8 +487,32 @@ class _ContactScreenState extends State<ContactScreen> {
                     title: 'Pay Invoice',
                     subtitle: 'Make a secure payment online',
                     onTap: _paymentUrl != null 
-                        ? () => _launchUrl(_paymentUrl!, context)
+                        ? () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => WebViewScreen(
+                                  url: _paymentUrl!,
+                                  title: 'Payment',
+                                ),
+                              ),
+                            );
+                          }
                         : null,
+                  ),
+                  _buildContactCard(
+                    context: context,
+                    icon: Icons.sync,
+                    title: 'Asset Sync',
+                    subtitle: 'Manage bundled and downloaded images',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AssetSyncScreen(),
+                        ),
+                      );
+                    },
                   ),
                   _buildContactCard(
                     context: context,
@@ -496,15 +527,18 @@ class _ContactScreenState extends State<ContactScreen> {
 
             // Locations Section
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Our Locations',
-                    style: Theme.of(context).textTheme.displayMedium,
+                    style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   ..._buildStaggeredLocations(),
                 ],
               ),
@@ -512,22 +546,25 @@ class _ContactScreenState extends State<ContactScreen> {
             
             // Contact Form Section
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Send us a Message',
-                    style: Theme.of(context).textTheme.displayMedium,
+                    style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   Card(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Container(
                       decoration: AppTheme.cardGradient,
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(12),
                       child: Form(
                         key: _formKey,
                         child: Column(
@@ -553,10 +590,10 @@ class _ContactScreenState extends State<ContactScreen> {
                                 ),
                                 filled: true,
                                 fillColor: Colors.grey.shade900,
-                                labelStyle: const TextStyle(color: AppTheme.textSecondary, fontSize: 15),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                labelStyle: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                               ),
-                              style: const TextStyle(color: Colors.white, fontSize: 16),
+                              style: const TextStyle(color: Colors.white, fontSize: 14),
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
                                   return 'Please enter your name';
@@ -570,7 +607,7 @@ class _ContactScreenState extends State<ContactScreen> {
                                 FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')), // Only letters and spaces
                               ],
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
                             
                             // Email field
                             TextFormField(
@@ -592,10 +629,10 @@ class _ContactScreenState extends State<ContactScreen> {
                                 ),
                                 filled: true,
                                 fillColor: Colors.grey.shade900,
-                                labelStyle: const TextStyle(color: AppTheme.textSecondary, fontSize: 15),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                labelStyle: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                               ),
-                              style: const TextStyle(color: Colors.white, fontSize: 16),
+                              style: const TextStyle(color: Colors.white, fontSize: 14),
                               keyboardType: TextInputType.emailAddress,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
@@ -607,7 +644,7 @@ class _ContactScreenState extends State<ContactScreen> {
                                 return null;
                               },
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
                             
                             // Phone field
                             TextFormField(
@@ -629,11 +666,11 @@ class _ContactScreenState extends State<ContactScreen> {
                                 ),
                                 filled: true,
                                 fillColor: Colors.grey.shade900,
-                                labelStyle: const TextStyle(color: AppTheme.textSecondary, fontSize: 15),
-                                hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                labelStyle: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                                hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                               ),
-                              style: const TextStyle(color: Colors.white, fontSize: 16),
+                              style: const TextStyle(color: Colors.white, fontSize: 14),
                               keyboardType: TextInputType.phone,
                               validator: (value) {
                                 if (value != null && value.isNotEmpty && !_isValidPhone(value)) {
@@ -646,7 +683,7 @@ class _ContactScreenState extends State<ContactScreen> {
                                 LengthLimitingTextInputFormatter(15),
                               ],
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
                             
                             // Message field
                             TextFormField(
@@ -672,12 +709,12 @@ class _ContactScreenState extends State<ContactScreen> {
                                 ),
                                 filled: true,
                                 fillColor: Colors.grey.shade900,
-                                labelStyle: const TextStyle(color: AppTheme.textSecondary, fontSize: 15),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                labelStyle: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                               ),
-                              style: const TextStyle(color: Colors.white, fontSize: 16),
+                              style: const TextStyle(color: Colors.white, fontSize: 14),
                               textAlignVertical: TextAlignVertical.top,
-                              maxLines: 5,
+                              maxLines: 4,
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
                                   return 'Please enter your message';
@@ -688,7 +725,7 @@ class _ContactScreenState extends State<ContactScreen> {
                                 return null;
                               },
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 16),
                             
                             // Submit button
                             SizedBox(
@@ -696,7 +733,7 @@ class _ContactScreenState extends State<ContactScreen> {
                               child: ElevatedButton(
                                 onPressed: _isSubmitting ? null : _submitForm,
                                 style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 18),
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
                                   backgroundColor: AppTheme.accentColor,
                                   foregroundColor: AppTheme.primaryColor,
                                   shape: RoundedRectangleBorder(
@@ -704,7 +741,7 @@ class _ContactScreenState extends State<ContactScreen> {
                                   ),
                                   elevation: 2,
                                   textStyle: const TextStyle(
-                                    fontSize: 16,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w600,
                                     letterSpacing: 0.5,
                                   ),
@@ -713,8 +750,8 @@ class _ContactScreenState extends State<ContactScreen> {
                                     ? const Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
-                                          SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
-                                          SizedBox(width: 12),
+                                          SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+                                          SizedBox(width: 10),
                                           Text('Sending...'),
                                         ],
                                       )
@@ -726,7 +763,7 @@ class _ContactScreenState extends State<ContactScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 40), // Extra space at bottom
+                  const SizedBox(height: 20), // Extra space at bottom
                 ],
               ),
             ),
@@ -785,7 +822,7 @@ class _ContactScreenState extends State<ContactScreen> {
       
       // Add spacing between cards except after the last one
       if (i < locations.length - 1) {
-        result.add(const SizedBox(height: 12));
+        result.add(const SizedBox(height: 8));
       }
     }
     

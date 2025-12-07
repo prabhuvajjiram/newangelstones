@@ -25,6 +25,10 @@ class OfflineCatalogService {
 
   Future<void> syncCatalog() async {
     await _productDao.clearExpiredCache();
+    
+    // Remove any duplicate image files created by previous syncs
+    await _imageCache.removeDuplicates();
+    
     final online = await connectivityService.isOnline;
     if (!online) {
       _statusController.add(SyncStatus(state: SyncState.error, message: 'Offline'));

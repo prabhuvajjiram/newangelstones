@@ -12,6 +12,11 @@ import '../services/review_prompt_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/skeleton_loaders.dart';
 import '../utils/app_store_utils.dart';
+import '../utils/image_utils.dart';
+
+class NavigationService {
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+}
 
 class HomeScreen extends StatefulWidget {
   final ApiService apiService;
@@ -46,6 +51,9 @@ class _HomeScreenState extends State<HomeScreen> {
     // Track app launch for review prompt
     ReviewPromptService.trackAppLaunch();
     
+    // Initialize hybrid assets and sync new images in background
+    _initializeHybridAssets();
+    
     // Try to fetch featured products from server, fall back to local if needed
     _futureFeatured = widget.apiService.fetchFeaturedProducts();
     _futureInventorySummary =
@@ -55,6 +63,34 @@ class _HomeScreenState extends State<HomeScreen> {
     
     // Schedule review prompt to show after 5 seconds (regardless of screen)
     _scheduleReviewPrompt();
+  }
+
+  /// Initialize hybrid asset system and sync new assets
+  Future<void> _initializeHybridAssets() async {
+    try {
+      await ImageUtils.initialize();
+      
+      // Sync new assets in background (non-blocking)
+      ImageUtils.syncNewAssets().then((newCount) {
+        if (newCount > 0) {
+          debugPrint('✅ Downloaded $newCount new images from server');
+          // Optional: Show a snackbar to user
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Downloaded $newCount new images'),
+                duration: const Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        }
+      }).catchError((e) {
+        debugPrint('⚠️ Error syncing new assets: $e');
+      });
+    } catch (e) {
+      debugPrint('⚠️ Error initializing hybrid assets: $e');
+    }
   }
 
   /// Schedule review prompt to show after 5 seconds using global navigator
@@ -120,9 +156,12 @@ class _HomeScreenState extends State<HomeScreen> {
         physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           children: [
-            // Header with Logo and Welcome
+            // Header with Logo and Welcome - Compact for portrait
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.symmetric(
+                horizontal: MediaQuery.of(context).size.width < 375 ? 16 : 20,
+                vertical: 16,
+              ),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -133,56 +172,50 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
+                  bottomLeft: Radius.circular(24),
+                  bottomRight: Radius.circular(24),
                 ),
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Centered branding content with styled first line
+                  // Centered branding content - more compact
                   Padding(
-                    padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
                     child: Center(
                       child: Column(
                         children: [
                           // First line in gold with italic style
-                          Text(
+                          const Text(
                             'Crafted by Angel Stones',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Color(0xFFFFD700),
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                               fontStyle: FontStyle.italic,
+                              letterSpacing: 0.3,
                             ),
                           ),
-                          Text(
+                          const SizedBox(height: 2),
+                          const Text(
                             'Elevating Granite, Preserving Memories',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: AppTheme.textSecondary,
-                              fontSize: 15,
+                              fontSize: 13,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          SizedBox(height: 12),
+                          const SizedBox(height: 8),
                           Text(
-                            'Discover our handcrafted monuments',
+                            'Discover our handcrafted monuments and timeless memorial stones.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: AppTheme.textSecondary,
-                              fontSize: 14,
+                              color: AppTheme.textSecondary.withValues(alpha: 0.9),
+                              fontSize: 12,
                               fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                          Text(
-                            'and timeless memorial stones.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: AppTheme.textSecondary,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
+                              height: 1.3,
                             ),
                           ),
                       ],
@@ -194,15 +227,15 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             
-            // Main Content
+            // Main Content - Ultra-tight spacing
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Flyers Section
+                  // Flyers Section - Ultra compact
                   Card(
-                    margin: const EdgeInsets.only(bottom: 24),
+                    margin: const EdgeInsets.only(bottom: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -212,13 +245,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Padding(
-                            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+                            padding: EdgeInsets.fromLTRB(12, 12, 12, 4),
                             child: Text(
                               'Current Flyers',
                               style: TextStyle(
-                                fontSize: 20,
+                                fontSize: 17,
                                 fontWeight: FontWeight.bold,
                                 color: AppTheme.textPrimary,
+                                letterSpacing: 0.3,
                               ),
                             ),
                           ),
@@ -231,9 +265,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   
-                  // Featured Products Section
+                  // Featured Products Section - Ultra compact
                   Card(
-                    margin: const EdgeInsets.only(bottom: 24),
+                    margin: const EdgeInsets.only(bottom: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -243,11 +277,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Padding(
-                            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+                            padding: EdgeInsets.fromLTRB(12, 12, 12, 4),
                             child: Text(
                               'Featured Products',
                               style: TextStyle(
-                                fontSize: 20,
+                                fontSize: 17,
                                 fontWeight: FontWeight.bold,
                                 color: AppTheme.textPrimary,
                               ),

@@ -273,6 +273,16 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           showSelectedLabels: true,
           showUnselectedLabels: true,
           type: BottomNavigationBarType.fixed,
+          elevation: 0,
+          // Compact sizing
+          selectedLabelStyle: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+          ),
+          unselectedLabelStyle: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
       routerConfig: routerConfig,

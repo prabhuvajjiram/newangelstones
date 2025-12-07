@@ -3,15 +3,44 @@ import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
 import 'dart:convert';
+import '../services/hybrid_asset_service.dart';
 
 /// Utility class for handling image loading in a consistent way
-/// Prioritizes bundled assets for offline support, falls back to network
+/// Hybrid strategy: bundled assets (instant) + dynamically downloaded (auto-sync new)
 class ImageUtils {
-  // Cache for product manifest
+  static final _hybridService = HybridAssetService();
+  
+  // Cache for product manifest (fallback if hybrid service not initialized)
   static Map<String, dynamic>? _manifestCache;
   static bool _manifestLoaded = false;
 
-  /// Load the product manifest from assets
+  /// Initialize the hybrid asset service
+  static Future<void> initialize() async {
+    await _hybridService.initialize();
+  }
+
+  /// Get image paths from both bundled and downloaded sources
+  static Future<Map<String, String?>> _getHybridImagePaths(String imageUrl) async {
+    await _hybridService.initialize();
+    
+    return {
+      'bundled': _hybridService.getBundledAssetPath(imageUrl),
+      'downloaded': _hybridService.getDownloadedAssetPath(imageUrl),
+    };
+  }
+
+  /// Sync new assets from server in background
+  /// Call this periodically or on app start
+  static Future<int> syncNewAssets() async {
+    return await _hybridService.syncNewAssets();
+  }
+
+  /// Get sync status
+  static Map<String, dynamic> getSyncStatus() {
+    return _hybridService.getSyncStatus();
+  }
+
+  /// Load the product manifest from assets (fallback method)
   static Future<Map<String, dynamic>> _loadManifest() async {
     if (_manifestCache != null) return _manifestCache!;
     
@@ -126,10 +155,10 @@ class ImageUtils {
   /// Creates a widget that displays an image from a URL or asset path
   /// with proper error handling and offline support
   /// 
-  /// Strategy: 
+  /// Hybrid Strategy:
   /// 1. Try bundled asset first (instant, offline-ready)
-  /// 2. Fall back to network with caching (for new images not yet bundled)
-  /// 3. Show error placeholder if both fail
+  /// 2. Try downloaded asset (from previous sync)
+  /// 3. Fall back to network with caching (for brand new images)
   static Widget buildImage({
     required String imageUrl,
     double? width,
@@ -151,12 +180,12 @@ class ImageUtils {
       return defaultErrorWidget;
     }
 
-    // For network images: try bundled asset first, then network with caching
+    // For network images: use hybrid loading strategy
     if (isNetworkImage(imageUrl)) {
-      return FutureBuilder<String?>(
-        future: _findBundledAsset(imageUrl),
+      return FutureBuilder<Map<String, String?>>(
+        future: _getHybridImagePaths(imageUrl),
         builder: (context, snapshot) {
-          // While checking for bundled asset, show placeholder
+          // While checking for assets, show placeholder
           if (snapshot.connectionState == ConnectionState.waiting) {
             return placeholderWidget ??
                 Container(
@@ -164,33 +193,63 @@ class ImageUtils {
                   height: height,
                   color: Colors.grey[200],
                   child: const Center(
-                    child: CircularProgressIndicator(),
+                    child: CircularProgressIndicator(strokeWidth: 2),
                   ),
                 );
           }
-          // If bundled asset found, use it (offline-ready)
-          if (snapshot.hasData && snapshot.data != null) {
+          
+          if (snapshot.hasError) {
+            debugPrint('❌ Error in hybrid image loading: ${snapshot.error}');
+          }
+          
+          final paths = snapshot.data ?? {};
+          final bundledPath = paths['bundled'];
+          final downloadedPath = paths['downloaded'];
+          
+          // Priority 1: Use bundled asset (instant)
+          if (bundledPath != null) {
             return Image.asset(
-              snapshot.data!,
+              bundledPath,
               width: width,
               height: height,
               fit: fit,
               errorBuilder: (context, error, stackTrace) {
                 debugPrint('❌ Error loading bundled asset: $error');
-                // Fall back to network if asset fails and not forcing bundled-only
-                if (!forceBundledOnly) {
-                  return _buildNetworkImage(
-                    imageUrl, width, height, fit,
-                    placeholderWidget, errorWidget ?? defaultErrorWidget,
+                // Try downloaded or network
+                if (downloadedPath != null) {
+                  return Image.file(
+                    File(downloadedPath),
+                    width: width,
+                    height: height,
+                    fit: fit,
+                    errorBuilder: (_, __, ___) => 
+                        _buildNetworkImage(imageUrl, width, height, fit, placeholderWidget, errorWidget ?? defaultErrorWidget),
                   );
+                }
+                return _buildNetworkImage(imageUrl, width, height, fit, placeholderWidget, errorWidget ?? defaultErrorWidget);
+              },
+            );
+          }
+          
+          // Priority 2: Use downloaded asset (from previous sync)
+          if (downloadedPath != null) {
+            return Image.file(
+              File(downloadedPath),
+              width: width,
+              height: height,
+              fit: fit,
+              errorBuilder: (context, error, stackTrace) {
+                debugPrint('❌ Error loading downloaded file: $error');
+                // Fall back to network
+                if (!forceBundledOnly) {
+                  return _buildNetworkImage(imageUrl, width, height, fit, placeholderWidget, errorWidget ?? defaultErrorWidget);
                 }
                 return errorWidget ?? defaultErrorWidget;
               },
             );
           }
           
-          // No bundled asset found
-          // If forcing bundled-only (offline mode), show error
+          // Priority 3: Load from network (will be cached by CachedNetworkImage)
           if (forceBundledOnly) {
             return Container(
               width: width,

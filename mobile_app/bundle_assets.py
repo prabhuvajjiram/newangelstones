@@ -357,15 +357,12 @@ def download_asset(file_info: Dict, output_path: Path, optimize: bool = False) -
         
         # Check if already exists
         if output_path.exists():
-            file_size = output_path.stat().st_size
-            return {
-                "name": file_name,
-                "path": str(output_path),
-                "url": url,
-                "size_bytes": file_size,
-                "size_mb": round(file_size / (1024 * 1024), 2),
-                "skipped": True,
-            }
+            # Force remove to prevent macOS creating "file 2.jpg" duplicates
+            output_path.unlink()
+            print(f"   🗑️  Removed existing: {file_name}")
+        
+        # Ensure parent directory exists
+        output_path.parent.mkdir(parents=True, exist_ok=True)
         
         # Download
         response = requests.get(url, timeout=60, stream=True)
@@ -603,6 +600,7 @@ def update_pubspec_yaml(downloaded: Dict[str, List[Dict]]) -> None:
 def clean_asset_directories():
     """Clean existing asset directories to prevent duplicates."""
     import shutil
+    import os
     
     print("🧹 Cleaning existing assets...")
     
@@ -614,6 +612,26 @@ def clean_asset_directories():
     
     for dir_path in directories_to_clean:
         if dir_path.exists():
+            # First, remove any duplicate files with " 2", " 3", etc.
+            for file in dir_path.glob("**/*"):
+                if file.is_file():
+                    # Check for macOS duplicate pattern: "filename 2.ext"
+                    if " 2." in file.name or " 3." in file.name or " 4." in file.name:
+                        file.unlink()
+                        print(f"   🗑️  Removed duplicate: {file.name}")
+                    # Check for duplicate extensions (.jpg and .jpeg for same file)
+                    elif file.suffix.lower() in ['.jpg', '.jpeg']:
+                        stem = file.stem
+                        parent = file.parent
+                        # Check if both .jpg and .jpeg exist
+                        jpg_file = parent / f"{stem}.jpg"
+                        jpeg_file = parent / f"{stem}.jpeg"
+                        if jpg_file.exists() and jpeg_file.exists():
+                            # Keep .jpg, remove .jpeg
+                            jpeg_file.unlink()
+                            print(f"   🗑️  Removed duplicate extension: {jpeg_file.name}")
+            
+            # Then delete the entire directory
             shutil.rmtree(dir_path)
             print(f"   ✓ Cleaned {dir_path}")
     
@@ -656,6 +674,22 @@ def main():
     
     # Step 3: Generate manifests
     generate_manifests(downloaded)
+    
+    # Step 3.5: Remove any duplicate files that were created during download
+    print("\n🧹 Final duplicate check...")
+    removed_count = 0
+    for asset_dir in [Path("assets/products"), Path("assets/colors")]:
+        if asset_dir.exists():
+            for file in asset_dir.glob("**/*"):
+                if file.is_file() and (" 2." in file.name or " 3." in file.name or " 4." in file.name):
+                    file.unlink()
+                    removed_count += 1
+                    print(f"   🗑️  Removed: {file.name}")
+    
+    if removed_count > 0:
+        print(f"   ✅ Removed {removed_count} duplicate files")
+    else:
+        print(f"   ✅ No duplicates found")
     
     # Step 4: Update pubspec.yaml
     update_pubspec_yaml(downloaded)

@@ -218,7 +218,58 @@ class ApiService {
       }
     } catch (e) {
       debugPrint('⚠️ Error fetching product images: $e');
-      // Return empty list instead of throwing to prevent app crashes
+      
+      // Try to load from offline cache as fallback
+      if (_storageService != null) {
+        try {
+          await _storageService!.initialize();
+          final cachedProducts = await _storageService!.loadProducts();
+          
+          if (cachedProducts.isNotEmpty) {
+            debugPrint('📦 Loading from offline cache (${cachedProducts.length} products available)');
+            
+            // Filter products by category (category name is part of the description or ID)
+            final categoryProducts = cachedProducts.where((product) {
+              // Check if product description contains the category name
+              final matchesCategory = product.description.toLowerCase().contains(category.toLowerCase());
+              if (matchesCategory) {
+                debugPrint('  ✓ Found cached product: ${product.id} from $category');
+              }
+              return matchesCategory;
+            }).toList();
+            
+            if (categoryProducts.isNotEmpty) {
+              // Convert Product objects to ProductImage objects
+              final productImages = categoryProducts.map((product) => ProductImage(
+                    imageUrl: product.imageUrl,
+                    productCode: product.id,
+                  )).toList();
+              
+              debugPrint('✅ Loaded ${productImages.length} product images from offline cache for $category');
+              
+              // Cache in memory for subsequent requests
+              _productImageCache[category] = CacheEntry(productImages);
+              
+              // If searching, filter the results
+              if (isSearching) {
+                debugPrint('🔍 Filtering cached products for query: "$searchQuery"');
+                return _filterProductImages(productImages, normalizedSearchQuery);
+              }
+              
+              return productImages;
+            } else {
+              debugPrint('⚠️ No cached products found for category: $category');
+            }
+          } else {
+            debugPrint('⚠️ Offline cache is empty');
+          }
+        } catch (storageError) {
+          debugPrint('⚠️ Error loading from offline cache: $storageError');
+        }
+      }
+      
+      // Return empty list if offline cache also fails
+      debugPrint('❌ No data available - returning empty list');
       return [];
     }
   }
