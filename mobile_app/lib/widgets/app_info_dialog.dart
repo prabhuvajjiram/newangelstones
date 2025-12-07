@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import '../config/app_config.dart';
+import '../services/review_prompt_service.dart';
 import '../utils/app_store_utils.dart';
 
 class AppInfoDialog extends StatefulWidget {
@@ -168,7 +169,7 @@ class _AppInfoDialogState extends State<AppInfoDialog> {
                   child: OutlinedButton(
                     onPressed: () {
                       Navigator.of(context).pop();
-                      AppStoreUtils.showRateAppDialog(context);
+                      ReviewPromptService.openAppStore();
                     },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: AppTheme.accentColor),

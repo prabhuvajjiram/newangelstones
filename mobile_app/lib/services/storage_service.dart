@@ -10,7 +10,7 @@ class StorageService {
   static const Duration ttl = Duration(hours: 24);
   bool _isInitialized = false;
   
-  // Configure FlutterSecureStorage with iOS-specific options
+  // Configure FlutterSecureStorage with platform-specific options
   final _storage = const FlutterSecureStorage(
     iOptions: IOSOptions(
       accessibility: KeychainAccessibility.first_unlock_this_device,
@@ -18,6 +18,7 @@ class StorageService {
     ),
     aOptions: AndroidOptions(
       encryptedSharedPreferences: true,
+      resetOnError: true, // Auto-recover from encryption errors
     ),
   );
   
@@ -26,23 +27,20 @@ class StorageService {
     if (_isInitialized) return;
     
     try {
-      debugPrint('🔄 Starting StorageService initialization...');
-      
-      // Test FlutterSecureStorage access with longer timeout for iOS
-      debugPrint('📝 Testing secure storage write...');
+      // Test FlutterSecureStorage access with timeout
       await _storage.write(key: 'init_test', value: 'ok')
-          .timeout(const Duration(seconds: 15), 
+          .timeout(const Duration(seconds: 10), 
           onTimeout: () {
-            debugPrint('⏰ FlutterSecureStorage write timeout after 15 seconds');
             throw TimeoutException('FlutterSecureStorage write timed out');
           });
       
-      debugPrint('📖 Testing secure storage read...');
+      // Add small delay for Android to ensure write is flushed
+      await Future.delayed(const Duration(milliseconds: 100));
+      
       // Verify we can read
       final testValue = await _storage.read(key: 'init_test')
           .timeout(const Duration(seconds: 10),
           onTimeout: () {
-            debugPrint('⏰ FlutterSecureStorage read timeout after 10 seconds');
             throw TimeoutException('FlutterSecureStorage read timed out');
           });
       
@@ -54,9 +52,7 @@ class StorageService {
       await _storage.delete(key: 'init_test');
       
       _isInitialized = true;
-      debugPrint('✅ StorageService initialized successfully');
     } catch (e) {
-      debugPrint('⚠️ StorageService initialization error: $e');
       // Continue without storage - app will work with reduced functionality
       _isInitialized = true;
       debugPrint('⚠️ Continuing without secure storage - using in-memory cache only');

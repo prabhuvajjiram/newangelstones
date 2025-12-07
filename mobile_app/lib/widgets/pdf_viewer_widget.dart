@@ -1,8 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:pdfx/pdfx.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:http/http.dart' as http;
+import '../utils/pdf_utils.dart';
 
 class PdfViewerWidget extends StatefulWidget {
   final String pdfUrl;
@@ -25,43 +23,32 @@ class _PdfViewerWidgetState extends State<PdfViewerWidget> {
   @override
   void initState() {
     super.initState();
-    _downloadAndLoadPdf();
+    _loadPdf();
   }
 
-  Future<void> _downloadAndLoadPdf() async {
+  Future<void> _loadPdf() async {
     try {
       setState(() {
         isLoading = true;
         errorMessage = null;
       });
 
-      // Get the application documents directory
-      final dir = await getApplicationDocumentsDirectory();
-      final fileName = widget.pdfUrl.split('/').last;
-      final file = File('${dir.path}/$fileName');
-
-      // Check if file already exists
-      if (!await file.exists()) {
-        // Download the PDF
-        final response = await http.get(Uri.parse(widget.pdfUrl));
-        
-        if (response.statusCode == 200) {
-          await file.writeAsBytes(response.bodyBytes);
-        } else {
-          throw Exception('Failed to download PDF: ${response.statusCode}');
-        }
+      // Use PdfUtils for hybrid loading (bundled + network)
+      final pdfPath = await PdfUtils.getPdfPath(widget.pdfUrl);
+      
+      if (pdfPath == null) {
+        throw Exception('Could not load PDF from bundled assets or network');
       }
 
-      // Initialize the controller here
+      // Initialize PDF controller
       try {
-        // Use File object directly instead of file path string to avoid URI parsing issues
         pdfController = PdfControllerPinch(
-          document: PdfDocument.openFile(file.path),
+          document: PdfDocument.openFile(pdfPath),
         );
         _controllerInitialized = true;
         
         setState(() {
-          localPath = file.path;
+          localPath = pdfPath;
           isLoading = false;
         });
       } catch (e) {
@@ -107,7 +94,7 @@ class _PdfViewerWidgetState extends State<PdfViewerWidget> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _downloadAndLoadPdf,
+              onPressed: _loadPdf,
               child: const Text('Retry'),
             ),
           ],

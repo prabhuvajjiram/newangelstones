@@ -22,9 +22,14 @@ dependencies:
   flutter_native_splash: ^2.4.6
   pdfx: ^2.9.2  # Modern PDF viewer with better maintenance and features
   path_provider: ^2.1.5
+  
+  # Explicitly allow newer transitive dependencies for future-proofing
+  characters: ^1.4.0
+  material_color_utilities: ^0.11.0
   path: ^1.9.1
   sqflite: ^2.4.2
   connectivity_plus: ^7.0.0
+  in_app_review: ^2.0.10  # Native app store review prompt
 
   # Firebase packages - using stable versions
   firebase_storage: ^13.0.2
@@ -89,6 +94,31 @@ flutter_native_splash:
 flutter:
   uses-material-design: true
   assets:
+    - assets/colors/
+    - assets/pdfs/specials/
+    - assets/products/
+    - assets/colors/
+    - assets/pdfs/specials/
+    - assets/products/
+    - assets/colors/
+    - assets/pdfs/specials/
+    - assets/products/
+    - assets/pdfs/specials/
+    - assets/products/
+    - assets/pdfs/specials/
+    - assets/products/
+    - assets/pdfs/specials/
+    - assets/products/
+    - assets/pdfs/specials/
+    - assets/products/
+    - assets/pdfs/specials/
+    - assets/products/
+    - assets/pdfs/specials/
+    - assets/products/
+    - assets/pdfs/specials/
+    - assets/products/
+    - assets/colors/
+    - assets/pdfs/specials/
     - assets/icon/
     - assets/logo.png
     - assets/featured_products.json
@@ -96,6 +126,8 @@ flutter:
     - assets/colors.json
     - assets/specials.json
     - assets/fonts/
+    - assets/product_manifest.json
+    - assets/pdf_manifest.json
   fonts:
     - family: Poppins
       fonts:

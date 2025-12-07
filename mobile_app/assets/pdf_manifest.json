@@ -1,0 +1,43 @@
+{
+  "generated_at": "2025-12-07T06:53:21.814862",
+  "total_pdfs": 4,
+  "total_size_mb": 6.99,
+  "pdfs": [
+    {
+      "name": "Blue_Special_Flyer.pdf",
+      "path": "assets/pdfs/specials/Blue-Special-Flyer.pdf",
+      "url": "https://www.theangelstones.com/images/specials/pdfs/Blue_Special_Flyer.pdf",
+      "size_bytes": 944709,
+      "size_mb": 0.9,
+      "downloaded_at": "2025-12-07T06:53:21.071645",
+      "asset_path": "assets/pdfs/specials/Blue-Special-Flyer.pdf"
+    },
+    {
+      "name": "Convention_special_Flyer.pdf",
+      "path": "assets/pdfs/specials/Convention-special-Flyer.pdf",
+      "url": "https://www.theangelstones.com/images/specials/pdfs/Convention_special_Flyer.pdf",
+      "size_bytes": 2408840,
+      "size_mb": 2.3,
+      "downloaded_at": "2025-12-07T06:53:21.348050",
+      "asset_path": "assets/pdfs/specials/Convention-special-Flyer.pdf"
+    },
+    {
+      "name": "Green_Special_Flyer.pdf",
+      "path": "assets/pdfs/specials/Green-Special-Flyer.pdf",
+      "url": "https://www.theangelstones.com/images/specials/pdfs/Green_Special_Flyer.pdf",
+      "size_bytes": 772260,
+      "size_mb": 0.74,
+      "downloaded_at": "2025-12-07T06:53:21.494074",
+      "asset_path": "assets/pdfs/specials/Green-Special-Flyer.pdf"
+    },
+    {
+      "name": "Special Designs Flyer_4.pdf",
+      "path": "assets/pdfs/specials/Special Designs Flyer-4.pdf",
+      "url": "https://www.theangelstones.com/images/specials/pdfs/Special Designs Flyer_4.pdf",
+      "size_bytes": 3197394,
+      "size_mb": 3.05,
+      "downloaded_at": "2025-12-07T06:53:21.808512",
+      "asset_path": "assets/pdfs/specials/Special Designs Flyer-4.pdf"
+    }
+  ]
+}

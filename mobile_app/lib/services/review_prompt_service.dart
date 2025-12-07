@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../utils/app_store_utils.dart';
+import 'package:in_app_review/in_app_review.dart';
 
 /// Review Prompt Service
 /// 
-/// PRODUCTION MODE: Shows review prompt after 3 launches
-/// Shows prompt 5 seconds after home screen loads, regardless of current screen
+/// PRODUCTION MODE: Shows native review prompt after 3 launches
+/// Uses in_app_review package for native iOS/Android store review dialog
 /// 
 /// To reset review state for testing, call: ReviewPromptService.resetReviewState()
 class ReviewPromptService {
@@ -19,6 +19,8 @@ class ReviewPromptService {
   static final ReviewPromptService _instance = ReviewPromptService._internal();
   factory ReviewPromptService() => _instance;
   ReviewPromptService._internal();
+  
+  static final InAppReview _inAppReview = InAppReview.instance;
 
   /// Track app launches
   static Future<void> trackAppLaunch() async {
@@ -81,85 +83,51 @@ class ReviewPromptService {
   static Future<void> showReviewPromptIfAppropriate(BuildContext context) async {
     if (await shouldShowReviewPrompt()) {
       if (context.mounted) {
-        await _showSmartReviewDialog(context);
+        await _showNativeReviewDialog();
       }
     }
   }
 
-  /// Show the actual review dialog
-  static Future<void> _showSmartReviewDialog(BuildContext context) async {
+  /// Show the native in-app review dialog
+  static Future<void> _showNativeReviewDialog() async {
     const storage = FlutterSecureStorage();
     
-    // Record that we showed the prompt
-    await storage.write(key: _keyLastPrompt, value: DateTime.now().toIso8601String());
-    
-    if (!context.mounted) return;
-    
-    showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-            '⭐ Enjoying Angel Granites?',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          content: const Text(
-            'Your feedback helps us improve and reach more customers who need quality stone solutions. Would you mind rating us?',
-            style: TextStyle(fontSize: 16, height: 1.4),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                // Don't ask again for 30 days
-                await storage.write(key: _keyLastPrompt, 
-                  value: DateTime.now().add(const Duration(days: 23)).toIso8601String());
-              },
-              child: const Text('Maybe Later'),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                // Mark as permanently declined
-                await storage.write(key: _keyUserDeclined, value: 'true');
-              },
-              child: const Text('No Thanks'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                // Mark as rated
-                await storage.write(key: _keyUserRated, value: 'true');
-                // Open app store with error handling
-                try {
-                  await AppStoreUtils.openAppInStore();
-                } catch (e) {
-                  debugPrint('Error opening app store: $e');
-                  // Show a fallback message
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Please search for "Angel Granites" in your app store'),
-                        duration: Duration(seconds: 3),
-                      ),
-                    );
-                  }
-                }
-              },
-              child: const Text('Rate Now ⭐'),
-            ),
-          ],
-        );
-      },
-    );
+    try {
+      // Check if in-app review is available on this device
+      if (await _inAppReview.isAvailable()) {
+        // Record that we showed the prompt
+        await storage.write(key: _keyLastPrompt, value: DateTime.now().toIso8601String());
+        
+        // Request the native review dialog
+        await _inAppReview.requestReview();
+        
+        // Mark as rated (user saw the prompt)
+        await storage.write(key: _keyUserRated, value: 'true');
+        
+        debugPrint('✅ Native review dialog shown successfully');
+      } else {
+        debugPrint('⚠️ In-app review not available on this device');
+        // Fall back to opening the store
+        await _inAppReview.openStoreListing();
+      }
+    } catch (e) {
+      debugPrint('❌ Error showing review dialog: $e');
+      // Don't show error to user, just log it
+    }
   }
 
   /// Manual trigger for testing or specific events
   static Future<void> showReviewDialog(BuildContext context) async {
-    await _showSmartReviewDialog(context);
+    await _showNativeReviewDialog();
+  }
+  
+  /// Open app store directly (for manual "Rate App" buttons)
+  static Future<void> openAppStore() async {
+    try {
+      await _inAppReview.openStoreListing();
+    } catch (e) {
+      debugPrint('❌ Error opening app store: $e');
+    }
   }
 
   /// Reset review prompt state (for testing)
