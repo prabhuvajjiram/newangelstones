@@ -225,7 +225,7 @@ class ApiService {
           await _storageService!.initialize();
           final cachedProducts = await _storageService!.loadProducts();
           
-          if (cachedProducts.isNotEmpty) {
+          if (cachedProducts != null && cachedProducts.isNotEmpty) {
             debugPrint('📦 Loading from offline cache (${cachedProducts.length} products available)');
             
             // Filter products by category (category name is part of the description or ID)
