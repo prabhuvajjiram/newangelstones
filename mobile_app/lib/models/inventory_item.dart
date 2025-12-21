@@ -28,6 +28,27 @@ class InventoryItem {
   final String lastUpdated;
   final String notes;
   
+  // Get design code for image lookup (AG-###, AS-###)
+  String? get designCode {
+    // Check design field first
+    if (design.isNotEmpty) {
+      final match = RegExp(r'\b(AG|AS)-?\d+\b', caseSensitive: false).firstMatch(design);
+      if (match != null) {
+        return match.group(0)!.toUpperCase();
+      }
+    }
+    
+    // Fall back to description field
+    if (description.isNotEmpty) {
+      final match = RegExp(r'\b(AG|AS)-?\d+\b', caseSensitive: false).firstMatch(description);
+      if (match != null) {
+        return match.group(0)!.toUpperCase();
+      }
+    }
+    
+    return null;
+  }
+  
   // Parse size string (e.g., "2-0 x 1-0 x 0-8") to get dimensions in inches
   String get lengthInInches {
     try {

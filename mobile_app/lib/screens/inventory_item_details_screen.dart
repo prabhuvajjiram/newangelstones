@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/inventory_item.dart';
 import '../services/unified_saved_items_service.dart';
 import '../services/inventory_service.dart';
+import '../services/product_image_service.dart';
 import '../state/saved_items_state.dart';
 import '../state/cart_state.dart';
 import '../screens/enhanced_cart_screen.dart';
@@ -25,12 +27,15 @@ class _InventoryItemDetailsScreenState extends State<InventoryItemDetailsScreen>
   bool isSaved = false;
   List<InventoryItem> stoneRecords = [];
   bool isLoadingDetails = false;
+  List<ProductImage> productImages = [];
+  bool isLoadingImages = false;
   
   @override
   void initState() {
     super.initState();
     _checkIfItemIsSaved();
     _loadDetailedInfo();
+    _loadProductImages();
   }
   
   Future<void> _loadDetailedInfo() async {
@@ -45,6 +50,27 @@ class _InventoryItemDetailsScreenState extends State<InventoryItemDetailsScreen>
       setState(() {
         stoneRecords = records;
         isLoadingDetails = false;
+      });
+    }
+  }
+  
+  Future<void> _loadProductImages() async {
+    final designCode = widget.item.designCode;
+    if (designCode == null) {
+      debugPrint('📸 No design code found for item');
+      return;
+    }
+    
+    setState(() {
+      isLoadingImages = true;
+    });
+    
+    final images = await ProductImageService.searchProductImages(designCode);
+    
+    if (mounted) {
+      setState(() {
+        productImages = images;
+        isLoadingImages = false;
       });
     }
   }
@@ -306,6 +332,89 @@ class _InventoryItemDetailsScreenState extends State<InventoryItemDetailsScreen>
                   ),
                 );
               }),
+            ],
+            
+            // Product Images Section
+            if (widget.item.designCode != null) ...[
+              const SizedBox(height: 24),
+              _buildSectionHeader(context, 'Product Images'),
+              const SizedBox(height: 8),
+              if (isLoadingImages)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              else if (productImages.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'No images available for ${widget.item.designCode}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey,
+                    ),
+                  ),
+                )
+              else
+                SizedBox(
+                  height: 200,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: productImages.length,
+                    itemBuilder: (context, index) {
+                      final image = productImages[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 12.0),
+                        child: GestureDetector(
+                          onTap: () async {
+                            final uri = Uri.parse(image.path);
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            }
+                          },
+                          child: Container(
+                            width: 200,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                image.path,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: Colors.grey.shade200,
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.broken_image,
+                                        size: 48,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                loadingBuilder: (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return Center(
+                                    child: CircularProgressIndicator(
+                                      value: loadingProgress.expectedTotalBytes != null
+                                          ? loadingProgress.cumulativeBytesLoaded /
+                                              loadingProgress.expectedTotalBytes!
+                                          : null,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
             ],
             
             // Show loading indicator while fetching details

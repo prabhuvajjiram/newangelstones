@@ -5175,12 +5175,68 @@ document.addEventListener('DOMContentLoaded', function() {
         let searchInputHandler;
         let filterChangeHandler;
         let paginationClickHandler;
+        let escKeyHandler;
 
         // Utility to decode HTML entities
         function decodeHtml(str) {
             const txt = document.createElement('textarea');
             txt.innerHTML = str;
             return txt.value;
+        }
+
+        // Image cache to avoid repeated API calls
+        const imageCache = new Map();
+
+        // Function to extract design code from item (AG-###, AS-###)
+        function extractDesignCode(item) {
+            // Try PDesign field first, then fall back to description
+            const design = item.PDesign || item.pdesign || item.Design || item.design || '';
+            const description = item.EndProductDescription || item.endproductdescription || '';
+            const searchText = design || description;
+            
+            const match = searchText.match(/\b(AG|AS)-?\d+\b/i);
+            return match ? match[0].toUpperCase() : null;
+        }
+
+        // Function to search for product images by design code
+        async function searchProductImages(designCode) {
+            if (!designCode) return [];
+
+            // Check cache first
+            if (imageCache.has(designCode)) {
+                return imageCache.get(designCode);
+            }
+
+            try {
+                const url = `get_directory_files.php?search=${encodeURIComponent(designCode)}`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Image search failed');
+                
+                const data = await response.json();
+                const images = [];
+
+                if (data.success && data.files && Array.isArray(data.files)) {
+                    const seenPaths = new Set();
+                    data.files.forEach(file => {
+                        if (file.path && !seenPaths.has(file.path)) {
+                            seenPaths.add(file.path);
+                            images.push({
+                                path: file.path,
+                                name: file.name || file.fullname || '',
+                                category: file.category || ''
+                            });
+                        }
+                    });
+                }
+
+                // Cache the result (even if empty to avoid repeated failed searches)
+                imageCache.set(designCode, images);
+                return images;
+            } catch (error) {
+                console.error(`Error searching images for ${designCode}:`, error);
+                imageCache.set(designCode, []); // Cache empty result to avoid retry
+                return [];
+            }
         }
         
         // Function to create the modal HTML if it doesn't exist
@@ -5520,45 +5576,46 @@ document.addEventListener('DOMContentLoaded', function() {
                             <thead>
                                 <tr>
                                     <!-- Product Code column hidden per client request -->
+                                    <th style="width: 80px;">Image</th>
                                     <th>Description</th>
                                     <th>
                                         Type
-                                        <select class="form-select form-select-sm column-filter mt-1" id="typeFilter" data-col-index="1">
+                                        <select class="form-select form-select-sm column-filter mt-1" id="typeFilter" data-col-index="2">
                                             <option value="" ${currentPtype === '' ? 'selected' : ''}>All</option>
                                             ${createOptions(productTypes, currentPtype)}
                                         </select>
                                     </th>
                                     <th>
                                         Color
-                                        <select class="form-select form-select-sm column-filter mt-1" id="colorFilter" data-col-index="2">
+                                        <select class="form-select form-select-sm column-filter mt-1" id="colorFilter" data-col-index="3">
                                             <option value="" ${currentPcolor === '' ? 'selected' : ''}>All</option>
                                             ${createOptions(productColors, currentPcolor)}
                                         </select>
                                     </th>
                                     <th>
                                         Design
-                                        <select class="form-select form-select-sm column-filter mt-1" id="designFilter" data-col-index="3">
+                                        <select class="form-select form-select-sm column-filter mt-1" id="designFilter" data-col-index="4">
                                             <option value="" ${currentPdesign === '' ? 'selected' : ''}>All</option>
                                             ${createOptions(productDesigns, currentPdesign)}
                                         </select>
                                     </th>
                                     <th>
                                         Finish
-                                        <select class="form-select form-select-sm column-filter mt-1" id="finishFilter" data-col-index="4">
+                                        <select class="form-select form-select-sm column-filter mt-1" id="finishFilter" data-col-index="5">
                                             <option value="" ${currentPfinish === '' ? 'selected' : ''}>All</option>
                                             ${createOptions(productFinishes, currentPfinish)}
                                         </select>
                                     </th>
                                     <th>
                                         Size
-                                        <select class="form-select form-select-sm column-filter mt-1" id="sizeFilter" data-col-index="5">
+                                        <select class="form-select form-select-sm column-filter mt-1" id="sizeFilter" data-col-index="6">
                                             <option value="" ${currentPsize === '' ? 'selected' : ''}>All</option>
                                             ${createOptions(productSizes, currentPsize)}
                                         </select>
                                     </th>
                                     <th>
                                         Location
-                                        <select class="form-select form-select-sm column-filter mt-1" id="locationFilter" data-col-index="6">
+                                        <select class="form-select form-select-sm column-filter mt-1" id="locationFilter" data-col-index="7">
                                             <option value="" ${currentLocation === '' ? 'selected' : ''}>All</option>
                                             ${createOptions(locations, currentLocation)}
                                         </select>
@@ -5583,10 +5640,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                     
                                     // Create safe JSON string for data attribute
                                     const itemData = JSON.stringify(item).replace(/"/g, '&quot;');
+                                    const designCode = extractDesignCode(item);
 
                                     return `
-                                    <tr class="${highlight.trim()} inventory-row" data-item='${itemData}' style="cursor: pointer;">
+                                    <tr class="${highlight.trim()} inventory-row" data-item='${itemData}' data-design="${designCode || ''}" style="cursor: pointer;">
                                         <!-- Product Code column hidden per client request -->
+                                        <td style="padding: 0.25rem; text-align: center;">
+                                            <div class="inventory-thumbnail" data-design="${designCode || ''}" style="width: 60px; height: 60px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 4px; overflow: hidden;">
+                                                ${designCode ? '<span style="font-size: 0.7rem; color: #999;">Loading...</span>' : ''}
+                                            </div>
+                                        </td>
                                         <td>${getField('EndProductDescription')}</td>
                                         <td>${getField('Ptype')}</td>
                                         <td>${getField('PColor')}</td>
@@ -5621,6 +5684,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 setupKeyboardNavigation();
                 setupNavigationButtons();
                 setupRowClickHandlers();
+                
+                // Load thumbnails after DOM is fully rendered
+                setTimeout(() => loadThumbnails(), 100);
                 
                 // Load Font Awesome if not already loaded
                 if (!document.querySelector('link[href*="font-awesome"]')) {
@@ -5765,6 +5831,69 @@ document.addEventListener('DOMContentLoaded', function() {
                 const badge = document.getElementById('activeBadge');
                 if (badge) badge.style.display = 'none';
             }
+        }
+        
+        // Function to load thumbnails for visible items
+        async function loadThumbnails() {
+            console.log('loadThumbnails() called');
+            const thumbnails = document.querySelectorAll('.inventory-thumbnail[data-design]');
+            console.log(`Found ${thumbnails.length} thumbnail elements`);
+            if (thumbnails.length === 0) {
+                console.warn('No thumbnail elements found in DOM!');
+                return;
+            }
+            
+            console.log(`Loading thumbnails for ${thumbnails.length} items...`);
+            
+            // Collect unique design codes first
+            const designCodes = new Set();
+            thumbnails.forEach(thumb => {
+                const code = thumb.getAttribute('data-design');
+                if (code && !thumb.querySelector('img') && !thumb.hasAttribute('data-loaded')) {
+                    designCodes.add(code);
+                }
+            });
+            
+            console.log(`Found ${designCodes.size} unique design codes:`, Array.from(designCodes).slice(0, 10));
+            
+            // Batch fetch all images first (uses cache)
+            const imagePromises = Array.from(designCodes).map(code => 
+                searchProductImages(code).then(images => ({ code, images }))
+            );
+            
+            const results = await Promise.all(imagePromises);
+            const imageMap = new Map(results.map(r => [r.code, r.images]));
+            
+            // Now update all thumbnails
+            thumbnails.forEach(thumbnail => {
+                const designCode = thumbnail.getAttribute('data-design');
+                if (!designCode || thumbnail.querySelector('img') || thumbnail.hasAttribute('data-loaded')) return;
+                
+                thumbnail.setAttribute('data-loaded', 'true');
+                const images = imageMap.get(designCode) || [];
+                
+                if (images.length > 0) {
+                    const img = document.createElement('img');
+                    img.src = images[0].path;
+                    img.alt = designCode;
+                    img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+                    img.loading = 'lazy'; // Native lazy loading
+                    img.onerror = function() {
+                        console.warn(`Failed to load image: ${images[0].path}`);
+                        this.style.display = 'none';
+                    };
+                    img.onload = function() {
+                        console.log(`✓ Loaded: ${designCode}`);
+                    };
+                    thumbnail.innerHTML = '';
+                    thumbnail.appendChild(img);
+                    console.log(`Created img for ${designCode}: ${images[0].path}`);
+                } else {
+                    thumbnail.innerHTML = '';
+                }
+            });
+            
+            console.log(`Loaded ${imageMap.size} unique design images`);
         }
         
         // Function to set up filter event listeners
@@ -6106,14 +6235,27 @@ document.addEventListener('DOMContentLoaded', function() {
             modal.show();
             
             // Fetch detailed data from API
-            fetch(`inventory-proxy.php?action=getDetails&epcode=${encodeURIComponent(epcode)}`)
-                .then(response => response.json())
+            const apiUrl = `inventory-proxy.php?action=getDetails&epcode=${encodeURIComponent(epcode)}`;
+            console.log('=== FETCHING DETAILS API ===');
+            console.log('API URL:', apiUrl);
+            console.log('Item being fetched:', item);
+            
+            fetch(apiUrl)
+                .then(response => {
+                    console.log('API Response status:', response.status);
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('API Response data:', data);
+                    console.log('Stones count:', data.stones ? data.stones.length : 0);
+                    
                     if (!data.success || !data.stones || data.stones.length === 0) {
+                        console.error('No stones data returned from API');
                         updateModalWithError('No detailed information available for this product.');
                         return;
                     }
                     
+                    console.log('Calling updateModalWithDetails with', data.stones.length, 'stones');
                     // Update modal with detailed information
                     updateModalWithDetails(item, data.stones);
                 })
@@ -6143,15 +6285,27 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Function to update modal with detailed stone information
         function updateModalWithDetails(item, stones) {
+            console.log('\n=== updateModalWithDetails CALLED ===');
+            console.log('Item:', item);
+            console.log('Stones array length:', stones.length);
+            console.log('Stones data:', stones);
+            
             const modalTitle = document.querySelector('#itemDetailModal .modal-title');
             const modalBody = document.querySelector('#itemDetailModal .modal-body');
             
-            if (!modalTitle || !modalBody) return;
+            console.log('modalTitle element:', !!modalTitle);
+            console.log('modalBody element:', !!modalBody);
+            
+            if (!modalTitle || !modalBody) {
+                console.error('Modal elements not found!');
+                return;
+            }
             
             // Debug: Log the first stone to see the structure
             console.log('Stone data structure:', stones[0]);
             
             modalTitle.textContent = `${item.EndProductDescription || 'Product Details'} (${stones.length} stones)`;
+            console.log('Set modal title to:', modalTitle.textContent);
             
             // Build stones table HTML
             let stonesHtml = `
@@ -6190,22 +6344,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
                 
-                <h6 style="color: #d4af37; margin-bottom: 1rem;">Individual Stones:</h6>
-                <div class="table-responsive">
-                    <table class="table table-dark table-striped table-hover">
-                        <thead>
-                            <tr style="background: #1a1a1a;">
-                                <th>#</th>
-                                <th>Stock ID</th>
-                                <th>Weight (lbs)</th>
-                                <th>Container #</th>
-                                <th>Crate #</th>
-                                <th>Location</th>
+                <h6 style="color: #d4af37; margin-bottom: 1rem; display: block !important;">Individual Stones:</h6>
+                <div class="table-responsive" style="display: block !important; min-height: 100px !important;">
+                    <table class="table table-dark table-striped table-hover" style="display: table !important; width: 100% !important; border-collapse: collapse !important;">
+                        <thead style="display: table-header-group !important;">
+                            <tr style="background: #1a1a1a; display: table-row !important;">
+                                <th style="display: table-cell !important; padding: 0.75rem !important;">#</th>
+                                <th style="display: table-cell !important; padding: 0.75rem !important;">Stock ID</th>
+                                <th style="display: table-cell !important; padding: 0.75rem !important;">Weight (lbs)</th>
+                                <th style="display: table-cell !important; padding: 0.75rem !important;">Container #</th>
+                                <th style="display: table-cell !important; padding: 0.75rem !important;">Crate #</th>
+                                <th style="display: table-cell !important; padding: 0.75rem !important;">Location</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody style="display: table-row-group !important;">
             `;
             
+            console.log('Building table rows for', stones.length, 'stones...');
             stones.forEach((stone, index) => {
                 // Map the actual API field names
                 const stoneCode = stone.StockId || stone.stockid || `Stone #${index + 1}`;
@@ -6216,17 +6371,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const weightDisplay = weight !== 'N/A' ? parseFloat(weight).toFixed(2) : 'N/A';
                 
+                console.log(`  Row ${index + 1}: ${stoneCode}, ${weightDisplay} lbs, ${location}`);
+                
                 stonesHtml += `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td><strong>${stoneCode}</strong></td>
-                        <td>${weightDisplay}</td>
-                        <td>${containerNum}</td>
-                        <td>${crateNum}</td>
-                        <td>${location}</td>
+                    <tr style="display: table-row !important; height: auto !important;">
+                        <td style="display: table-cell !important; padding: 0.5rem !important;">${index + 1}</td>
+                        <td style="display: table-cell !important; padding: 0.5rem !important;"><strong>${stoneCode}</strong></td>
+                        <td style="display: table-cell !important; padding: 0.5rem !important;">${weightDisplay}</td>
+                        <td style="display: table-cell !important; padding: 0.5rem !important;">${containerNum}</td>
+                        <td style="display: table-cell !important; padding: 0.5rem !important;">${crateNum}</td>
+                        <td style="display: table-cell !important; padding: 0.5rem !important;">${location}</td>
                     </tr>
                 `;
             });
+            console.log('Finished building table rows');
             
             stonesHtml += `
                         </tbody>
@@ -6234,8 +6392,89 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
             
+            console.log('Setting modalBody.innerHTML with stones table, length:', stonesHtml.length);
+            console.log('Stones HTML preview:', stonesHtml.substring(0, 200));
             modalBody.innerHTML = stonesHtml;
             modalBody.style.padding = '2rem';
+            modalBody.style.maxHeight = 'none';
+            modalBody.style.overflow = 'visible';
+            
+            // Force scroll to top to show the table
+            modalBody.scrollTop = 0;
+            const modalDialog = modalBody.closest('.modal-dialog');
+            if (modalDialog) {
+                modalDialog.scrollTop = 0;
+            }
+            console.log('modalBody after setting innerHTML:', modalBody.children.length, 'children');
+            console.log('modalBody innerHTML length:', modalBody.innerHTML.length);
+            console.log('modalBody actual HTML:', modalBody.innerHTML.substring(0, 500));
+            
+            // Check if table exists and force visibility
+            const table = modalBody.querySelector('table');
+            console.log('Table element found:', !!table);
+            if (table) {
+                console.log('Table rows:', table.querySelectorAll('tbody tr').length);
+                // Force table to be visible
+                table.style.display = 'table';
+                table.style.width = '100%';
+                table.style.marginBottom = '1rem';
+                const tableContainer = table.closest('.table-responsive');
+                if (tableContainer) {
+                    tableContainer.style.display = 'block';
+                    tableContainer.style.marginBottom = '1.5rem';
+                }
+            }
+            
+            // Also check for the h6 header and ensure it's visible
+            const headers = modalBody.querySelectorAll('h6');
+            headers.forEach(h => {
+                console.log('Found header:', h.textContent);
+                h.style.display = 'block';
+                h.style.visibility = 'visible';
+            });
+            
+            // Log all direct children of modalBody to see structure
+            console.log('modalBody direct children:');
+            Array.from(modalBody.children).forEach((child, i) => {
+                console.log(`  Child ${i}:`, child.tagName, child.className, 'visible:', window.getComputedStyle(child).display !== 'none');
+            });
+            
+            // Load and display product images at the bottom
+            const designCode = extractDesignCode(item);
+            console.log('Details modal - extracted design code:', designCode, 'from item:', item);
+            if (designCode) {
+                console.log('Searching for images for design code:', designCode);
+                searchProductImages(designCode).then(images => {
+                    console.log('Details modal - found images:', images.length, images);
+                    console.log('modalBody children BEFORE appending images:', modalBody.children.length);
+                    if (images.length > 0) {
+                        const imagesSection = document.createElement('div');
+                        imagesSection.style.cssText = 'background: #1a1a1a; padding: 1.5rem; border-radius: 8px; margin-top: 1.5rem;';
+                        imagesSection.innerHTML = `
+                            <h6 style="color: #d4af37; margin-bottom: 1rem;"><i class="fas fa-images"></i> Product Images (${images.length})</h6>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem;">
+                                ${images.map(img => `
+                                    <div style="position: relative; padding-top: 100%; background: #2c2c2c; border-radius: 4px; overflow: hidden; cursor: pointer;" onclick="window.open('${img.path}', '_blank')">
+                                        <img src="${img.path}" alt="${img.name}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" onerror="this.parentElement.innerHTML='<span style=\'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.7rem; color: #999;\'>Error</span>';">
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <p class="text-muted mt-2" style="font-size: 0.85rem; margin-bottom: 0; color: #999;"><i class="fas fa-info-circle"></i> Click any image to view full size</p>
+                        `;
+                        modalBody.appendChild(imagesSection);
+                        console.log('modalBody children AFTER appending images:', modalBody.children.length);
+                        
+                        // Scroll back to top after adding images
+                        setTimeout(() => {
+                            modalBody.scrollTop = 0;
+                            const modalDialog = modalBody.closest('.modal-dialog');
+                            if (modalDialog) modalDialog.scrollTop = 0;
+                        }, 50);
+                    }
+                }).catch(error => {
+                    console.error('Error loading images for details modal:', error);
+                });
+            }
         }
 
         // Function to set up navigation buttons for horizontal scrolling
@@ -6429,6 +6668,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 window._inventoryAbortControllers = [];
             }
+
+            if (escKeyHandler) {
+                window.removeEventListener('keydown', escKeyHandler, true);
+                escKeyHandler = null;
+            }
         }
 
         // Function to open the modal and load data
@@ -6445,8 +6689,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 const modalElement = document.getElementById('inventoryModal');
                 if (modalElement) {
                     try {
-                        inventoryModalInstance = new bootstrap.Modal(modalElement);
+                        const existingInstance = bootstrap.Modal.getInstance(modalElement);
+                        if (existingInstance) {
+                            existingInstance.dispose();
+                        }
+
+                        inventoryModalInstance = new bootstrap.Modal(modalElement, { keyboard: false });
                         inventoryModalInstance.show();
+
+                        if (escKeyHandler) {
+                            window.removeEventListener('keydown', escKeyHandler, true);
+                        }
+                        escKeyHandler = function(e) {
+                            if (e.key !== 'Escape') return;
+
+                            const detailsModalEl = document.getElementById('itemDetailModal');
+                            if (detailsModalEl && detailsModalEl.classList.contains('show')) {
+                                e.preventDefault();
+                                e.stopImmediatePropagation();
+                                const detailsInstance = bootstrap.Modal.getInstance(detailsModalEl);
+                                if (detailsInstance) {
+                                    detailsInstance.hide();
+                                } else {
+                                    detailsModalEl.classList.remove('show');
+                                    detailsModalEl.style.display = 'none';
+                                }
+                                return;
+                            }
+
+                            if (inventoryModalInstance) {
+                                e.preventDefault();
+                                e.stopImmediatePropagation();
+                                inventoryModalInstance.hide();
+                            }
+                        };
+                        window.addEventListener('keydown', escKeyHandler, true);
+
                         loadInventoryData();
                         addModalButtonListeners();
                         
@@ -6458,6 +6736,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Add event listener for when modal is hidden
                         const hiddenHandler = function() {
                             console.log('Modal hidden event fired');
+
+                            const detailsModalEl = document.getElementById('itemDetailModal');
+                            if (detailsModalEl && detailsModalEl.classList.contains('show')) {
+                                const detailsInstance = bootstrap.Modal.getInstance(detailsModalEl);
+                                if (detailsInstance) {
+                                    detailsInstance.hide();
+                                } else {
+                                    detailsModalEl.classList.remove('show');
+                                    detailsModalEl.style.display = 'none';
+                                }
+                            }
                             
                             // Use the centralized cleanup function to remove all event listeners
                             cleanupEventListeners();

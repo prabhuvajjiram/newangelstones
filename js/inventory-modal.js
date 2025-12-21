@@ -997,12 +997,208 @@ document.addEventListener('DOMContentLoaded', function() {
         let searchInputHandler;
         let filterChangeHandler;
         let paginationClickHandler;
+        let escKeyHandler;
 
         // Utility to decode HTML entities
         function decodeHtml(str) {
             const txt = document.createElement('textarea');
             txt.innerHTML = str;
             return txt.value;
+        }
+
+        // Image cache to avoid repeated API calls
+        const imageCache = new Map();
+
+        // Function to extract design code from item (AG-###, AS-###)
+        function extractDesignCode(item) {
+            // Try PDesign field first, then fall back to description
+            const design = item.PDesign || item.pdesign || item.Design || item.design || '';
+            const description = item.EndProductDescription || item.endproductdescription || '';
+            const searchText = design || description;
+            
+            const match = searchText.match(/\b(AG|AS)-?\d+\b/i);
+            return match ? match[0].toUpperCase() : null;
+        }
+
+        // Function to search for product images by design code
+        async function searchProductImages(designCode) {
+            if (!designCode) return [];
+
+            // Check cache first
+            if (imageCache.has(designCode)) {
+                return imageCache.get(designCode);
+            }
+
+            try {
+                // Search across all product categories
+                const response = await fetch(`get_directory_files.php?search=${encodeURIComponent(designCode)}`);
+                if (!response.ok) throw new Error('Image search failed');
+                
+                const data = await response.json();
+                const images = [];
+
+                if (data.success && data.files && Array.isArray(data.files)) {
+                    // Filter for actual image files and deduplicate
+                    const seenPaths = new Set();
+                    data.files.forEach(file => {
+                        // All files from the search API are already images, just deduplicate
+                        if (file.path && !seenPaths.has(file.path)) {
+                            seenPaths.add(file.path);
+                            images.push({
+                                path: file.path,
+                                name: file.name || file.fullname || '',
+                                category: file.category || ''
+                            });
+                        }
+                    });
+                }
+
+                // Cache the result (even if empty to avoid repeated failed searches)
+                imageCache.set(designCode, images);
+                return images;
+            } catch (error) {
+                console.error(`Error searching images for ${designCode}:`, error);
+                imageCache.set(designCode, []); // Cache empty result to avoid retry
+                return [];
+            }
+        }
+
+        function parseNumericValue(value) {
+            if (value === null || value === undefined) return null;
+            if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+
+            const str = String(value).replace(/,/g, '').trim();
+            if (!str) return null;
+
+            const match = str.match(/-?\d+(?:\.\d+)?/);
+            if (!match) return null;
+
+            const num = Number(match[0]);
+            return Number.isFinite(num) ? num : null;
+        }
+
+        function parseDimensionTriplet(value) {
+            if (value === null || value === undefined) return null;
+
+            const str = String(value).trim();
+            if (!str) return null;
+
+            const match = str.match(/(\d+(?:\.\d+)?)\s*[x×*]\s*(\d+(?:\.\d+)?)\s*[x×*]\s*(\d+(?:\.\d+)?)/i);
+            if (!match) return null;
+
+            const a = parseNumericValue(match[1]);
+            const b = parseNumericValue(match[2]);
+            const c = parseNumericValue(match[3]);
+
+            if (!a || !b || !c) return null;
+            const unitHint = /\b(ft|feet|foot)\b|\'/i.test(str) ? 'ft' : null;
+            return { length: a, width: b, height: c, unitHint };
+        }
+
+        function getUnitHintFromStone(stone) {
+            if (!stone) return null;
+
+            const unitCandidate =
+                stone.Unit ?? stone.unit ?? stone.UOM ?? stone.uom ?? stone.Uom ?? stone.DimUnit ?? stone.dimUnit ?? stone.DimensionUnit ?? stone.dimensionUnit;
+            if (unitCandidate === null || unitCandidate === undefined) return null;
+
+            const str = String(unitCandidate).trim();
+            if (!str) return null;
+
+            if (/\b(ft|feet|foot)\b|\'/i.test(str)) return 'ft';
+            if (/\b(in|inch|inches)\b|\"/i.test(str)) return 'in';
+            return null;
+        }
+
+        function shouldTreatAsFeetByHeuristic(dims) {
+            if (!dims) return false;
+            const values = [dims.length, dims.width, dims.height].filter(v => typeof v === 'number' && Number.isFinite(v));
+            if (values.length !== 3) return false;
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            return min > 0 && min < 1 && max <= 20;
+        }
+
+        function toInchesIfNeeded(dims, unitHint) {
+            if (!dims) return null;
+            const hint = unitHint || null;
+
+            const treatAsFeet = hint === 'ft' || (!hint && shouldTreatAsFeetByHeuristic(dims));
+            if (!treatAsFeet) return { length: dims.length, width: dims.width, height: dims.height };
+
+            return {
+                length: dims.length * 12,
+                width: dims.width * 12,
+                height: dims.height * 12
+            };
+        }
+
+        function getStoneDimensionsInches(stone) {
+            if (!stone) return null;
+
+            const unitHintFromStone = getUnitHintFromStone(stone);
+
+            const length = parseNumericValue(
+                stone.Length ?? stone.length ?? stone.L ?? stone.l ?? stone.Len ?? stone.len ?? stone.LengthIn ?? stone.lengthIn
+            );
+            const width = parseNumericValue(
+                stone.Width ?? stone.width ?? stone.W ?? stone.w ?? stone.Wid ?? stone.wid ?? stone.WidthIn ?? stone.widthIn
+            );
+            const height = parseNumericValue(
+                stone.Height ?? stone.height ?? stone.H ?? stone.h ?? stone.Ht ?? stone.ht ?? stone.HeightIn ?? stone.heightIn
+            );
+
+            if (length && width && height) {
+                return toInchesIfNeeded({ length, width, height }, unitHintFromStone);
+            }
+
+            const dimSource =
+                stone.Dimensions ?? stone.dimensions ?? stone.Dimension ?? stone.dimension ?? stone.Size ?? stone.size ?? stone.Measurement ?? stone.measurement;
+            const parsed = parseDimensionTriplet(dimSource);
+            if (parsed) {
+                const unitHint = unitHintFromStone || parsed.unitHint;
+                return toInchesIfNeeded({ length: parsed.length, width: parsed.width, height: parsed.height }, unitHint);
+            }
+
+            return null;
+        }
+
+        function computeEstimatedWeightPoundsFromInches(stone) {
+            const dims = getStoneDimensionsInches(stone);
+            if (!dims) return null;
+
+            const { length, width, height } = dims;
+            if (!(length > 0 && width > 0 && height > 0)) return null;
+
+            const cubicFeet = (length * width * height) / 1728;
+            const cubicMeters = cubicFeet / 35.28;
+            const pounds = cubicMeters * 3000;
+
+            if (!Number.isFinite(pounds) || pounds <= 0) return null;
+            return pounds;
+        }
+
+        function renderStoneWeightRow(stone) {
+            const apiWeight = parseNumericValue(stone?.Weight ?? stone?.weight);
+            if (apiWeight) {
+                return `
+                    <div class="info-row">
+                        <span class="info-label">Weight:</span>
+                        <span class="info-value">${apiWeight} lbs</span>
+                    </div>
+                `;
+            }
+
+            const estimated = computeEstimatedWeightPoundsFromInches(stone);
+            if (!estimated) return '';
+
+            const rounded = Math.round(estimated);
+            return `
+                <div class="info-row">
+                    <span class="info-label">Weight:</span>
+                    <span class="info-value">${rounded} lbs</span>
+                </div>
+            `;
         }
         
         // Function to close item details panel
@@ -1185,12 +1381,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <span class="info-value">${stone.SublocationName}</span>
                                 </div>
                             ` : ''}
-                            ${stone.Weight ? `
-                                <div class="info-row">
-                                    <span class="info-label">Weight:</span>
-                                    <span class="info-value">${stone.Weight} lbs</span>
-                                </div>
-                            ` : ''}
+                            ${renderStoneWeightRow(stone)}
                             ${stone.Status ? `
                                 <div class="info-row">
                                     <span class="info-label">Status:</span>
@@ -1214,6 +1405,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 
                 content.innerHTML = html;
+                
+                // Load and display product images at the bottom
+                const designCode = extractDesignCode(basicItem);
+                if (designCode) {
+                    const images = await searchProductImages(designCode);
+                    if (images.length > 0) {
+                        const imagesSection = document.createElement('div');
+                        imagesSection.className = 'stone-card';
+                        imagesSection.style.marginTop = '1rem';
+                        imagesSection.innerHTML = `
+                            <h6><i class="fas fa-images"></i> Product Images (${images.length})</h6>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem; margin-top: 0.75rem;">
+                                ${images.map(img => `
+                                    <div style="position: relative; padding-top: 100%; background: #f0f0f0; border-radius: 4px; overflow: hidden; cursor: pointer;" onclick="window.open('${img.path}', '_blank')">
+                                        <img src="${img.path}" alt="${img.name}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" onerror="this.parentElement.innerHTML='<span style=\'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.7rem; color: #999;\'>Error</span>';">
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <p class="text-muted mt-2" style="font-size: 0.85rem; margin-bottom: 0;"><i class="fas fa-info-circle"></i> Click any image to view full size</p>
+                        `;
+                        content.appendChild(imagesSection);
+                    }
+                }
             } catch (error) {
                 content.innerHTML = `
                     <div class="alert alert-danger">
@@ -1564,45 +1778,46 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <thead>
                                         <tr>
                                             <!-- Product Code column hidden per client request -->
+                                            <th style="width: 80px;">Image</th>
                                             <th>Description</th>
                                             <th>
                                                 Type
-                                                <select class="form-select form-select-sm column-filter mt-1" id="typeFilter" data-col-index="1">
+                                                <select class="form-select form-select-sm column-filter mt-1" id="typeFilter" data-col-index="2">
                                                     <option value="" ${currentPtype === '' ? 'selected' : ''}>All</option>
                                                     ${createOptions(productTypes, currentPtype)}
                                                 </select>
                                             </th>
                                             <th>
                                                 Color
-                                                <select class="form-select form-select-sm column-filter mt-1" id="colorFilter" data-col-index="2">
+                                                <select class="form-select form-select-sm column-filter mt-1" id="colorFilter" data-col-index="3">
                                                     <option value="" ${currentPcolor === '' ? 'selected' : ''}>All</option>
                                                     ${createOptions(productColors, currentPcolor)}
                                                 </select>
                                             </th>
                                             <th>
                                                 Design
-                                                <select class="form-select form-select-sm column-filter mt-1" id="designFilter" data-col-index="3">
+                                                <select class="form-select form-select-sm column-filter mt-1" id="designFilter" data-col-index="4">
                                                     <option value="" ${currentPdesign === '' ? 'selected' : ''}>All</option>
                                                     ${createOptions(productDesigns, currentPdesign)}
                                                 </select>
                                             </th>
                                             <th>
                                                 Finish
-                                                <select class="form-select form-select-sm column-filter mt-1" id="finishFilter" data-col-index="4">
+                                                <select class="form-select form-select-sm column-filter mt-1" id="finishFilter" data-col-index="5">
                                                     <option value="" ${currentPfinish === '' ? 'selected' : ''}>All</option>
                                                     ${createOptions(productFinishes, currentPfinish)}
                                                 </select>
                                             </th>
                                             <th>
                                                 Size
-                                                <select class="form-select form-select-sm column-filter mt-1" id="sizeFilter" data-col-index="5">
+                                                <select class="form-select form-select-sm column-filter mt-1" id="sizeFilter" data-col-index="6">
                                                     <option value="" ${currentPsize === '' ? 'selected' : ''}>All</option>
                                                     ${createOptions(productSizes, currentPsize)}
                                                 </select>
                                             </th>
                                             <th>
                                                 Location
-                                                <select class="form-select form-select-sm column-filter mt-1" id="locationFilter" data-col-index="6">
+                                                <select class="form-select form-select-sm column-filter mt-1" id="locationFilter" data-col-index="7">
                                                     <option value="" ${currentLocation === '' ? 'selected' : ''}>All</option>
                                                     ${createOptions(locations, currentLocation)}
                                                 </select>
@@ -1625,9 +1840,15 @@ document.addEventListener('DOMContentLoaded', function() {
                                             const rowText = Object.values(item).join(' ').toLowerCase();
                                             const highlight = searchVal && rowText.includes(searchVal) ? ' search-highlight' : '';
 
+                                            const designCode = extractDesignCode(item);
                                             return `
-                                            <tr class="${highlight.trim()} clickable-row" data-code="${getField('EndProductCode')}" style="cursor: pointer;">
+                                            <tr class="${highlight.trim()} clickable-row" data-code="${getField('EndProductCode')}" data-design="${designCode || ''}" style="cursor: pointer;">
                                                 <!-- Product Code column hidden per client request -->
+                                                <td style="padding: 0.25rem; text-align: center;">
+                                                    <div class="inventory-thumbnail" data-design="${designCode || ''}" style="width: 60px; height: 60px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 4px; overflow: hidden;">
+                                                        ${designCode ? '<span style="font-size: 0.7rem; color: #999;">Loading...</span>' : ''}
+                                                    </div>
+                                                </td>
                                                 <td>${getField('EndProductDescription')}</td>
                                                 <td>${getField('Ptype')}</td>
                                                 <td>${getField('PColor')}</td>
@@ -1677,6 +1898,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Set up row click listeners AFTER table is fully rendered
                 setupRowClickListeners(filteredItems);
+                
+                // Load thumbnails after DOM is fully rendered
+                setTimeout(() => loadThumbnails(), 100);
                 
                 // Load Font Awesome if not already loaded
                 if (!document.querySelector('link[href*="font-awesome"]')) {
@@ -1902,6 +2126,61 @@ document.addEventListener('DOMContentLoaded', function() {
             if (refreshBtnInline) {
                 refreshBtnInline.addEventListener('click', loadInventoryData);
             }
+        }
+        
+        // Function to load thumbnails for visible items
+        async function loadThumbnails() {
+            const thumbnails = document.querySelectorAll('.inventory-thumbnail[data-design]');
+            if (thumbnails.length === 0) return;
+            
+            console.log(`Loading thumbnails for ${thumbnails.length} items...`);
+            
+            // Collect unique design codes first
+            const designCodes = new Set();
+            thumbnails.forEach(thumb => {
+                const code = thumb.getAttribute('data-design');
+                if (code && !thumb.querySelector('img') && !thumb.hasAttribute('data-loaded')) {
+                    designCodes.add(code);
+                }
+            });
+            
+            // Batch fetch all images first (uses cache)
+            const imagePromises = Array.from(designCodes).map(code => 
+                searchProductImages(code).then(images => ({ code, images }))
+            );
+            
+            const results = await Promise.all(imagePromises);
+            const imageMap = new Map(results.map(r => [r.code, r.images]));
+            
+            // Now update all thumbnails
+            thumbnails.forEach(thumbnail => {
+                const designCode = thumbnail.getAttribute('data-design');
+                if (!designCode || thumbnail.querySelector('img') || thumbnail.hasAttribute('data-loaded')) return;
+                
+                thumbnail.setAttribute('data-loaded', 'true');
+                const images = imageMap.get(designCode) || [];
+                
+                if (images.length > 0) {
+                    const img = document.createElement('img');
+                    img.src = images[0].path;
+                    img.alt = designCode;
+                    img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+                    img.loading = 'lazy'; // Native lazy loading
+                    img.onerror = function() {
+                        console.warn(`Failed to load image: ${images[0].path}`);
+                        this.style.display = 'none';
+                    };
+                    img.onload = function() {
+                        console.log(`Loaded: ${designCode}`);
+                    };
+                    thumbnail.innerHTML = '';
+                    thumbnail.appendChild(img);
+                } else {
+                    thumbnail.innerHTML = '';
+                }
+            });
+            
+            console.log(`Loaded ${imageMap.size} unique design images`);
         }
         
         // Function to set up pagination event listeners
@@ -2225,7 +2504,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Function to clean up all event listeners
         function cleanupEventListeners() {
-            console.log('Cleaning up all event listeners...');
+            console.log('Cleaning up inventory modal event listeners...');
             
             // Clean up filter listeners
             const filterSelects = document.querySelectorAll('.column-filter');
@@ -2321,6 +2600,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 window._inventoryAbortControllers = [];
             }
+
+            const modalElement = document.getElementById('inventoryModal');
+            if (modalElement && escKeyHandler) {
+                window.removeEventListener('keydown', escKeyHandler, true);
+                escKeyHandler = null;
+            }
         }
 
         // Function to open the modal and load data
@@ -2337,8 +2622,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 const modalElement = document.getElementById('inventoryModal');
                 if (modalElement) {
                     try {
-                        inventoryModalInstance = new bootstrap.Modal(modalElement);
+                        const existingInstance = bootstrap.Modal.getInstance(modalElement);
+                        if (existingInstance) {
+                            existingInstance.dispose();
+                        }
+
+                        inventoryModalInstance = new bootstrap.Modal(modalElement, { keyboard: false });
                         inventoryModalInstance.show();
+
+                        if (escKeyHandler) {
+                            window.removeEventListener('keydown', escKeyHandler, true);
+                        }
+                        escKeyHandler = function(event) {
+                            if (event.key !== 'Escape') return;
+
+                            const detailsPanel = document.getElementById('detailsPanel');
+                            const tablePanel = document.getElementById('tablePanel');
+                            const detailsOpen =
+                                (detailsPanel && detailsPanel.classList.contains('show')) ||
+                                (tablePanel && tablePanel.classList.contains('with-details')) ||
+                                document.querySelectorAll('.inventory-table tbody tr.selected').length > 0;
+                            if (detailsOpen) {
+                                event.preventDefault();
+                                event.stopImmediatePropagation();
+                                if (typeof window.closeItemDetails === 'function') {
+                                    window.closeItemDetails();
+                                }
+                                return;
+                            }
+
+                            if (inventoryModalInstance) {
+                                event.preventDefault();
+                                event.stopImmediatePropagation();
+                                inventoryModalInstance.hide();
+                            }
+                        };
+                        window.addEventListener('keydown', escKeyHandler, true);
+
                         loadInventoryData();
                         addModalButtonListeners();
                         
@@ -2350,6 +2670,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Add event listener for when modal is hidden
                         const hiddenHandler = function() {
                             console.log('Modal hidden event fired');
+
+                            if (typeof window.closeItemDetails === 'function') {
+                                window.closeItemDetails();
+                            }
                             
                             // Use the centralized cleanup function to remove all event listeners
                             cleanupEventListeners();
@@ -2378,6 +2702,35 @@ document.addEventListener('DOMContentLoaded', function() {
                         modalElement.classList.add('show');
                         modalElement.style.display = 'block';
                         document.body.classList.add('modal-open');
+
+                        if (escKeyHandler) {
+                            window.removeEventListener('keydown', escKeyHandler, true);
+                        }
+                        escKeyHandler = function(event) {
+                            if (event.key !== 'Escape') return;
+
+                            const detailsPanel = document.getElementById('detailsPanel');
+                            if (detailsPanel && detailsPanel.classList.contains('show')) {
+                                event.preventDefault();
+                                event.stopImmediatePropagation();
+                                if (typeof window.closeItemDetails === 'function') {
+                                    window.closeItemDetails();
+                                }
+                                return;
+                            }
+
+                            if (modalElement.classList.contains('show')) {
+                                event.preventDefault();
+                                event.stopImmediatePropagation();
+                                modalElement.classList.remove('show');
+                                modalElement.style.display = 'none';
+                                document.body.classList.remove('modal-open');
+                                const backdrop = document.querySelector('.modal-backdrop');
+                                if (backdrop) backdrop.remove();
+                                cleanupEventListeners();
+                            }
+                        };
+                        window.addEventListener('keydown', escKeyHandler, true);
                         
                         // Create backdrop manually if needed
                         if (!document.querySelector('.modal-backdrop')) {
