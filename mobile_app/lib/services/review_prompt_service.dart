@@ -93,26 +93,25 @@ class ReviewPromptService {
     const storage = FlutterSecureStorage();
     
     try {
+      // Record that we attempted to show the prompt
+      await storage.write(key: _keyLastPrompt, value: DateTime.now().toIso8601String());
+      
       // Check if in-app review is available on this device
       if (await _inAppReview.isAvailable()) {
-        // Record that we showed the prompt
-        await storage.write(key: _keyLastPrompt, value: DateTime.now().toIso8601String());
-        
         // Request the native review dialog
+        // Note: This may or may not show based on OS restrictions
         await _inAppReview.requestReview();
         
-        // Mark as rated (user saw the prompt)
+        // Mark as rated (user saw the prompt attempt)
+        // iOS/Android may throttle review prompts, so we mark it to avoid spamming
         await storage.write(key: _keyUserRated, value: 'true');
-        
-        debugPrint('✅ Native review dialog shown successfully');
       } else {
-        debugPrint('⚠️ In-app review not available on this device');
-        // Fall back to opening the store
-        await _inAppReview.openStoreListing();
+        // In-app review not available, don't do anything
+        // User can still rate via the About screen
       }
     } catch (e) {
-      debugPrint('❌ Error showing review dialog: $e');
-      // Don't show error to user, just log it
+      // Silently fail - don't disrupt user experience
+      // Review prompts are nice-to-have, not critical
     }
   }
 
@@ -126,7 +125,7 @@ class ReviewPromptService {
     try {
       await _inAppReview.openStoreListing();
     } catch (e) {
-      debugPrint('❌ Error opening app store: $e');
+      // Silently fail - store listing may not be available in development
     }
   }
 

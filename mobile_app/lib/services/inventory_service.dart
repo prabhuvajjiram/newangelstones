@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:path_provider/path_provider.dart';
 import '../models/inventory_item.dart';
 import '../utils/cache_entry.dart';
 import '../config/security_config.dart';
@@ -32,6 +33,9 @@ class InventoryService {
 
   CacheEntry<List<InventoryItem>>? _inventoryCache;
   
+  // Cache for search queries to avoid repeated API calls
+  final Map<String, CacheEntry<List<InventoryItem>>> _searchCache = {};
+  
   // Sets to store unique filter values from API responses
   final Set<String> _availableTypes = {};
   final Set<String> _availableColors = {};
@@ -51,8 +55,8 @@ class InventoryService {
         },
       );
       
-      // Test API connectivity with a lightweight request (but don't block app startup on this)
-      _testApiConnection();
+      // Sync full inventory data from API in background (non-blocking)
+      _syncFullInventoryData();
       
       _isInitialized = true;
       debugPrint('✅ InventoryService initialized successfully');
@@ -60,6 +64,53 @@ class InventoryService {
       debugPrint('⚠️ InventoryService initialization error: $e');
       // Mark as initialized anyway to prevent repeated init attempts
       _isInitialized = true;
+    }
+  }
+  
+  /// Sync full inventory data from API and cache locally
+  Future<void> _syncFullInventoryData() async {
+    try {
+      debugPrint('🔄 Syncing full inventory data from API...');
+      
+      // Fetch all inventory items from API with full details
+      final allItems = await fetchInventory(
+        pageSize: 1000,
+        forceRefresh: true,
+      );
+      
+      if (allItems.isNotEmpty) {
+        // Save to local storage for offline access
+        await saveInventoryToLocal(allItems);
+        debugPrint('✅ Synced ${allItems.length} inventory items with full details');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error syncing inventory data: $e');
+    }
+  }
+  
+  /// Save inventory data to local storage
+  Future<void> saveInventoryToLocal(List<InventoryItem> items) async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final file = File('${appDir.path}/cached_inventory.json');
+      
+      final jsonData = items.map((item) => {
+        'code': item.code,
+        'description': item.description,
+        'color': item.color,
+        'size': item.size,
+        'design': item.design,
+        'finish': item.finish,
+        'type': item.type,
+        'location': item.location,
+        'quantity': item.quantity,
+        'productId': item.productId,
+      }).toList();
+      
+      await file.writeAsString(json.encode(jsonData));
+      debugPrint('💾 Saved ${items.length} items to local cache');
+    } catch (e) {
+      debugPrint('⚠️ Error saving inventory to local: $e');
     }
   }
   
@@ -290,23 +341,45 @@ class InventoryService {
   // Load inventory data from local asset file
   Future<List<InventoryItem>> loadLocalInventory() async {
     try {
-      debugPrint('📂 Loading inventory from local assets');
-      final jsonString = await rootBundle.loadString('assets/inventory.json');
-      final List<dynamic> jsonData = json.decode(jsonString) as List<dynamic>;
-      final items = jsonData
-          .map((item) => InventoryItem.fromJson(item as Map<String, dynamic>))
-          .toList();
-      debugPrint('✅ Successfully loaded ${items.length} items from local assets');
-
-      // Populate default filter options if none have been collected
-      if (_availableTypes.isEmpty) {
-        _availableTypes.addAll(_defaultTypes);
+      // Try to load from cached full data first (has all fields)
+      final appDir = await getApplicationDocumentsDirectory();
+      final cachedFile = File('${appDir.path}/cached_inventory.json');
+      
+      if (await cachedFile.exists()) {
+        debugPrint('📂 Loading inventory from cached full data');
+        final jsonString = await cachedFile.readAsString();
+        final List<dynamic> jsonData = json.decode(jsonString) as List<dynamic>;
+        final items = jsonData
+            .map((item) => InventoryItem.fromJson(item as Map<String, dynamic>))
+            .toList();
+        debugPrint('✅ Successfully loaded ${items.length} items from cached data');
+        return items;
       }
-      if (_availableColors.isEmpty) {
-        _availableColors.addAll(_defaultColors);
+      
+      // Fallback to bundled assets if no cached data
+      debugPrint('📂 Loading inventory from bundled assets');
+      try {
+        final jsonString = await rootBundle.loadString('assets/inventory.json');
+        final List<dynamic> jsonData = json.decode(jsonString) as List<dynamic>;
+        final items = jsonData
+            .map((item) => InventoryItem.fromJson(item as Map<String, dynamic>))
+            .toList();
+        debugPrint('✅ Successfully loaded ${items.length} items from bundled assets');
+        
+        // Populate default filter options if none have been collected
+        if (_availableTypes.isEmpty) {
+          _availableTypes.addAll(_defaultTypes);
+        }
+        if (_availableColors.isEmpty) {
+          _availableColors.addAll(_defaultColors);
+        }
+        
+        return items;
+      } catch (e) {
+        debugPrint('⚠️ Bundled assets have wrong format or missing: $e');
+        // Return empty list if bundled assets are not in correct format
+        return [];
       }
-
-      return items;
     } catch (e) {
       debugPrint('⚠️ Error loading local inventory: $e');
       return [];
@@ -330,11 +403,23 @@ class InventoryService {
     final bool isBaseRequest =
         searchQuery == null && type == null && color == null && page == 1;
 
+    // Check base cache first
     if (!forceRefresh && isBaseRequest &&
         _inventoryCache != null && !_inventoryCache!.isExpired(_cacheTTL)) {
       debugPrint('📦 Using cached inventory');
       return _inventoryCache!.data;
     }
+    
+    // Check search cache for specific queries
+    if (!forceRefresh && normalizedSearchQuery != null && normalizedSearchQuery.isNotEmpty) {
+      final searchCacheKey = '$normalizedSearchQuery|$type|$color';
+      if (_searchCache.containsKey(searchCacheKey) && 
+          !_searchCache[searchCacheKey]!.isExpired(_cacheTTL)) {
+        debugPrint('📦 Using cached search results for: $normalizedSearchQuery');
+        return _searchCache[searchCacheKey]!.data;
+      }
+    }
+    
     try {
       debugPrint('🔍 Fetching inventory from new API endpoint');
       
@@ -354,16 +439,23 @@ class InventoryService {
       
       if (normalizedSearchQuery != null && normalizedSearchQuery.isNotEmpty) {
         debugPrint('🔍 Applying client-side search filter for: $normalizedSearchQuery');
+        
+        // Optimize: Use where() which is lazy and stops early if needed
         filteredItems = allItems.where((item) {
           // Check multiple fields for the search term
-          final matchesDescription = item.description.toLowerCase().contains(normalizedSearchQuery);
-          final matchesCode = item.code.toLowerCase().contains(normalizedSearchQuery);
-          final matchesColor = item.color.toLowerCase().contains(normalizedSearchQuery);
-          final matchesSize = item.size.toLowerCase().contains(normalizedSearchQuery);
-          final matchesDesign = item.design.toLowerCase().contains(normalizedSearchQuery);
+          // Order by most likely to match first for early exit
+          final descLower = item.description.toLowerCase();
+          final codeLower = item.code.toLowerCase();
           
-          return matchesDescription || matchesCode || matchesColor || matchesSize || matchesDesign;
+          if (descLower.contains(normalizedSearchQuery)) return true;
+          if (codeLower.contains(normalizedSearchQuery)) return true;
+          if (item.design.toLowerCase().contains(normalizedSearchQuery)) return true;
+          if (item.color.toLowerCase().contains(normalizedSearchQuery)) return true;
+          if (item.size.toLowerCase().contains(normalizedSearchQuery)) return true;
+          
+          return false;
         }).toList();
+        
         debugPrint('📊 Found ${filteredItems.length} items matching search query');
         if (filteredItems.isNotEmpty) {
           debugPrint('📦 Sample match: ${filteredItems.first.description}');
@@ -376,9 +468,16 @@ class InventoryService {
       // If we have any items, return them
       if (filteredItems.isNotEmpty) {
         debugPrint('📊 Returning ${filteredItems.length} items from API');
+        
+        // Cache the results
         if (isBaseRequest) {
           _inventoryCache = CacheEntry(filteredItems);
+        } else if (normalizedSearchQuery != null && normalizedSearchQuery.isNotEmpty) {
+          // Cache search results
+          final searchCacheKey = '$normalizedSearchQuery|$type|$color';
+          _searchCache[searchCacheKey] = CacheEntry(filteredItems);
         }
+        
         return filteredItems;
       } else {
         // If this is a search or type filter and we got no results, try a retry with modified parameters

@@ -9,6 +9,12 @@ class ProductImageService {
   /// Cache for product images by category
   final Map<String, List<Map<String, String>>> _imageCache = {};
   
+  /// Cache timestamps to track when data was fetched
+  final Map<String, DateTime> _cacheTimestamps = {};
+  
+  /// Cache duration - 1 hour
+  static const Duration _cacheDuration = Duration(hours: 1);
+  
   /// Extract design code from design or description field
   String? _extractDesignCode(String text) {
     final regex = RegExp(r'\b(AG|AS)-?\d+\b', caseSensitive: false);
@@ -46,31 +52,31 @@ class ProductImageService {
       }
     }
     
-    // If not in cache, fetch from all categories
+    // If not in cache, fetch from all categories in parallel
     final categories = ['monuments', 'Monuments', 'columbarium', 'designs', 'benches', 'mbna_2025'];
     
+    // Fetch all categories in parallel for better performance
+    await Future.wait(
+      categories.map((category) => _fetchCategoryImages(category)),
+      eagerError: false, // Continue even if some fail
+    );
+    
+    // Now check all cached categories for the design code
     for (final category in categories) {
-      try {
-        await _fetchCategoryImages(category);
+      if (_imageCache.containsKey(category)) {
+        final images = _imageCache[category]!;
+        final matchingImages = images
+            .where((img) {
+              final imgCode = img['code']?.toUpperCase().replaceAll('-', '');
+              return imgCode == normalizedCode;
+            })
+            .map((img) => img['url']!)
+            .toList();
         
-        // Check again after fetching
-        if (_imageCache.containsKey(category)) {
-          final images = _imageCache[category]!;
-          final matchingImages = images
-              .where((img) {
-                final imgCode = img['code']?.toUpperCase().replaceAll('-', '');
-                return imgCode == normalizedCode;
-              })
-              .map((img) => img['url']!)
-              .toList();
-          
-          if (matchingImages.isNotEmpty) {
-            debugPrint('📸 Found ${matchingImages.length} images for $designCode');
-            return matchingImages;
-          }
+        if (matchingImages.isNotEmpty) {
+          debugPrint('📸 Found ${matchingImages.length} images for $designCode');
+          return matchingImages;
         }
-      } catch (e) {
-        debugPrint('⚠️ Error fetching category $category: $e');
       }
     }
     
@@ -78,10 +84,21 @@ class ProductImageService {
     return [];
   }
   
+  /// Check if cache is still valid for a category
+  bool _isCacheValid(String category) {
+    if (!_imageCache.containsKey(category)) return false;
+    if (!_cacheTimestamps.containsKey(category)) return false;
+    
+    final cacheAge = DateTime.now().difference(_cacheTimestamps[category]!);
+    return cacheAge < _cacheDuration;
+  }
+  
   /// Fetch all images from a category directory
   Future<void> _fetchCategoryImages(String category) async {
-    if (_imageCache.containsKey(category)) {
-      return; // Already cached
+    // Check if cache is still valid
+    if (_isCacheValid(category)) {
+      debugPrint('✅ Using cached images for $category');
+      return;
     }
     
     try {
@@ -131,6 +148,7 @@ class ProductImageService {
         }
         
         _imageCache[category] = images;
+        _cacheTimestamps[category] = DateTime.now(); // Mark cache time
         debugPrint('✅ Successfully loaded ${images.length} product images with codes');
       }
     } catch (e) {

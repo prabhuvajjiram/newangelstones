@@ -1,6 +1,6 @@
 name: angel_granites_app
 description: Mobile app for Angel Granites.
-version: 3.1.0+29 # versionName + versionCode
+version: 3.2.0+30 # versionName + versionCode
 
 
 environment:
@@ -15,7 +15,7 @@ dependencies:
   go_router: ^17.0.0 
   http: ^1.4.2
   # Storage solution changed to flutter_secure_storage
-  flutter_secure_storage: ^9.2.4  # Alternative storage solution
+  flutter_secure_storage: ^10.0.0  # Alternative storage solution
   url_launcher: ^6.3.2
   intl: ^0.20.2
   provider: ^6.1.1
@@ -24,8 +24,6 @@ dependencies:
   path_provider: ^2.1.5
   
   # Explicitly allow newer transitive dependencies for future-proofing
-  characters: ^1.4.0
-  material_color_utilities: ^0.11.0
   path: ^1.9.1
   sqflite: ^2.4.2
   connectivity_plus: ^7.0.0

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
@@ -43,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late Future<List<InventoryItem>> _futureInventorySummary;
   late Future<List<Product>> _futureSpecials;
   late DirectoryService _directoryService;
+  bool _showConventionBanner = true;
 
   @override
   void initState() {
@@ -93,13 +95,22 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// Schedule review prompt to show after 5 seconds using global navigator
+  /// Schedule review prompt to show after user has been active
   void _scheduleReviewPrompt() {
-    Future.delayed(const Duration(seconds: 5), () {
+    // Wait for app to fully initialize and user to interact
+    Future.delayed(const Duration(seconds: 10), () async {
       // Use global navigator context to avoid async gap issues
       final context = NavigationService.navigatorKey.currentContext;
       if (context != null && context.mounted) {
-        ReviewPromptService.showReviewPromptIfAppropriate(context);
+        // Check if we should show the prompt
+        final shouldShow = await ReviewPromptService.shouldShowReviewPrompt();
+        if (shouldShow) {
+          // Wait a bit more to ensure user is engaged
+          await Future.delayed(const Duration(seconds: 2));
+          if (context.mounted) {
+            await ReviewPromptService.showReviewPromptIfAppropriate(context);
+          }
+        }
       }
     });
   }
@@ -226,6 +237,108 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
+            
+            // Convention Announcement Banner
+            if (_showConventionBanner)
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFFFFD700), // Gold
+                      const Color(0xFFFFA500), // Orange
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFFD700).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      // Open convention website
+                      final url = Uri.parse('https://mid-atlanticconvention.com/');
+                      launchUrl(url, mode: LaunchMode.externalApplication);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          // Icon
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.3),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.event,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          // Text content
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Meet Us at Mid-Atlantic Convention!',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                const Text(
+                                  'Visit Booth 46 & 54',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Tap to learn more',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.9),
+                                    fontSize: 12,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Close button
+                          IconButton(
+                            icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                            onPressed: () {
+                              setState(() {
+                                _showConventionBanner = false;
+                              });
+                            },
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             
             // Main Content - Ultra-tight spacing
             Padding(
