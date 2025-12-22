@@ -356,12 +356,18 @@ class InventoryService {
         debugPrint('🔍 Applying client-side search filter for: $normalizedSearchQuery');
         filteredItems = allItems.where((item) {
           // Check multiple fields for the search term
-          return item.description.toLowerCase().contains(normalizedSearchQuery) ||
-                 item.code.toLowerCase().contains(normalizedSearchQuery) ||
-                 item.color.toLowerCase().contains(normalizedSearchQuery) ||
-                 item.size.toLowerCase().contains(normalizedSearchQuery);
+          final matchesDescription = item.description.toLowerCase().contains(normalizedSearchQuery);
+          final matchesCode = item.code.toLowerCase().contains(normalizedSearchQuery);
+          final matchesColor = item.color.toLowerCase().contains(normalizedSearchQuery);
+          final matchesSize = item.size.toLowerCase().contains(normalizedSearchQuery);
+          final matchesDesign = item.design.toLowerCase().contains(normalizedSearchQuery);
+          
+          return matchesDescription || matchesCode || matchesColor || matchesSize || matchesDesign;
         }).toList();
         debugPrint('📊 Found ${filteredItems.length} items matching search query');
+        if (filteredItems.isNotEmpty) {
+          debugPrint('📦 Sample match: ${filteredItems.first.description}');
+        }
       }
 
       // Sort results by description for consistent ordering

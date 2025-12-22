@@ -3,136 +3,138 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 
 /// Service to fetch product images by design code (AG-###, AS-###)
-/// Learned from desktop implementation:
-/// 1. Extract design codes from both design field AND description
-/// 2. Cache results to avoid repeated API calls
-/// 3. API returns MIME types, not 'file' type
 class ProductImageService {
   static const String _baseUrl = 'https://theangelstones.com';
   
-  // Cache to store image results by design code
-  static final Map<String, List<ProductImage>> _imageCache = {};
+  /// Cache for product images by category
+  final Map<String, List<Map<String, String>>> _imageCache = {};
   
-  /// Extract design code from inventory item
-  /// Checks both design field and description (AG-###, AS-###)
-  static String? extractDesignCode(String? design, String? description) {
-    // Try design field first
-    if (design != null && design.isNotEmpty) {
-      final match = RegExp(r'\b(AG|AS)-?\d+\b', caseSensitive: false).firstMatch(design);
-      if (match != null) {
-        return match.group(0)!.toUpperCase();
-      }
-    }
-    
-    // Fall back to description field
-    if (description != null && description.isNotEmpty) {
-      final match = RegExp(r'\b(AG|AS)-?\d+\b', caseSensitive: false).firstMatch(description);
-      if (match != null) {
-        return match.group(0)!.toUpperCase();
-      }
-    }
-    
-    return null;
+  /// Extract design code from design or description field
+  String? _extractDesignCode(String text) {
+    final regex = RegExp(r'\b(AG|AS)-?\d+\b', caseSensitive: false);
+    final match = regex.firstMatch(text);
+    return match?.group(0)?.toUpperCase();
   }
   
-  /// Search for product images by design code
-  /// Returns list of images or empty list if none found
-  static Future<List<ProductImage>> searchProductImages(String designCode) async {
-    if (designCode.isEmpty) {
-      return [];
+  /// Search for product images by design code (static method for compatibility)
+  static Future<List<String>> searchProductImages(String designCode) async {
+    final service = ProductImageService();
+    return service.fetchImagesForDesignCode(designCode);
+  }
+  
+  /// Fetch product images for a specific design code
+  Future<List<String>> fetchImagesForDesignCode(String designCode) async {
+    debugPrint('📸 Fetching images for design code: $designCode');
+    
+    // Normalize design code (remove hyphens, uppercase)
+    final normalizedCode = designCode.toUpperCase().replaceAll('-', '');
+    
+    // Check all cached categories
+    for (final category in _imageCache.keys) {
+      final images = _imageCache[category]!;
+      final matchingImages = images
+          .where((img) {
+            final imgCode = img['code']?.toUpperCase().replaceAll('-', '');
+            return imgCode == normalizedCode;
+          })
+          .map((img) => img['url']!)
+          .toList();
+      
+      if (matchingImages.isNotEmpty) {
+        debugPrint('📸 Found ${matchingImages.length} images for $designCode');
+        return matchingImages;
+      }
     }
     
-    // Check cache first
-    if (_imageCache.containsKey(designCode)) {
-      debugPrint('📸 Image cache hit for $designCode');
-      return _imageCache[designCode]!;
+    // If not in cache, fetch from all categories
+    final categories = ['monuments', 'Monuments', 'columbarium', 'designs', 'benches', 'mbna_2025'];
+    
+    for (final category in categories) {
+      try {
+        await _fetchCategoryImages(category);
+        
+        // Check again after fetching
+        if (_imageCache.containsKey(category)) {
+          final images = _imageCache[category]!;
+          final matchingImages = images
+              .where((img) {
+                final imgCode = img['code']?.toUpperCase().replaceAll('-', '');
+                return imgCode == normalizedCode;
+              })
+              .map((img) => img['url']!)
+              .toList();
+          
+          if (matchingImages.isNotEmpty) {
+            debugPrint('📸 Found ${matchingImages.length} images for $designCode');
+            return matchingImages;
+          }
+        }
+      } catch (e) {
+        debugPrint('⚠️ Error fetching category $category: $e');
+      }
+    }
+    
+    debugPrint('📸 No images found for $designCode');
+    return [];
+  }
+  
+  /// Fetch all images from a category directory
+  Future<void> _fetchCategoryImages(String category) async {
+    if (_imageCache.containsKey(category)) {
+      return; // Already cached
     }
     
     try {
-      debugPrint('📸 Fetching images for design code: $designCode');
+      debugPrint('🌐 Fetching category images from: $_baseUrl/get_directory_files.php?directory=products/$category');
       
-      final url = Uri.parse('$_baseUrl/get_directory_files.php?search=${Uri.encodeComponent(designCode)}');
-      final response = await http.get(url).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Image search timeout');
-        },
+      final response = await http.get(
+        Uri.parse('$_baseUrl/get_directory_files.php?directory=products/$category'),
       );
       
-      if (response.statusCode != 200) {
-        debugPrint('❌ Image search failed: ${response.statusCode}');
-        _imageCache[designCode] = [];
-        return [];
-      }
-      
-      final data = json.decode(response.body) as Map<String, dynamic>;
-      
-      if (data['success'] != true || data['files'] == null) {
-        debugPrint('📸 No images found for $designCode');
-        _imageCache[designCode] = [];
-        return [];
-      }
-      
-      final files = data['files'] as List<dynamic>;
-      final images = <ProductImage>[];
-      final seenPaths = <String>{};
-      
-      for (final file in files) {
-        final fileMap = file as Map<String, dynamic>;
-        final path = fileMap['path'] as String?;
+      if (response.statusCode == 200) {
+        final dynamic responseData = json.decode(response.body);
+        final List<dynamic> files = responseData is Map && responseData['files'] != null 
+            ? responseData['files'] as List<dynamic>
+            : responseData as List<dynamic>;
+        final List<Map<String, String>> images = [];
         
-        // Deduplicate by path
-        if (path != null && path.isNotEmpty && !seenPaths.contains(path)) {
-          seenPaths.add(path);
-          images.add(ProductImage(
-            path: '$_baseUrl/$path',
-            name: fileMap['name'] as String? ?? '',
-            category: fileMap['category'] as String? ?? '',
-          ));
+        for (final file in files) {
+          if (file is Map<String, dynamic>) {
+            // Handle both 'url' and 'path' fields
+            final String? imageUrl = file['url'] as String? ?? file['path'] as String?;
+            final String? name = file['name'] as String?;
+            
+            // Check if it's an image file (handle URLs with or without version parameters)
+            final bool isImage = imageUrl != null && 
+                (imageUrl.contains('.jpg') || imageUrl.contains('.png') || imageUrl.contains('.jpeg'));
+            
+            if (isImage) {
+              // Build full URL if it's a relative path
+              final String fullUrl = imageUrl.startsWith('http') 
+                  ? imageUrl 
+                  : '$_baseUrl/$imageUrl';
+              
+              // Extract design code from filename or name field
+              final String filename = name ?? imageUrl.split('/').last.split('?').first;
+              final code = _extractDesignCode(filename);
+              
+              if (code != null) {
+                images.add({
+                  'url': fullUrl,
+                  'code': code,
+                });
+                debugPrint('🎯 Found target product in API response: $code');
+                debugPrint('  Image URL: $fullUrl');
+              }
+            }
+          }
         }
+        
+        _imageCache[category] = images;
+        debugPrint('✅ Successfully loaded ${images.length} product images with codes');
       }
-      
-      debugPrint('📸 Found ${images.length} images for $designCode');
-      
-      // Cache the result (even if empty to avoid repeated failed searches)
-      _imageCache[designCode] = images;
-      
-      return images;
     } catch (e) {
-      debugPrint('❌ Error searching images for $designCode: $e');
-      // Cache empty result to avoid retry
-      _imageCache[designCode] = [];
-      return [];
+      debugPrint('⚠️ Error fetching category images: $e');
     }
   }
-  
-  /// Clear the image cache
-  static void clearCache() {
-    _imageCache.clear();
-    debugPrint('🗑️ Image cache cleared');
-  }
-  
-  /// Get cache statistics
-  static Map<String, int> getCacheStats() {
-    return {
-      'cachedDesignCodes': _imageCache.length,
-      'totalImages': _imageCache.values.fold(0, (sum, images) => sum + images.length),
-    };
-  }
-}
-
-/// Model for product image
-class ProductImage {
-  final String path;
-  final String name;
-  final String category;
-  
-  ProductImage({
-    required this.path,
-    required this.name,
-    required this.category,
-  });
-  
-  @override
-  String toString() => 'ProductImage(path: $path, name: $name, category: $category)';
 }

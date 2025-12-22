@@ -6453,8 +6453,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         imagesSection.innerHTML = `
                             <h6 style="color: #d4af37; margin-bottom: 1rem;"><i class="fas fa-images"></i> Product Images (${images.length})</h6>
                             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem;">
-                                ${images.map(img => `
-                                    <div style="position: relative; padding-top: 100%; background: #2c2c2c; border-radius: 4px; overflow: hidden; cursor: pointer;" onclick="window.open('${img.path}', '_blank')">
+                                ${images.map((img, idx) => `
+                                    <div style="position: relative; padding-top: 100%; background: #2c2c2c; border-radius: 4px; overflow: hidden; cursor: pointer;" onclick="openImageViewer(${idx})">
                                         <img src="${img.path}" alt="${img.name}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" onerror="this.parentElement.innerHTML='<span style=\'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.7rem; color: #999;\'>Error</span>';">
                                     </div>
                                 `).join('')}
@@ -6470,11 +6470,207 @@ document.addEventListener('DOMContentLoaded', function() {
                             const modalDialog = modalBody.closest('.modal-dialog');
                             if (modalDialog) modalDialog.scrollTop = 0;
                         }, 50);
+                        
+                        // Store images and item data for viewer
+                        window.currentViewerImages = images;
+                        window.currentViewerItem = item;
                     }
                 }).catch(error => {
                     console.error('Error loading images for details modal:', error);
                 });
             }
+        }
+        
+        // Fullscreen image viewer with stock details (mobile-first)
+        window.openImageViewer = function(startIndex) {
+            const images = window.currentViewerImages || [];
+            const item = window.currentViewerItem || {};
+            if (images.length === 0) return;
+            
+            let currentIndex = startIndex;
+            let showDetails = true;
+            
+            // Create viewer overlay
+            const viewer = document.createElement('div');
+            viewer.id = 'imageViewer';
+            viewer.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.95);
+                z-index: 10000;
+                display: flex;
+                flex-direction: column;
+                touch-action: none;
+            `;
+            
+            // Top bar
+            const topBar = document.createElement('div');
+            topBar.style.cssText = `
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 1rem;
+                background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+                transition: opacity 0.3s;
+            `;
+            topBar.innerHTML = `
+                <button onclick="closeImageViewer()" style="background: none; border: none; color: white; font-size: 2rem; cursor: pointer; padding: 0.5rem;">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div style="background: rgba(0,0,0,0.6); padding: 0.5rem 1rem; border-radius: 1rem; color: white; font-weight: 500;">
+                    <span id="imageCounter">${currentIndex + 1} / ${images.length}</span>
+                </div>
+                <div style="width: 48px;"></div>
+            `;
+            
+            // Image container
+            const imageContainer = document.createElement('div');
+            imageContainer.style.cssText = `
+                flex: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                overflow: hidden;
+            `;
+            
+            const img = document.createElement('img');
+            img.id = 'viewerImage';
+            img.style.cssText = `
+                max-width: 90%;
+                max-height: 90%;
+                object-fit: contain;
+                cursor: pointer;
+            `;
+            img.src = images[currentIndex].path;
+            img.onclick = () => toggleDetails();
+            
+            // Navigation arrows (desktop)
+            if (images.length > 1) {
+                const prevBtn = document.createElement('button');
+                prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+                prevBtn.style.cssText = `
+                    position: absolute;
+                    left: 1rem;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    background: rgba(0,0,0,0.6);
+                    border: none;
+                    color: white;
+                    font-size: 2rem;
+                    padding: 1rem;
+                    cursor: pointer;
+                    border-radius: 50%;
+                    width: 60px;
+                    height: 60px;
+                    display: none;
+                `;
+                prevBtn.onclick = (e) => { e.stopPropagation(); navigateImage(-1); };
+                
+                const nextBtn = document.createElement('button');
+                nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                nextBtn.style.cssText = prevBtn.style.cssText.replace('left: 1rem', 'right: 1rem');
+                nextBtn.onclick = (e) => { e.stopPropagation(); navigateImage(1); };
+                
+                // Show arrows on desktop only
+                if (window.innerWidth > 768) {
+                    prevBtn.style.display = 'flex';
+                    nextBtn.style.display = 'flex';
+                    prevBtn.style.alignItems = 'center';
+                    prevBtn.style.justifyContent = 'center';
+                    nextBtn.style.alignItems = 'center';
+                    nextBtn.style.justifyContent = 'center';
+                }
+                
+                imageContainer.appendChild(prevBtn);
+                imageContainer.appendChild(nextBtn);
+            }
+            
+            imageContainer.appendChild(img);
+            
+            // Bottom details panel
+            const detailsPanel = document.createElement('div');
+            detailsPanel.id = 'detailsPanel';
+            detailsPanel.style.cssText = `
+                background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.7), transparent);
+                padding: 1.5rem;
+                color: white;
+                transition: transform 0.3s;
+                transform: translateY(0);
+            `;
+            detailsPanel.innerHTML = `
+                <div style="text-align: center; margin-bottom: 0.5rem;">
+                    <div style="width: 40px; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; margin: 0 auto;"></div>
+                </div>
+                <h5 style="color: #d4af37; margin-bottom: 1rem;">${item.EndProductDescription || 'Product Details'}</h5>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; font-size: 0.9rem;">
+                    <div><strong>Code:</strong> ${item.EndProductCode || 'N/A'}</div>
+                    <div><strong>Design:</strong> ${item.PDesign || extractDesignCode(item) || 'N/A'}</div>
+                    <div><strong>Quantity:</strong> ${item.Qty || 'N/A'} available</div>
+                    <div><strong>Location:</strong> ${item.Locationname || 'N/A'}</div>
+                    <div><strong>Color:</strong> ${item.PColor || 'N/A'}</div>
+                    <div><strong>Size:</strong> ${item.Size || 'N/A'}</div>
+                </div>
+                <p style="text-align: center; margin-top: 1rem; font-size: 0.8rem; color: rgba(255,255,255,0.6);">
+                    <i class="fas fa-info-circle"></i> Tap image to hide details • Swipe or use arrows for more images
+                </p>
+            `;
+            
+            viewer.appendChild(topBar);
+            viewer.appendChild(imageContainer);
+            viewer.appendChild(detailsPanel);
+            document.body.appendChild(viewer);
+            
+            // Touch gestures for mobile
+            let touchStartX = 0;
+            let touchEndX = 0;
+            
+            imageContainer.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            });
+            
+            imageContainer.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            });
+            
+            function handleSwipe() {
+                const swipeThreshold = 50;
+                if (touchStartX - touchEndX > swipeThreshold) {
+                    navigateImage(1); // Swipe left = next
+                } else if (touchEndX - touchStartX > swipeThreshold) {
+                    navigateImage(-1); // Swipe right = prev
+                }
+            }
+            
+            // Keyboard navigation
+            window.addEventListener('keydown', handleKeyPress);
+            
+            function handleKeyPress(e) {
+                if (e.key === 'Escape') closeImageViewer();
+                else if (e.key === 'ArrowLeft') navigateImage(-1);
+                else if (e.key === 'ArrowRight') navigateImage(1);
+            }
+            
+            function navigateImage(direction) {
+                currentIndex = (currentIndex + direction + images.length) % images.length;
+                img.src = images[currentIndex].path;
+                document.getElementById('imageCounter').textContent = `${currentIndex + 1} / ${images.length}`;
+            }
+            
+            function toggleDetails() {
+                showDetails = !showDetails;
+                topBar.style.opacity = showDetails ? '1' : '0';
+                detailsPanel.style.transform = showDetails ? 'translateY(0)' : 'translateY(100%)';
+            }
+            
+            window.closeImageViewer = function() {
+                window.removeEventListener('keydown', handleKeyPress);
+                viewer.remove();
+            };
         }
 
         // Function to set up navigation buttons for horizontal scrolling

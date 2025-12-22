@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:go_router/go_router.dart';
 import '../models/product_image.dart';
 import '../services/firebase_service.dart';
+import '../services/inventory_service.dart';
 
 class FullScreenImage extends StatefulWidget {
   final String imageUrl;
@@ -81,6 +83,81 @@ class _FullScreenImageState extends State<FullScreenImage> {
     }
   }
 
+  Future<void> _navigateToInventory() async {
+    final currentProduct = widget.galleryImages[_currentIndex];
+    final productCode = currentProduct.productCode;
+    
+    if (productCode.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No product code available'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+    
+    HapticFeedback.lightImpact();
+    
+    // Track navigation event
+    _trackAnalyticsEvent('navigate_to_inventory_from_gallery', {
+      'product_code': productCode,
+      'gallery_position': _currentIndex,
+    });
+    
+    // Show loading indicator
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+    
+    try {
+      // Search for the product in inventory
+      debugPrint('🔍 Searching inventory for: $productCode');
+      final inventoryService = InventoryService();
+      final items = await inventoryService.fetchInventory(
+        searchQuery: productCode,
+      );
+      
+      debugPrint('📊 Search results: ${items.length} items found');
+      if (items.isNotEmpty) {
+        debugPrint('📦 First item: ${items.first.description}');
+      }
+      
+      if (!mounted) return;
+      Navigator.of(context).pop(); // Close loading dialog
+      
+      if (items.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$productCode not found in inventory'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+      
+      // Close the image viewer first
+      Navigator.of(context).pop();
+      
+      // Navigate directly to the item details screen
+      context.push('/inventory-item-details', extra: items.first);
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).pop(); // Close loading dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error searching inventory: ${e.toString()}'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentProduct = widget.galleryImages[_currentIndex];
@@ -96,6 +173,11 @@ class _FullScreenImageState extends State<FullScreenImage> {
                 onPressed: () => Navigator.pop(context),
               ),
               actions: [
+                IconButton(
+                  icon: const Icon(Icons.info_outline),
+                  onPressed: _navigateToInventory,
+                  tooltip: 'View Details',
+                ),
                 IconButton(
                   icon: const Icon(Icons.share),
                   onPressed: _shareImage,

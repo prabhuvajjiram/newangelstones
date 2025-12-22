@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../models/inventory_item.dart';
 import '../services/unified_saved_items_service.dart';
 import '../services/inventory_service.dart';
 import '../services/product_image_service.dart';
+import '../widgets/product_image_viewer.dart';
 import '../state/saved_items_state.dart';
 import '../state/cart_state.dart';
 import '../screens/enhanced_cart_screen.dart';
@@ -27,7 +27,7 @@ class _InventoryItemDetailsScreenState extends State<InventoryItemDetailsScreen>
   bool isSaved = false;
   List<InventoryItem> stoneRecords = [];
   bool isLoadingDetails = false;
-  List<ProductImage> productImages = [];
+  List<String> productImages = [];
   bool isLoadingImages = false;
   
   @override
@@ -56,6 +56,10 @@ class _InventoryItemDetailsScreenState extends State<InventoryItemDetailsScreen>
   
   Future<void> _loadProductImages() async {
     final designCode = widget.item.designCode;
+    debugPrint('📸 Item: ${widget.item.description}');
+    debugPrint('📸 Design field: ${widget.item.design}');
+    debugPrint('📸 Extracted design code: $designCode');
+    
     if (designCode == null) {
       debugPrint('📸 No design code found for item');
       return;
@@ -66,6 +70,7 @@ class _InventoryItemDetailsScreenState extends State<InventoryItemDetailsScreen>
     });
     
     final images = await ProductImageService.searchProductImages(designCode);
+    debugPrint('📸 Found ${images.length} images for $designCode');
     
     if (mounted) {
       setState(() {
@@ -367,11 +372,17 @@ class _InventoryItemDetailsScreenState extends State<InventoryItemDetailsScreen>
                       return Padding(
                         padding: const EdgeInsets.only(right: 12.0),
                         child: GestureDetector(
-                          onTap: () async {
-                            final uri = Uri.parse(image.path);
-                            if (await canLaunchUrl(uri)) {
-                              await launchUrl(uri, mode: LaunchMode.externalApplication);
-                            }
+                          onTap: () {
+                            // Open fullscreen viewer with stock details
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => ProductImageViewer(
+                                  images: productImages,
+                                  item: widget.item,
+                                  initialIndex: index,
+                                ),
+                              ),
+                            );
                           },
                           child: Container(
                             width: 200,
@@ -382,7 +393,7 @@ class _InventoryItemDetailsScreenState extends State<InventoryItemDetailsScreen>
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(8),
                               child: Image.network(
-                                image.path,
+                                image,
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
                                   return Container(
