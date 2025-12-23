@@ -8,11 +8,36 @@ try {
     // Get limit parameter, default to all promotions
     $limit = isset($_GET['limit']) ? intval($_GET['limit']) : null;
     
-    $query = "SELECT * FROM promotions 
-              WHERE is_active = 1 
+    // Check if archived column exists
+    $checkColumn = $pdo->query("SHOW COLUMNS FROM promotions LIKE 'archived'");
+    $hasArchivedColumn = $checkColumn->rowCount() > 0;
+    
+    // Build query based on available columns
+    $archivedCondition = $hasArchivedColumn ? "AND archived = 0" : "";
+    
+    $query = "SELECT 
+                id,
+                type,
+                title,
+                subtitle,
+                description,
+                image_url as imageUrl,
+                link_url as linkUrl,
+                start_date as startDate,
+                end_date as endDate,
+                priority,
+                enabled,
+                special_price,
+                list_price,
+                currency,
+                product_code,
+                color
+              FROM promotions 
+              WHERE enabled = 1 
+              $archivedCondition
               AND start_date <= NOW() 
               AND end_date >= NOW() 
-              ORDER BY start_date DESC";
+              ORDER BY priority ASC, start_date DESC";
     
     // Add limit if specified
     if ($limit > 0) {

@@ -48,7 +48,8 @@ class PromotionBanner {
 
     async loadPromotions() {
         try {
-            const response = await fetch('/crm/ajax/get_active_promotions.php');
+            // Add cache-busting parameter
+            const response = await fetch('/crm/ajax/get_active_promotions.php?v=' + Date.now());
             
             // Attempt to get response text regardless of response.ok for better error reporting
             const responseText = await response.text();
@@ -90,20 +91,43 @@ class PromotionBanner {
 
     showPromotion(index) {
         const promotion = this.promotions[index];
+        if (!promotion) {
+            console.error('No promotion at index:', index);
+            return;
+        }
+        
         const content = this.banner.querySelector('.promotion-content');
+        if (!content) {
+            console.error('Promotion content element not found');
+            return;
+        }
+        
+        // Use linkUrl (camelCase from API) or default to promotions page
+        const promoLink = promotion.linkUrl || '/promotions.html';
+        const imageUrl = promotion.imageUrl || '';
+        const isExternal = promotion.type === 'event' && promotion.linkUrl && promotion.linkUrl.startsWith('http');
+        const target = isExternal ? '_blank' : '_self';
+        
+        // Debug logging
+        console.log('Showing promotion:', {
+            title: promotion.title,
+            imageUrl: imageUrl,
+            linkUrl: promoLink,
+            type: promotion.type
+        });
         
         content.innerHTML = `
-            <a href="${promotion.link_url}" class="promotion-text-link">
+            <a href="${promoLink}" target="${target}" class="promotion-text-link">
                 <div class="promotion-image-link">
-                    <img src="${promotion.image_url}" alt="${promotion.title}" class="promotion-image">
+                    <img src="${imageUrl}" alt="${promotion.title}" class="promotion-image" onerror="console.error('Image failed to load:', this.src)">
                 </div>
                 <div class="promotion-text">
                     <h3>${promotion.title}</h3>
-                    <p>${promotion.description}</p>
+                    <p>${promotion.subtitle || promotion.description || ''}</p>
                 </div>
             </a>
             <div class="promotion-expanded">
-                <a href="${promotion.link_url}" class="promotion-link desktop-only">Shop Now</a>
+                <a href="/promotions.html" class="promotion-link desktop-only">View All Promotions</a>
             </div>
             <div class="promotion-controls">
                 <button type="button" class="promotion-btn minimize-btn" title="Minimize">

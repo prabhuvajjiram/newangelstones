@@ -6,6 +6,14 @@ class Database {
     private $pdo;
 
     private function __construct() {
+        // Use the global $pdo from config.php if available
+        global $pdo;
+        if (isset($pdo) && $pdo instanceof PDO) {
+            $this->pdo = $pdo;
+            return;
+        }
+        
+        // Fallback: create new connection
         global $db_host, $db_name, $db_user, $db_pass;
         
         try {
@@ -31,6 +39,14 @@ class Database {
     public function getConnection() {
         return $this->pdo;
     }
+}
+
+/**
+ * Check if request is AJAX
+ */
+function isAjaxRequest() {
+    return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+           strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 }
 
 /**

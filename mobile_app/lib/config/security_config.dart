@@ -126,6 +126,11 @@ class SecurityConfig {
     return (config['api_endpoints']?['mautic_base'] ?? '$angelStonesBaseUrl/mautic/form/submit') as String;
   }
   
+  static Future<String> getBaseUrl() async {
+    final config = await _getConfig();
+    return (config['api_endpoints']?['base_url'] ?? angelStonesBaseUrl) as String;
+  }
+  
   /// Fetch configuration with three-layer fallback
   static Future<Map<String, dynamic>> _getConfig() async {
     // Use cache if available and not expired

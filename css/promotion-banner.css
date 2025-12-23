@@ -1,0 +1,277 @@
+/* Promotion Banner Styles */
+.promotion-banner {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    color: white;
+    position: relative;
+    z-index: 1000;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border-bottom: 2px solid #d4af37;
+}
+
+.promotion-banner.minimized {
+    max-height: 50px;
+}
+
+.promotion-content {
+    position: relative;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 15px 20px;
+}
+
+/* Image Container */
+.promotion-image-link {
+    flex-shrink: 0;
+    width: 200px;
+    height: 100px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.promotion-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.promotion-image-link:hover .promotion-image {
+    transform: scale(1.05);
+}
+
+/* Text Content */
+.promotion-text-link {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    text-decoration: none;
+    color: white;
+    flex: 1;
+    transition: opacity 0.2s ease;
+}
+
+.promotion-text-link:hover {
+    opacity: 0.9;
+}
+
+.promotion-text {
+    flex: 1;
+    text-align: left;
+}
+
+.promotion-text h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #d4af37;
+    font-family: 'Playfair Display', serif;
+}
+
+.promotion-text p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #e0e0e0;
+    line-height: 1.4;
+}
+
+/* Expanded Section */
+.promotion-expanded {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.promotion-link {
+    background: #d4af37;
+    color: #000;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.promotion-link:hover {
+    background: #e0c072;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(212, 175, 55, 0.3);
+}
+
+/* Controls */
+.promotion-controls {
+    display: flex;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.promotion-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+}
+
+.promotion-btn:hover {
+    background: rgba(212, 175, 55, 0.3);
+    border-color: #d4af37;
+    transform: scale(1.1);
+}
+
+/* Carousel Indicators */
+.carousel-indicators {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.carousel-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.carousel-dot.active {
+    background: #d4af37;
+    width: 24px;
+    border-radius: 4px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .promotion-content {
+        padding: 12px 15px;
+        gap: 15px;
+    }
+    
+    .promotion-image-link {
+        width: 160px;
+        height: 80px;
+    }
+    
+    .promotion-text h3 {
+        font-size: 1.2rem;
+    }
+    
+    .promotion-text p {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .promotion-banner {
+        position: relative;
+    }
+    
+    .promotion-content {
+        flex-direction: column;
+        padding: 15px;
+        text-align: center;
+        gap: 12px;
+    }
+    
+    .promotion-image-link {
+        width: 100%;
+        max-width: 350px;
+        height: 175px;
+        margin: 0 auto;
+    }
+    
+    .promotion-text-link {
+        flex-direction: column;
+        text-align: center;
+        width: 100%;
+    }
+    
+    .promotion-text {
+        text-align: center;
+        width: 100%;
+    }
+    
+    .promotion-text h3 {
+        font-size: 1.15rem;
+    }
+    
+    .promotion-text p {
+        font-size: 0.9rem;
+    }
+    
+    .promotion-expanded {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .desktop-only {
+        display: none !important;
+    }
+    
+    .promotion-controls {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        margin: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .promotion-image-link {
+        height: 120px;
+    }
+    
+    .promotion-text h3 {
+        font-size: 1rem;
+    }
+    
+    .promotion-text p {
+        font-size: 0.8rem;
+    }
+}
+
+/* Animation */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.promotion-banner {
+    animation: slideIn 0.5s ease-out;
+}
+
+/* Minimized State */
+.promotion-banner.minimized .promotion-content {
+    padding: 10px 20px;
+}
+
+.promotion-banner.minimized .promotion-image-link,
+.promotion-banner.minimized .promotion-text,
+.promotion-banner.minimized .promotion-expanded {
+    display: none;
+}

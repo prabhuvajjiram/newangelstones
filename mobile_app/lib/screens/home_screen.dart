@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
@@ -10,6 +9,9 @@ import '../services/directory_service.dart';
 import '../models/inventory_item.dart';
 import '../services/inventory_service.dart';
 import '../services/review_prompt_service.dart';
+import '../services/promotion_service.dart';
+import '../models/promotion.dart';
+import '../widgets/promotion_carousel.dart';
 import '../theme/app_theme.dart';
 import '../widgets/skeleton_loaders.dart';
 import '../utils/app_store_utils.dart';
@@ -44,7 +46,12 @@ class _HomeScreenState extends State<HomeScreen> {
   late Future<List<InventoryItem>> _futureInventorySummary;
   late Future<List<Product>> _futureSpecials;
   late DirectoryService _directoryService;
-  bool _showConventionBanner = true;
+  
+  final PromotionService _promotionService = PromotionService();
+  List<Promotion> _promotions = [];
+  bool _isLoadingPromotions = true;
+  bool _showPromotionBanner = true;
+  bool _promotionBannerDismissed = false;
 
   @override
   void initState() {
@@ -63,8 +70,31 @@ class _HomeScreenState extends State<HomeScreen> {
     _futureSpecials = widget.apiService.fetchSpecials();
     _directoryService = widget.directoryService;
     
+    // Load promotions
+    _loadPromotions();
+    
     // Schedule review prompt to show after 5 seconds (regardless of screen)
     _scheduleReviewPrompt();
+  }
+
+  /// Load promotions from server
+  Future<void> _loadPromotions() async {
+    try {
+      final promotions = await _promotionService.fetchPromotions();
+      if (mounted) {
+        setState(() {
+          _promotions = promotions;
+          _isLoadingPromotions = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error loading promotions: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingPromotions = false;
+        });
+      }
+    }
   }
 
   /// Initialize hybrid asset system and sync new assets
@@ -238,106 +268,64 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             
-            // Convention Announcement Banner
-            if (_showConventionBanner)
+            // Restore button (when banner is dismissed)
+            if (_promotionBannerDismissed && _promotions.isNotEmpty)
               Container(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFFFFD700), // Gold
-                      const Color(0xFFFFA500), // Orange
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFFFD700).withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
                     onTap: () {
-                      // Open convention website
-                      final url = Uri.parse('https://mid-atlanticconvention.com/');
-                      launchUrl(url, mode: LaunchMode.externalApplication);
+                      setState(() {
+                        _promotionBannerDismissed = false;
+                        _showPromotionBanner = true;
+                      });
                     },
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accentColor.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: AppTheme.accentColor.withOpacity(0.5),
+                          width: 1,
+                        ),
+                      ),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Icon
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.3),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.event,
-                              color: Colors.white,
-                              size: 28,
-                            ),
+                          Icon(
+                            Icons.campaign,
+                            size: 16,
+                            color: AppTheme.accentColor,
                           ),
-                          const SizedBox(width: 16),
-                          // Text content
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Meet Us at Mid-Atlantic Convention!',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.3,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                const Text(
-                                  'Visit Booth 46 & 54',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Tap to learn more',
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.9),
-                                    fontSize: 12,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                              ],
+                          const SizedBox(width: 8),
+                          Text(
+                            'Show Promotions',
+                            style: TextStyle(
+                              color: AppTheme.accentColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
                             ),
-                          ),
-                          // Close button
-                          IconButton(
-                            icon: const Icon(Icons.close, color: Colors.white, size: 20),
-                            onPressed: () {
-                              setState(() {
-                                _showConventionBanner = false;
-                              });
-                            },
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
                           ),
                         ],
                       ),
                     ),
                   ),
                 ),
+              ),
+            
+            // Promotion Carousel
+            if (!_promotionBannerDismissed && _showPromotionBanner && _promotions.isNotEmpty)
+              PromotionCarousel(
+                promotions: _promotions,
+                onClose: () {
+                  setState(() {
+                    _promotionBannerDismissed = true;
+                    _showPromotionBanner = false;
+                  });
+                },
               ),
             
             // Main Content - Ultra-tight spacing

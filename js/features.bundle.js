@@ -7096,29 +7096,34 @@ class PromotionBanner {
             return;
         }
 
-        minimizeBtn.addEventListener('click', () => {
-            this.minimized = !this.minimized;
-            this.banner.classList.toggle('minimized', this.minimized);
-            
-            const icon = minimizeBtn.querySelector('i');
-            if (this.minimized) {
-                icon.classList.remove('bi-chevron-up');
-                icon.classList.add('bi-chevron-down');
-                minimizeBtn.title = 'Expand';
-            } else {
-                icon.classList.remove('bi-chevron-down');
-                icon.classList.add('bi-chevron-up');
-                minimizeBtn.title = 'Minimize';
-            }
-        });
+        // Only add listeners if elements exist
+        if (minimizeBtn) {
+            minimizeBtn.addEventListener('click', () => {
+                this.minimized = !this.minimized;
+                this.banner.classList.toggle('minimized', this.minimized);
+                
+                const icon = minimizeBtn.querySelector('i');
+                if (this.minimized) {
+                    icon.classList.remove('bi-chevron-up');
+                    icon.classList.add('bi-chevron-down');
+                    minimizeBtn.title = 'Expand';
+                } else {
+                    icon.classList.remove('bi-chevron-down');
+                    icon.classList.add('bi-chevron-up');
+                    minimizeBtn.title = 'Minimize';
+                }
+            });
+        }
 
-        closeBtn.addEventListener('click', () => {
-            this.banner.style.display = 'none';
-            sessionStorage.setItem('promotionClosed', 'true');
-            if (this.carouselInterval) {
-                clearInterval(this.carouselInterval);
-            }
-        });
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                this.banner.style.display = 'none';
+                sessionStorage.setItem('promotionClosed', 'true');
+                if (this.carouselInterval) {
+                    clearInterval(this.carouselInterval);
+                }
+            });
+        }
     }
 
     async loadPromotions() {
@@ -7201,9 +7206,11 @@ class PromotionBanner {
     }
 }
 
-// Initialize when DOM is loaded
+// Initialize when DOM is loaded - only if not already loaded by inline code
 document.addEventListener('DOMContentLoaded', () => {
-    new PromotionBanner();
+    if (!window.PROMO_BANNER_LOADED) {
+        new PromotionBanner();
+    }
 });
 class CategoryCarousel {
     constructor() {

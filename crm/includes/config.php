@@ -29,23 +29,23 @@ if ($is_production) {
     if (file_exists(__DIR__ . '/db_config.php')) {
         require_once __DIR__ . '/db_config.php';
         // Set database variables from constants
-        $db_host = DB_HOST;
-        $db_name = DB_NAME;
-        $db_user = DB_USER;
-        $db_pass = DB_PASS;
+        $GLOBALS['db_host'] = DB_HOST;
+        $GLOBALS['db_name'] = DB_NAME;
+        $GLOBALS['db_user'] = DB_USER;
+        $GLOBALS['db_pass'] = DB_PASS;
     } else {
         throw new Exception("db_config.php not found");
     }
     define('BASE_URL', 'https://www.theangelstones.com');
 } else {
     // Local development database credentials
-    $db_host = '127.0.0.1';
-    $db_name = 'angelstones_quotes_new';
-    $db_user = 'root';
-    $db_pass = '';
+    $GLOBALS['db_host'] = '127.0.0.1';
+    $GLOBALS['db_name'] = 'angelstones_local';  // Updated to match our local DB
+    $GLOBALS['db_user'] = 'root';
+    $GLOBALS['db_pass'] = '';  // Empty password for local MySQL
     
-    // Local development URL with port 3000
-    define('BASE_URL', 'http://localhost:3000');
+    // Local development URL with port 8000
+    define('BASE_URL', 'http://localhost:8000');
 }
 
 // Load Gmail OAuth2 configuration
@@ -66,16 +66,18 @@ if (!defined('GMAIL_SCOPES')) {
 
 // Create PDO database connection
 try {
-    $pdo = new PDO(
-        "mysql:host=$db_host;dbname=$db_name;charset=utf8mb4",
-        $db_user,
-        $db_pass,
+    $GLOBALS['pdo'] = new PDO(
+        "mysql:host={$GLOBALS['db_host']};dbname={$GLOBALS['db_name']};charset=utf8mb4",
+        $GLOBALS['db_user'],
+        $GLOBALS['db_pass'],
         [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false
         ]
     );
+    // Also set local variable for backward compatibility
+    $pdo = $GLOBALS['pdo'];
 } catch (PDOException $e) {
     if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
         header('Content-Type: application/json');

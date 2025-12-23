@@ -1,0 +1,1318 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Current Promotions - Angel Granites</title>
+    
+    <!-- Match existing site styles -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="css/style.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Didact+Gothic&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    
+    <style>
+        body {
+            font-family: 'Didact Gothic', sans-serif;
+            background: #1b1b1b;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Hide public sections - go straight to admin */
+        .promotions-header,
+        .promotions-container {
+            display: none !important;
+        }
+        
+        .promotions-header {
+            background: #000;
+            color: white;
+            padding: 60px 0 40px;
+            text-align: center;
+            position: relative;
+            border-bottom: 2px solid #d4af37;
+        }
+        
+        .promotions-header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            margin-bottom: 15px;
+            font-weight: 700;
+            color: #fff;
+        }
+        
+        .promotions-header p {
+            font-size: 18px;
+            color: #e0c072;
+            opacity: 0.95;
+        }
+        
+        .admin-login-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: 2px solid #d4af37;
+            color: #d4af37;
+            padding: 8px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .admin-login-btn:hover {
+            background: #d4af37;
+            color: #1b1b1b;
+        }
+        
+        .promotions-container {
+            max-width: 1200px;
+            margin: 40px auto 60px;
+            padding: 0 20px;
+        }
+        
+        .promotion-card {
+            background: #2a2a2a;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            margin-bottom: 30px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #444;
+        }
+        
+        .promotion-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(212, 175, 55, 0.3);
+            border-color: #d4af37;
+        }
+        
+        .promotion-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+        }
+        
+        .promotion-content {
+            padding: 30px;
+        }
+        
+        .promotion-type {
+            display: inline-block;
+            background: transparent;
+            color: #d4af37;
+            border: 1px solid #d4af37;
+            padding: 5px 15px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+        
+        .promotion-type.event {
+            color: #e0c072;
+            border-color: #e0c072;
+        }
+        
+        .promotion-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        
+        .promotion-subtitle {
+            font-size: 18px;
+            color: #e0c072;
+            margin-bottom: 20px;
+        }
+        
+        .promotion-description {
+            font-size: 16px;
+            color: #ccc;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .pricing-box {
+            background: rgba(212, 175, 55, 0.1);
+            border-left: 4px solid #d4af37;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .price-special {
+            font-size: 36px;
+            font-weight: 700;
+            color: #059669;
+            margin-bottom: 5px;
+        }
+        
+        .price-list {
+            font-size: 18px;
+            color: #6b7280;
+            text-decoration: line-through;
+        }
+        
+        .savings {
+            display: inline-block;
+            background: #d1fae5;
+            color: #065f46;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .product-details {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #444;
+        }
+        
+        .detail-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .detail-label {
+            font-weight: 700;
+            color: #d4af37;
+            min-width: 120px;
+        }
+        
+        .detail-value {
+            color: #fff;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: transparent;
+            color: #d4af37;
+            border: 2px solid #d4af37;
+            padding: 12px 32px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 16px;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        
+        .cta-button:hover {
+            background: #d4af37;
+            color: #1b1b1b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+        }
+        
+        .no-promotions {
+            text-align: center;
+            padding: 80px 20px;
+            color: #999;
+        }
+        
+        .no-promotions i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+            color: #d4af37;
+        }
+        
+        .view-tab {
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            padding: 12px 24px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #999;
+            transition: all 0.3s;
+        }
+        
+        .view-tab.active {
+            color: #d4af37;
+            border-bottom-color: #d4af37;
+        }
+        
+        .view-tab:hover {
+            color: #d4af37;
+        }
+        
+        .archived-badge {
+            display: inline-block;
+            background: rgba(153, 153, 153, 0.2);
+            color: #999;
+            border: 1px solid #666;
+            padding: 5px 15px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+        
+        /* Admin Panel Styles */
+        .admin-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 9999;
+            overflow-y: auto;
+        }
+        
+        .admin-panel.active {
+            display: flex;
+            align-items: start;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .admin-content {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 40px;
+            max-width: 900px;
+            width: 100%;
+            margin-top: 20px;
+            border: 1px solid #444;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #d4af37;
+        }
+        
+        .admin-header h2 {
+            color: #fff;
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .close-admin {
+            background: none;
+            border: none;
+            font-size: 32px;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            transition: color 0.3s;
+        }
+        
+        .close-admin:hover {
+            color: #d4af37;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #d4af37;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #1b1b1b;
+            color: #fff;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #d4af37;
+            box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25);
+        }
+        
+        .form-group small {
+            color: #999;
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #d4af37;
+            color: #1b1b1b;
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background: #b8941f;
+            color: #1b1b1b;
+        }
+        
+        .btn-success {
+            background: transparent;
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        
+        .btn-success:hover {
+            background: #10b981;
+            color: #1b1b1b;
+        }
+        
+        .btn-danger {
+            background: transparent;
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        
+        .btn-danger:hover {
+            background: #ef4444;
+            color: #fff;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: #999;
+            border: 1px solid #666;
+        }
+        
+        .btn-secondary:hover {
+            background: #666;
+            color: #fff;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        
+        .alert-error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        
+        .admin-promotions-list {
+            margin-top: 30px;
+        }
+        
+        .admin-promo-item {
+            background: #1b1b1b;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #444;
+        }
+        
+        .admin-promo-item strong {
+            color: #fff;
+        }
+        
+        .admin-promo-item small {
+            color: #999;
+        }
+        
+        .admin-promo-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .admin-promo-actions button {
+            padding: 6px 15px;
+            font-size: 13px;
+        }
+        
+        @media (max-width: 768px) {
+            .promotions-header h1 {
+                font-size: 32px;
+            }
+            
+            .promotion-title {
+                font-size: 24px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-login-btn {
+                position: static;
+                display: block;
+                margin: 20px auto 0;
+                width: fit-content;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header id="as-header" style="position: fixed; top: 0; left: 0; width: 100%; background: #000; z-index: 1000; padding: 15px 20px; border-bottom: 1px solid #444;">
+        <div style="display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto;">
+            <a href="index.html" style="display: flex; align-items: center; text-decoration: none;">
+                <img src="images/ag_logo.svg" width="150" height="60" alt="Angel Stones" style="filter: brightness(0) invert(1);">
+            </a>
+            <nav style="display: flex; gap: 30px; align-items: center;">
+                <a href="index.html" style="color: #fff; text-decoration: none; font-size: 14px; transition: color 0.3s;">Home</a>
+                <a href="index.html#specials" style="color: #fff; text-decoration: none; font-size: 14px; transition: color 0.3s;">Special Offers</a>
+                <a href="index.html#get-in-touch" style="color: #fff; text-decoration: none; font-size: 14px; transition: color 0.3s;">Contact</a>
+                <button class="admin-login-btn" onclick="showAdminPanel()" style="position: static; margin: 0;">
+                    <i class="bi bi-lock"></i> Admin
+                </button>
+            </nav>
+        </div>
+    </header>
+    
+    <!-- Header -->
+    <div class="promotions-header" style="margin-top: 90px;">
+        <h1>Current Promotions</h1>
+        <p>Special offers on premium granite monuments and memorials</p>
+    </div>
+    
+    <!-- View Tabs -->
+    <div class="container" style="max-width: 1200px; margin: 20px auto; padding: 0 20px;">
+        <div style="display: flex; gap: 10px; border-bottom: 2px solid #e5e7eb;">
+            <button class="view-tab active" onclick="switchView('active')" id="tab-active">
+                <i class="bi bi-star-fill"></i> Current Offers
+            </button>
+            <button class="view-tab" onclick="switchView('archive')" id="tab-archive">
+                <i class="bi bi-archive"></i> Past Promotions
+            </button>
+        </div>
+    </div>
+    
+    <!-- Promotions Display -->
+    <div class="promotions-container" id="promotions-display">
+        <div class="no-promotions">
+            <i class="bi bi-hourglass-split"></i>
+            <h3>Loading promotions...</h3>
+        </div>
+    </div>
+    
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="admin-panel">
+        <div class="admin-content">
+            <div class="admin-header">
+                <h2>Promotions Admin</h2>
+                <button class="close-admin" onclick="closeAdminPanel()">&times;</button>
+            </div>
+            
+            <div id="admin-message"></div>
+            
+            <!-- Create Form -->
+            <form id="create-form">
+                <h3 style="margin-bottom: 20px;">Create New Promotion</h3>
+                
+                <div class="form-group">
+                    <label>Type *</label>
+                    <select id="type" required>
+                        <option value="product">Product Special</option>
+                        <option value="event">Event/Convention</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Title *</label>
+                    <input type="text" id="title" placeholder="e.g., Special A: Bahama Blue" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Subtitle</label>
+                    <input type="text" id="subtitle" placeholder="e.g., AG-647A Monument Special">
+                </div>
+                
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="description" placeholder="Detailed description..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Link URL (Where should this promotion go when clicked?)</label>
+                    <input type="url" id="linkUrl" placeholder="e.g., /promotions.html or https://example.com/event">
+                    <small style="color: #6b7280;">Leave blank to default to promotions page. Use external URL for events/conventions.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Upload Image * (Will be optimized to 1200x600px WebP)</label>
+                    <input type="file" id="image" accept="image/jpeg,image/jpg,image/png,image/webp" required>
+                    <small style="color: #6b7280;">Image will be automatically cropped, optimized, and converted to WebP format for best performance (typically 30-50% smaller than PNG/JPG)</small>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Start Date *</label>
+                        <input type="datetime-local" id="startDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>End Date *</label>
+                        <input type="datetime-local" id="endDate" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Special Price</label>
+                        <input type="number" id="specialPrice" step="0.01" placeholder="2038.00">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>List Price</label>
+                        <input type="number" id="listPrice" step="0.01" placeholder="2646.00">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Product Code</label>
+                    <input type="text" id="productCode" placeholder="e.g., AG-647A">
+                </div>
+                
+                <div class="form-group">
+                    <label>Color</label>
+                    <input type="text" id="color" placeholder="e.g., Bahama Blue">
+                </div>
+                
+                <div class="form-group">
+                    <label>Tablet Details</label>
+                    <input type="text" id="tablet" placeholder="e.g., 3-6 X 0-8 X 2-2 AG-647A, Serp Top, P5">
+                </div>
+                
+                <div class="form-group">
+                    <label>Base Details</label>
+                    <input type="text" id="base" placeholder='e.g., 4-6 x 1-2 x 0-8 PFT, 2" Polished Margin, BRP'>
+                </div>
+                
+                <div class="form-group">
+                    <label>Features</label>
+                    <textarea id="features" placeholder="e.g., Carved Antique Finished Grapes on ends"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Priority (1 = highest)</label>
+                        <input type="number" id="priority" value="1" min="1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="enabled">
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-success">Create Promotion</button>
+            </form>
+            
+            <!-- Existing Promotions -->
+            <div class="admin-promotions-list" id="admin-promotions">
+                <h3 style="margin: 40px 0 20px;">Manage Existing Promotions</h3>
+                <div id="admin-promos-container"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script>
+        const API_BASE = '/api';
+        let currentView = 'active';
+        
+        // Load promotions on page load
+        $(document).ready(function() {
+            loadPublicPromotions();
+            checkLoginStatus();
+            
+            // Bind create form submit handler
+            $('#create-form').on('submit', createPromotion);
+        });
+        
+        // Switch between active and archive views
+        function switchView(view) {
+            currentView = view;
+            $('.view-tab').removeClass('active');
+            $(`#tab-${view}`).addClass('active');
+            loadPublicPromotions();
+        }
+        
+        // Load public promotions
+        async function loadPublicPromotions() {
+            try {
+                const url = currentView === 'archive' 
+                    ? `${API_BASE}/promotions_api.php?archived=true`
+                    : `${API_BASE}/promotions_api.php?active_only=true`;
+                    
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                const container = $('#promotions-display');
+                
+                if (data.success && data.promotions.length > 0) {
+                    container.html(data.promotions.map(promo => createPromotionCard(promo, currentView === 'archive')).join(''));
+                } else {
+                    const message = currentView === 'archive'
+                        ? { icon: 'archive', title: 'No Archived Promotions', text: 'Past promotions will appear here.' }
+                        : { icon: 'tag', title: 'No Active Promotions', text: 'Check back soon for special offers!' };
+                    
+                    container.html(`
+                        <div class="no-promotions">
+                            <i class="bi bi-${message.icon}"></i>
+                            <h3>${message.title}</h3>
+                            <p>${message.text}</p>
+                        </div>
+                    `);
+                }
+            } catch (error) {
+                $('#promotions-display').html(`
+                    <div class="no-promotions">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <h3>Unable to load promotions</h3>
+                        <p>Please try again later.</p>
+                    </div>
+                `);
+            }
+        }
+        
+        // Create promotion card HTML
+        function createPromotionCard(promo, isArchived = false) {
+            const savings = promo.pricing && promo.pricing.listPrice && promo.pricing.specialPrice
+                ? promo.pricing.listPrice - promo.pricing.specialPrice
+                : 0;
+            
+            const savingsPercent = promo.pricing && promo.pricing.listPrice && savings > 0
+                ? Math.round((savings / promo.pricing.listPrice) * 100)
+                : 0;
+            
+            let ctaButton = '';
+            if (!isArchived) {
+                if (promo.type === 'event' && promo.linkUrl) {
+                    ctaButton = `<a href="${promo.linkUrl}" target="_blank" class="cta-button">Learn More <i class="bi bi-arrow-right"></i></a>`;
+                } else if (promo.type === 'product') {
+                    ctaButton = `<a href="mailto:sales@theangelstones.com?subject=Inquiry about ${encodeURIComponent(promo.title)}" class="cta-button">Inquire Now <i class="bi bi-envelope"></i></a>`;
+                }
+            }
+            
+            return `
+                <div class="promotion-card" style="${isArchived ? 'opacity: 0.85;' : ''}">
+                    <img src="${promo.imageUrl}" alt="${promo.title}" class="promotion-image">
+                    <div class="promotion-content">
+                        ${isArchived ? '<span class="archived-badge"><i class="bi bi-archive"></i> Past Promotion</span>' : ''}
+                        <span class="promotion-type ${promo.type}">${promo.type === 'product' ? 'Special Offer' : 'Event'}</span>
+                        <h2 class="promotion-title">${promo.title}</h2>
+                        ${promo.subtitle ? `<p class="promotion-subtitle">${promo.subtitle}</p>` : ''}
+                        ${promo.description ? `<p class="promotion-description">${promo.description}</p>` : ''}
+                        
+                        ${promo.pricing && promo.pricing.specialPrice ? `
+                            <div class="pricing-box">
+                                <div class="price-special">$${promo.pricing.specialPrice.toLocaleString()}</div>
+                                ${promo.pricing.listPrice ? `
+                                    <div class="price-list">Regular: $${promo.pricing.listPrice.toLocaleString()}</div>
+                                    ${savingsPercent > 0 ? `<span class="savings">Save ${savingsPercent}% ($${savings.toLocaleString()})</span>` : ''}
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                        
+                        ${promo.productDetails && (promo.productDetails.tablet || promo.productDetails.base) ? `
+                            <div class="product-details">
+                                ${promo.productDetails.productCode ? `
+                                    <div class="detail-row">
+                                        <span class="detail-label">Product Code:</span>
+                                        <span class="detail-value">${promo.productDetails.productCode}</span>
+                                    </div>
+                                ` : ''}
+                                ${promo.productDetails.color ? `
+                                    <div class="detail-row">
+                                        <span class="detail-label">Color:</span>
+                                        <span class="detail-value">${promo.productDetails.color}</span>
+                                    </div>
+                                ` : ''}
+                                ${promo.productDetails.tablet ? `
+                                    <div class="detail-row">
+                                        <span class="detail-label">Tablet:</span>
+                                        <span class="detail-value">${promo.productDetails.tablet}</span>
+                                    </div>
+                                ` : ''}
+                                ${promo.productDetails.base ? `
+                                    <div class="detail-row">
+                                        <span class="detail-label">Base:</span>
+                                        <span class="detail-value">${promo.productDetails.base}</span>
+                                    </div>
+                                ` : ''}
+                                ${promo.productDetails.features ? `
+                                    <div class="detail-row">
+                                        <span class="detail-label">Features:</span>
+                                        <span class="detail-value">${promo.productDetails.features}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                        
+                        ${ctaButton}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Check login status on page load
+        let isLoggedIn = false;
+        
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/admin_auth.php`);
+                const data = await response.json();
+                isLoggedIn = data.logged_in || false;
+                
+                if (isLoggedIn) {
+                    // Already logged in, show admin panel
+                    showAdminPanel();
+                } else {
+                    // Not logged in, show login form immediately
+                    showLoginForm();
+                }
+            } catch (error) {
+                console.error('Error checking login status:', error);
+                showLoginForm();
+            }
+        }
+        
+        // Auto-check login on page load
+        $(document).ready(function() {
+            checkLoginStatus();
+        });
+        
+        // Admin Panel Functions
+        function showAdminPanel() {
+            if (!isLoggedIn) {
+                showLoginForm();
+            } else {
+                $('#admin-panel').addClass('active');
+                loadAdminPromotions();
+            }
+        }
+        
+        function showLoginForm() {
+            const loginHtml = `
+                <div style="max-width: 400px; margin: 100px auto; background: #2a2a2a; padding: 40px; border-radius: 8px; border: 1px solid #444;">
+                    <h2 style="color: #fff; font-family: 'Playfair Display', serif; margin-bottom: 30px; text-align: center;">Admin Login</h2>
+                    <div id="login-message"></div>
+                    <form id="login-form" onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" id="login-username" required autocomplete="username">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="login-password" required autocomplete="current-password">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;">Login</button>
+                        <button type="button" class="btn btn-secondary" style="width: 100%; margin-top: 10px;" onclick="closeAdminPanel()">Cancel</button>
+                    </form>
+                </div>
+            `;
+            
+            $('#admin-panel').html(loginHtml).addClass('active');
+        }
+        
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const username = $('#login-username').val();
+            const password = $('#login-password').val();
+            const messageDiv = $('#login-message');
+            
+            messageDiv.html('<div class="alert alert-success">Logging in...</div>');
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin_auth.php`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    isLoggedIn = true;
+                    messageDiv.html('<div class="alert alert-success">Login successful! Redirecting...</div>');
+                    
+                    // Reload page to show full admin panel
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
+                } else {
+                    messageDiv.html(`<div class="alert alert-error">${data.error || 'Login failed'}</div>`);
+                }
+            } catch (error) {
+                messageDiv.html(`<div class="alert alert-error">Error: ${error.message}</div>`);
+            }
+        }
+        
+        function closeAdminPanel() {
+            $('#admin-panel').removeClass('active');
+        }
+        
+        async function logout() {
+            try {
+                await fetch(`${API_BASE}/admin_auth.php`, {
+                    method: 'DELETE'
+                });
+                isLoggedIn = false;
+                location.reload(); // Reload to show login form
+            } catch (error) {
+                console.error('Logout error:', error);
+                location.reload();
+            }
+        }
+        
+        async function loadAdminPromotions() {
+            try {
+                const response = await fetch(`${API_BASE}/promotions_api.php`);
+                const data = await response.json();
+                
+                if (data.success && data.promotions.length > 0) {
+                    $('#admin-promos-container').html(data.promotions.map(promo => {
+                        const isExpired = new Date(promo.endDate) < new Date();
+                        return `
+                        <div class="admin-promo-item">
+                            <div>
+                                <strong>${promo.title}</strong>
+                                <br><small>${new Date(promo.startDate).toLocaleDateString()} - ${new Date(promo.endDate).toLocaleDateString()}</small>
+                                ${isExpired ? '<br><span style="color: #ef4444; font-size: 12px;"><i class="bi bi-clock-history"></i> Expired</span>' : ''}
+                            </div>
+                            <div class="admin-promo-actions">
+                                <button class="btn ${promo.enabled ? 'btn-danger' : 'btn-success'}" onclick="togglePromotion('${promo.id}', ${promo.enabled})">
+                                    ${promo.enabled ? 'Disable' : 'Enable'}
+                                </button>
+                                <button class="btn btn-primary" onclick="editPromotion('${promo.id}')">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                                ${isExpired ? `
+                                    <button class="btn btn-secondary" onclick="archivePromotion('${promo.id}')">
+                                        <i class="bi bi-archive"></i> Archive
+                                    </button>
+                                ` : ''}
+                                <button class="btn btn-danger" onclick="deletePromotion('${promo.id}')">Delete</button>
+                            </div>
+                        </div>
+                    `}).join(''));
+                } else {
+                    $('#admin-promos-container').html('<p>No promotions yet.</p>');
+                }
+                
+                // Load archived promotions count
+                const archivedResponse = await fetch(`${API_BASE}/promotions_api.php?archived=true`);
+                const archivedData = await archivedResponse.json();
+                if (archivedData.success && archivedData.promotions.length > 0) {
+                    $('#admin-promos-container').append(`
+                        <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e5e7eb;">
+                            <h4 style="margin-bottom: 15px;">Archived Promotions (${archivedData.promotions.length})</h4>
+                            ${archivedData.promotions.map(promo => `
+                                <div class="admin-promo-item" style="opacity: 0.7;">
+                                    <div>
+                                        <strong>${promo.title}</strong>
+                                        <br><small>${new Date(promo.startDate).toLocaleDateString()} - ${new Date(promo.endDate).toLocaleDateString()}</small>
+                                    </div>
+                                    <div class="admin-promo-actions">
+                                        <button class="btn btn-success" onclick="unarchivePromotion('${promo.id}')">
+                                            <i class="bi bi-arrow-counterclockwise"></i> Restore
+                                        </button>
+                                        <button class="btn btn-danger" onclick="deletePromotion('${promo.id}')">Delete</button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `);
+                }
+            } catch (error) {
+                $('#admin-promos-container').html('<p class="alert alert-error">Failed to load promotions</p>');
+            }
+        }
+        
+        async function archivePromotion(id) {
+            if (!confirm('Archive this promotion? It will be moved to past promotions.')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/promotions_api.php?id=${id}&action=archive`, {
+                    method: 'PATCH'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    loadAdminPromotions();
+                    loadPublicPromotions();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function unarchivePromotion(id) {
+            if (!confirm('Restore this promotion from archive?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/promotions_api.php?id=${id}&action=unarchive`, {
+                    method: 'PATCH'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    loadAdminPromotions();
+                    loadPublicPromotions();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function createPromotion(e) {
+            e.preventDefault();
+            
+            const messageDiv = $('#admin-message');
+            messageDiv.html('<div class="alert alert-success">Creating promotion...</div>');
+            
+            try {
+                // Validate image file
+                const imageInput = $('#image')[0];
+                if (!imageInput.files || !imageInput.files[0]) {
+                    throw new Error('Please select an image file');
+                }
+                
+                const imageFile = imageInput.files[0];
+                console.log('Uploading file:', imageFile.name, imageFile.type, imageFile.size);
+                
+                // Validate file type
+                const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+                if (!validTypes.includes(imageFile.type)) {
+                    throw new Error('Invalid file type. Please upload JPG, PNG, or WebP image');
+                }
+                
+                // Validate file size (5MB max)
+                if (imageFile.size > 5242880) {
+                    throw new Error('File too large. Maximum size is 5MB');
+                }
+                
+                // Upload image first
+                const formData = new FormData();
+                formData.append('file', imageFile);
+                
+                console.log('Sending upload request...');
+                const uploadResponse = await fetch(`${API_BASE}/upload_image.php`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                console.log('Upload response status:', uploadResponse.status);
+                const uploadData = await uploadResponse.json();
+                console.log('Upload response data:', uploadData);
+                
+                if (!uploadData.success) {
+                    throw new Error(uploadData.error || 'Image upload failed');
+                }
+                
+                // Create promotion
+                const startDateVal = $('#startDate').val();
+                const endDateVal = $('#endDate').val();
+                
+                const promotionData = {
+                    type: $('#type').val(),
+                    title: $('#title').val(),
+                    subtitle: $('#subtitle').val() || null,
+                    description: $('#description').val() || null,
+                    imageUrl: uploadData.imageUrl,
+                    linkUrl: $('#linkUrl').val() || '/promotions.html',
+                    startDate: startDateVal ? startDateVal.replace('T', ' ') + ':00' : null,
+                    endDate: endDateVal ? endDateVal.replace('T', ' ') + ':00' : null,
+                    priority: parseInt($('#priority').val()),
+                    enabled: $('#enabled').val() === 'true',
+                    pricing: {
+                        specialPrice: parseFloat($('#specialPrice').val()) || null,
+                        listPrice: parseFloat($('#listPrice').val()) || null,
+                        currency: 'USD'
+                    },
+                    productDetails: {
+                        productCode: $('#productCode').val() || null,
+                        color: $('#color').val() || null,
+                        tablet: $('#tablet').val() || null,
+                        base: $('#base').val() || null,
+                        features: $('#features').val() || null
+                    }
+                };
+                
+                const response = await fetch(`${API_BASE}/promotions_api.php`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(promotionData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    messageDiv.html('<div class="alert alert-success">Promotion created successfully!</div>');
+                    $('#create-form')[0].reset();
+                    loadAdminPromotions();
+                    loadPublicPromotions();
+                    setTimeout(() => messageDiv.html(''), 3000);
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                messageDiv.html(`<div class="alert alert-error">Error: ${error.message}</div>`);
+            }
+        }
+        
+        async function togglePromotion(id, currentStatus) {
+            if (!confirm(`${currentStatus ? 'Disable' : 'Enable'} this promotion?`)) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/promotions_api.php?id=${id}&action=toggle`, {
+                    method: 'PATCH'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    loadAdminPromotions();
+                    loadPublicPromotions();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function deletePromotion(id) {
+            if (!confirm('Delete this promotion? This cannot be undone.')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/promotions_api.php?id=${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    loadAdminPromotions();
+                    loadPublicPromotions();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function editPromotion(id) {
+            try {
+                // Fetch promotion details
+                const response = await fetch(`${API_BASE}/promotions_api.php?id=${id}`);
+                const data = await response.json();
+                
+                if (!data.success || !data.promotion) {
+                    alert('Failed to load promotion details');
+                    return;
+                }
+                
+                const promo = data.promotion;
+                
+                // Populate form with existing data
+                $('#type').val(promo.type);
+                $('#title').val(promo.title);
+                $('#subtitle').val(promo.subtitle || '');
+                $('#description').val(promo.description || '');
+                $('#linkUrl').val(promo.linkUrl || '');
+                $('#startDate').val(new Date(promo.startDate).toISOString().slice(0, 16));
+                $('#endDate').val(new Date(promo.endDate).toISOString().slice(0, 16));
+                $('#priority').val(promo.priority || 1);
+                
+                if (promo.pricing) {
+                    $('#specialPrice').val(promo.pricing.specialPrice || '');
+                    $('#listPrice').val(promo.pricing.listPrice || '');
+                }
+                
+                if (promo.productDetails) {
+                    $('#productCode').val(promo.productDetails.productCode || '');
+                    $('#color').val(promo.productDetails.color || '');
+                    $('#tablet').val(promo.productDetails.tablet || '');
+                    $('#base').val(promo.productDetails.base || '');
+                    $('#features').val(promo.productDetails.features || '');
+                }
+                
+                // Change form to edit mode
+                $('#create-form h3').text('Edit Promotion');
+                $('#image').removeAttr('required');
+                $('#image').parent().find('label').html('Upload New Image (Optional - Leave blank to keep existing)');
+                
+                // Change submit button
+                const submitBtn = $('#create-form button[type="submit"]');
+                submitBtn.text('Update Promotion').removeClass('btn-primary').addClass('btn-success');
+                
+                // Update form submit handler
+                $('#create-form').off('submit').on('submit', async function(e) {
+                    e.preventDefault();
+                    await updatePromotion(id);
+                });
+                
+                // Scroll to form
+                $('#create-form')[0].scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                alert('Error loading promotion: ' + error.message);
+            }
+        }
+        
+        async function updatePromotion(id) {
+            const messageDiv = $('#admin-message');
+            messageDiv.html('<div class="alert alert-success">Updating promotion...</div>');
+            
+            try {
+                let imageUrl = null;
+                
+                // Upload new image if provided
+                const imageFile = $('#image')[0].files[0];
+                if (imageFile) {
+                    const formData = new FormData();
+                    formData.append('file', imageFile);
+                    formData.append('promotion_id', id);
+                    
+                    const uploadResponse = await fetch(`${API_BASE}/upload_image.php`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const uploadData = await uploadResponse.json();
+                    
+                    if (!uploadData.success) {
+                        throw new Error(uploadData.error);
+                    }
+                    
+                    imageUrl = uploadData.imageUrl;
+                }
+                
+                // Update promotion
+                const startDateVal = $('#startDate').val();
+                const endDateVal = $('#endDate').val();
+                
+                const promotionData = {
+                    type: $('#type').val(),
+                    title: $('#title').val(),
+                    subtitle: $('#subtitle').val() || null,
+                    description: $('#description').val() || null,
+                    linkUrl: $('#linkUrl').val() || '/promotions.html',
+                    startDate: startDateVal ? startDateVal.replace('T', ' ') + ':00' : null,
+                    endDate: endDateVal ? endDateVal.replace('T', ' ') + ':00' : null,
+                    priority: parseInt($('#priority').val()) || 1
+                };
+                
+                // Add image URL if new image was uploaded
+                if (imageUrl) {
+                    promotionData.imageUrl = imageUrl;
+                }
+                
+                // Add pricing if provided
+                const specialPrice = parseFloat($('#specialPrice').val());
+                const listPrice = parseFloat($('#listPrice').val());
+                if (specialPrice || listPrice) {
+                    promotionData.pricing = {
+                        specialPrice: specialPrice || null,
+                        listPrice: listPrice || null,
+                        currency: 'USD'
+                    };
+                }
+                
+                // Add product details if provided
+                const productCode = $('#productCode').val();
+                if (productCode) {
+                    promotionData.productDetails = {
+                        productCode: productCode,
+                        color: $('#color').val() || null,
+                        tablet: $('#tablet').val() || null,
+                        base: $('#base').val() || null,
+                        features: $('#features').val() || null
+                    };
+                }
+                
+                const response = await fetch(`${API_BASE}/promotions_api.php?id=${id}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(promotionData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    messageDiv.html('<div class="alert alert-success">Promotion updated successfully!</div>');
+                    $('#create-form')[0].reset();
+                    $('#create-form h3').text('Create New Promotion');
+                    $('#image').attr('required', 'required');
+                    $('#image').parent().find('label').html('Upload Image * (Will be optimized to 1200x600px)');
+                    const submitBtn = $('#create-form button[type="submit"]');
+                    submitBtn.text('Create Promotion').removeClass('btn-success').addClass('btn-primary');
+                    $('#create-form').off('submit').on('submit', createPromotion);
+                    
+                    loadAdminPromotions();
+                    loadPublicPromotions();
+                    setTimeout(() => messageDiv.html(''), 3000);
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                messageDiv.html(`<div class="alert alert-error">Error: ${error.message}</div>`);
+            }
+        }
+    </script>
+</body>
+</html>

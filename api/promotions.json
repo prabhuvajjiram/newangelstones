@@ -1,0 +1,23 @@
+{
+  "promotions": [
+    {
+      "id": "midatlantic_convention_2025",
+      "type": "event",
+      "title": "Meet Us at Mid-Atlantic Convention!",
+      "subtitle": "January 15-17, 2025",
+      "description": "Visit Booth 46 & 54",
+      "imageUrl": "https://theangelstones.com/images/promotions/convention_jan2025.jpg",
+      "linkUrl": "https://mid-atlanticconvention.com/",
+      "startDate": "2025-01-01T00:00:00Z",
+      "endDate": "2025-01-17T23:59:59Z",
+      "priority": 1,
+      "enabled": true
+    }
+  ],
+  "settings": {
+    "autoRotateInterval": 5000,
+    "showDots": true,
+    "allowSwipe": true,
+    "cacheExpiry": 3600
+  }
+}

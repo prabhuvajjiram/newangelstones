@@ -839,7 +839,7 @@
 <body>
 <a href="#main-heading" class="skip-link">Skip to main content</a>
 <!-- Promotion Banner -->
-<div class="promotion-banner">
+<div class="promotion-banner" role="region" aria-label="Current promotions and events" aria-live="polite">
     <div class="promotion-content">
         <div class="promotion-text">
             <noscript>
@@ -877,11 +877,12 @@
         <ul class="nav-menu">
             <li><a href="#home">Home</a></li>
             <li><a href="#featured-products">Featured Products</a></li>
-            <li><a href="#specials">Special Offers</a></li>
+            <li><a href="#specials">Special Flyers</a></li>
             <li><a href="#variety-of-granites">Granite Varieties</a></li>
             <li><a href="#inventory" id="sideInventoryLink">Current Inventory</a></li>
             <li><a href="#our-product">Our Products and Services</a></li>
             <li><a href="#why-choose-as">Why Choose Us</a></li>
+            <li><a href="#promotions">Special Offers</a></li>
             <li><a href="#get-in-touch">Contact</a></li>
         </ul>
             <!-- Sidebar Footer -->
@@ -994,7 +995,7 @@
                                           Angel Granites
                                       <img src="images/title-star.svg" alt="Angel Stones">
                                     </div>
-                                 <div class="title">Special Offers</div>
+                                 <div class="title">Special Flyers</div>
                                  </div>
                             </div>
                         </div>
@@ -1301,6 +1302,46 @@
             </section>
             <div class="divider-line"></div>
             <!--Why Choose Section End Here-->
+            
+            <!-- Promotions Section with Tabs -->
+            <section id="promotions" class="section-padding animate-box" data-animate-effect="fadeInUp">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="section-header">
+                                <div class="subtitle">
+                                    <img src="images/title-star.svg" alt="Angel Stones">
+                                        Special Offers
+                                    <img src="images/title-star.svg" alt="Angel Stones">
+                                </div>
+                                <div class="title">Promotions</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tabs -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="promo-tabs">
+                                <button class="promo-tab active" data-tab="current">Current Promotions</button>
+                                <button class="promo-tab" data-tab="past">Past Promotions</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tab Content -->
+                    <div class="row promo-tab-content active" id="current-promotions">
+                        <div class="col-12 text-center">
+                            <p style="color:#999;font-size:1.1rem;">Loading current promotions...</p>
+                        </div>
+                    </div>
+                    <div class="row promo-tab-content" id="past-promotions" style="display:none;">
+                        <div class="col-12 text-center">
+                            <p style="color:#999;font-size:1.1rem;">Loading past promotions...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <div class="divider-line"></div>
+            
             <!-- Get in Touch Section Start Here  -->
             <section id="get-in-touch" class="section-padding animate-box fadeInUp animated" data-animate-effect="fadeInUp">
                 <div class="container">
@@ -1608,14 +1649,20 @@
             <div class="divider-line"></div>
             <!-- Get in Touch Section End Here  -->
             <!-- Footer -->
-            <div id="as-footer-main">
-                <div class="as-narrow-content">
+            <div id="as-footer-main" style="position:relative;">
+                <div class="as-narrow-content" style="position:relative;">
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-6" style="position:relative;">
                             <p class="as-copy-rights">
                                 &copy; 2024 Angel Granites. All Rights Reserved.<br>
                                 <span class="footer-tagline">Elevating granite, preserving memories</span>
                             </p>
+                            <!-- Hidden admin button for marketing team -->
+                            <a href="promotions.html" class="admin-icon-btn" title="Marketing Admin" style="position:absolute;bottom:15px;left:15px;opacity:0.5;transition:all 0.3s;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;background:rgba(212,175,55,0.2);border-radius:50%;padding:8px;border:2px solid rgba(212,175,55,0.3);">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" style="color:#d4af37;">
+                                    <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664z"/>
+                                </svg>
+                            </a>
                         </div>
                         <div class="col-md-6">
                               <div><a href='https://www.convergepay.com/hosted-payments?ssl_txn_auth_token=t870VMwWR2OcHbk5VrX%2F1QAAAZi9ZdHB' class='converge-payment-link'>Pay Invoice</a></div>
@@ -1767,7 +1814,520 @@
             }, 1000); // 1 second delay
         });
     </script>
-    <!-- promotion-banner.js is now included in features.bundle.js -->
+    <style>
+        /* Floating banner - sophisticated design */
+        .promotion-banner{
+            position:fixed;
+            top:0;
+            left:280px;
+            right:0;
+            background:linear-gradient(135deg,rgba(26,26,26,0.98) 0%,rgba(45,45,45,0.98) 100%);
+            backdrop-filter:blur(10px);
+            color:#fff;
+            border-bottom:1px solid rgba(212,175,55,0.3);
+            padding:10px 24px 8px;
+            z-index:998;
+            box-shadow:0 4px 20px rgba(0,0,0,0.2);
+            transition:all 0.4s cubic-bezier(0.4,0,0.2,1);
+        }
+        .promotion-banner.hidden{transform:translateY(-100%);opacity:0}
+        .promotion-content{max-width:100%;margin:0;position:relative;padding-right:35px}
+        .promo-content-wrapper{display:flex;align-items:center;gap:16px}
+        .promo-close{position:absolute;top:8px;right:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all 0.3s;z-index:10}
+        .promo-close:hover{background:rgba(212,175,55,0.2);border-color:rgba(212,175,55,0.5);transform:rotate(90deg)}
+        .promo-link{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff;flex:1;min-width:0}
+        .promo-img-box{width:100px;height:60px;border-radius:8px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.3);flex-shrink:0;border:1px solid rgba(212,175,55,0.2)}
+        .promo-img{width:100%;height:100%;object-fit:cover}
+        .promo-text{flex:1;min-width:0}
+        .promo-text h3{margin:0 0 3px;font-size:0.95rem;color:#d4af37;font-family:'Playfair Display',serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;letter-spacing:0.3px}
+        .promo-text p{margin:0;font-size:0.8rem;color:#e0e0e0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .promo-btn{background:linear-gradient(135deg,#d4af37 0%,#c49d2f 100%);color:#000;padding:7px 16px;border-radius:6px;text-decoration:none;font-weight:600;font-size:0.8rem;flex-shrink:0;white-space:nowrap;box-shadow:0 2px 8px rgba(212,175,55,0.3);transition:all 0.3s}
+        .promo-btn:hover{background:linear-gradient(135deg,#c49d2f 0%,#b38c28 100%);transform:translateY(-1px);box-shadow:0 4px 12px rgba(212,175,55,0.4)}
+        .promo-dots{display:flex;gap:8px;justify-content:center;margin-top:6px}
+        .promo-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.25);cursor:pointer;transition:all 0.3s;border:1px solid rgba(255,255,255,0.2)}
+        .promo-dot.active{background:#d4af37;width:24px;border-radius:4px;border-color:#d4af37;box-shadow:0 0 8px rgba(212,175,55,0.5)}
+        /* Push content down when banner is visible */
+        body{padding-top:85px;transition:padding-top 0.3s ease}
+        body.no-banner{padding-top:0}
+        @media (max-width:991px){
+            .promotion-banner{left:0;width:100%}
+            body{padding-top:0}
+        }
+        @media (max-width:768px){
+            .promotion-banner{padding:8px 12px;left:0;width:100%;position:relative;top:auto}
+            .promotion-content{flex-direction:column;padding:8px 30px 8px 8px;gap:8px;align-items:flex-start}
+            .promo-link{width:100%;flex-direction:row;gap:10px}
+            .promo-img-box{width:80px;height:60px}
+            .promo-text{text-align:left}
+            .promo-text h3{font-size:0.95rem;white-space:normal}
+            .promo-text p{font-size:0.8rem;white-space:normal}
+            .promo-btn{align-self:center;font-size:0.8rem;padding:6px 12px}
+            .promo-dots{width:100%;justify-content:center;margin:5px 0 0 0}
+            .promo-close{top:8px;right:8px;transform:none;width:24px;height:24px;font-size:16px}
+            body{padding-top:0}
+        }
+        @media (max-width:480px){
+            .promo-img-box{width:70px;height:55px}
+            .promo-text h3{font-size:0.9rem}
+            .promo-text p{font-size:0.75rem}
+            .promo-btn{font-size:0.75rem;padding:5px 10px}
+        }
+    </style>
+    <script>
+    // Prevent old PromotionBanner class from features.bundle.js from running
+    window.PROMO_BANNER_LOADED = true;
+    
+    (function(){
+        sessionStorage.removeItem('promotionClosed');
+        let promos=[],idx=0,timer,autoHideTimer;
+        
+        fetch('/crm/ajax/get_active_promotions.php?t='+Date.now())
+        .then(r=>r.json())
+        .then(d=>{
+            if(d.success&&d.promotions&&d.promotions.length>0){
+                // Sort promotions: events first, then regular promotions
+                promos=d.promotions.sort((a,b)=>{
+                    if(a.type==='event'&&b.type!=='event')return -1;
+                    if(a.type!=='event'&&b.type==='event')return 1;
+                    return 0;
+                });
+                show(0);
+                if(promos.length>1){
+                    timer=setInterval(()=>show((idx+1)%promos.length),5000);
+                }
+                
+                // Auto-hide banner after 15 seconds
+                autoHideTimer=setTimeout(()=>{
+                    closeBanner();
+                },15000);
+            }
+        })
+        .catch(e=>console.error('Banner:',e));
+        
+        function show(i){
+            idx=i;
+            const p=promos[i],c=document.querySelector('.promotion-content');
+            if(!c||!p)return;
+            
+            let dots='';
+            if(promos.length>1){
+                dots='<div class="promo-dots">'+promos.map((_,j)=>
+                    '<span class="promo-dot'+(j===i?' active':'')+'" onclick="show('+j+')"></span>'
+                ).join('')+'</div>';
+            }
+            
+            c.innerHTML='<button class="promo-close" onclick="closeBanner()" title="Close promotion banner" aria-label="Close promotion banner">×</button>'+
+                '<div class="promo-content-wrapper">'+
+                '<a href="'+(p.linkUrl||'#promotions')+'" class="promo-link" aria-label="View details for '+p.title+'">'+
+                '<div class="promo-img-box"><img src="'+p.imageUrl+'" alt="'+p.title+'" class="promo-img"></div>'+
+                '<div class="promo-text"><h3>'+p.title+'</h3><p>'+(p.subtitle||p.description||'')+'</p></div>'+
+                '</a>'+
+                '<a href="#promotions" class="promo-btn" aria-label="View all promotions">View All</a>'+
+                '</div>'+dots;
+        }
+        
+        function closeBanner(){
+            const banner = document.querySelector('.promotion-banner');
+            banner.classList.add('hidden');
+            document.body.classList.add('no-banner');
+            sessionStorage.setItem('promotionClosed','true');
+            if(timer)clearInterval(timer);
+        }
+        
+        window.show=show;
+        window.closeBanner=closeBanner;
+    })();
+    
+    // Load promotions with tabs
+    (function(){
+        let allPromotions=[];
+        
+        // Tab switching
+        document.querySelectorAll('.promo-tab').forEach(tab=>{
+            tab.addEventListener('click',function(){
+                const tabName=this.dataset.tab;
+                
+                // Update active tab
+                document.querySelectorAll('.promo-tab').forEach(t=>t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show/hide content
+                document.querySelectorAll('.promo-tab-content').forEach(c=>c.style.display='none');
+                const content=document.getElementById(tabName+'-promotions');
+                if(content)content.style.display='flex';
+            });
+        });
+        
+        // Load all promotions
+        fetch('/api/promotions_api.php?t='+Date.now())
+        .then(r=>r.json())
+        .then(d=>{
+            console.log('Promotions API response:',d);
+            if(d.success&&d.promotions){
+                allPromotions=d.promotions;
+                
+                // Auto-popup for events (subtle, once per session)
+                console.log('Checking for event popup...');
+                console.log('eventPopupShown in session:',sessionStorage.getItem('eventPopupShown'));
+                if(!sessionStorage.getItem('eventPopupShown')){
+                    const activeEvent=allPromotions.find(p=>p.type==='event'&&p.enabled);
+                    console.log('Active event found:',activeEvent);
+                    if(activeEvent){
+                        console.log('Will show popup in 2 seconds...');
+                        setTimeout(()=>{
+                            console.log('Calling showSubtleEventPopup...');
+                            showSubtleEventPopup(activeEvent);
+                            sessionStorage.setItem('eventPopupShown','true');
+                        },2000); // Show after 2 second delay
+                    }
+                }else{
+                    console.log('Event popup already shown this session');
+                }
+                
+                // Store globally FIRST before rendering
+                window.allPromotionsData=allPromotions;
+                
+                const now=new Date();
+                
+                // Filter current (enabled and not expired)
+                const current=allPromotions.filter(p=>{
+                    if(!p.enabled)return false;
+                    if(!p.endDate)return true;
+                    const end=new Date(p.endDate);
+                    return end>=now;
+                }).sort((a,b)=>{
+                    // Sort: events first, then regular promotions
+                    if(a.type==='event'&&b.type!=='event')return -1;
+                    if(a.type!=='event'&&b.type==='event')return 1;
+                    return 0;
+                });
+                
+                // Filter past (disabled or expired)
+                const past=allPromotions.filter(p=>{
+                    if(p.enabled===false)return true;
+                    if(p.endDate){
+                        const end=new Date(p.endDate);
+                        return end<now;
+                    }
+                    return false;
+                }).sort((a,b)=>{
+                    // Sort: events first, then regular promotions
+                    if(a.type==='event'&&b.type!=='event')return -1;
+                    if(a.type!=='event'&&b.type==='event')return 1;
+                    return 0;
+                });
+                
+                console.log('Current promotions:',current.length,'Past promotions:',past.length);
+                renderPromotions('current-promotions',current,'No current promotions at this time.');
+                renderPromotions('past-promotions',past,'No past promotions.');
+            }
+        })
+        .catch(e=>{
+            console.error('Promotions load error:',e);
+            renderPromotions('current-promotions',[],'Unable to load promotions.');
+        });
+        
+        function renderPromotions(containerId,promos,emptyMsg){
+            const grid=document.getElementById(containerId);
+            if(!grid)return;
+            
+            if(promos.length>0){
+                grid.innerHTML=promos.map(p=>{
+                    const type=p.type||'special';
+                    const typeLabel=type==='event'?'Event':'Special Offer';
+                    const typeBadge=type==='event'?'badge-event':'badge-special';
+                    return '<div class="col-md-6 col-lg-4 mb-4">'+
+                        '<div class="promo-card">'+
+                            '<div class="promo-card-img"><img src="'+p.imageUrl+'" alt="'+p.title+'" loading="lazy"></div>'+
+                            '<div class="promo-card-body">'+
+                                '<span class="promo-badge '+typeBadge+'">'+typeLabel+'</span>'+
+                                '<h3>'+p.title+'</h3>'+
+                                '<p class="promo-subtitle">'+p.subtitle+'</p>'+
+                                '<p class="promo-desc">'+p.description+'</p>'+
+                                '<button class="promo-card-btn" onclick="showPromoModal(\''+p.id+'\')">Learn More</button>'+
+                            '</div>'+
+                        '</div>'+
+                    '</div>';
+                }).join('');
+            }else{
+                grid.innerHTML='<div class="col-12 text-center"><p style="color:#999;">'+emptyMsg+'</p></div>';
+            }
+        }
+    })();
+    
+    // Show promotion modal
+    function showPromoModal(promoId){
+        console.log('showPromoModal called with ID:',promoId);
+        console.log('Available promotions:',window.allPromotionsData);
+        
+        if(!window.allPromotionsData){
+            console.error('No promotions data available');
+            return;
+        }
+        
+        const promo=window.allPromotionsData.find(p=>p.id===promoId);
+        console.log('Found promo:',promo);
+        
+        if(!promo){
+            console.error('Promotion not found with ID:',promoId);
+            return;
+        }
+        
+        const modal=document.getElementById('promo-modal');
+        if(!modal){
+            console.error('Modal element not found');
+            return;
+        }
+        const modalImg=document.getElementById('promo-modal-img');
+        const modalBadge=document.getElementById('promo-modal-badge');
+        const modalTitle=document.getElementById('promo-modal-title');
+        const modalSubtitle=document.getElementById('promo-modal-subtitle');
+        const modalDesc=document.getElementById('promo-modal-desc');
+        const modalDetails=document.getElementById('promo-modal-details');
+        const modalLink=document.getElementById('promo-modal-link');
+        
+        modalImg.src=promo.imageUrl;
+        modalImg.alt=promo.title;
+        
+        const type=promo.type||'special';
+        const typeLabel=type==='event'?'Event':'Special Offer';
+        modalBadge.textContent=typeLabel;
+        modalBadge.className='promo-badge '+(type==='event'?'badge-event':'badge-special');
+        
+        modalTitle.textContent=promo.title;
+        modalSubtitle.textContent=promo.subtitle||'';
+        modalDesc.textContent=promo.description||'';
+        
+        // Show product details if available
+        let detailsHTML='';
+        if(promo.productDetails){
+            const pd=promo.productDetails;
+            detailsHTML='<div class="promo-details-grid">';
+            if(pd.productCode)detailsHTML+='<div><strong>Product Code:</strong> '+pd.productCode+'</div>';
+            if(pd.color)detailsHTML+='<div><strong>Color:</strong> '+pd.color+'</div>';
+            if(pd.tablet)detailsHTML+='<div><strong>Tablet:</strong> '+pd.tablet+'</div>';
+            if(pd.base)detailsHTML+='<div><strong>Base:</strong> '+pd.base+'</div>';
+            if(pd.features)detailsHTML+='<div><strong>Features:</strong> '+pd.features+'</div>';
+            detailsHTML+='</div>';
+        }
+        
+        // Show pricing if available (optional)
+        if(promo.pricing&&(promo.pricing.listPrice||promo.pricing.specialPrice||promo.pricing.displayFormat)){
+            const pr=promo.pricing;
+            detailsHTML+='<div class="promo-pricing">';
+            if(pr.listPrice)detailsHTML+='<div class="list-price">List Price: <span>$'+pr.listPrice.toLocaleString()+'</span></div>';
+            if(pr.specialPrice)detailsHTML+='<div class="special-price">Special Price: <span>$'+pr.specialPrice.toLocaleString()+'</span></div>';
+            if(pr.displayFormat)detailsHTML+='<div class="display-price">'+pr.displayFormat+'</div>';
+            detailsHTML+='</div>';
+        }
+        
+        modalDetails.innerHTML=detailsHTML;
+        
+        // Show external link if event
+        if(promo.linkUrl&&promo.type==='event'){
+            modalLink.href=promo.linkUrl;
+            modalLink.style.display='inline-block';
+        }else{
+            modalLink.style.display='none';
+        }
+        
+        // Store the element that triggered the modal for focus return
+        window.lastFocusedElement=document.activeElement;
+        
+        modal.style.display='flex';
+        document.body.style.overflow='hidden';
+        
+        // Focus the close button for keyboard accessibility
+        setTimeout(()=>{
+            const closeBtn=modal.querySelector('.promo-modal-close');
+            if(closeBtn)closeBtn.focus();
+        },100);
+    }
+    
+    function closePromoModal(){
+        const modal=document.getElementById('promo-modal');
+        modal.style.display='none';
+        document.body.style.overflow='auto';
+        // Return focus to the element that opened the modal
+        if(window.lastFocusedElement){
+            window.lastFocusedElement.focus();
+        }
+    }
+    
+    // Close modal on outside click
+    document.addEventListener('click',function(e){
+        const modal=document.getElementById('promo-modal');
+        if(e.target===modal)closePromoModal();
+    });
+    
+    // Close modal on ESC key (ADA compliant)
+    document.addEventListener('keydown',function(e){
+        const modal=document.getElementById('promo-modal');
+        if(e.key==='Escape'&&modal.style.display==='flex'){
+            closePromoModal();
+        }
+    });
+    
+    // Subtle event popup function
+    function showSubtleEventPopup(event){
+        console.log('showSubtleEventPopup called with:',event);
+        const popup=document.getElementById('subtle-event-popup');
+        console.log('Popup element:',popup);
+        if(!popup){
+            console.error('Popup element not found!');
+            return;
+        }
+        
+        const img=popup.querySelector('.subtle-popup-img');
+        const title=popup.querySelector('.subtle-popup-title');
+        const desc=popup.querySelector('.subtle-popup-desc');
+        const link=popup.querySelector('.subtle-popup-link');
+        
+        console.log('Setting popup content...');
+        img.src=event.imageUrl;
+        img.alt=event.title;
+        title.textContent=event.title;
+        desc.textContent=event.subtitle||event.description||'Special event - click to learn more';
+        
+        if(event.linkUrl){
+            link.href=event.linkUrl;
+            link.style.display='inline-block';
+            // Ensure link click works (prevent event bubbling issues)
+            link.onclick=function(e){
+                e.stopPropagation();
+                window.open(event.linkUrl, '_blank', 'noopener,noreferrer');
+                return false;
+            };
+        }else{
+            link.style.display='none';
+        }
+        
+        console.log('Displaying popup...');
+        popup.style.display='flex';
+        setTimeout(()=>{
+            console.log('Adding show class...');
+            popup.classList.add('show');
+        },10);
+    }
+    
+    function closeSubtlePopup(){
+        const popup=document.getElementById('subtle-event-popup');
+        popup.classList.remove('show');
+        setTimeout(()=>popup.style.display='none',300);
+    }
+    </script>
+    <style>
+    /* Promotion Tabs */
+    .promo-tabs{display:flex;justify-content:center;gap:15px;margin:30px 0;flex-wrap:wrap}
+    .promo-tab{background:transparent;border:2px solid #444;color:#ccc;padding:12px 30px;border-radius:8px;cursor:pointer;font-size:1rem;font-weight:600;transition:all 0.3s;font-family:'Didact Gothic',sans-serif}
+    .promo-tab:hover{border-color:#d4af37;color:#d4af37;transform:translateY(-2px)}
+    .promo-tab.active{background:#d4af37;border-color:#d4af37;color:#000;box-shadow:0 4px 15px rgba(212,175,55,0.4)}
+    .promo-tab-content{margin-top:30px}
+    
+    /* Promotion Cards */
+    .promo-card{background:#2a2a2a;border-radius:8px;overflow:hidden;transition:transform 0.3s,box-shadow 0.3s;border:1px solid #444;height:100%}
+    .promo-card:hover{transform:translateY(-5px);box-shadow:0 8px 30px rgba(212,175,55,0.3);border-color:#d4af37}
+    .promo-card-img{width:100%;height:200px;overflow:hidden}
+    .promo-card-img img{width:100%;height:100%;object-fit:cover}
+    .promo-card-body{padding:20px}
+    .promo-badge{display:inline-block;padding:4px 12px;border-radius:4px;font-size:0.75rem;font-weight:600;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px}
+    .badge-special{background:#d4af37;color:#000}
+    .badge-event{background:#4a90e2;color:#fff}
+    .promo-card h3{font-family:'Playfair Display',serif;font-size:1.3rem;color:#d4af37;margin:0 0 8px}
+    .promo-subtitle{font-size:0.95rem;color:#e0c072;margin:0 0 10px;font-weight:500}
+    .promo-desc{font-size:0.9rem;color:#ccc;line-height:1.5;margin-bottom:15px}
+    .promo-card-btn{display:inline-block;background:#d4af37;color:#000;padding:8px 20px;border-radius:5px;border:none;font-weight:600;font-size:0.85rem;transition:background 0.3s;cursor:pointer}
+    .promo-card-btn:hover{background:#c49d2f;color:#000}
+    .admin-icon-btn:hover{opacity:1!important}
+    
+    /* Promotion Modal - Subtle and Elegant */
+    .promo-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;padding:20px;animation:fadeIn 0.3s ease}
+    .promo-modal-content{background:linear-gradient(135deg,#1a1a1a 0%,#2a2a2a 100%);border-radius:16px;max-width:800px;width:100%;max-height:85vh;overflow-y:auto;position:relative;border:1px solid rgba(212,175,55,0.3);box-shadow:0 20px 60px rgba(0,0,0,0.5);animation:slideUp 0.4s ease}
+    .promo-modal-header{padding:15px 20px;border-bottom:1px solid #444;display:flex;justify-content:flex-end}
+    .promo-modal-close{background:transparent;border:none;color:#fff;font-size:2rem;cursor:pointer;line-height:1;padding:0;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background 0.3s}
+    .promo-modal-close:hover{background:rgba(212,175,55,0.2);transform:rotate(90deg)}
+    .promo-modal-body{display:flex;gap:30px;padding:30px}
+    .promo-modal-image{flex:1;min-width:300px}
+    .promo-modal-image img{width:100%;height:auto;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.5)}
+    .promo-modal-info{flex:1;min-width:300px}
+    .promo-modal-info h2{font-family:'Playfair Display',serif;font-size:1.75rem;color:#d4af37;margin:10px 0 15px;font-weight:600}
+    .promo-modal-subtitle{font-size:1.1rem;color:#e0c072;margin:0 0 15px;font-weight:500}
+    .promo-modal-desc{font-size:1rem;color:#ccc;line-height:1.6;margin-bottom:20px}
+    .promo-details-grid{background:#2a2a2a;padding:20px;border-radius:8px;margin:20px 0}
+    .promo-details-grid div{padding:8px 0;border-bottom:1px solid #444;color:#ccc;font-size:0.95rem}
+    .promo-details-grid div:last-child{border-bottom:none}
+    .promo-details-grid strong{color:#d4af37;margin-right:10px}
+    .promo-pricing{background:#2a2a2a;padding:20px;border-radius:8px;margin:20px 0}
+    .promo-pricing div{padding:8px 0;font-size:1rem}
+    .list-price{color:#999;text-decoration:line-through}
+    .special-price{color:#4caf50;font-size:1.2rem;font-weight:600}
+    .display-price{color:#d4af37;font-size:1.3rem;font-weight:700;margin-top:10px}
+    .promo-modal-btn{display:inline-block;background:#d4af37;color:#000;padding:12px 30px;border-radius:5px;text-decoration:none;font-weight:600;margin-top:20px;transition:background 0.3s}
+    .promo-modal-btn:hover{background:#c49d2f}
+    
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+    
+    /* Subtle Event Popup */
+    .subtle-event-popup{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.08);backdrop-filter:blur(1px);z-index:9998;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity 0.3s ease;cursor:pointer}
+    .subtle-event-popup.show{opacity:1}
+    .subtle-popup-card{background:linear-gradient(135deg,rgba(26,26,26,0.85) 0%,rgba(42,42,42,0.85) 100%);border-radius:12px;max-width:600px;width:100%;padding:0;position:relative;border:1px solid rgba(212,175,55,0.4);box-shadow:0 20px 60px rgba(0,0,0,0.6);transform:scale(0.95);transition:transform 0.3s ease;cursor:default;backdrop-filter:blur(10px)}
+    .subtle-event-popup.show .subtle-popup-card{transform:scale(1)}
+    .subtle-popup-img{width:100%;height:320px;object-fit:cover;border-radius:12px 12px 0 0}
+    .subtle-popup-content{padding:16px 20px 12px}
+    .subtle-popup-badge{display:inline-block;background:#4a90e2;color:#fff;padding:3px 10px;border-radius:4px;font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+    .subtle-popup-title{font-family:'Playfair Display',serif;font-size:1.3rem;color:#d4af37;margin:0 0 8px;font-weight:600}
+    .subtle-popup-desc{font-size:0.85rem;color:#ccc;line-height:1.4;margin-bottom:12px}
+    .subtle-popup-link{display:inline-block;background:linear-gradient(135deg,#d4af37 0%,#c49d2f 100%);color:#000;padding:8px 20px;border-radius:5px;text-decoration:none;font-weight:600;font-size:0.8rem;transition:all 0.3s;box-shadow:0 2px 8px rgba(212,175,55,0.3)}
+    .subtle-popup-link:hover{background:linear-gradient(135deg,#c49d2f 0%,#b38c28 100%);transform:translateY(-2px);box-shadow:0 4px 12px rgba(212,175,55,0.5)}
+    .subtle-popup-hint{font-size:0.7rem;color:#999;text-align:center;margin-top:8px;margin-bottom:0;font-style:italic}
+    
+    @media (max-width:768px){
+        .promo-tab{padding:10px 20px;font-size:0.9rem}
+        .promo-modal-body{flex-direction:column;padding:20px}
+        .promo-modal-image{min-width:auto}
+        .promo-modal-info{min-width:auto}
+        .promo-modal-info h2{font-size:1.5rem}
+        .promo-modal-content{max-width:95%;border-radius:12px}
+    }
+    </style>
+    
+    <!-- Subtle Event Popup -->
+    <div id="subtle-event-popup" class="subtle-event-popup" onclick="closeSubtlePopup()" role="dialog" aria-modal="true" aria-label="Event notification">
+        <div class="subtle-popup-card" onclick="event.stopPropagation()">
+            <img src="" alt="" class="subtle-popup-img">
+            <div class="subtle-popup-content">
+                <span class="subtle-popup-badge">EVENT</span>
+                <h3 class="subtle-popup-title"></h3>
+                <p class="subtle-popup-desc"></p>
+                <a href="#" target="_blank" rel="noopener noreferrer" class="subtle-popup-link">Learn More</a>
+                <p class="subtle-popup-hint">Click anywhere to dismiss</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Promotion Details Modal -->
+    <div id="promo-modal" class="promo-modal" role="dialog" aria-modal="true" aria-labelledby="promo-modal-title" aria-describedby="promo-modal-desc">
+        <div class="promo-modal-content" role="document">
+            <div class="promo-modal-header">
+                <button class="promo-modal-close" onclick="closePromoModal()" aria-label="Close promotion details">&times;</button>
+            </div>
+            <div class="promo-modal-body">
+                <div class="promo-modal-image">
+                    <img id="promo-modal-img" src="" alt="" role="img">
+                </div>
+                <div class="promo-modal-info">
+                    <span id="promo-modal-badge" class="promo-badge" aria-label="Promotion type"></span>
+                    <h2 id="promo-modal-title"></h2>
+                    <p id="promo-modal-subtitle" class="promo-modal-subtitle"></p>
+                    <p id="promo-modal-desc" class="promo-modal-desc"></p>
+                    <div id="promo-modal-details" role="region" aria-label="Promotion details"></div>
+                    <a id="promo-modal-link" href="#" target="_blank" rel="noopener noreferrer" class="promo-modal-btn" aria-label="Visit event page in new window">Visit Event Page</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Full Collection Modal -->
     <div class="collection-modal" id="collectionModal">
         <div class="modal-content">
