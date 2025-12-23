@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -33,9 +34,9 @@ class PromotionService {
         }
       }
 
-      // Fetch from server
+      // Fetch from server using live API
       final baseUrl = await SecurityConfig.getBaseUrl();
-      final url = Uri.parse('$baseUrl/Api/promotions.json?platform=mobile');
+      final url = Uri.parse('$baseUrl/api/promotions_api.php?platform=mobile');
       
       debugPrint('🌐 Fetching promotions from: $url');
       
@@ -48,6 +49,13 @@ class PromotionService {
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body) as Map<String, dynamic>;
+        
+        // Check if API returned success
+        if (jsonData['success'] != true) {
+          debugPrint('⚠️ API returned error: ${jsonData['error']}');
+          return _cachedPromotions ?? [];
+        }
+        
         final promotionsList = jsonData['promotions'] as List<dynamic>;
         
         final promotions = promotionsList
