@@ -6,9 +6,9 @@ return [
 
   'db' => [
     'host' => 'localhost',
-    'name' => 'CHANGE_DB_NAME',
-    'user' => 'CHANGE_DB_USER',
-    'pass' => 'CHANGE_DB_PASS',
+    'name' => 'angelstones_local',
+    'user' => 'root',
+    'pass' => '', // Set your MySQL root password if required
     'charset' => 'utf8mb4',
   ],
 
@@ -19,7 +19,7 @@ return [
   'admin' => [
     'username' => 'admin',
     // Generate a bcrypt hash (PHP): password_hash('YourStrongPassword', PASSWORD_BCRYPT)
-    'password_hash' => 'CHANGE_TO_BCRYPT_HASH',
+    'password_hash' => '$2y$12$NzyQ3hyI6VCNn3kjUj1Mw.9Xithl3dEGTj7eUKTnzmkS40N62OIxK',
   ],
 
   // Basic rate limiting (per IP)

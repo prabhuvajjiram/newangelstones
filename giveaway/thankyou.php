@@ -14,8 +14,8 @@ $endText = event_end_dt($event)->format('M j, Y \a\t g:i A T');
     <p class="giveaway-small">Winner announced at show close: <strong><?= h($endText) ?></strong></p>
 
     <div style="margin-top:14px;">
-      <a class="btn btn-outline-light" href="<?= h(asset_url('index.html#products')) ?>">View Products</a>
-      <a class="btn btn-primary" style="margin-left:8px;" href="<?= h(asset_url('giveaway/index.php?event=' . urlencode($eventSlug))) ?>">Back to Giveaway</a>
+      <!-- Removed 'View Products' button as requested -->
+      <a class="giveaway-btn" style="margin-left:8px;" href="<?= h(asset_url('giveaway/index.php?event=' . urlencode($eventSlug))) ?>">Back to Giveaway</a>
     </div>
 
     <hr style="opacity:.15; margin: 18px 0;">

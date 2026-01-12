@@ -45,6 +45,10 @@
 		<string>tel</string>
 		<string>mailto</string>
 	</array>
+		<key>com.apple.developer.associated-domains</key>
+		<array>
+			<string>applinks:theangelstones.com</string>
+		</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>

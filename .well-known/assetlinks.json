@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.angelgranites.app",
+      "sha256_cert_fingerprints": [
+        "AA:EB:77:DF:EB:75:AC:53:B3:77:DC:05:F1:08:EA:62:9E:C8:2B:38:1D:40:89:A4:53:67:C4:6B:09:89:76:86"
+      ]
+    }
+  }
+]

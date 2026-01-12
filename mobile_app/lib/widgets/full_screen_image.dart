@@ -85,8 +85,17 @@ class _FullScreenImageState extends State<FullScreenImage> {
 
   Future<void> _navigateToInventory() async {
     final currentProduct = widget.galleryImages[_currentIndex];
-    final productCode = currentProduct.productCode;
-    
+    String productCode = currentProduct.productCode;
+    // Normalize: uppercase and ensure dash is present (e.g., AG-356, AS-513)
+    productCode = productCode.trim().toUpperCase();
+    if (productCode.isNotEmpty && !productCode.contains('-') && productCode.length > 2) {
+      // Insert dash after prefix if missing (e.g., AG356 -> AG-356)
+      final prefix = productCode.substring(0, 2);
+      final rest = productCode.substring(2);
+      if ((prefix == 'AG' || prefix == 'AS') && int.tryParse(rest) != null) {
+        productCode = '$prefix-$rest';
+      }
+    }
     if (productCode.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -96,15 +105,12 @@ class _FullScreenImageState extends State<FullScreenImage> {
       );
       return;
     }
-    
     HapticFeedback.lightImpact();
-    
     // Track navigation event
     _trackAnalyticsEvent('navigate_to_inventory_from_gallery', {
       'product_code': productCode,
       'gallery_position': _currentIndex,
     });
-    
     // Show loading indicator
     if (!mounted) return;
     showDialog(
@@ -114,7 +120,6 @@ class _FullScreenImageState extends State<FullScreenImage> {
         child: CircularProgressIndicator(),
       ),
     );
-    
     try {
       // Search for the product in inventory
       debugPrint('🔍 Searching inventory for: $productCode');
@@ -122,15 +127,12 @@ class _FullScreenImageState extends State<FullScreenImage> {
       final items = await inventoryService.fetchInventory(
         searchQuery: productCode,
       );
-      
       debugPrint('📊 Search results: ${items.length} items found');
       if (items.isNotEmpty) {
         debugPrint('📦 First item: ${items.first.description}');
       }
-      
       if (!mounted) return;
       Navigator.of(context).pop(); // Close loading dialog
-      
       if (items.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -140,10 +142,8 @@ class _FullScreenImageState extends State<FullScreenImage> {
         );
         return;
       }
-      
       // Close the image viewer first
       Navigator.of(context).pop();
-      
       // Navigate directly to the item details screen
       context.push('/inventory-item-details', extra: items.first);
     } catch (e) {
@@ -151,7 +151,7 @@ class _FullScreenImageState extends State<FullScreenImage> {
       Navigator.of(context).pop(); // Close loading dialog
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error searching inventory: ${e.toString()}'),
+          content: Text('Error searching inventory: ${e.toString()}'),
           duration: const Duration(seconds: 2),
         ),
       );

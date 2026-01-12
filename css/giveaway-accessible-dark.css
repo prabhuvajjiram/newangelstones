@@ -1,0 +1,59 @@
+/* Accessible, subtle dark theme for giveaway form elements */
+.giveaway-form, .giveaway-card, .giveaway-wrap {
+  background: #23272b;
+  color: #f1f1f1;
+}
+.giveaway-label, .giveaway-small, .giveaway-error, .giveaway-alert {
+  color: #e0e0e0;
+}
+.giveaway-input, .giveaway-select, .giveaway-checkbox {
+  background: #2c3035;
+  color: #f1f1f1;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.giveaway-input:focus, .giveaway-select:focus {
+  outline: 2px solid #6ea8fe;
+  background: #23272b;
+}
+.giveaway-btn, .btn, button[type="submit"] {
+  background: #3a4250;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.giveaway-btn:hover, .btn:hover, button[type="submit"]:hover {
+  background: #4b5563;
+}
+.giveaway-alert.ok {
+  background: #233a2b;
+  color: #b6f7c1;
+  border-left: 4px solid #3ecf8e;
+  padding: 10px 16px;
+  margin-bottom: 12px;
+}
+.giveaway-alert.err, .giveaway-error {
+  background: #3a2323;
+  color: #f7b6b6;
+  border-left: 4px solid #cf3e3e;
+  padding: 10px 16px;
+  margin-bottom: 12px;
+}
+.giveaway-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+@media (max-width: 600px) {
+  .giveaway-grid {
+    flex-direction: column;
+    gap: 0;
+  }
+}
