@@ -1223,13 +1223,12 @@ if (!isset($_SESSION['csrf_token'])) {
                             <label for="salesRep" class="form-label required-field">Sales Rep</label>
                             <select class="form-select form-select-sm" id="salesRep" name="sales_person" required>
                                 <option value=""></option>
-                                <option value="Angel">Angel</option>
-                                <option value="Candiss">Candiss</option>
-                                <option value="Jeremy">Jeremy</option>
-                                <option value="Jim">Jim</option>
+                                <option value="Sandy">Sandy</option>
                                 <option value="Martha">Martha</option>
                                 <option value="Mike">Mike</option>
-                                <option value="Jim">Tiffany</option>
+                                <option value="Tiffany">Tiffany</option>
+                                <option value="Chris">Chris</option>
+                                <option value="Kattie">Kattie</option>
                                 <option value="Test">Test</option>
                             </select>
                         </div>
