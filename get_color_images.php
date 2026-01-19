@@ -142,6 +142,10 @@ $colorDescriptions = [
         'name' => 'Vizag Blue',
         'description' => 'Vizag Blue granite offers a beautiful blue-gray color with subtle grain patterns, perfect for elegant and timeless memorials.',
     ],
+    'coral-gray' => [
+        'name' => 'Coral Gray',
+        'description' => 'Elegant Coral Gray granite features warm gray tones with subtle coral undertones, creating beautiful and distinctive memorial monuments.',
+    ],
     'white-and-red' => [
         'name' => 'White And Red',
         'description' => 'White And Red Granite features distinctive tones and patterns, making it an elegant choice for striking memorials and headstones.',

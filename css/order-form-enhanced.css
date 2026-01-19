@@ -1,0 +1,311 @@
+/* Clean Order Form Enhancement - Minimal Approach */
+/* This file provides subtle improvements without breaking existing layout */
+
+/* ===== Improved Form Labels ===== */
+.product-row .form-label.small {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #475569;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.product-row .form-label.small.required-field::after {
+    content: " *";
+    color: #dc2626;
+}
+
+/* ===== Better Input Styling ===== */
+.product-row .form-control,
+.product-row .form-select {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.product-row .form-control:focus,
+.product-row .form-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+/* ===== Checkbox Grid - Clean Layout ===== */
+.product-row .row.g-2 {
+    margin: 0 -4px;
+}
+
+.product-row .row.g-2 > [class*="col-"] {
+    padding: 4px;
+}
+
+.product-row .form-check {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    margin: 0;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.product-row .form-check:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.product-row .form-check-input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    margin-right: 8px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.product-row .form-check-input:checked {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+.product-row .form-check-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #334155;
+    cursor: pointer;
+    margin: 0;
+    line-height: 1.3;
+}
+
+/* ===== Manufacturing Radio Buttons ===== */
+.product-row .form-check-inline {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.product-row .form-check-inline:hover {
+    background: #f1f5f9;
+}
+
+.product-row .form-check-inline .form-check-input {
+    margin-right: 8px;
+    margin-top: 0;
+}
+
+.product-row .form-check-inline .form-check-input:checked {
+    background-color: #059669;
+    border-color: #059669;
+}
+
+/* ===== Sides Section ===== */
+.side-item {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.side-item .side-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.side-item .side-header h6 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+}
+
+/* ===== Sandblast/Etching Section ===== */
+.sandblast-etching-section {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 12px;
+}
+
+.sandblast-etching-section h6 {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #475569;
+    margin-bottom: 12px;
+}
+
+/* ===== Sandblast Options Grid ===== */
+.sandblast-options,
+.etching-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.sandblast-options .form-check,
+.etching-options .form-check {
+    flex: 0 0 auto;
+    min-width: 100px;
+}
+
+/* ===== Drafting Options - Two Column Layout ===== */
+.drafting-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.drafting-column {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.drafting-column h6 {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+/* ===== Side Notes Textarea ===== */
+.side-notes-container {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.side-notes-container label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #166534;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.side-notes-container textarea {
+    border: 1px solid #86efac;
+    border-radius: 6px;
+    resize: vertical;
+    min-height: 60px;
+}
+
+/* ===== Add Side Button ===== */
+.add-side {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background: transparent;
+    border: 2px dashed #3b82f6;
+    border-radius: 8px;
+    color: #3b82f6;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.add-side:hover {
+    background: #3b82f6;
+    border-style: solid;
+    color: white;
+}
+
+/* ===== Remove Button ===== */
+.remove-product,
+.remove-side {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    color: #dc2626;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.remove-product:hover,
+.remove-side:hover {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: white;
+}
+
+/* ===== Quantity/Price/Total ===== */
+.product-row .quantity,
+.product-row .price,
+.product-row .total {
+    text-align: center;
+    font-weight: 600;
+}
+
+.product-row .total {
+    background: #f0fdf4;
+    color: #166534;
+}
+
+/* ===== Side Count Badge ===== */
+.side-count {
+    background: #3b82f6;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* ===== Section Dividers ===== */
+.product-row .border-top {
+    border-top: 1px solid #e2e8f0 !important;
+    margin-top: 16px;
+    padding-top: 16px;
+}
+
+/* ===== Responsive Adjustments ===== */
+@media (max-width: 768px) {
+    .drafting-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .sandblast-options .form-check,
+    .etching-options .form-check {
+        flex: 1 1 45%;
+    }
+}
+
+@media (max-width: 480px) {
+    .sandblast-options .form-check,
+    .etching-options .form-check {
+        flex: 1 1 100%;
+    }
+}

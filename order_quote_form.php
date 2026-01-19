@@ -1267,8 +1267,8 @@ if (!isset($_SESSION['csrf_token'])) {
                         </div>
                         <div class="row g-2 mt-1">
                             <div class="col-md-6">
-                                <label for="customerEmail" class="form-label">Email</label>
-                                <input type="email" class="form-control form-control-sm" id="customerEmail" name="customer_email">
+                                <label for="customerEmail" class="form-label required-field">Email</label>
+                                <input type="email" class="form-control form-control-sm" id="customerEmail" name="customer_email" required>
                             </div>
                             <div class="col-md-6">
                                 <label for="customerPhone" class="form-label required-field">Phone</label>
@@ -2712,37 +2712,15 @@ function calculateAdditionalCharges($row) {
     $row.find('.side-card').each(function() {
         const $side = $(this);
         
-        // Add S/B Carving charge for this side
-        if ($side.find('.side-sb-toggle:checked').length) {
-            total += parseFloat($side.find('.side-sb-charge').val()) || 0;
-        }
+        // Add BLANK STONE QTY. PRICE (the main price for this side)
+        total += parseFloat($side.find('.side-qty-price').val()) || 0;
         
-        // Use the special etching charge calculator function instead of direct selectors
-        const etchingCharge = calculateEtchingCharge($side);
-        if (etchingCharge > 0) {
-            console.log('Adding etching charge:', etchingCharge);
-            total += etchingCharge;
-            
-            // Set data attribute for debugging
-            $side.attr('data-total-etching-charge', etchingCharge);
-        }
-        
-        // Add DEDO charge for this side
-        if ($side.find('.side-dedo-toggle:checked').length) {
-            total += parseFloat($side.find('.side-dedo-charge .form-control').val()) || 0;
-        }
-        
-        // Add DOMESTIC ADD ON charge for this side
-        if ($side.find('.side-domestic-toggle:checked').length) {
-            total += parseFloat($side.find('.side-domestic-charge').val()) || 0;
-        }
-        
-        // Add DIGITIZATION charge for this side
-        if ($side.find('.side-digitization-toggle:checked').length) {
-            total += parseFloat($side.find('.side-digitization-charge').val()) || 0;
-        }
-        
-        // Add any misc charges for this side
+        // Add all SIDE CHARGES from the summary section at bottom
+        total += parseFloat($side.find('.side-sb-charge-display').val()) || 0;
+        total += parseFloat($side.find('.side-dedo-charge-display').val()) || 0;
+        total += parseFloat($side.find('.side-etching-charge-display').val()) || 0;
+        total += parseFloat($side.find('.side-domestic-charge-display').val()) || 0;
+        total += parseFloat($side.find('.side-digitization-charge-display').val()) || 0;
         total += parseFloat($side.find('.side-misc-charge').val()) || 0;
     });
     
@@ -2828,7 +2806,7 @@ function calculateOrderTotals() {
 }
 
 // Update totals when any charge or price changes
-$(document).on('input', '.sb-charge, .etching-charge, .dedo-charge, .domestic-charge, .digitization-charge, .side-charge, .side-etching-charge, .side-sb-charge, .side-domestic-charge, .side-misc-charge, .quantity, .price', function() {
+$(document).on('input', '.sb-charge, .etching-charge, .dedo-charge, .domestic-charge, .digitization-charge, .side-charge, .side-etching-charge, .side-sb-charge, .side-domestic-charge, .side-misc-charge, .side-unit-price, .side-qty, .side-qty-price, .side-sb-charge-display, .side-dedo-charge-display, .side-etching-charge-display, .side-domestic-charge-display, .side-digitization-charge-display, .quantity, .price', function() {
     updateRowTotal($(this).closest('tr'));
 });
 
@@ -3161,236 +3139,280 @@ $(document).on('change', '.domestic-addon-toggle', function() {
             // Side template function to generate HTML for a new side
             function getSideTemplate(productIndex, sideIndex) {
                 return `
-                    <div class="side-card card mb-2">
-                        <div class="card-header py-2 bg-light d-flex justify-content-between align-items-center">
-                            <span class="fw-bold small">Side ${sideIndex + 1}</span>
-                            <button type="button" class="btn btn-sm btn-outline-danger remove-side">
+                    <div class="side-card card mb-3 shadow-sm" style="border: 1px solid #dee2e6; border-radius: 8px;">
+                        <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-bottom: 2px solid #dee2e6;">
+                            <span class="fw-bold" style="font-size: 15px; color: #495057;">Side ${sideIndex + 1}</span>
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-side" style="padding: 4px 10px;">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
-                        <div class="card-body py-2">
-                            <!-- Side Note -->
-                            <div class="mb-2">
-                                <label class="form-label small mb-1">Side Notes</label>
-                                <textarea class="form-control form-control-sm side-notes" name="products[${productIndex}][sides][${sideIndex}][notes]" rows="2"></textarea>
-                            </div>
-                                                        <!-- SANDBLAST and ETCHING Section -->
-                                <div class="card mb-3">
-                                    <div class="card-header py-2 bg-light">
-                                        <h6 class="mb-0 fw-bold">SANDBLAST and ETCHING</h6>
-                                    </div>
-                                    <div class="card-body py-2">
-                                        <div class="row g-2">
-                                            <!-- Column 1: BLANK and SHAPE DRAWING -->
-                                            <div class="col-md-4">
-                                                <div class="form-check mb-1">
-                                                    <input class="form-check-input" type="checkbox" id="side_blank_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][blank]" value="1">
-                                                    <label class="form-check-label" for="side_blank_${productIndex}_${sideIndex}">BLANK</label>
-                                                </div>
-                                                <div class="mb-2">
-                                                    <div class="form-check mb-1">
-                                                        <input class="form-check-input" type="checkbox" id="side_shape_drawing_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][shape_drawing]" value="1">
-                                                        <label class="form-check-label fw-medium" for="side_shape_drawing_${productIndex}_${sideIndex}">SHAPE DRAWING</label>
-                                                    </div>
-                                                    <div class="ms-4">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" id="side_shape_dealer_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][shape_drawing_dealer]" value="1">
-                                                            <label class="form-check-label" for="side_shape_dealer_${productIndex}_${sideIndex}">DEALER</label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" id="side_shape_company_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][shape_drawing_company]" value="1">
-                                                            <label class="form-check-label" for="side_shape_company_${productIndex}_${sideIndex}">COMPANY</label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <!-- Column 2: SANDBLAST -->
-                                            <div class="col-md-4">
-                                                <div class="form-check mb-1">
-                                                    <input class="form-check-input" type="checkbox" id="side_sandblast_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][sandblast]" value="1">
-                                                    <label class="form-check-label fw-medium" for="side_sandblast_${productIndex}_${sideIndex}">SANDBLAST</label>
-                                                </div>
-                                                <div class="ms-4">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" id="side_company_drafting_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][company_drafting]" value="1">
-                                                        <label class="form-check-label" for="side_company_drafting_${productIndex}_${sideIndex}">COMPANY DRAFTING</label>
-                                                    </div>
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" id="side_customer_drafting_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][customer_drafting]" value="1">
-                                                        <label class="form-check-label" for="side_customer_drafting_${productIndex}_${sideIndex}">CUSTOMER DRAFTING</label>
-                                                    </div>
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" id="side_customer_stencil_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][customer_stencil]" value="1">
-                                                        <label class="form-check-label" for="side_customer_stencil_${productIndex}_${sideIndex}">CUSTOMER STENCIL</label>
-                                                    </div>
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" id="side_sandblast_with_order_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][sandblast_with_order]" value="1">
-                                                        <label class="form-check-label" for="side_sandblast_with_order_${productIndex}_${sideIndex}">WITH ORDER</label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                             <!-- Column 3: ETCHING -->
-                                             <div class="col-md-4">
-                                                 <div class="form-check mb-1">
-                                                     <input class="form-check-input side-etching-toggle" type="checkbox" id="side_etching_option_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][etching]" value="1">
-                                                     <label class="form-check-label fw-medium" for="side_etching_option_${productIndex}_${sideIndex}">ETCHING</label>
-                                                 </div>
-                                                 <div class="ms-4 side-etching-options" style="display: none;">
-                                                     <div class="form-check">
-                                                         <input class="form-check-input" type="radio" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][etching_type]" id="side_etching_bw_${productIndex}_${sideIndex}" value="B&W">
-                                                         <label class="form-check-label" for="side_etching_bw_${productIndex}_${sideIndex}">B&W</label>
-                                                     </div>
-                                                     <div class="form-check">
-                                                         <input class="form-check-input" type="radio" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][etching_type]" id="side_etching_color_${productIndex}_${sideIndex}" value="COLOR">
-                                                         <label class="form-check-label" for="side_etching_color_${productIndex}_${sideIndex}">COLOR</label>
-                                                     </div>
-                                                     <div class="form-check">
-                                                         <input class="form-check-input" type="radio" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][etching_type]" id="side_etching_hand_${productIndex}_${sideIndex}" value="HAND">
-                                                         <label class="form-check-label" for="side_etching_hand_${productIndex}_${sideIndex}">HAND</label>
-                                                     </div>
-                                                     <div class="form-check">
-                                                         <input class="form-check-input" type="radio" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][etching_type]" id="side_etching_laser_${productIndex}_${sideIndex}" value="LASER">
-                                                         <label class="form-check-label" for="side_etching_laser_${productIndex}_${sideIndex}">LASER</label>
-                                                     </div>
-                                                     <div class="form-check">
-                                                         <input class="form-check-input" type="checkbox" id="side_etching_with_order_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][etching_with_order]" value="1">
-                                                         <label class="form-check-label" for="side_etching_with_order_${productIndex}_${sideIndex}">WITH ORDER</label>
-                                                     </div>
-                                                     <div class="mt-2">
-                                                         <input type="number" class="form-control form-control-sm side-charge side-etching-charge" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][etching_charge]" step="0.01" min="0" placeholder="$">
-                                                     </div>
-                                                 </div>
-                                             </div>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="card-body p-3">
                             
-                            <!-- S/B CARVING -->
-                                <div class="form-check mb-2 border-top pt-2">
-                                    <input class="form-check-input side-sb-toggle" type="checkbox" id="side_sb_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sb_carving][enabled]">
-                                    <label class="form-check-label fw-medium" for="side_sb_${productIndex}_${sideIndex}">S/B CARVING</label>
-                                    <div class="side-sb-options ms-4 mt-1" style="display: none;">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="products[${productIndex}][sides][${sideIndex}][sb_carving][type]" id="side_sb_flat_${productIndex}_${sideIndex}" value="FLAT">
-                                            <label class="form-check-label" for="side_sb_flat_${productIndex}_${sideIndex}">FLAT</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="products[${productIndex}][sides][${sideIndex}][sb_carving][type]" id="side_sb_shaped_${productIndex}_${sideIndex}" value="SHARPED">
-                                            <label class="form-check-label" for="side_sb_shaped_${productIndex}_${sideIndex}">SHARPED</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="products[${productIndex}][sides][${sideIndex}][sb_carving][option]" id="side_sb_lettering_${productIndex}_${sideIndex}" value="LETTERING">
-                                            <label class="form-check-label" for="side_sb_lettering_${productIndex}_${sideIndex}">LETTERING</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="products[${productIndex}][sides][${sideIndex}][sb_carving][option]" id="side_sb_rose_${productIndex}_${sideIndex}" value="ROSE">
-                                            <label class="form-check-label" for="side_sb_rose_${productIndex}_${sideIndex}">ROSE</label>
-                                        </div>
-                                        <div class="mt-2">
-                                            <input type="number" class="form-control form-control-sm side-charge side-sb-charge" name="products[${productIndex}][sides][${sideIndex}][sb_carving][charge]" step="0.01" min="0" placeholder="$">
-                                        </div>
-                                    </div>
-                                </div>
-                            
-                            <!-- ETCHING -->
-                            <div class="form-check mb-2 border-top pt-2">
-                                <input class="form-check-input side-etching-toggle" type="checkbox" id="side_etching_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][etching][enabled]">
-                                <label class="form-check-label fw-medium" for="side_etching_${productIndex}_${sideIndex}">ETCHING</label>
-                                <div class="side-etching-options ms-4 mt-1" style="display: none;">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="products[${productIndex}][sides][${sideIndex}][etching][type]" id="side_etching_bw_standalone_${productIndex}_${sideIndex}" value="B&W">
-                                        <label class="form-check-label" for="side_etching_bw_standalone_${productIndex}_${sideIndex}">B&W</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="products[${productIndex}][sides][${sideIndex}][etching][type]" id="side_etching_color_standalone_${productIndex}_${sideIndex}" value="COLOR">
-                                        <label class="form-check-label" for="side_etching_color_standalone_${productIndex}_${sideIndex}">COLOR</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="products[${productIndex}][sides][${sideIndex}][etching][type]" id="side_etching_hand_standalone_${productIndex}_${sideIndex}" value="HAND">
-                                        <label class="form-check-label" for="side_etching_hand_standalone_${productIndex}_${sideIndex}">HAND</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="products[${productIndex}][sides][${sideIndex}][etching][type]" id="side_etching_laser_standalone_${productIndex}_${sideIndex}" value="LASER">
-                                        <label class="form-check-label" for="side_etching_laser_standalone_${productIndex}_${sideIndex}">LASER</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="side_etching_with_order_standalone_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][etching][with_order]" value="1">
-                                        <label class="form-check-label" for="side_etching_with_order_standalone_${productIndex}_${sideIndex}">WITH ORDER</label>
-                                    </div>
-                                    <div class="mt-2">
-                                        <input type="number" class="form-control form-control-sm side-charge side-etching-charge" name="products[${productIndex}][sides][${sideIndex}][etching][charge]" step="0.01" min="0" placeholder="$">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- DEDO -->
-                            <div class="form-check mb-2 border-top pt-2">
-                                <input class="form-check-input side-dedo-toggle" type="checkbox" id="side_dedo_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][dedo][enabled]">
-                                <label class="form-check-label fw-medium" for="side_dedo_${productIndex}_${sideIndex}">Recess & Mount DEDO</label>
-                                <div class="mt-2 side-dedo-charge" style="display: none; width: 180px;">
-                                    <div class="input-group input-group-sm">
-                                        <span class="input-group-text">$</span>
-                                        <input type="number" class="form-control form-control-sm side-charge" name="products[${productIndex}][sides][${sideIndex}][dedo][charge]" step="0.01" min="0">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- DOMESTIC ADD ON -->
-                            <div class="form-check mb-2 border-top pt-2">
-                                <input class="form-check-input side-domestic-toggle" type="checkbox" id="side_domestic_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][domestic_addon][enabled]">
-                                <label class="form-check-label fw-medium" for="side_domestic_${productIndex}_${sideIndex}">DOMESTIC ADD ON</label>
-                                <div class="side-domestic-fields ps-4 mt-2" style="display: none;">
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-6">
-                                            <label class="form-label small mb-0">(1)</label>
-                                            <input type="text" class="form-control form-control-sm" name="products[${productIndex}][sides][${sideIndex}][domestic_addon][field1]">
-                                        </div>
-                                        <div class="col-6">
-                                            <label class="form-label small mb-0">(2)</label>
-                                            <input type="text" class="form-control form-control-sm" name="products[${productIndex}][sides][${sideIndex}][domestic_addon][field2]">
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-12">
-                                            <label class="form-label small mb-0">DOMESTIC ADD ON Charge ($)</label>
-                                            <div class="input-group input-group-sm">
-                                                <span class="input-group-text">$</span>
-                                                <input type="number" class="form-control form-control-sm side-charge side-domestic-charge" name="products[${productIndex}][sides][${sideIndex}][domestic_addon][charge]" step="0.01" min="0">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- DIGITIZATION -->
-                            <div class="form-check mb-2 border-top pt-2">
-                                <input class="form-check-input side-digitization-toggle" type="checkbox" id="side_digitization_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][digitization][enabled]">
-                                <label class="form-check-label fw-medium" for="side_digitization_${productIndex}_${sideIndex}">DIGITIZATION</label>
-                                <div class="mt-2 side-digitization-charge" style="display: none; width: 180px;">
-                                    <div class="input-group input-group-sm">
-                                        <span class="input-group-text">$</span>
-                                        <input type="number" class="form-control form-control-sm side-charge" name="products[${productIndex}][sides][${sideIndex}][digitization][charge]" step="0.01" min="0">
-                                    </div>
-                                </div>
-                                <!-- Digitization Text Box -->
-                                <div class="mt-2 side-digitization-text" style="display: none;">
-                                    <label class="form-label small mb-1">Digitization Details</label>
-                                    <input type="text" class="form-control form-control-sm" name="products[${productIndex}][sides][${sideIndex}][digitization][details]" placeholder="Enter digitization details">
-                                </div>
-                            </div>
-                            
-                            <!-- CHARGES ($) -->
-                            <div class="mb-2 border-top pt-2">
-                                <div class="row">
-                                    <div class="col-6">
-                                        <label class="form-label small fw-medium">CHARGES ($)</label>
+                            <!-- BLANK STONE PRICING ROW -->
+                            <div class="mb-3 p-2" style="background: #fff3e0; border-radius: 6px; border: 2px solid #ffb74d;">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold mb-1" style="color: #e65100;">BLANK STONE UNIT PRICE</label>
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text">$</span>
-                                            <input type="number" class="form-control side-charge side-misc-charge" name="products[${productIndex}][sides][${sideIndex}][misc_charge]" step="0.01" min="0">
+                                            <input type="number" class="form-control side-unit-price" name="products[${productIndex}][sides][${sideIndex}][blank_stone_unit_price]" step="0.01" min="0" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold mb-1" style="color: #e65100;">QUANTITY</label>
+                                        <input type="number" class="form-control form-control-sm side-qty" name="products[${productIndex}][sides][${sideIndex}][quantity]" min="1" value="1">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold mb-1" style="color: #e65100;">BLANK STONE QTY. PRICE</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">$</span>
+                                            <input type="text" class="form-control side-qty-price" name="products[${productIndex}][sides][${sideIndex}][blank_stone_qty_price]" readonly placeholder="0.00" style="background: #fff8e1;">
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            
+                            <!-- SIDE NOTES -->
+                            <div class="mb-3 p-2" style="background: #e8f5e9; border-radius: 6px; border-left: 4px solid #4caf50;">
+                                <label class="form-label small fw-bold mb-1" style="color: #2e7d32;">SIDE NOTES</label>
+                                <textarea class="form-control form-control-sm side-notes" name="products[${productIndex}][sides][${sideIndex}][notes]" rows="2" style="border: 1px solid #c8e6c9;"></textarea>
+                            </div>
+                            
+                            <!-- WORK TYPE - Horizontal Checkboxes -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold mb-2" style="color: #1565c0;">WORK TYPE</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <div class="form-check form-check-inline m-0" style="background: #f5f5f5; padding: 8px 12px; border-radius: 6px; border: 1px solid #e0e0e0;">
+                                        <input class="form-check-input" type="checkbox" id="side_blank_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][blank]" value="1">
+                                        <label class="form-check-label" for="side_blank_${productIndex}_${sideIndex}">BLANK</label>
+                                    </div>
+                                    <div class="form-check form-check-inline m-0" style="background: #fff3e0; padding: 8px 12px; border-radius: 6px; border: 1px solid #ffe0b2;">
+                                        <input class="form-check-input" type="checkbox" id="side_sandblast_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][sandblast]" value="1">
+                                        <label class="form-check-label" for="side_sandblast_${productIndex}_${sideIndex}">SANDBLAST</label>
+                                    </div>
+                                    <div class="form-check form-check-inline m-0" style="background: #e3f2fd; padding: 8px 12px; border-radius: 6px; border: 1px solid #bbdefb;">
+                                        <input class="form-check-input side-etching-toggle" type="checkbox" id="side_etching_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][etching][enabled]" value="1">
+                                        <label class="form-check-label" for="side_etching_${productIndex}_${sideIndex}">ETCHING</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- ETCHING OPTIONS (shown when ETCHING is checked) -->
+                            <div class="side-etching-options mb-3 p-2" style="display: none; background: #e3f2fd; border-radius: 6px; border-left: 4px solid #1976d2;">
+                                <label class="form-label small fw-bold mb-2" style="color: #1565c0;">ETCHING TYPE</label>
+                                <div class="d-flex flex-wrap gap-2 mb-2">
+                                    <div class="form-check form-check-inline m-0">
+                                        <input class="form-check-input" type="radio" name="products[${productIndex}][sides][${sideIndex}][etching][type]" id="side_etching_bw_${productIndex}_${sideIndex}" value="B&W">
+                                        <label class="form-check-label" for="side_etching_bw_${productIndex}_${sideIndex}">B&W</label>
+                                    </div>
+                                    <div class="form-check form-check-inline m-0">
+                                        <input class="form-check-input" type="radio" name="products[${productIndex}][sides][${sideIndex}][etching][type]" id="side_etching_color_${productIndex}_${sideIndex}" value="COLOR">
+                                        <label class="form-check-label" for="side_etching_color_${productIndex}_${sideIndex}">COLOR</label>
+                                    </div>
+                                    <div class="form-check form-check-inline m-0">
+                                        <input class="form-check-input" type="radio" name="products[${productIndex}][sides][${sideIndex}][etching][type]" id="side_etching_hand_${productIndex}_${sideIndex}" value="HAND">
+                                        <label class="form-check-label" for="side_etching_hand_${productIndex}_${sideIndex}">HAND</label>
+                                    </div>
+                                    <div class="form-check form-check-inline m-0">
+                                        <input class="form-check-input" type="radio" name="products[${productIndex}][sides][${sideIndex}][etching][type]" id="side_etching_laser_${productIndex}_${sideIndex}" value="LASER">
+                                        <label class="form-check-label" for="side_etching_laser_${productIndex}_${sideIndex}">LASER</label>
+                                    </div>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-auto">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="side_etching_with_order_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][etching][with_order]" value="1">
+                                            <label class="form-check-label" for="side_etching_with_order_${productIndex}_${sideIndex}">WITH ORDER</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <div class="input-group input-group-sm" style="width: 120px;">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control side-charge side-etching-charge" name="products[${productIndex}][sides][${sideIndex}][etching][charge]" step="0.01" min="0" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- DRAFTING SECTION -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold mb-2" style="color: #6a1b9a;">DRAFTING</label>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <div class="p-2" style="background: #f3e5f5; border-radius: 6px;">
+                                            <small class="text-muted d-block mb-1">Shape Drawing</small>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" id="side_shape_dealer_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][shape_drawing_dealer]" value="1">
+                                                <label class="form-check-label small" for="side_shape_dealer_${productIndex}_${sideIndex}">DEALER</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" id="side_shape_company_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][shape_drawing_company]" value="1">
+                                                <label class="form-check-label small" for="side_shape_company_${productIndex}_${sideIndex}">COMPANY</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2" style="background: #fce4ec; border-radius: 6px;">
+                                            <small class="text-muted d-block mb-1">Sandblast Drafting</small>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" id="side_company_drafting_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][company_drafting]" value="1">
+                                                <label class="form-check-label small" for="side_company_drafting_${productIndex}_${sideIndex}">COMPANY</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" id="side_customer_drafting_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][customer_drafting]" value="1">
+                                                <label class="form-check-label small" for="side_customer_drafting_${productIndex}_${sideIndex}">CUSTOMER</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row g-2 mt-1">
+                                    <div class="col-6">
+                                        <div class="form-check" style="background: #f5f5f5; padding: 8px 12px; border-radius: 6px;">
+                                            <input class="form-check-input" type="checkbox" id="side_customer_stencil_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][customer_stencil]" value="1">
+                                            <label class="form-check-label small" for="side_customer_stencil_${productIndex}_${sideIndex}">CUSTOMER STENCIL</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-check" style="background: #f5f5f5; padding: 8px 12px; border-radius: 6px;">
+                                            <input class="form-check-input" type="checkbox" id="side_sandblast_with_order_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sandblast_etching][sandblast_with_order]" value="1">
+                                            <label class="form-check-label small" for="side_sandblast_with_order_${productIndex}_${sideIndex}">WITH ORDER</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- ADDITIONAL OPTIONS - Simplified Grid -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold mb-2" style="color: #00695c;">ADDITIONAL OPTIONS</label>
+                                <div class="row g-2">
+                                    <!-- S/B CARVING -->
+                                    <div class="col-md-6">
+                                        <div class="p-2" style="background: #e0f2f1; border-radius: 6px;">
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input side-sb-toggle" type="checkbox" id="side_sb_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][sb_carving][enabled]">
+                                                <label class="form-check-label fw-medium" for="side_sb_${productIndex}_${sideIndex}">S/B CARVING</label>
+                                            </div>
+                                            <div class="side-sb-options ps-3" style="display: none;">
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    <span class="badge bg-light text-dark border">
+                                                        <input class="form-check-input me-1" type="radio" name="products[${productIndex}][sides][${sideIndex}][sb_carving][type]" id="side_sb_flat_${productIndex}_${sideIndex}" value="FLAT">
+                                                        <label class="form-check-label small" for="side_sb_flat_${productIndex}_${sideIndex}">FLAT</label>
+                                                    </span>
+                                                    <span class="badge bg-light text-dark border">
+                                                        <input class="form-check-input me-1" type="radio" name="products[${productIndex}][sides][${sideIndex}][sb_carving][type]" id="side_sb_shaped_${productIndex}_${sideIndex}" value="SHAPED">
+                                                        <label class="form-check-label small" for="side_sb_shaped_${productIndex}_${sideIndex}">SHAPED</label>
+                                                    </span>
+                                                    <span class="badge bg-light text-dark border">
+                                                        <input class="form-check-input me-1" type="radio" name="products[${productIndex}][sides][${sideIndex}][sb_carving][option]" id="side_sb_lettering_${productIndex}_${sideIndex}" value="LETTERING">
+                                                        <label class="form-check-label small" for="side_sb_lettering_${productIndex}_${sideIndex}">LETTERING</label>
+                                                    </span>
+                                                    <span class="badge bg-light text-dark border">
+                                                        <input class="form-check-input me-1" type="radio" name="products[${productIndex}][sides][${sideIndex}][sb_carving][option]" id="side_sb_rose_${productIndex}_${sideIndex}" value="ROSE">
+                                                        <label class="form-check-label small" for="side_sb_rose_${productIndex}_${sideIndex}">ROSE</label>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- DEDO -->
+                                    <div class="col-md-6">
+                                        <div class="p-2" style="background: #fff8e1; border-radius: 6px;">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="side_dedo_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][dedo][enabled]">
+                                                <label class="form-check-label fw-medium" for="side_dedo_${productIndex}_${sideIndex}">RECESS & MOUNT DEDO</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row g-2 mt-2">
+                                    <!-- DOMESTIC ADD ON -->
+                                    <div class="col-md-6">
+                                        <div class="p-2" style="background: #e8eaf6; border-radius: 6px;">
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input side-domestic-toggle" type="checkbox" id="side_domestic_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][domestic_addon][enabled]">
+                                                <label class="form-check-label fw-medium" for="side_domestic_${productIndex}_${sideIndex}">DOMESTIC ADD ON</label>
+                                            </div>
+                                            <div class="side-domestic-fields ps-3" style="display: none;">
+                                                <div class="row g-1">
+                                                    <div class="col-6">
+                                                        <input type="text" class="form-control form-control-sm" name="products[${productIndex}][sides][${sideIndex}][domestic_addon][field1]" placeholder="(1)">
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <input type="text" class="form-control form-control-sm" name="products[${productIndex}][sides][${sideIndex}][domestic_addon][field2]" placeholder="(2)">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- DIGITIZATION -->
+                                    <div class="col-md-6">
+                                        <div class="p-2" style="background: #fbe9e7; border-radius: 6px;">
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input side-digitization-toggle" type="checkbox" id="side_digitization_${productIndex}_${sideIndex}" name="products[${productIndex}][sides][${sideIndex}][digitization][enabled]">
+                                                <label class="form-check-label fw-medium" for="side_digitization_${productIndex}_${sideIndex}">DIGITIZATION</label>
+                                            </div>
+                                            <div class="side-digitization-charge ps-3" style="display: none;">
+                                                <input type="text" class="form-control form-control-sm" name="products[${productIndex}][sides][${sideIndex}][digitization][details]" placeholder="Details">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- SIDE CHARGES SUMMARY -->
+                            <div class="p-2" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 6px; border: 2px solid #1976d2;">
+                                <label class="form-label small fw-bold mb-2" style="color: #0d47a1;">SIDE CHARGES</label>
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <label class="form-label small mb-0">S/B CHARGES</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control side-charge side-sb-charge-display" name="products[${productIndex}][sides][${sideIndex}][sb_charges]" step="0.01" min="0" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small mb-0">RECESS & MOUNT DEDO</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control side-charge side-dedo-charge-display" name="products[${productIndex}][sides][${sideIndex}][dedo_charges]" step="0.01" min="0" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small mb-0">ETCHING CHARGES</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control side-charge side-etching-charge-display" name="products[${productIndex}][sides][${sideIndex}][etching_charges]" step="0.01" min="0" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row g-2 mt-1">
+                                    <div class="col-md-4">
+                                        <label class="form-label small mb-0">DOMESTIC ADD ON</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control side-charge side-domestic-charge-display" name="products[${productIndex}][sides][${sideIndex}][domestic_addon_charges]" step="0.01" min="0" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small mb-0">DIGITIZATION</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control side-charge side-digitization-charge-display" name="products[${productIndex}][sides][${sideIndex}][digitization_charges]" step="0.01" min="0" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small mb-0">MISC CHARGES</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control side-charge side-misc-charge" name="products[${productIndex}][sides][${sideIndex}][misc_charge]" step="0.01" min="0" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
                         </div>
                     </div>
                 `;
@@ -3531,6 +3553,17 @@ $(document).on('change', '.domestic-addon-toggle', function() {
             
             // Initialize side charge inputs to update totals on change
             $(document).on('input', '.side-charge', function() {
+                updateRowTotal($(this).closest('tr'));
+            });
+            
+            // Calculate BLANK STONE QTY. PRICE (unit price × quantity)
+            $(document).on('input', '.side-unit-price, .side-qty', function() {
+                const $sideCard = $(this).closest('.side-card');
+                const unitPrice = parseFloat($sideCard.find('.side-unit-price').val()) || 0;
+                const qty = parseInt($sideCard.find('.side-qty').val()) || 1;
+                const qtyPrice = (unitPrice * qty).toFixed(2);
+                $sideCard.find('.side-qty-price').val(qtyPrice);
+                // Update row totals
                 updateRowTotal($(this).closest('tr'));
             });
 

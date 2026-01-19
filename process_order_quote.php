@@ -112,15 +112,15 @@ use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
 
 // Sales email configuration with corrected addresses
+// Each sales person must have a valid email for CC functionality
 $salesEmails = [
+    'Sandy' => 'sjlawrence@angelgranites.com',
     'Martha' => 'mrucker@angelgranites.com',
-    'Candiss' => 'cgetter@angelgranites.com', 
     'Mike' => 'mscoggins@angelgranites.com',
-    'Jeremy' => 'jowens@angelgranites.com',
-    'Angel' => 'adove@angelgranites.com',
-    'Jim' => 'janderson@angelgranites.com',
     'Tiffany' => 'tsmith@angelgranites.com',
-    'Test' => 'info@angelstones.com'
+    'Chris' => 'cmartin@angelgranites.com',
+    'Kattie' => 'kattie@angelgranites.com',
+    'Test' => 'da@theangelstones.com'
 ];
 
 // Initialize response
@@ -363,7 +363,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         // Set from and to addresses
         $mail->setFrom(SMTP_FROM_EMAIL, $fromName);
-        $mail->addAddress('da@theangelstones.com', 'Angel Stones Support Team');
+        $mail->addAddress('info@theangelstones.com', 'Angel Stones');
         
         // Then find the email sending section and add the CC
         if (isset($_POST['sales_person']) && !empty($_POST['sales_person']) && isset($salesEmails[$_POST['sales_person']])) {
