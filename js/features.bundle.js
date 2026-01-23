@@ -1,1383 +1,3 @@
-/**
- * Color Gallery Functionality
- * Handles color selection and image display
- */
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize color click handlers
-    initColorGallery();
-    
-    // Function to initialize color gallery
-    function initColorGallery() {
-        // Get all color items
-        const colorItems = document.querySelectorAll('.color-item');
-        
-        // Add click event to each color item
-        colorItems.forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                // Get color name from data attribute or text content
-                const colorName = this.getAttribute('data-color-name') || 
-                                 this.textContent.trim();
-                
-                // Format the color name for the image URL
-                const formattedName = colorName.toLowerCase().replace(/\s+/g, '');
-                
-                // Create the image URL
-                const imageUrl = `https://www.theangelstones.com/images/colors/${formattedName}.jpg`;
-                
-                // Update the main image or open in a lightbox
-                updateMainImage(imageUrl, colorName);
-                
-                // Update URL without page reload (for SPA behavior)
-                updateUrl(colorName);
-            });
-        });
-    }
-    
-    // Function to update the main image
-    function updateMainImage(imageUrl, colorName) {
-        // Find the main image container - adjust selector as needed
-        const mainImage = document.querySelector('.main-color-image');
-        
-        if (mainImage) {
-            // Create loading state
-            mainImage.style.opacity = '0.7';
-            
-            // Create new image for preloading
-            const img = new Image();
-            img.onload = function() {
-                // Update image source and fade in
-                mainImage.src = imageUrl;
-                mainImage.alt = `${colorName} Granite`;
-                mainImage.title = colorName;
-                mainImage.style.opacity = '1';
-                
-                // Dispatch custom event if needed by other scripts
-                document.dispatchEvent(new CustomEvent('colorImageChanged', {
-                    detail: {
-                        imageUrl: imageUrl,
-                        colorName: colorName
-                    }
-                }));
-            };
-            
-            // Start loading the image
-            img.src = imageUrl;
-        }
-    }
-    
-    // Function to update URL without page reload
-    function updateUrl(colorName) {
-        const formattedName = colorName.toLowerCase().replace(/\s+/g, '-');
-        const newUrl = `${window.location.pathname}?color=${encodeURIComponent(formattedName)}`;
-        
-        // Update URL without reloading the page
-        window.history.pushState({ color: formattedName }, '', newUrl);
-        
-        // Update page title (optional)
-        document.title = `${colorName} Granite | Angel Stones`;
-    }
-    
-    // Handle browser back/forward buttons
-    window.addEventListener('popstate', function(event) {
-        if (event.state && event.state.color) {
-            const colorName = event.state.color.replace(/-/g, ' ');
-            const formattedName = colorName.replace(/\s+/g, '');
-            const imageUrl = `https://www.theangelstones.com/images/colors/${formattedName}.jpg`;
-            updateMainImage(imageUrl, colorName);
-        }
-    });
-    
-    // Check for color parameter in URL on page load
-    function checkUrlForColor() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const colorParam = urlParams.get('color');
-        
-        if (colorParam) {
-            const colorName = colorParam.replace(/-/g, ' ');
-            const formattedName = colorParam.replace(/-/g, '');
-            const imageUrl = `https://www.theangelstones.com/images/colors/${formattedName}.jpg`;
-            updateMainImage(imageUrl, colorName);
-        }
-    }
-    
-    // Run URL check on page load
-    checkUrlForColor();
-});
-// Product Categories JavaScript
-
-// Helper functions
-function getBasename(filename) {
-    return filename.split('.').slice(0, -1).join('.');
-}
-
-/**
- * Generate and inject schema.org structured data for product categories
- * This helps search engines better understand page content (similar to Yoast SEO)
- */
-function injectCategorySchema(category, images) {
-    // Remove any existing schema
-    const existingSchema = document.getElementById('category-schema');
-    if (existingSchema) existingSchema.remove();
-    
-    // Create schema for current category
-    const schema = document.createElement('script');
-    schema.id = 'category-schema';
-    schema.type = 'application/ld+json';
-    
-    const categoryName = category === 'Monuments' ? 'Ready-to-Ship Monuments' : category.replace(/_/g, ' ');
-    
-    // Create structured data for this category
-    const schemaData = {
-        "@context": "https://schema.org/",
-        "@type": "ItemList",
-        "name": `${categoryName} Collection`,
-        "description": `Browse our premium ${categoryName} collection featuring ${images.length} designs. High-quality stone monuments and granite products from Angel Stones.`,
-        "numberOfItems": images.length,
-        "itemListElement": images.slice(0, 10).map((img, idx) => ({
-            "@type": "ListItem",
-            "position": idx + 1,
-            "item": {
-                "@type": "Product",
-                "name": (typeof img === 'string' ? getBasename(img) : getBasename(img.path || img.filename || '')) || `${category} Design ${idx + 1}`,
-                "image": typeof img === 'string' ? img : img.path,
-                "offers": {
-                    "@type": "Offer",
-                    "availability": "https://schema.org/InStock"
-                }
-            }
-        }))
-    };
-    
-    schema.textContent = JSON.stringify(schemaData);
-    document.head.appendChild(schema);
-}
-
-/**
- * Update meta tags dynamically for better SEO when category is viewed
- */
-function updateMetaTags(category, images) {
-    const categoryName = category === 'Monuments' ? 'Ready-to-Ship Monuments' : category.replace(/_/g, ' ');
-    
-    // Update meta description
-    let metaDescription = document.querySelector('meta[name="description"]');
-    if (!metaDescription) {
-        metaDescription = document.createElement('meta');
-        metaDescription.setAttribute('name', 'description');
-        document.head.appendChild(metaDescription);
-    }
-    
-    metaDescription.setAttribute('content', 
-        `Explore our premium ${categoryName} collection featuring ${images.length} designs. High-quality stone monuments and granite products from Angel Stones.`);
-    
-    // Update Open Graph meta tags
-    updateOpenGraphTags(category, images);
-    
-    // Update page title for better SEO
-    const originalTitle = document.title.split('|').pop().trim() || 'Angel Stones';
-    document.title = `${categoryName} Collection - ${images.length} Designs | ${originalTitle}`;
-}
-
-/**
- * Update Open Graph meta tags for social sharing
- */
-function updateOpenGraphTags(category, images) {
-    const categoryName = category === 'Monuments' ? 'Ready-to-Ship Monuments' : category.replace(/_/g, ' ');
-    const imageUrl = images.length > 0 ? images[0] : '';
-    const baseUrl = window.location.origin || 'https://theangelstones.com';
-    const canonicalUrl = `${baseUrl}/?category=${category.toLowerCase()}`;
-    
-    // Helper function to update or create meta tag
-    function updateMetaTag(property, content) {
-        let tag = document.querySelector(`meta[property="${property}"]`);
-        if (!tag) {
-            tag = document.createElement('meta');
-            tag.setAttribute('property', property);
-            document.head.appendChild(tag);
-        }
-        tag.setAttribute('content', content);
-    }
-    
-    // Update Open Graph tags
-    updateMetaTag('og:title', `${categoryName} Collection - Angel Stones`);
-    updateMetaTag('og:description', `Explore our premium ${categoryName} collection featuring ${images.length} designs. High-quality stone monuments and granite products.`);
-    if (imageUrl) updateMetaTag('og:image', imageUrl);
-    updateMetaTag('og:url', canonicalUrl);
-    updateMetaTag('og:type', 'website');
-    
-    // Update canonical URL
-    let canonicalLink = document.querySelector('link[rel="canonical"]');
-    if (!canonicalLink) {
-        canonicalLink = document.createElement('link');
-        canonicalLink.setAttribute('rel', 'canonical');
-        document.head.appendChild(canonicalLink);
-    }
-    canonicalLink.setAttribute('href', canonicalUrl);
-}
-
-function getExtension(filename) {
-    return filename.split('.').pop().toLowerCase();
-}
-
-function isImageFile(filename) {
-    const ext = getExtension(filename);
-    return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
-}
-
-// Simple cache busting helper - adds a timestamp to URLs
-function addCacheBuster(url, category) {
-    // Skip cache busting for MBNA_2025 category
-    if (category === 'MBNA_2025' || url.includes('/MBNA_2025/')) {
-        return url;
-    }
-    
-    // Add cache buster parameter
-    const cacheBuster = `?v=${Date.now()}`;
-    return url.includes('?') ? url : url + cacheBuster;
-}
-
-// Main functionality
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize state
-    let categories = {};
-    const CATEGORY_CACHE_KEY = 'product_categories_cache';
-    const CATEGORY_CACHE_TTL = 60 * 60 * 1000; // 1 hour
-    
-    // Function to load and display categories
-    async function loadAndDisplayCategories() {
-        const container = document.querySelector('.category-grid');
-        if (!container) return;
-
-        // Show loading indicator
-        container.innerHTML = '';
-        showLoadingIndicator(container);
-
-        // Try loading categories from localStorage cache first
-        try {
-            const cached = localStorage.getItem(CATEGORY_CACHE_KEY);
-            if (cached) {
-                const parsed = JSON.parse(cached);
-                if (parsed.timestamp && (Date.now() - parsed.timestamp) < CATEGORY_CACHE_TTL) {
-                    categories = parsed.categories || {};
-                    console.log('Loaded categories from cache');
-                    displayCategories();
-                    return;
-                }
-            }
-        } catch (e) {
-            console.warn('Category cache read failed', e);
-        }
-
-        try {
-            // First, get all categories with cache-busting timestamp
-            const timestamp = Date.now();
-            const response = await fetch(`get_directory_files.php?directory=products&_=${timestamp}`);
-            const data = await response.json();
-            
-            if (!data.success) {
-                throw new Error(data.error || 'Failed to load categories');
-            }
-
-            // For each category, fetch its contents with unique timestamp for each request
-            for (const file of data.files) {
-                if (typeof file === 'object' && file.name) {
-                    const categoryName = file.name;
-                    try {
-                        const categoryTimestamp = Date.now(); // New timestamp for each category request
-                        const categoryResponse = await fetch(`get_directory_files.php?directory=products/${categoryName}&_=${categoryTimestamp}`);
-                        const categoryData = await categoryResponse.json();
-                        if (categoryData.success && categoryData.files) {
-                            categories[categoryName] = categoryData.files;
-                        }
-                    } catch (error) {
-                        console.error(`Error loading category ${categoryName}:`, error);
-                    }
-                }
-            }
-
-            console.log('Loaded categories:', categories);
-            try {
-                localStorage.setItem(CATEGORY_CACHE_KEY, JSON.stringify({
-                    timestamp: Date.now(),
-                    categories: categories
-                }));
-            } catch (e) {
-                console.warn('Category cache save failed', e);
-            }
-            displayCategories();
-        } catch (error) {
-            console.error('Error loading categories:', error);
-            container.innerHTML = `
-                <div class="error-message">
-                    <div>Failed to load categories</div>
-                    <button onclick="location.reload()">Retry</button>
-                </div>
-            `;
-        }
-    }
-
-    // Function to get or create session-based random seed
-    function getSessionSeed() {
-        let seed = sessionStorage.getItem('category_thumbnail_seed');
-        if (!seed) {
-            seed = Date.now().toString();
-            sessionStorage.setItem('category_thumbnail_seed', seed);
-        }
-        return seed;
-    }
-
-    // Simple hash function to generate consistent random numbers from seed
-    function seededRandom(seed, max) {
-        const hash = seed.split('').reduce((acc, char) => {
-            return ((acc << 5) - acc) + char.charCodeAt(0);
-        }, 0);
-        return Math.abs(hash) % max;
-    }
-
-    // Function to display categories
-    function displayCategories() {
-        const container = document.querySelector('.category-grid');
-        if (!container) return;
-
-        container.innerHTML = ''; // Clear container
-        
-        const sessionSeed = getSessionSeed();
-
-        Object.entries(categories).forEach(([category, images]) => {
-            const categoryItem = document.createElement('div');
-            categoryItem.className = 'category-item';
-
-            const link = document.createElement('a');
-            link.href = `#${category.toLowerCase()}-collection`;
-            link.className = 'category-link';
-            link.setAttribute('data-category', category);
-
-            // Create thumbnail container
-            const thumbContainer = document.createElement('div');
-            thumbContainer.className = 'category-image';
-
-            // Add sample image if available
-            if (images && images.length > 0) {
-                const img = document.createElement('img');
-                img.alt = category;
-                // Use seeded random based on category name + session seed for consistent but varied selection
-                let randomIndex = seededRandom(category + sessionSeed, images.length);
-                let attemptedIndices = [randomIndex];
-                
-                img.src = addCacheBuster(images[randomIndex].path, category);
-                
-                // Improved error handling - try next image instead of placeholder
-                img.onerror = function() {
-                    console.warn(`Failed to load image: ${img.src}`);
-                    
-                    // Try to find another image that hasn't been attempted yet
-                    let nextIndex = -1;
-                    for (let i = 0; i < images.length; i++) {
-                        if (!attemptedIndices.includes(i)) {
-                            nextIndex = i;
-                            break;
-                        }
-                    }
-                    
-                    if (nextIndex !== -1) {
-                        attemptedIndices.push(nextIndex);
-                        img.src = addCacheBuster(images[nextIndex].path, category);
-                    } else {
-                        // All images failed, use placeholder
-                        img.src = 'images/placeholder.png';
-                    }
-                };
-                thumbContainer.appendChild(img);
-            }
-
-            // Add category name and count
-            const name = document.createElement('h4');
-            // Special case for Monuments category
-            if (category === 'Monuments') {
-                name.textContent = 'In-stock, ready to ship special designs';
-            } else {
-                name.textContent = category.replace(/_/g, ' ');
-            }
-
-            const count = document.createElement('span');
-            count.className = 'category-count';
-            count.textContent = `${images.length} designs`;
-
-            link.appendChild(thumbContainer);
-            link.appendChild(name);
-            link.appendChild(count);
-            categoryItem.appendChild(link);
-
-            // Add click handler
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                showCategoryModal(category, images);
-            });
-
-            container.appendChild(categoryItem);
-        });
-    }
-
-    // Search API function
-    async function searchAPI(term) {
-        try {
-            // Add timestamp for cache busting
-            const timestamp = Date.now();
-            const response = await fetch(`get_directory_files.php?search=${encodeURIComponent(term)}&_=${timestamp}`);
-            const data = await response.json();
-            
-            if (data.success && Array.isArray(data.files)) {
-                return data.files;
-            } else {
-                console.error('Search API error:', data.error || 'Unknown error');
-                return [];
-            }
-        } catch (error) {
-            console.error('Search API error:', error);
-            return [];
-        }
-    }
-
-    // Search function
-    async function handleSearch(searchTerm) {
-        console.log('Searching for:', searchTerm);
-        searchTerm = searchTerm.toLowerCase().trim();
-
-        // Get all images from all categories
-        const allImages = [];
-        Object.entries(categories).forEach(([category, images]) => {
-            images.forEach(image => {
-                allImages.push({
-                    ...image,
-                    category: category
-                });
-            });
-        });
-
-        console.log('All images to search:', allImages);
-
-        // Find matches across all categories
-        const matches = allImages.filter(image => {
-            const filename = image.name.toLowerCase();
-            const productNumber = filename.split('.')[0].toLowerCase();
-            return productNumber.includes(searchTerm);
-        });
-
-        console.log('Matches found:', matches);
-
-        // Update display
-        const container = document.querySelector('.category-grid');
-        if (!container) return;
-
-        container.innerHTML = '';
-
-        if (searchTerm && matches.length > 0) {
-            // Create search results grid
-            const resultsGrid = document.createElement('div');
-            resultsGrid.className = 'search-results-grid';
-
-            // Add search summary
-            const summary = document.createElement('div');
-            summary.className = 'search-summary';
-            summary.textContent = `Found ${matches.length} matching products`;
-            container.appendChild(summary);
-
-            // Add each matching image
-            matches.forEach(image => {
-                const resultItem = document.createElement('div');
-                resultItem.className = 'search-result-item';
-
-                const img = document.createElement('img');
-                img.src = addCacheBuster(image.path, image.category);
-                img.alt = image.name;
-                img.onerror = function() {
-                    console.error(`Failed to load image: ${img.src}`);
-                    img.src = 'images/placeholder.png';
-                };
-
-                const label = document.createElement('div');
-                label.className = 'result-label';
-                label.textContent = image.name.split('.')[0];
-
-                const categoryLabel = document.createElement('div');
-                categoryLabel.className = 'category-label';
-                categoryLabel.textContent = image.category;
-
-                resultItem.appendChild(img);
-                resultItem.appendChild(label);
-                resultItem.appendChild(categoryLabel);
-
-                // Add click handler
-                resultItem.addEventListener('click', () => {
-                    showFullscreenImage(image.path, image.name.split('.')[0]);
-                });
-
-                resultsGrid.appendChild(resultItem);
-            });
-
-            container.appendChild(resultsGrid);
-        } else if (searchTerm) {
-            // Show no results message
-            container.innerHTML = `
-                <div class="no-results-message">
-                    <div style="text-align: center; padding: 20px; color: #888;">
-                        No products found matching "${searchTerm}"
-                    </div>
-                </div>
-            `;
-        } else {
-            // If no search term, show all categories
-            displayCategories();
-        }
-    }
-
-    // Add debounce function
-    function debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    }
-
-    // Update search input handler
-    const searchInput = document.getElementById('product-search');
-    if (searchInput) {
-        searchInput.addEventListener('input', debounce((e) => {
-            handleSearch(e.target.value);
-        }, 300));
-
-        searchInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                e.preventDefault();
-                searchInput.value = '';
-                handleSearch('');
-            }
-        });
-    }
-
-    // Initialize categories
-    loadAndDisplayCategories();
-
-    // Add styles
-    const styles = document.createElement('style');
-    styles.textContent = `
-        .search-results-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
-            padding: 20px;
-        }
-
-        .search-result-item {
-            position: relative;
-            aspect-ratio: 1;
-            background: #333;
-            border-radius: 8px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-
-        .search-result-item:hover {
-            transform: scale(1.05);
-        }
-
-        .search-result-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .result-label {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 8px;
-            text-align: center;
-        }
-
-        .category-label {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: rgba(0, 0, 0, 0.7);
-            color: #d6b772;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.9em;
-        }
-
-        .search-summary {
-            text-align: center;
-            color: #d6b772;
-            font-size: 1.2em;
-            margin: 20px 0;
-        }
-
-        .no-results-message {
-            text-align: center;
-            padding: 40px;
-            color: #888;
-        }
-    `;
-    document.head.appendChild(styles);
-
-    // Add this after your existing code but inside the DOMContentLoaded event listener
-
-    // Make showCategoryModal available globally
-    window.showCategoryModal = function(category, images) {
-        // Add SEO enhancements (schema and meta tags) for search engines
-        try {
-            // Only apply SEO enhancements if the functions exist and work
-            if (typeof injectCategorySchema === 'function') {
-                injectCategorySchema(category, images);
-            }
-            if (typeof updateMetaTags === 'function') {
-                updateMetaTags(category, images);
-            }
-        } catch (e) {
-            // Silently handle errors to ensure modal still works
-            console.log('SEO enhancement error (non-critical):', e);
-        }
-        
-        let modal = document.getElementById('category-modal');
-        if (!modal) {
-            modal = document.createElement('div');
-            modal.id = 'category-modal';
-            modal.className = 'category-modal';
-        }
-
-        // Create modal content
-        modal.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>${category === 'Monuments' ? 'Ready-to-Ship Monuments' : category.replace(/_/g, ' ')} Collection (${images.length} items)</h2>
-                    <button class="close-modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div class="thumbnails-grid"></div>
-                </div>
-            </div>
-        `;
-
-        // Add modal styles if not already added
-        if (!document.getElementById('category-modal-styles')) {
-            const modalStyles = document.createElement('style');
-            modalStyles.id = 'category-modal-styles';
-            modalStyles.textContent = `
-                .category-modal {
-                    display: none;
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0, 0, 0, 0.9);
-                    z-index: 1000;
-                    overflow: hidden;
-                }
-                
-                .category-modal .modal-content {
-                    position: relative;
-                    width: 90%;
-                    max-width: 1200px;
-                    height: 90vh;
-                    margin: 5vh auto;
-                    background: #222;
-                    border-radius: 8px;
-                    display: flex;
-                    flex-direction: column;
-                }
-                
-                .category-modal .modal-header {
-                    padding: 15px 20px;
-                    background: #333;
-                    border-bottom: 1px solid #444;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-                
-                .category-modal .modal-body {
-                    flex: 1;
-                    overflow-y: auto;
-                    padding: 20px;
-                    -webkit-overflow-scrolling: touch;
-                }
-                
-                .thumbnails-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                    gap: 20px;
-                    padding: 10px;
-                }
-                
-                .thumbnail-item {
-                    position: relative;
-                    aspect-ratio: 1;
-                    background: #333;
-                    border-radius: 4px;
-                    overflow: hidden;
-                    cursor: pointer;
-                    transition: transform 0.3s ease;
-                    will-change: transform;
-                }
-                
-                .thumbnail-item:hover {
-                    transform: scale(1.05);
-                }
-                
-                .thumbnail-item img {
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                    backface-visibility: hidden;
-                }
-                
-                .thumbnail-label {
-                    position: absolute;
-                    bottom: 0;
-                    left: 0;
-                    right: 0;
-                    background: rgba(0, 0, 0, 0.7);
-                    color: white;
-                    padding: 8px;
-                    text-align: center;
-                    font-size: 14px;
-                }
-                
-                .close-modal {
-                    background: none;
-                    border: none;
-                    color: #fff;
-                    font-size: 28px;
-                    cursor: pointer;
-                    padding: 10px;
-                    line-height: 1;
-                    width: 44px;
-                    height: 44px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-                
-                .close-modal:hover {
-                    color: #d6b772;
-                }
-
-                /* Tablet Styles */
-                @media (max-width: 1024px) {
-                    .thumbnails-grid {
-                        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-                        gap: 15px;
-                    }
-                }
-
-                /* Mobile Styles */
-                @media (max-width: 768px) {
-                    .category-modal .modal-content {
-                        width: 100%;
-                        height: 100%;
-                        margin: 0;
-                        border-radius: 0;
-                    }
-                    
-                    .thumbnails-grid {
-                        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-                        gap: 12px;
-                        padding: 12px;
-                    }
-                    
-                    .category-modal .modal-header {
-                        padding: 12px;
-                    }
-                    
-                    .category-modal .modal-header h2 {
-                        font-size: 18px;
-                    }
-                    
-                    .thumbnail-label {
-                        padding: 6px;
-                        font-size: 12px;
-                    }
-                }
-
-                /* Small Mobile Styles */
-                @media (max-width: 480px) {
-                    .thumbnails-grid {
-                        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-                        gap: 8px;
-                        padding: 8px;
-                    }
-                    
-                    .category-modal .modal-body {
-                        padding: 10px;
-                    }
-                }
-            `;
-            document.head.appendChild(modalStyles);
-        }
-
-        document.body.appendChild(modal);
-
-        // Populate thumbnails
-        const grid = modal.querySelector('.thumbnails-grid');
-        images.forEach(image => {
-            const thumb = document.createElement('div');
-            thumb.className = 'thumbnail-item';
-
-            const img = document.createElement('img');
-            img.alt = image.name;
-            
-            // Add loading="lazy" for native lazy loading
-            img.loading = 'lazy';
-            
-            // Add a low-quality placeholder
-            img.style.filter = 'blur(5px)';
-            img.style.transform = 'scale(1.1)';
-            
-            // Load image with fade-in effect
-            img.onload = () => {
-                img.style.filter = '';
-                img.style.transform = '';
-                img.style.transition = 'filter 0.3s ease, transform 0.3s ease';
-            };
-
-            // Use lazy loading
-            lazyLoadImage(img, addCacheBuster(image.path, category));
-
-            const label = document.createElement('div');
-            label.className = 'thumbnail-label';
-            label.textContent = image.name.split('.')[0];
-
-            thumb.appendChild(img);
-            thumb.appendChild(label);
-
-            // Use passive event listener for better performance
-            thumb.addEventListener('click', () => {
-                showFullscreenImage(image.path, image.name.split('.')[0]);
-            }, { passive: true });
-
-            grid.appendChild(thumb);
-        });
-
-        // Show modal
-        modal.style.display = 'block';
-
-        // Add close handlers
-        const closeBtn = modal.querySelector('.close-modal');
-        const handleClose = () => {
-            modal.style.display = 'none';
-        };
-
-        closeBtn.addEventListener('click', handleClose);
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.style.display = 'none';
-            }
-        });
-
-        document.addEventListener('keydown', function closeOnEscape(e) {
-            if (e.key === 'Escape') {
-                modal.style.display = 'none';
-                document.removeEventListener('keydown', closeOnEscape);
-            }
-        });
-    }
-
-    // Function to display fullscreen image with navigation
-    function showFullscreenImage(imagePath, productNumber, currentIndex) {
-        // First, add the fullscreen-active class to the body to hide sidebar
-        document.body.classList.add('fullscreen-active');
-        
-        // Create or retrieve fullscreen container
-        let fullscreen = document.getElementById('fullscreen-view');
-        const cleanup = new Set();
-
-        if (!fullscreen) {
-            fullscreen = document.createElement('div');
-            fullscreen.id = 'fullscreen-view';
-            fullscreen.className = 'fullscreen-view';
-        }
-
-        // Show loading indicator first
-        fullscreen.innerHTML = `<div class="loading-indicator">
-            <div class="spinner"></div>
-            <div class="loading-text">Loading image...</div>
-        </div>`;
-        document.body.appendChild(fullscreen);
-        fullscreen.style.display = 'flex';
-
-        // Store current category images for navigation
-        let currentCategory = '';
-        let categoryImages = [];
-        let imageIndex = 0;
-        
-        // Find the parent category modal
-        const categoryModal = document.querySelector('.category-modal');
-        if (categoryModal) {
-            // Get all thumbnail items in this category
-            const thumbnails = categoryModal.querySelectorAll('.thumbnail-item');
-            if (thumbnails.length > 0) {
-                categoryImages = Array.from(thumbnails).map(thumb => {
-                    const img = thumb.querySelector('img');
-                    const label = thumb.querySelector('.thumbnail-label');
-                    return {
-                        path: img.src,
-                        name: label ? label.textContent : ''
-                    };
-                });
-                
-                // Find the index of the current image
-                imageIndex = categoryImages.findIndex(img => img.path === imagePath);
-                if (imageIndex === -1) imageIndex = 0;
-            }
-        }
-        
-        // Load image
-        const img = new Image();
-        
-        // Add robust error handling for image loading
-        img.onerror = function() {
-            console.error(`Failed to load image: ${imagePath}`);
-            img.src = 'images/placeholder.png';
-        };
-        
-        img.onload = () => {
-            // Determine if we need navigation buttons
-            const showNavigation = categoryImages.length > 1;
-            
-            // Apply cache busting to image path
-            const cachedImagePath = addCacheBuster(imagePath, currentCategory || 'monuments');
-            
-            fullscreen.innerHTML = `
-                <div class="fullscreen-image-container">
-                    <img src="${cachedImagePath}" class="fullscreen-image" alt="${productNumber}">
-                    <div class="fullscreen-label">${productNumber}</div>
-                    <button class="close-fullscreen">&times;</button>
-                    ${showNavigation ? `
-                        <button class="fullscreen-nav prev" ${imageIndex <= 0 ? 'disabled' : ''}>&lt;</button>
-                        <button class="fullscreen-nav next" ${imageIndex >= categoryImages.length - 1 ? 'disabled' : ''}>&gt;</button>
-                    ` : ''}
-                </div>
-            `;
-            // Add close handler
-            const closeBtn = fullscreen.querySelector('.close-fullscreen');
-            const handleClose = () => {
-                fullscreen.style.display = 'none';
-                // Remove the fullscreen-active class when closing
-                document.body.classList.remove('fullscreen-active');
-                cleanup.forEach(fn => fn());
-                cleanup.clear();
-            };
-
-            closeBtn.addEventListener('click', handleClose);
-            cleanup.add(() => closeBtn.removeEventListener('click', handleClose));
-
-            // Add navigation handlers if we have multiple images
-            if (showNavigation) {
-                const prevBtn = fullscreen.querySelector('.fullscreen-nav.prev');
-                const nextBtn = fullscreen.querySelector('.fullscreen-nav.next');
-                
-                if (prevBtn) {
-                    prevBtn.addEventListener('click', () => {
-                        if (imageIndex > 0) {
-                            imageIndex--;
-                            const prevImage = categoryImages[imageIndex];
-                            showFullscreenImage(prevImage.path, prevImage.name.split('.')[0], imageIndex);
-                        }
-                    });
-                }
-                
-                if (nextBtn) {
-                    nextBtn.addEventListener('click', () => {
-                        if (imageIndex < categoryImages.length - 1) {
-                            imageIndex++;
-                            const nextImage = categoryImages[imageIndex];
-                            showFullscreenImage(nextImage.path, nextImage.name.split('.')[0], imageIndex);
-                        }
-                    });
-                }
-                
-                // Add touch swipe functionality for mobile devices
-                let touchStartX = 0;
-                let touchEndX = 0;
-                let touchStartTime = 0;
-                const imageContainer = fullscreen.querySelector('.fullscreen-image-container');
-                
-                // Touch start handler
-                const handleTouchStart = (e) => {
-                    // Only track primary touch
-                    if (e.touches.length === 1) {
-                        touchStartX = e.changedTouches[0].screenX;
-                        touchStartTime = Date.now();
-                    }
-                };
-                
-                // Touch end handler
-                const handleTouchEnd = (e) => {
-                    // Ensure this is the same touch that started and has reasonable timing
-                    if (e.changedTouches.length === 1 && Date.now() - touchStartTime > 100 && Date.now() - touchStartTime < 1000) {
-                        touchEndX = e.changedTouches[0].screenX;
-                        
-                        // Handle swipe only if substantial horizontal movement
-                        const swipeDistance = touchEndX - touchStartX;
-                        const minSwipeDistance = 75; // Increased threshold for more deliberate swipes
-                        
-                        if (Math.abs(swipeDistance) > minSwipeDistance) {
-                            if (swipeDistance > 0) {
-                                // Swiped right - go to previous image
-                                if (imageIndex > 0) {
-                                    imageIndex--;
-                                    const prevImage = categoryImages[imageIndex];
-                                    showFullscreenImage(prevImage.path, prevImage.name.split('.')[0], imageIndex);
-                                }
-                            } else {
-                                // Swiped left - go to next image
-                                if (imageIndex < categoryImages.length - 1) {
-                                    imageIndex++;
-                                    const nextImage = categoryImages[imageIndex];
-                                    showFullscreenImage(nextImage.path, nextImage.name.split('.')[0], imageIndex);
-                                }
-                            }
-                        }
-                    }
-                };
-                
-                // Add touch event listeners
-                imageContainer.addEventListener('touchstart', handleTouchStart, { passive: true });
-                imageContainer.addEventListener('touchend', handleTouchEnd, { passive: true });
-                
-                // Add to cleanup
-                cleanup.add(() => {
-                    imageContainer.removeEventListener('touchstart', handleTouchStart);
-                    imageContainer.removeEventListener('touchend', handleTouchEnd);
-                });
-            }
-
-            // Close on outside click
-            const handleOutsideClick = (e) => {
-                if (e.target === fullscreen) handleClose();
-            };
-            fullscreen.addEventListener('click', handleOutsideClick);
-            cleanup.add(() => fullscreen.removeEventListener('click', handleOutsideClick));
-
-            // Handle keyboard navigation
-            const handleKeyboard = (e) => {
-                if (e.key === 'Escape') {
-                    handleClose();
-                } else if (showNavigation) {
-                    if (e.key === 'ArrowLeft' && imageIndex > 0) {
-                        imageIndex--;
-                        const prevImage = categoryImages[imageIndex];
-                        showFullscreenImage(prevImage.path, prevImage.name.split('.')[0], imageIndex);
-                    } else if (e.key === 'ArrowRight' && imageIndex < categoryImages.length - 1) {
-                        imageIndex++;
-                        const nextImage = categoryImages[imageIndex];
-                        showFullscreenImage(nextImage.path, nextImage.name.split('.')[0], imageIndex);
-                    }
-                }
-            };
-            document.addEventListener('keydown', handleKeyboard);
-            cleanup.add(() => document.removeEventListener('keydown', handleKeyboard));
-        };
-
-        img.src = imagePath;
-        
-        // Add error handling for image loading
-        img.onerror = function() {
-            fullscreen.innerHTML = `
-                <div class="fullscreen-image-container">
-                    <div class="error-message">
-                        <p>Failed to load image</p>
-                    </div>
-                    <button class="close-fullscreen">&times;</button>
-                </div>
-            `;
-            
-            const closeBtn = fullscreen.querySelector('.close-fullscreen');
-            closeBtn.addEventListener('click', () => {
-                fullscreen.style.display = 'none';
-                document.body.classList.remove('fullscreen-active');
-            });
-        };
-    }
-
-    // Add loading indicator function
-    function showLoadingIndicator(container) {
-        const loader = document.createElement('div');
-        loader.className = 'loading-indicator';
-        loader.innerHTML = `
-            <div class="spinner"></div>
-            <div class="loading-text">Loading...</div>
-        `;
-        container.appendChild(loader);
-    }
-
-    // Add loading indicator styles
-    const loadingStyles = document.createElement('style');
-    loadingStyles.textContent = `
-        .loading-indicator {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            color: #d6b772;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #333;
-            border-top: 3px solid #d6b772;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            font-size: 16px;
-        }
-    `;
-    document.head.appendChild(loadingStyles);
-
-    // Add this function for lazy loading images
-    function lazyLoadImage(img, src) {
-        // Add error handler
-        img.onerror = function() {
-            console.error(`Failed to load image: ${src}`);
-            img.src = 'images/placeholder.png';
-        };
-        
-        if ('loading' in HTMLImageElement.prototype) {
-            // Browser supports native lazy loading
-            img.loading = 'lazy';
-            img.src = src;
-        } else {
-            // Fallback for browsers that don't support lazy loading
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        img.src = src;
-                        observer.disconnect();
-                    }
-                });
-            });
-            observer.observe(img);
-        }
-    }
-
-    // Add scroll optimization for modal
-    function optimizeModalScroll(modalBody) {
-        let ticking = false;
-        modalBody.addEventListener('scroll', () => {
-            if (!ticking) {
-                window.requestAnimationFrame(() => {
-                    // Your scroll handling code here
-                    ticking = false;
-                });
-                ticking = true;
-            }
-        }, { passive: true });
-    }
-
-    // Simple lazy loading for images
-    const images = document.querySelectorAll('img');
-    
-    if ('loading' in HTMLImageElement.prototype) {
-        // Use native lazy loading
-        images.forEach(img => {
-            if (!img.hasAttribute('loading')) {
-                img.loading = 'lazy';
-            }
-        });
-    }
-
-    // Simple performance optimization for scroll events
-    let ticking = false;
-    document.addEventListener('scroll', function() {
-        if (!ticking) {
-            window.requestAnimationFrame(function() {
-                ticking = false;
-            });
-            ticking = true;
-        }
-    }, { passive: true });
-
-    // Add CSS styles to ensure fullscreen images stay within screen bounds
-    const fullscreenStyles = document.createElement('style');
-    fullscreenStyles.textContent = `
-        .fullscreen-view {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .fullscreen-image-container {
-            position: relative;
-            width: 90%;
-            height: 90%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-        
-        .fullscreen-image {
-            max-width: 90%;
-            max-height: 80%;
-            width: auto;
-            height: auto;
-            object-fit: contain;
-            margin: auto;
-            display: block;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-        }
-        
-        .fullscreen-label {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px;
-            text-align: center;
-        }
-        
-        .fullscreen-nav {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 50px;
-            height: 50px;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            font-size: 24px;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .fullscreen-nav.prev {
-            left: 20px;
-        }
-        
-        .fullscreen-nav.next {
-            right: 20px;
-        }
-        
-        .close-fullscreen {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 40px;
-            height: 40px;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            font-size: 30px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        /* Mobile optimizations */
-        @media (max-width: 768px) {
-            .fullscreen-image-container {
-                width: 100%;
-                height: 100%;
-                padding: 10px;
-            }
-            
-            .fullscreen-image {
-                max-width: 95%;
-                max-height: 70%;
-            }
-            
-            .close-fullscreen {
-                top: 10px;
-                right: 10px;
-                width: 36px;
-                height: 36px;
-                font-size: 24px;
-            }
-            
-            .fullscreen-nav {
-                width: 40px;
-                height: 40px;
-                font-size: 24px;
-                background-color: rgba(0, 0, 0, 0.7);
-            }
-            
-            .fullscreen-nav.prev {
-                left: 10px;
-            }
-            
-            .fullscreen-nav.next {
-                right: 10px;
-            }
-            
-            .fullscreen-label {
-                padding: 5px;
-                font-size: 14px;
-            }
-        }
-        
-        /* Small mobile optimizations */
-        @media (max-width: 480px) {
-            .fullscreen-image {
-                max-width: 95%;
-                max-height: 60%;
-            }
-            
-            .fullscreen-nav {
-                width: 36px;
-                height: 36px;
-                font-size: 20px;
-            }
-            
-            .close-fullscreen {
-                width: 32px;
-                height: 32px;
-                font-size: 20px;
-            }
-            
-            .fullscreen-label {
-                font-size: 12px;
-            }
-        }
-    `;
-    document.head.appendChild(fullscreenStyles);
-});
 document.addEventListener('DOMContentLoaded', function() {
     // Helper function to add cache buster to URL
     function addCacheBuster(url, category) {
@@ -2496,17 +1116,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             <button class="nav-button next"><i class="bi bi-chevron-right"></i></button>
                             <div class="main-carousel-slides"></div>
                         </div>
-                        <div class="thumbnails-wrapper">
-                            <div class="thumbnails-scroll-container">
-                                <div class="thumbnails-container"></div>
-                            </div>
-                            <div class="modal-scroll-track products-scroll-track">
-                                <button type="button" class="scroll-nav-btn scroll-up-btn" aria-label="Scroll Up">▲</button>
-                                <div class="scroll-progress-bar">
-                                    <div class="scroll-progress-indicator"></div>
-                                </div>
-                                <button type="button" class="scroll-nav-btn scroll-down-btn" aria-label="Scroll Down">▼</button>
-                            </div>
+                        <div class="thumbnails-scroll-container">
+                            <div class="thumbnails-container"></div>
                         </div>
                     </div>
                 </div>
@@ -2634,31 +1245,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     /* Thumbnails styles */
-                    .thumbnails-wrapper {
-                        display: flex;
+                    .thumbnails-scroll-container {
                         width: 100%;
                         height: 35%;
-                        position: relative;
-                    }
-                    
-                    .thumbnails-scroll-container {
-                        flex: 1;
                         overflow-x: hidden;
-                        overflow-y: auto;
+                        overflow-y: hidden;
+                        position: relative;
                         border-radius: 4px;
                         background-color: #1a1a1a;
-                        padding-right: 10px;
                     }
                     
                     .thumbnails-container {
-                        display: grid;
-                        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                        display: flex;
+                        flex-wrap: nowrap;
                         gap: 10px;
                         padding: 10px;
+                        overflow-x: auto;
+                        overflow-y: hidden;
+                        height: 100%;
+                        scrollbar-width: thin;
+                        scrollbar-color: #555 #333;
                     }
                     
                     .thumbnails-container::-webkit-scrollbar {
-                        width: 8px;
+                        height: 8px;
                     }
                     
                     .thumbnails-container::-webkit-scrollbar-track {
@@ -2669,73 +1279,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     .thumbnails-container::-webkit-scrollbar-thumb {
                         background-color: #555;
                         border-radius: 4px;
-                    }
-                    
-                    /* Product scroll track */
-                    .products-scroll-track {
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        width: 50px;
-                        padding: 10px 5px;
-                        background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.5));
-                        border-left: 1px solid rgba(255,255,255,0.1);
-                    }
-                    
-                    .products-scroll-track .scroll-nav-btn {
-                        width: 36px;
-                        height: 36px;
-                        border-radius: 50%;
-                        background: rgba(255, 255, 255, 0.15);
-                        color: white;
-                        border: 2px solid rgba(255, 255, 255, 0.3);
-                        font-size: 16px;
-                        cursor: pointer;
-                        transition: all 0.25s ease;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-                        flex-shrink: 0;
-                    }
-                    
-                    .products-scroll-track .scroll-nav-btn:hover:not([style*="cursor: default"]) {
-                        background: rgba(255, 255, 255, 0.25);
-                        transform: scale(1.15);
-                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-                        border-color: rgba(255, 255, 255, 0.5);
-                    }
-                    
-                    .products-scroll-track .scroll-progress-bar {
-                        flex: 1;
-                        width: 8px;
-                        background: rgba(255, 255, 255, 0.1);
-                        border-radius: 4px;
-                        margin: 12px 0;
-                        position: relative;
-                        cursor: pointer;
-                        min-height: 100px;
-                        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
-                    }
-                    
-                    .products-scroll-track .scroll-progress-indicator {
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 40px;
-                        background: linear-gradient(180deg, #4a90e2 0%, #357abd 100%);
-                        border-radius: 4px;
-                        transition: top 0.1s ease-out;
-                        box-shadow: 0 2px 8px rgba(74, 144, 226, 0.5),
-                                    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-                        border: 1px solid rgba(255, 255, 255, 0.3);
-                    }
-                    
-                    .products-scroll-track .scroll-progress-bar:hover .scroll-progress-indicator {
-                        background: linear-gradient(180deg, #5a9ff2 0%, #4580cd 100%);
-                        box-shadow: 0 3px 12px rgba(74, 144, 226, 0.7),
-                                    inset 0 1px 0 rgba(255, 255, 255, 0.4);
                     }
                     
                     .thumbnail {
@@ -2790,66 +1333,6 @@ document.addEventListener('DOMContentLoaded', function() {
             this.thumbnailsContainer = this.modal.querySelector('.thumbnails-container');
             this.prevButton = this.modal.querySelector('.nav-button.prev');
             this.nextButton = this.modal.querySelector('.nav-button.next');
-            
-            // Setup scroll navigation for thumbnails
-            this.setupThumbnailScrolling();
-        },
-        
-        setupThumbnailScrolling() {
-            const scrollContainer = this.modal.querySelector('.thumbnails-scroll-container');
-            const scrollUpBtn = this.modal.querySelector('.products-scroll-track .scroll-up-btn');
-            const scrollDownBtn = this.modal.querySelector('.products-scroll-track .scroll-down-btn');
-            const progressIndicator = this.modal.querySelector('.products-scroll-track .scroll-progress-indicator');
-            const progressBar = this.modal.querySelector('.products-scroll-track .scroll-progress-bar');
-            
-            console.log('Products scroll setup:', {
-                scrollContainer: !!scrollContainer,
-                scrollUpBtn: !!scrollUpBtn,
-                scrollDownBtn: !!scrollDownBtn,
-                progressIndicator: !!progressIndicator,
-                progressBar: !!progressBar
-            });
-            
-            if (!scrollContainer || !scrollUpBtn || !scrollDownBtn || !progressIndicator || !progressBar) {
-                console.error('Products scroll track elements missing!');
-                return;
-            }
-            
-            // Scroll button handlers
-            scrollUpBtn.addEventListener('click', () => {
-                scrollContainer.scrollBy({ top: -250, behavior: 'smooth' });
-            });
-            
-            scrollDownBtn.addEventListener('click', () => {
-                scrollContainer.scrollBy({ top: 250, behavior: 'smooth' });
-            });
-            
-            // Click on progress bar to jump to position
-            progressBar.addEventListener('click', (e) => {
-                const rect = progressBar.getBoundingClientRect();
-                const clickY = e.clientY - rect.top;
-                const percentage = clickY / rect.height;
-                const scrollTo = percentage * (scrollContainer.scrollHeight - scrollContainer.clientHeight);
-                scrollContainer.scrollTo({ top: scrollTo, behavior: 'smooth' });
-            });
-            
-            // Update progress indicator and button states
-            const updateScrollUI = () => {
-                const scrollPercent = scrollContainer.scrollTop / (scrollContainer.scrollHeight - scrollContainer.clientHeight);
-                const indicatorHeight = 40;
-                const maxTop = progressBar.clientHeight - indicatorHeight;
-                progressIndicator.style.top = `${scrollPercent * maxTop}px`;
-                
-                scrollUpBtn.style.opacity = scrollContainer.scrollTop > 20 ? '1' : '0.4';
-                scrollUpBtn.style.cursor = scrollContainer.scrollTop > 20 ? 'pointer' : 'default';
-                
-                const isAtBottom = scrollContainer.scrollTop >= scrollContainer.scrollHeight - scrollContainer.clientHeight - 20;
-                scrollDownBtn.style.opacity = isAtBottom ? '0.4' : '1';
-                scrollDownBtn.style.cursor = isAtBottom ? 'default' : 'pointer';
-            };
-            
-            scrollContainer.addEventListener('scroll', updateScrollUI);
-            setTimeout(updateScrollUI, 100);
         },
     };
 
@@ -2902,38 +1385,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-/* Angel Stones Custom JavaScript - Combined and Minified */
-(function($){'use strict';const isMobile={Android:()=>navigator.userAgent.match(/Android/i),BlackBerry:()=>navigator.userAgent.match(/BlackBerry/i),iOS:()=>navigator.userAgent.match(/iPhone|iPad|iPod/i),Opera:()=>navigator.userAgent.match(/Opera Mini/i),Windows:()=>navigator.userAgent.match(/IEMobile/i),any:function(){return(this.Android()||this.BlackBerry()||this.iOS()||this.Opera()||this.Windows())}};function initComponents(){if(!isMobile.any()){$('.js-fullheight').css('height',$(window).height());$(window).resize(()=>$('.js-fullheight').css('height',$(window).height()))}$('.animate-box').waypoint(function(direction){if(direction==='down'&&!$(this.element).hasClass('animated')){$(this.element).addClass('item-animate');setTimeout(()=>{$('body .animate-box.item-animate').each((k,el)=>{setTimeout(()=>{const $el=$(el);const effect=$el.data('animate-effect');$el.addClass((effect==='fadeIn'||!effect)?'fadeIn animated':effect==='fadeInLeft'?'fadeInLeft animated':'fadeInRight animated');$el.removeClass('item-animate')},k*200)})},100)}},{offset:'85%'});if(typeof $.fn.owlCarousel!=='undefined'){$('#variety-of-granites .owl-carousel').owlCarousel({
-    loop: true,
-    margin: 20,
-    nav: true,
-    dots: true,
-    autoplay: true,
-    autoplayTimeout: 4000,
-    autoplayHoverPause: true,
-    responsive: {
-        0: {
-            items: 1,
-            margin: 10,
-            stagePadding: 20
-        },
-        480: {
-            items: 2,
-            margin: 15
-        },
-        768: {
-            items: 3,
-            margin: 15
-        },
-        992: {
-            items: 4,
-            margin: 20
-        }
-    }
-})}if(typeof $.fn.magnificPopup!=='undefined'){$('.image-popup-vertical-fit').magnificPopup({type:'image',closeOnContentClick:true,mainClass:'mfp-img-mobile',image:{verticalFit:true}})}
-// Projects section has been replaced with Granite Varieties
-// if(typeof $.fn.isotope!=='undefined'){const $grid=$('.projects-filter').isotope({itemSelector:'.projects-item',layoutMode:'fitRows'});$grid.imagesLoaded().progress(()=>$grid.isotope('layout'))}
-}$(document).ready(initComponents)})(jQuery);
 /**
  * Color Carousel - Dynamic color image loader
  * For Angel Stones website
@@ -3045,10 +1496,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const $container = $('#variety-of-granites .owl-carousel');
         
         // Replace owl carousel with scrollable row
-        $container.removeClass('owl-carousel owl-theme owl-loaded');
+        $container.removeClass('owl-carousel owl-theme');
         $container.empty();
         $container.addClass('color-scroll-container');
-        $container.attr('style', 'background:transparent !important;');
 
         // Add colors to scrollable row
         colors.forEach((color, index) => {
@@ -3063,28 +1513,35 @@ document.addEventListener('DOMContentLoaded', function() {
                      itemprop="itemListElement" 
                      itemscope 
                      itemtype="https://schema.org/ListItem"
-                     data-color-name="${color.name}"
-                     data-index="${index}"
-                     style="background:transparent !important;">
+                     data-color-name="${color.name}">
                     <meta itemprop="position" content="${index + 1}" />
-                    <img src="${color.thumbnail || color.path || color.image}" 
-                         alt="${color.name} Granite" 
-                         loading="lazy"
-                         class="img-fluid">
-                    <div class="color-name" style="background:transparent !important;color:#fff !important;">${color.name}</div>
+                    <div class="color-item-inner" 
+                         itemscope 
+                         itemtype="https://schema.org/Product" 
+                         itemid="#${formattedName}">
+                        <meta itemprop="name" content="${color.name} Granite">
+                        <meta itemprop="description" content="${color.description || 'Premium quality ' + color.name + ' granite'}">
+                        <meta itemprop="image" content="${color.image}">
+                        <div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+                            <meta itemprop="priceCurrency" content="USD">
+                            <meta itemprop="price" content="0">
+                            <link itemprop="availability" href="https://schema.org/InStock" />
+                        </div>
+                        <img src="${color.thumbnail || color.image}" 
+                             alt="${color.name} Granite" 
+                             loading="lazy"
+                             class="img-fluid"
+                             itemprop="image">
+                        <div class="color-name" itemprop="name">${color.name}</div>
+                    </div>
                 </div>`;
             $container.append(item);
         });
 
         // Add loading animation to images
         $container.find('img').on('load', function() {
-            $(this).closest('.color-item, .color-scroll-item').addClass('loaded');
+            $(this).closest('.color-scroll-item').addClass('loaded');
         });
-        
-        console.log(`Populated ${colors.length} colors to display`);
-        
-        // Make sure items are clickable
-        $container.find('.color-item').css('cursor', 'pointer');
 
         // Add or update the View All Colors button
         const $carouselContainer = $container.closest('.col-md-12');
@@ -3092,14 +1549,18 @@ document.addEventListener('DOMContentLoaded', function() {
         
         $carouselContainer.append(`
             <div class="view-all-colors-container text-center mt-4">
-                <button class="btn btn-outline-light view-all-colors-btn">
+                <button class="btn btn-primary view-all-colors-btn">
                     <i class="bi bi-grid-3x3-gap me-2"></i>
                     View All ${colors.length} Colors
                 </button>
             </div>
         `);
         
-        // Don't add badge to header - keep it clean
+        // Update the carousel header with count
+        const $header = $container.closest('.section-padding').find('.section-header .title');
+        if ($header.length && !$header.find('.badge').length) {
+            $header.append(` <span class="badge bg-primary">${colors.length} colors</span>`);
+        }
     }
 
     /**
@@ -3113,8 +1574,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Color image click in scrollable row
-        $(document).on('click', '.color-item, .color-scroll-item', function(e) {
-            const index = $(this).index();
+        $(document).on('click', '.color-scroll-item', function(e) {
+            const index = $(this).data('index');
             showColorFullscreen(index);
         });
 
@@ -3143,16 +1604,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Close fullscreen view on X button click
         $(document).on('click', '.color-fullscreen-close', function(e) {
-            e.preventDefault();
             e.stopPropagation();
             closeColorFullscreen();
-        });
-        
-        // Close on ESC key
-        $(document).on('keydown', function(e) {
-            if (e.key === 'Escape' && $('body').hasClass('color-fullscreen-active')) {
-                closeColorFullscreen();
-            }
         });
 
         // Keyboard navigation
@@ -3221,9 +1674,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             <h5 class="modal-title">All Colors (${colors.length})</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body-wrapper">
-                            <div class="modal-body" id="colors-modal-body">
-                                <div class="row g-3">
+                        <div class="modal-body">
+                            <div class="row g-3">
         `;
 
         // Add color grid items
@@ -3245,14 +1697,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         modalHtml += `
-                                </div>
-                            </div>
-                            <div class="modal-scroll-track">
-                                <button type="button" class="scroll-nav-btn scroll-up-btn" aria-label="Scroll Up">▲</button>
-                                <div class="scroll-progress-bar">
-                                    <div class="scroll-progress-indicator"></div>
-                                </div>
-                                <button type="button" class="scroll-nav-btn scroll-down-btn" aria-label="Scroll Down">▼</button>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -3270,55 +1714,6 @@ document.addEventListener('DOMContentLoaded', function() {
         $('body').append(modalHtml);
         const modal = new bootstrap.Modal(document.getElementById(modalId));
         modal.show();
-
-        // Setup scroll navigation
-        const modalBody = document.getElementById('colors-modal-body');
-        const colorModal = document.getElementById(modalId);
-        const scrollUpBtn = colorModal.querySelector('.scroll-up-btn');
-        const scrollDownBtn = colorModal.querySelector('.scroll-down-btn');
-        const progressIndicator = colorModal.querySelector('.scroll-progress-indicator');
-        const progressBar = colorModal.querySelector('.scroll-progress-bar');
-        
-        if (!modalBody || !scrollUpBtn || !scrollDownBtn || !progressIndicator || !progressBar) {
-            console.error('Color modal scroll elements not found');
-            return;
-        }
-        
-        // Scroll button handlers
-        scrollUpBtn.addEventListener('click', () => {
-            modalBody.scrollBy({ top: -250, behavior: 'smooth' });
-        });
-        
-        scrollDownBtn.addEventListener('click', () => {
-            modalBody.scrollBy({ top: 250, behavior: 'smooth' });
-        });
-        
-        // Click on progress bar to jump to position
-        progressBar.addEventListener('click', (e) => {
-            const rect = progressBar.getBoundingClientRect();
-            const clickY = e.clientY - rect.top;
-            const percentage = clickY / rect.height;
-            const scrollTo = percentage * (modalBody.scrollHeight - modalBody.clientHeight);
-            modalBody.scrollTo({ top: scrollTo, behavior: 'smooth' });
-        });
-        
-        // Update progress indicator and button states
-        function updateScrollUI() {
-            const scrollPercent = modalBody.scrollTop / (modalBody.scrollHeight - modalBody.clientHeight);
-            const indicatorHeight = 40; // Height of indicator in pixels
-            const maxTop = progressBar.clientHeight - indicatorHeight;
-            progressIndicator.style.top = `${scrollPercent * maxTop}px`;
-            
-            scrollUpBtn.style.opacity = modalBody.scrollTop > 20 ? '1' : '0.4';
-            scrollUpBtn.style.cursor = modalBody.scrollTop > 20 ? 'pointer' : 'default';
-            
-            const isAtBottom = modalBody.scrollTop >= modalBody.scrollHeight - modalBody.clientHeight - 20;
-            scrollDownBtn.style.opacity = isAtBottom ? '0.4' : '1';
-            scrollDownBtn.style.cursor = isAtBottom ? 'default' : 'pointer';
-        }
-        
-        modalBody.addEventListener('scroll', updateScrollUI);
-        setTimeout(updateScrollUI, 100);
 
         // Clean up modal on hide
         $(`#${modalId}`).on('hidden.bs.modal', function() {
@@ -3338,25 +1733,23 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Create fullscreen container if it doesn't exist
         if ($('.color-fullscreen-container').length === 0) {
-            const fullscreenHtml = `
+            $('body').append(`
                 <div class="color-fullscreen-container">
                     <div class="color-fullscreen-content">
                         <img src="${color.path}" alt="${safeName}" class="img-fluid">
                         <div class="color-fullscreen-caption">${safeName}</div>
                     </div>
-                    <button class="color-fullscreen-nav color-fullscreen-prev" aria-label="Previous">‹</button>
-                    <button class="color-fullscreen-nav color-fullscreen-next" aria-label="Next">›</button>
-                    <button class="color-fullscreen-close" aria-label="Close"></button>
+                    <button class="color-fullscreen-nav color-fullscreen-prev">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <button class="color-fullscreen-nav color-fullscreen-next">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                    <button class="color-fullscreen-close">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
                 </div>
-            `;
-            $('body').append(fullscreenHtml);
-            console.log('Created fullscreen modal with buttons');
-            
-            // Verify buttons exist
-            setTimeout(() => {
-                const buttonsCount = $('.color-fullscreen-nav, .color-fullscreen-close').length;
-                console.log(`Fullscreen buttons found: ${buttonsCount}`);
-            }, 100);
+            `);
         } else {
             // Update existing fullscreen view
             const $fullscreen = $('.color-fullscreen-container');
@@ -3374,10 +1767,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function closeColorFullscreen() {
         $('body').removeClass('color-fullscreen-active');
         
-        // Remove the fullscreen container immediately
-        setTimeout(function() {
-            $('.color-fullscreen-container').remove();
-        }, 300);
+        // Keep the element in DOM but hide it for better performance
+        $('.color-fullscreen-container')
+            .one('transitionend', function() {
+                if (!$('body').hasClass('color-fullscreen-active')) {
+                    $(this).remove();
+                }
+            });
     }
 
     /**
@@ -3431,50 +1827,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 background: linear-gradient(to right, #fff, #f8f9fa, #fff);
             }
             
-            .color-item,
             .color-scroll-item {
                 flex: 0 0 auto;
                 width: 150px;
                 cursor: pointer;
                 transition: transform 0.2s ease;
                 scroll-snap-align: start;
-                background: transparent !important;
-                position: relative;
             }
             
-            .color-item:hover,
             .color-scroll-item:hover {
                 transform: translateY(-5px);
-                background: transparent !important;
-            }
-            
-            .color-scroll-container .color-item img {
-                width: 100%;
-                height: auto;
-                border-radius: 8px;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-                transition: transform 0.3s ease;
-                display: block;
-                margin-bottom: 0.5rem !important;
-                background: transparent !important;
-            }
-            
-            .color-scroll-container .color-item:hover {
-                background: transparent !important;
-            }
-            
-            .color-scroll-container .color-item:hover img {
-                transform: scale(1.05);
-            }
-            
-            .color-name {
-                margin-top: 0.5rem;
-                font-size: 0.9rem;
-                color: #fff !important;
-                text-align: center;
-                background: transparent !important;
-                padding: 0.25rem 0;
-                display: block;
             }
             
             .color-scroll-image {
@@ -3524,19 +1886,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 left: 0;
                 right: 0;
                 bottom: 0;
-                background-color: rgba(0, 0, 0, 0.95);
-                z-index: 99999;
-                display: none;
+                background-color: rgba(0, 0, 0, 0.9);
+                z-index: 2000;
+                display: flex;
                 align-items: center;
                 justify-content: center;
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity 0.3s ease, visibility 0.3s ease;
             }
             
-            body.color-fullscreen-active .color-fullscreen-container {
-                display: flex;
-            }
-            
-            body.color-fullscreen-active {
-                overflow: hidden;
+            .color-fullscreen-active .color-fullscreen-container {
+                opacity: 1;
+                visibility: visible;
             }
             
             .color-fullscreen-content {
@@ -3544,17 +1906,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 max-height: 90vh;
                 position: relative;
                 text-align: center;
-                padding: 20px;
             }
             
             .color-fullscreen-content img {
-                max-height: 70vh;
-                max-width: 800px;
-                width: auto;
-                height: auto;
+                max-height: 80vh;
+                max-width: 100%;
                 border-radius: 8px;
-                box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-                object-fit: contain;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             }
             
             .color-fullscreen-caption {
@@ -3565,167 +1923,60 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             .color-fullscreen-nav {
-                position: fixed !important;
+                position: fixed;
                 top: 50%;
                 transform: translateY(-50%);
-                width: 70px;
-                height: 70px;
-                background-color: rgba(0, 0, 0, 0.85) !important;
-                border: 4px solid rgba(255, 255, 255, 0.95) !important;
+                width: 50px;
+                height: 50px;
+                background-color: rgba(255, 255, 255, 0.2);
+                border: none;
                 border-radius: 50%;
-                color: white !important;
-                font-size: 3.5rem;
-                display: flex !important;
+                color: white;
+                font-size: 1.5rem;
+                display: flex;
                 align-items: center;
                 justify-content: center;
-                visibility: visible !important;
-                opacity: 1 !important;
                 cursor: pointer;
-                transition: all 0.2s ease;
-                z-index: 100000 !important;
-                line-height: 1;
-                font-weight: 300;
-                pointer-events: auto !important;
+                transition: background-color 0.2s ease;
+                z-index: 2100;
             }
             
             .color-fullscreen-nav:hover {
-                background-color: rgba(255, 255, 255, 1);
-                color: #000;
-                transform: translateY(-50%) scale(1.15);
-                border-color: #000;
+                background-color: rgba(255, 255, 255, 0.3);
             }
             
             .color-fullscreen-prev {
-                left: 30px !important;
+                left: 20px;
             }
             
             .color-fullscreen-next {
-                right: 30px !important;
+                right: 20px;
             }
             
             .color-fullscreen-close {
-                position: fixed !important;
-                top: 20px !important;
-                right: 40px !important;
-                width: 70px !important;
-                height: 70px !important;
-                background-color: rgba(0, 0, 0, 0.85) !important;
-                border: 4px solid rgba(255, 255, 255, 1) !important;
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                width: 40px;
+                height: 40px;
+                background-color: rgba(255, 255, 255, 0.2);
+                border: none;
                 border-radius: 50%;
-                color: white !important;
-                font-size: 2rem !important;
-                display: flex !important;
+                color: white;
+                font-size: 1.2rem;
+                display: flex;
                 align-items: center;
                 justify-content: center;
-                visibility: visible !important;
-                opacity: 1 !important;
                 cursor: pointer;
-                transition: all 0.2s ease;
-                z-index: 100000 !important;
-                font-weight: bold;
-                pointer-events: auto !important;
+                transition: background-color 0.2s ease;
+                z-index: 2100;
             }
             
             .color-fullscreen-close:hover {
-                background-color: rgba(255, 255, 255, 1);
-                color: #000;
-                transform: scale(1.15);
-                border-color: #000;
-            }
-            
-            .color-fullscreen-close::before {
-                content: '×';
-                font-size: 3rem;
-                line-height: 0.8;
+                background-color: rgba(255, 255, 255, 0.3);
             }
             
             /* Grid View in Modal */
-            .modal-body-wrapper {
-                display: flex;
-                position: relative;
-                max-height: 70vh;
-            }
-            
-            #all-colors-modal .modal-body {
-                flex: 1;
-                overflow-y: auto;
-                overflow-x: hidden;
-                padding-right: 15px;
-            }
-            
-            /* Custom Scroll Track */
-            #all-colors-modal .modal-scroll-track,
-            .modal-scroll-track {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                width: 50px;
-                padding: 10px 5px;
-                background: linear-gradient(to bottom, rgba(0,0,0,0.03), rgba(0,0,0,0.08));
-                border-left: 1px solid rgba(0,0,0,0.1);
-            }
-            
-            #all-colors-modal .scroll-nav-btn,
-            .scroll-nav-btn {
-                width: 36px;
-                height: 36px;
-                border-radius: 50%;
-                background: rgba(0, 0, 0, 0.75);
-                color: white;
-                border: 2px solid rgba(255, 255, 255, 0.2);
-                font-size: 16px;
-                cursor: pointer;
-                transition: all 0.25s ease;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-                flex-shrink: 0;
-            }
-            
-            #all-colors-modal .scroll-nav-btn:hover:not([style*="cursor: default"]),
-            .scroll-nav-btn:hover:not([style*="cursor: default"]) {
-                background: rgba(0, 0, 0, 0.95);
-                transform: scale(1.15);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-                border-color: rgba(255, 255, 255, 0.4);
-            }
-            
-            #all-colors-modal .scroll-progress-bar,
-            .scroll-progress-bar {
-                flex: 1;
-                width: 8px;
-                background: rgba(0, 0, 0, 0.15);
-                border-radius: 4px;
-                margin: 12px 0;
-                position: relative;
-                cursor: pointer;
-                min-height: 200px;
-                box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
-            }
-            
-            #all-colors-modal .scroll-progress-indicator,
-            .scroll-progress-indicator {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 40px;
-                background: linear-gradient(180deg, #4a90e2 0%, #357abd 100%);
-                border-radius: 4px;
-                transition: top 0.1s ease-out;
-                box-shadow: 0 2px 8px rgba(74, 144, 226, 0.4),
-                            inset 0 1px 0 rgba(255, 255, 255, 0.3);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-            }
-            
-            #all-colors-modal .scroll-progress-bar:hover .scroll-progress-indicator,
-            .scroll-progress-bar:hover .scroll-progress-indicator {
-                background: linear-gradient(180deg, #5a9ff2 0%, #4580cd 100%);
-                box-shadow: 0 3px 12px rgba(74, 144, 226, 0.6),
-                            inset 0 1px 0 rgba(255, 255, 255, 0.4);
-            }
-            
             .color-grid-item {
                 cursor: pointer;
                 transition: transform 0.2s ease;
@@ -3770,17 +2021,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 .color-fullscreen-nav {
-                    width: 50px !important;
-                    height: 50px !important;
-                    font-size: 2rem !important;
+                    width: 40px;
+                    height: 40px;
+                    font-size: 1.2rem;
                 }
                 
                 .color-fullscreen-close {
-                    top: 15px !important;
-                    right: 20px !important;
-                    width: 60px !important;
-                    height: 60px !important;
-                    font-size: 1.8rem !important;
+                    width: 36px;
+                    height: 36px;
+                    font-size: 1.1rem;
                 }
             }
             
@@ -3802,542 +2051,714 @@ document.addEventListener('DOMContentLoaded', function() {
         $('<style id="color-carousel-styles">' + styles + '</style>').appendTo('head');
     }
 
-    // Initialize on document ready - with jQuery availability check
-    function initWhenReady() {
-        if (typeof jQuery === 'undefined' || typeof $ === 'undefined') {
-            // jQuery not loaded yet, wait a bit
-            setTimeout(initWhenReady, 100);
-            return;
-        }
+    // Initialize on document ready
+    $(document).ready(function() {
+        // Add styles first
+        addColorCarouselStyles();
         
-        $(document).ready(function() {
-            // Add styles first
-            addColorCarouselStyles();
-            
-            // Then initialize the carousel if the container exists
-            if ($('#variety-of-granites').length) {
-                console.log('Initializing color carousel...');
-                initColorCarousel();
-            } else {
-                console.log('Color carousel container not found');
-            }
-        });
-    }
-    
-    // Start initialization
-    initWhenReady();
+        // Then initialize the carousel if the container exists
+        if ($('#variety-of-granites').length) {
+            initColorCarousel();
+        }
+    });
 
-})(typeof jQuery !== 'undefined' ? jQuery : window.jQuery || window.$);
+})(jQuery);
 /**
- * Ultra-Lightweight Mobile Color Carousel
- * Performance-first approach with minimal code and accessibility improvements
- * MOBILE ONLY - Does not affect desktop experience
- */
-(function() {
-    'use strict';
-    
-    // Only execute for mobile devices - strict check to preserve desktop experience
-    const isMobile = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (!isMobile) {
-        console.log("Mobile carousel: Desktop detected, not initializing mobile carousel");
-        return; // Exit immediately for desktop devices
-    }
-    
-    // Check for existing desktop carousel before initializing
-    function checkForDesktopCarousel() {
-        // Look for common desktop carousel indicators
-        const hasOwlCarousel = typeof jQuery !== 'undefined' && typeof jQuery.fn.owlCarousel !== 'undefined';
-        const hasInitializedOwl = document.querySelector('.owl-carousel.owl-loaded');
-        
-        if (hasOwlCarousel && hasInitializedOwl) {
-            console.log("Mobile carousel: Desktop carousel already active, not initializing mobile version");
-            return true;
-        }
-        return false;
-    }
-    
-    // Wait for DOM to be interactive but don't block rendering
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!checkForDesktopCarousel()) {
-                initMobileCarousel();
-            }
-        });
-    } else {
-        // Small delay to ensure other scripts have initialized
-        setTimeout(() => {
-            if (!checkForDesktopCarousel()) {
-                initMobileCarousel();
-            }
-        }, 100);
-    }
-    
-    function initMobileCarousel() {
-        // Find carousel container
-        const colorSection = document.querySelector('#variety-of-granites');
-        if (!colorSection) return;
-        
-        const colorRow = colorSection.querySelector('.owl-carousel') || 
-                         colorSection.querySelector('.color-row') ||
-                         colorSection.querySelector('.color-scroll-container');
-        
-        if (!colorRow) return;
-        
-        // Check if Owl Carousel is already initialized and working
-        if (colorRow.classList.contains('owl-loaded') && 
-            colorRow.querySelectorAll('.owl-item').length > 0 &&
-            !colorRow.classList.contains('owl-broken')) {
-            // Owl Carousel is working, no need for our implementation
-            return;
-        }
-        
-        // Create simple CSS for horizontal scrolling
-        const style = document.createElement('style');
-        style.textContent = `
-            @media (max-width: 767px) {
-                /* Fix video display */
-                .hero-video {
-                    height: 100vh;
-                    height: -webkit-fill-available;
-                }
-                
-                #hero-video {
-                    opacity: 1 !important;
-                    object-fit: cover !important;
-                    width: 100% !important;
-                    height: 100% !important;
-                    display: block !important;
-                }
-                
-                /* Fix color carousel */
-                #variety-of-granites .owl-carousel,
-                .owl-carousel.color-row,
-                .color-scroll-container {
-                    display: flex !important;
-                    overflow-x: auto !important;
-                    scroll-snap-type: x mandatory !important;
-                    scroll-behavior: smooth !important;
-                    padding-bottom: 10px !important;
-                }
-                
-                /* Fix navigation controls on mobile */
-                .owl-nav, .owl-dots {
-                    display: none !important;
-                }
-                
-                /* Fix carousel item display */
-                .owl-item, .color-scroll-item, .variety-of-granites {
-                    flex: 0 0 auto !important;
-                    width: 160px !important;
-                    margin: 0 5px !important;
-                    scroll-snap-align: center !important;
-                }
-                
-                /* Fix color name visibility */
-                .caption p, 
-                #variety-of-granites .caption p,
-                .variety-of-granites .caption p,
-                .color-item .caption p {
-                    color: #ffffff !important;
-                    text-shadow: 0 0 3px rgba(0,0,0,0.9), 0 0 5px rgba(0,0,0,0.7) !important;
-                    font-weight: 500 !important;
-                    margin-top: 8px !important;
-                    font-size: 14px !important;
-                    visibility: visible !important;
-                    opacity: 1 !important;
-                }
-                
-                /* Ensure images are visible */
-                .variety-of-granites img,
-                .color-item img {
-                    opacity: 1 !important;
-                    visibility: visible !important;
-                }
-                
-                /* Fix webkit issues */
-                .owl-stage {
-                    display: flex !important;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-        
-        // Fix video playback on mobile
-        const video = document.getElementById('hero-video');
-        if (video) {
-            // Ensure video plays by resetting it
-            video.pause();
-            video.currentTime = 0;
-            
-            // Force inline playback (crucial for iOS)
-            video.setAttribute('playsinline', '');
-            video.setAttribute('webkit-playsinline', '');
-            video.muted = true;
-            
-            // Set poster in JS as backup
-            if (!video.poster || video.poster === '') {
-                video.poster = 'images/video-poster-mobile.webp';
-            }
-            
-            // Make opacity 1 immediately to ensure it's visible
-            video.style.opacity = '1';
-            
-            // Force play attempt
-            setTimeout(function() {
-                const playPromise = video.play();
-                if (playPromise !== undefined) {
-                    playPromise.catch(function(error) {
-                        // If autoplay failed, try again with user interaction
-                        console.log("Video autoplay prevented:", error);
-                    });
-                }
-            }, 300);
-        }
-        
-        // Fix color carousel scrolling
-        setTimeout(function() {
-            // Find carousel containers using multiple selectors to ensure we find it
-            const colorRow = document.querySelector('#variety-of-granites .owl-carousel') || 
-                           document.querySelector('.owl-carousel.color-row') ||
-                           document.querySelector('#variety-of-granites .color-row') ||
-                           document.querySelector('.color-scroll-container');
-            
-            if (!colorRow) return;
-            
-            // Force fixes on all carousel items for visibility
-            const items = colorRow.querySelectorAll('.variety-of-granites, .owl-item, .color-item');
-            items.forEach(function(item) {
-                // Ensure captions are visible
-                const caption = item.querySelector('.caption p');
-                if (caption) {
-                    caption.style.color = '#ffffff';
-                    caption.style.textShadow = '0 0 3px rgba(0,0,0,0.9)';
-                    caption.style.fontWeight = '500';
-                }
-                
-                // Ensure images are loaded
-                const img = item.querySelector('img');
-                if (img && img.getAttribute('data-src')) {
-                    img.src = img.getAttribute('data-src');
-                    img.removeAttribute('data-src');
-                }
-            });
-            
-            // Add auto-scrolling functionality
-            let scrollPosition = 0;
-            let scrollInterval;
-            let isScrolling = false;
-            
-            function startAutoScroll() {
-                if (scrollInterval) clearInterval(scrollInterval);
-                
-                scrollInterval = setInterval(function() {
-                    if (document.hidden || isScrolling) return;
-                    
-                    const itemWidth = 170; // Width + margin
-                    const maxScroll = colorRow.scrollWidth - colorRow.clientWidth;
-                    
-                    // Increment position
-                    scrollPosition += itemWidth;
-                    
-                    // Reset if we reach the end
-                    if (scrollPosition > maxScroll) scrollPosition = 0;
-                    
-                    // Scroll
-                    isScrolling = true;
-                    colorRow.scrollTo({
-                        left: scrollPosition,
-                        behavior: 'smooth'
-                    });
-                    
-                    // Reset scrolling flag after animation
-                    setTimeout(function() {
-                        isScrolling = false;
-                    }, 500);
-                }, 3000);
-            }
-            
-            // Initialize auto-scrolling
-            startAutoScroll();
-            
-            // Handle user interaction
-            colorRow.addEventListener('touchstart', function() {
-                clearInterval(scrollInterval);
-                isScrolling = false;
-            }, { passive: true });
-            
-            colorRow.addEventListener('touchend', function() {
-                // Update current position
-                scrollPosition = colorRow.scrollLeft;
-                // Resume auto-scrolling after delay
-                setTimeout(startAutoScroll, 5000);
-            }, { passive: true });
-            
-            // Add improved swipe detection
-            let startX;
-            colorRow.addEventListener('touchstart', function(e) {
-                startX = e.touches[0].clientX;
-            }, { passive: true });
-            
-            colorRow.addEventListener('touchend', function(e) {
-                if (!startX) return;
-                
-                const endX = e.changedTouches[0].clientX;
-                const diff = startX - endX;
-                
-                if (Math.abs(diff) > 50) {
-                    isScrolling = true;
-                    
-                    // Scroll in swipe direction
-                    colorRow.scrollBy({
-                        left: diff > 0 ? 170 : -170,
-                        behavior: 'smooth'
-                    });
-                    
-                    // Update position after scroll
-                    setTimeout(function() {
-                        scrollPosition = colorRow.scrollLeft;
-                        isScrolling = false;
-                    }, 500);
-                }
-                
-                startX = null;
-            }, { passive: true });
-        }, 800);
-    }
-})();
-/**
- * UX Improvements for Angel Stones
- * - Adds swipe support for mobile galleries
- * - Fixes scroll lock on modals
- * - Enhances "View All Colors" modal experience
+ * Color Gallery Functionality
+ * Handles color selection and image display
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Swiper for galleries on mobile devices
-    initMobileGalleries();
+    // Initialize color click handlers
+    initColorGallery();
     
-    // Fix modal scroll locking
-    fixModalScrollLock();
-    
-    // Enhance the color gallery modal
-    enhanceColorModal();
-});
-
-/**
- * Initialize Swiper for mobile galleries
- */
-function initMobileGalleries() {
-    // Check if we're on mobile
-    const isMobile = window.innerWidth < 768;
-    
-    if (isMobile) {
-        // Featured products carousel
-        const featuredSwiperElements = document.querySelectorAll('.featured-carousel');
-        if (featuredSwiperElements.length > 0) {
-            featuredSwiperElements.forEach((element, index) => {
-                // Convert each carousel to Swiper while maintaining thumbnails-first approach
-                new Swiper(element, {
-                    slidesPerView: 'auto',
-                    spaceBetween: 10,
-                    grabCursor: true,
-                    resistanceRatio: 0.65,
-                    touchEventsTarget: 'container',
-                    passiveListeners: true,
-                    threshold: 5,
-                    navigation: {
-                        nextEl: element.querySelector('.swiper-button-next') || null,
-                        prevEl: element.querySelector('.swiper-button-prev') || null,
-                    },
-                    pagination: {
-                        el: element.querySelector('.swiper-pagination') || null,
-                        type: 'bullets',
-                        clickable: true
-                    }
-                });
+    // Function to initialize color gallery
+    function initColorGallery() {
+        // Get all color items
+        const colorItems = document.querySelectorAll('.color-item');
+        
+        // Add click event to each color item
+        colorItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Get color name from data attribute or text content
+                const colorName = this.getAttribute('data-color-name') || 
+                                 this.textContent.trim();
+                
+                // Format the color name for the image URL
+                const formattedName = colorName.toLowerCase().replace(/\s+/g, '');
+                
+                // Create the image URL
+                const imageUrl = `https://www.theangelstones.com/images/colors/${formattedName}.jpg`;
+                
+                // Update the main image or open in a lightbox
+                updateMainImage(imageUrl, colorName);
+                
+                // Update URL without page reload (for SPA behavior)
+                updateUrl(colorName);
             });
+        });
+    }
+    
+    // Function to update the main image
+    function updateMainImage(imageUrl, colorName) {
+        // Find the main image container - adjust selector as needed
+        const mainImage = document.querySelector('.main-color-image');
+        
+        if (mainImage) {
+            // Create loading state
+            mainImage.style.opacity = '0.7';
+            
+            // Create new image for preloading
+            const img = new Image();
+            img.onload = function() {
+                // Update image source and fade in
+                mainImage.src = imageUrl;
+                mainImage.alt = `${colorName} Granite`;
+                mainImage.title = colorName;
+                mainImage.style.opacity = '1';
+                
+                // Dispatch custom event if needed by other scripts
+                document.dispatchEvent(new CustomEvent('colorImageChanged', {
+                    detail: {
+                        imageUrl: imageUrl,
+                        colorName: colorName
+                    }
+                }));
+            };
+            
+            // Start loading the image
+            img.src = imageUrl;
+        }
+    }
+    
+    // Function to update URL without page reload
+    function updateUrl(colorName) {
+        const formattedName = colorName.toLowerCase().replace(/\s+/g, '-');
+        const newUrl = `${window.location.pathname}?color=${encodeURIComponent(formattedName)}`;
+        
+        // Update URL without reloading the page
+        window.history.pushState({ color: formattedName }, '', newUrl);
+        
+        // Update page title (optional)
+        document.title = `${colorName} Granite | Angel Stones`;
+    }
+    
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', function(event) {
+        if (event.state && event.state.color) {
+            const colorName = event.state.color.replace(/-/g, ' ');
+            const formattedName = colorName.replace(/\s+/g, '');
+            const imageUrl = `https://www.theangelstones.com/images/colors/${formattedName}.jpg`;
+            updateMainImage(imageUrl, colorName);
+        }
+    });
+    
+    // Check for color parameter in URL on page load
+    function checkUrlForColor() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const colorParam = urlParams.get('color');
+        
+        if (colorParam) {
+            const colorName = colorParam.replace(/-/g, ' ');
+            const formattedName = colorParam.replace(/-/g, '');
+            const imageUrl = `https://www.theangelstones.com/images/colors/${formattedName}.jpg`;
+            updateMainImage(imageUrl, colorName);
+        }
+    }
+    
+    // Run URL check on page load
+    checkUrlForColor();
+});
+class PromotionBanner {
+    constructor() {
+        this.banner = document.querySelector('.promotion-banner');
+        if (!this.banner) return;
+        
+        this.currentIndex = 0;
+        this.promotions = [];
+        this.carouselInterval = null;
+        this.minimized = false;
+        this.initializeControls();
+        this.loadPromotions();
+    }
+
+    initializeControls() {
+        const minimizeBtn = this.banner.querySelector('.minimize-btn');
+        const closeBtn = this.banner.querySelector('.close-btn');
+        
+        // Check if banner was previously closed
+        if (sessionStorage.getItem('promotionClosed') === 'true') {
+            this.banner.style.display = 'none';
+            return;
+        }
+
+        minimizeBtn.addEventListener('click', () => {
+            this.minimized = !this.minimized;
+            this.banner.classList.toggle('minimized', this.minimized);
+            
+            const icon = minimizeBtn.querySelector('i');
+            if (this.minimized) {
+                icon.classList.remove('bi-chevron-up');
+                icon.classList.add('bi-chevron-down');
+                minimizeBtn.title = 'Expand';
+            } else {
+                icon.classList.remove('bi-chevron-down');
+                icon.classList.add('bi-chevron-up');
+                minimizeBtn.title = 'Minimize';
+            }
+        });
+
+        closeBtn.addEventListener('click', () => {
+            this.banner.style.display = 'none';
+            sessionStorage.setItem('promotionClosed', 'true');
+            if (this.carouselInterval) {
+                clearInterval(this.carouselInterval);
+            }
+        });
+    }
+
+    async loadPromotions() {
+        try {
+            // Add cache-busting parameter
+            const response = await fetch('/crm/ajax/get_active_promotions.php?v=' + Date.now());
+            
+            // Attempt to get response text regardless of response.ok for better error reporting
+            const responseText = await response.text();
+
+            if (!response.ok) {
+                // Include responseText in the error message if available
+                throw new Error(`HTTP error! status: ${response.status}. Response: ${responseText}`);
+            }
+            
+            let data;
+            try {
+                data = JSON.parse(responseText); 
+            } catch (parseError) {
+                // Log the raw response text that caused the JSON parsing error
+                console.error('Error parsing JSON from /crm/ajax/get_active_promotions.php:', parseError);
+                console.error('Raw response causing error:', responseText);
+                this.banner.style.display = 'none'; 
+                return; 
+            }
+            
+            // Check for success flag and promotions array in response
+            if (data.success && Array.isArray(data.promotions) && data.promotions.length > 0) {
+                this.promotions = data.promotions;
+                this.showPromotion(0);
+                if (this.promotions.length > 1) {
+                    this.startCarousel();
+                }
+            } else {
+                 // Log details if data.success is false or promotions array is missing/empty
+                console.log('No active promotions, or unsuccessful/invalid response. Data:', data);
+                this.banner.style.display = 'none';
+            }
+        } catch (error) {
+            // This will catch errors from fetch itself, or the new Error thrown for !response.ok, or re-thrown parseError
+            console.error('Error loading promotions:', error);
+            this.banner.style.display = 'none';
+        }
+    }
+
+    showPromotion(index) {
+        const promotion = this.promotions[index];
+        if (!promotion) {
+            console.error('No promotion at index:', index);
+            return;
         }
         
-        // Category thumbnails with swipe support
-        // Respects the thumbnails-first approach implementation
-        const categorySwiper = document.querySelector('.category-thumbnails');
-        if (categorySwiper) {
-            new Swiper(categorySwiper, {
-                slidesPerView: 'auto',
-                spaceBetween: 10,
-                freeMode: true,
-                grabCursor: true,
-                resistanceRatio: 0.65,
-                watchSlidesProgress: true,
-                touchEventsTarget: 'container',
-                passiveListeners: true
+        const content = this.banner.querySelector('.promotion-content');
+        if (!content) {
+            console.error('Promotion content element not found');
+            return;
+        }
+        
+        // Use linkUrl (camelCase from API) or default to promotions page
+        const promoLink = promotion.linkUrl || '/promotions.html';
+        const imageUrl = promotion.imageUrl || '';
+        const isExternal = promotion.type === 'event' && promotion.linkUrl && promotion.linkUrl.startsWith('http');
+        const target = isExternal ? '_blank' : '_self';
+        
+        // Debug logging
+        console.log('Showing promotion:', {
+            title: promotion.title,
+            imageUrl: imageUrl,
+            linkUrl: promoLink,
+            type: promotion.type
+        });
+        
+        content.innerHTML = `
+            <a href="${promoLink}" target="${target}" class="promotion-text-link">
+                <div class="promotion-image-link">
+                    <img src="${imageUrl}" alt="${promotion.title}" class="promotion-image" onerror="console.error('Image failed to load:', this.src)">
+                </div>
+                <div class="promotion-text">
+                    <h3>${promotion.title}</h3>
+                    <p>${promotion.subtitle || promotion.description || ''}</p>
+                </div>
+            </a>
+            <div class="promotion-expanded">
+                <a href="/promotions.html" class="promotion-link desktop-only">View All Promotions</a>
+            </div>
+            <div class="promotion-controls">
+                <button type="button" class="promotion-btn minimize-btn" title="Minimize">
+                    <i class="bi bi-chevron-up"></i>
+                </button>
+                <button type="button" class="promotion-btn close-btn" title="Close">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        `;
+        
+        this.initializeControls();
+    }
+
+    startCarousel() {
+        this.carouselInterval = setInterval(() => {
+            this.currentIndex = (this.currentIndex + 1) % this.promotions.length;
+            this.showPromotion(this.currentIndex);
+        }, 5000); 
+    }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    new PromotionBanner();
+});
+class CategoryCarousel {
+    constructor() {
+        this.carousel = document.querySelector('.category-carousel');
+        this.items = document.querySelectorAll('.category-item');
+        this.prevBtn = document.querySelector('.carousel-prev');
+        this.nextBtn = document.querySelector('.carousel-next');
+        this.currentPage = 0;
+        this.itemsPerPage = 3; // Show 3 items at a time
+        this.totalPages = Math.ceil(this.items.length / this.itemsPerPage);
+
+        this.init();
+    }
+
+    init() {
+        if (!this.carousel || !this.items.length) return;
+
+        this.updateCarousel();
+        this.bindEvents();
+    }
+
+    updateCarousel() {
+        this.items.forEach((item, index) => {
+            const startIndex = this.currentPage * this.itemsPerPage;
+            const endIndex = startIndex + this.itemsPerPage;
+            
+            if (index >= startIndex && index < endIndex) {
+                item.classList.remove('hidden');
+            } else {
+                item.classList.add('hidden');
+            }
+        });
+        
+        // Update button states
+        if (this.prevBtn) {
+            this.prevBtn.style.opacity = this.currentPage === 0 ? '0.5' : '1';
+        }
+        if (this.nextBtn) {
+            this.nextBtn.style.opacity = this.currentPage === this.totalPages - 1 ? '0.5' : '1';
+        }
+    }
+
+    bindEvents() {
+        if (this.prevBtn) {
+            this.prevBtn.addEventListener('click', () => {
+                if (this.currentPage > 0) {
+                    this.currentPage--;
+                    this.updateCarousel();
+                }
+            });
+        }
+
+        if (this.nextBtn) {
+            this.nextBtn.addEventListener('click', () => {
+                if (this.currentPage < this.totalPages - 1) {
+                    this.currentPage++;
+                    this.updateCarousel();
+                }
             });
         }
     }
 }
 
+// Initialize carousel when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    new CategoryCarousel();
+}); 
 /**
- * Fix modal scroll locking (prevents background scrolling while modal is open)
+ * Legal Modals Handler
+ * Loads legal document content dynamically into modals
  */
-function fixModalScrollLock() {
-    // Get all modal triggers
-    const modalTriggers = document.querySelectorAll('[data-toggle="modal"]');
+document.addEventListener('DOMContentLoaded', function() {
+    // Cache for loaded content
+    const contentCache = {};
     
-    // For each modal trigger
-    modalTriggers.forEach(trigger => {
-        const targetId = trigger.getAttribute('data-target');
-        const modal = document.querySelector(targetId);
+    // Helper function to extract and clean content from HTML pages
+    function extractContentFromHTML(html) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
         
-        if (!modal) return;
+        // Create a container for the cleaned content
+        const container = document.createElement('div');
         
-        // When modal is shown
-        trigger.addEventListener('click', function() {
-            document.body.style.overflow = 'hidden';
-            document.body.style.paddingRight = getScrollbarWidth() + 'px';
+        // Extract the title
+        const title = doc.querySelector('h1');
+        if (title) {
+            const titleElement = document.createElement('h1');
+            titleElement.textContent = title.textContent.trim();
+            container.appendChild(titleElement);
+        }
+        
+        // Extract the effective date if it exists
+        const paragraphs = doc.querySelectorAll('p');
+        if (paragraphs.length > 0 && paragraphs[0].textContent.includes('Effective Date')) {
+            const dateElement = document.createElement('p');
+            dateElement.className = 'effective-date';
+            dateElement.textContent = paragraphs[0].textContent.trim();
+            container.appendChild(dateElement);
+        }
+        
+        // Extract all other content
+        const contentElements = doc.querySelectorAll('body > *');
+        contentElements.forEach(element => {
+            // Skip the title we already added
+            if (element.tagName === 'H1') return;
+            
+            // Skip the first paragraph if it's the effective date we already added
+            if (element.tagName === 'P' && element.textContent.includes('Effective Date') && 
+                Array.from(paragraphs).indexOf(element) === 0) return;
+            
+            // Create a clean copy of the element
+            const cleanElement = document.createElement(element.tagName);
+            
+            // Copy text content and clean it
+            cleanElement.textContent = element.textContent.trim();
+            
+            // Copy important attributes for links
+            if (element.tagName === 'A') {
+                cleanElement.href = element.getAttribute('href');
+                cleanElement.target = '_blank';
+                cleanElement.rel = 'noopener';
+            }
+            
+            // For lists, properly recreate list items
+            if (element.tagName === 'UL' || element.tagName === 'OL') {
+                element.querySelectorAll('li').forEach(li => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = li.textContent.trim();
+                    cleanElement.appendChild(listItem);
+                });
+            }
+            
+            // Add the clean element to our container
+            container.appendChild(cleanElement);
         });
         
-        // Find close buttons in this modal
-        const closeButtons = modal.querySelectorAll('[data-dismiss="modal"], .close');
-        closeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                document.body.style.overflow = '';
-                document.body.style.paddingRight = '';
+        return container.innerHTML;
+    }
+    
+    // Function to load content into modal
+    function loadLegalContent(modalId, contentUrl) {
+        const contentElement = document.getElementById(modalId + 'Content');
+        
+        // Return if already loaded
+        if (contentCache[modalId]) {
+            contentElement.innerHTML = contentCache[modalId];
+            return;
+        }
+        
+        // Set loading state
+        contentElement.innerHTML = `
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Loading content...</p>
+            </div>
+        `;
+        
+        // Fetch the content
+        fetch(contentUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
+            .then(html => {
+                // Extract and clean content
+                const content = extractContentFromHTML(html);
+                
+                // Update modal content
+                contentElement.innerHTML = content;
+                
+                // Cache the content
+                contentCache[modalId] = content;
+            })
+            .catch(error => {
+                console.error('Error loading content:', error);
+                contentElement.innerHTML = `
+                    <div class="alert alert-danger">
+                        <p>Sorry, we couldn't load the content. Please try again later.</p>
+                    </div>
+                `;
             });
-        });
+    }
+    
+    // Setup event listeners for each modal
+    const modalMappings = [
+        { id: 'privacyPolicy', url: 'privacy-policy.html' },
+        { id: 'termsOfService', url: 'terms-of-service.html' },
+        { id: 'smsTerms', url: 'sms-terms.html' }
+    ];
+    
+    modalMappings.forEach(modal => {
+        const modalElement = document.getElementById(modal.id + 'Modal');
         
-        // Also handle clicking outside modal
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                document.body.style.overflow = '';
-                document.body.style.paddingRight = '';
+        if (modalElement) {
+            // Load content when modal is shown
+            modalElement.addEventListener('show.bs.modal', function() {
+                loadLegalContent(modal.id, modal.url);
+            });
+        }
+    });
+    
+    // Add improved styling for legal content in modals
+    const style = document.createElement('style');
+    style.textContent = `
+        .legal-modal .modal-body {
+            padding: 2rem;
+            color: #f8f9fa;
+            background-color: #212529;
+        }
+        .legal-modal .modal-header {
+            border-bottom: 1px solid #444;
+            background-color: #212529;
+            color: #f8f9fa;
+        }
+        .legal-modal .modal-content {
+            background-color: #212529;
+            border: 1px solid #444;
+        }
+        .legal-modal .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+        .legal-modal h1 {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: #f8f9fa;
+            border-bottom: 1px solid #444;
+            padding-bottom: 0.5rem;
+        }
+        .legal-modal h2 {
+            font-size: 1.4rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #f8f9fa;
+        }
+        .legal-modal p {
+            font-size: 1rem;
+            line-height: 1.7;
+            margin-bottom: 1rem;
+            color: #f8f9fa;
+        }
+        .legal-modal .effective-date {
+            font-style: italic;
+            margin-bottom: 1.5rem;
+            color: #adb5bd;
+        }
+        .legal-modal ul, .legal-modal ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .legal-modal li {
+            margin-bottom: 0.5rem;
+            color: #f8f9fa;
+        }
+        .legal-modal a {
+            color: #d4af37;
+            text-decoration: none;
+        }
+        .legal-modal a:hover {
+            text-decoration: underline;
+        }
+    `;
+    document.head.appendChild(style);
+});
+/**
+ * Deep Linking support for Angel Granites product categories and inventory
+ * 
+ * This script enables deep linking to product categories via URL parameters
+ * and to the inventory modal via URL hash.
+ * For example: 
+ * - ?category=monuments will open the monuments category
+ * - #inventory will open the inventory modal
+ */
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to handle inventory modal deep linking via hash
+    function handleInventoryDeepLink() {
+        if (window.location.hash === '#inventory') {
+            console.log('Deep linking: Opening inventory modal from hash');
+            
+            // Wait a moment for all scripts to load
+            setTimeout(function() {
+                // Try to find and click the inventory link
+                const sideInventoryLink = document.getElementById('sideInventoryLink');
+                const inventoryLink = document.getElementById('inventoryLink');
+                
+                if (sideInventoryLink) {
+                    console.log('Deep linking: Clicking side inventory link');
+                    sideInventoryLink.click();
+                } else if (inventoryLink) {
+                    console.log('Deep linking: Clicking footer inventory link');
+                    inventoryLink.click();
+                } else {
+                    console.log('Deep linking: No inventory link found, trying direct modal open');
+                    // Try to open the modal directly if available
+                    if (typeof window.openInventoryModal === 'function') {
+                        window.openInventoryModal();
+                    }
+                }
+            }, 800);
+        }
+    }
+    
+    // Function to handle category opening based on URL parameters
+    function handleCategoryDeepLink() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const categoryParam = urlParams.get('category');
+        
+        if (categoryParam) {
+            // Scroll to the featured products section
+            const featuredProductsSection = document.getElementById('featured-products');
+            if (featuredProductsSection) {
+                featuredProductsSection.scrollIntoView({ behavior: 'smooth' });
+                
+                // Find the corresponding collection ID and category name
+                let collectionId = '';
+                let categoryName = '';
+                
+                switch(categoryParam) {
+                    case 'mbna_2025':
+                        collectionId = 'mbna_2025-collection';
+                        categoryName = 'MBNA_2025';
+                        break;
+                    case 'monuments':
+                        collectionId = 'monuments-collection';
+                        categoryName = 'Monuments';
+                        break;
+                    case 'columbarium':
+                        collectionId = 'columbarium-collection';
+                        categoryName = 'Columbarium';
+                        break;
+                    case 'designs':
+                        collectionId = 'Designs-collection';
+                        categoryName = 'Designs';
+                        break;
+                    case 'benches':
+                        collectionId = 'benches-collection';
+                        categoryName = 'Benches';
+                        break;
+                }
+                
+                if (collectionId) {
+                    // Allow time for page to render and smooth scroll
+                    setTimeout(function() {
+                        // Try multiple approaches to open the collection
+                        
+                        // APPROACH 1: Find and click the link with data-collection attribute
+                        const categoryLinks = document.querySelectorAll('.category-link');
+                        let targetLink = null;
+                        
+                        for (const link of categoryLinks) {
+                            if (link.getAttribute('data-collection') === collectionId) {
+                                targetLink = link;
+                                break;
+                            }
+                        }
+                        
+                        if (targetLink) {
+                            console.log('Deep linking: Found target link for', categoryParam);
+                            // Try both jQuery click and native click
+                            if (typeof jQuery !== 'undefined') {
+                                jQuery(targetLink).trigger('click');
+                            } else {
+                                targetLink.click();
+                            }
+                            
+                            // APPROACH 2: Direct modal creation if clicking doesn't work
+                            setTimeout(function() {
+                                // If clicking didn't work, try to create/show the modal directly
+                                const modalExists = document.querySelector('#category-modal');
+                                const modalDisplayed = modalExists && 
+                                    window.getComputedStyle(modalExists).display !== 'none';
+                                
+                                if (!modalDisplayed && window.showCategoryModal && categoryName) {
+                                    console.log('Deep linking: Attempting direct modal creation for', categoryName);
+                                    // If the page has the showCategoryModal function, call it directly
+                                    try {
+                                        window.showCategoryModal(categoryName, []);
+                                    } catch(e) {
+                                        console.error('Deep linking: Error showing category modal:', e);
+                                    }
+                                }
+                            }, 300);
+                        }
+                    }, 800);
+                }
+            }
+        }
+    }
+    
+    // Update browser history when a category link is clicked
+    document.querySelectorAll('.category-link').forEach(function(link) {
+        link.addEventListener('click', function() {
+            // Don't prevent default - let the original click handler work
+            
+            // Update the URL without reloading the page
+            const href = this.getAttribute('href');
+            if (href && href.startsWith('?category=')) {
+                const categoryValue = href.replace('?category=', '');
+                const newUrl = window.location.pathname + '?category=' + categoryValue;
+                
+                // Update browser history state
+                window.history.pushState({ category: categoryValue }, '', newUrl);
             }
         });
     });
     
-    // Get scrollbar width to prevent layout shift
-    function getScrollbarWidth() {
-        const outer = document.createElement('div');
-        outer.style.visibility = 'hidden';
-        outer.style.overflow = 'scroll';
-        document.body.appendChild(outer);
-        
-        const inner = document.createElement('div');
-        outer.appendChild(inner);
-        
-        const scrollbarWidth = outer.offsetWidth - inner.offsetWidth;
-        outer.parentNode.removeChild(outer);
-        
-        return scrollbarWidth;
-    }
-}
-
-/**
- * Enhance the color gallery modal with better UI and lazy loading
- */
-function enhanceColorModal() {
-    // Find the color gallery modal
-    const colorModal = document.getElementById('colorModal');
-    if (!colorModal) return;
+    // Handle back/forward navigation
+    window.addEventListener('popstate', function() {
+        // Re-handle the URL parameters when navigation changes
+        handleCategoryDeepLink();
+    });
     
-    // Add a header to the color modal content
-    const modalBody = colorModal.querySelector('.modal-body');
-    if (modalBody) {
-        // Check if header already exists to avoid duplicates
-        if (!modalBody.querySelector('.color-modal-header')) {
-            const header = document.createElement('div');
-            header.className = 'color-modal-header';
-            header.innerHTML = '<h5>All Available Colors</h5><p>Scroll to explore all our color options</p>';
-            modalBody.insertBefore(header, modalBody.firstChild);
-            
-            // Add scrollbar styles
-            const style = document.createElement('style');
-            style.textContent = `
-                .color-modal-header {
-                    position: sticky;
-                    top: 0;
-                    background: #fff;
-                    padding: 10px 0;
-                    margin-bottom: 15px;
-                    border-bottom: 1px solid #eee;
-                    text-align: center;
-                    z-index: 1;
-                }
-                .color-modal-header h5 {
-                    margin: 0 0 5px;
-                    font-size: 1.2rem;
-                }
-                .color-modal-header p {
-                    margin: 0;
-                    font-size: 0.9rem;
-                    color: #777;
-                }
-                #colorModal .modal-body {
-                    max-height: 70vh;
-                    overflow-y: auto;
-                    scrollbar-width: thin;
-                    scrollbar-color: #ccc #f5f5f5;
-                }
-                #colorModal .modal-body::-webkit-scrollbar {
-                    width: 6px;
-                }
-                #colorModal .modal-body::-webkit-scrollbar-track {
-                    background: #f5f5f5;
-                }
-                #colorModal .modal-body::-webkit-scrollbar-thumb {
-                    background-color: #ccc;
-                    border-radius: 6px;
-                }
-                /* Images in color grid */
-                #colorModal .color-grid img {
-                    opacity: 0;
-                    transition: opacity 0.3s ease;
-                }
-                #colorModal .color-grid img.loaded {
-                    opacity: 1;
-                }
-            `;
-            document.head.appendChild(style);
-        }
-        
-        // Implement lazy loading for colors
-        const colorImages = modalBody.querySelectorAll('.color-item img');
-        if (colorImages.length > 0) {
-            // Use intersection observer for lazy loading
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const img = entry.target;
-                        const dataSrc = img.getAttribute('data-src');
-                        
-                        if (dataSrc) {
-                            img.src = dataSrc;
-                            img.addEventListener('load', () => {
-                                img.classList.add('loaded');
-                            });
-                            img.removeAttribute('data-src');
-                            observer.unobserve(img);
-                        }
-                    }
-                });
-            }, {
-                rootMargin: '200px 0px',
-                threshold: 0.01
-            });
-            
-            // Observe all color images
-            colorImages.forEach(img => {
-                // Only setup lazy loading if not already loaded
-                if (!img.complete || img.naturalWidth === 0) {
-                    if (!img.getAttribute('data-src') && img.src) {
-                        img.setAttribute('data-src', img.src);
-                        img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"%3E%3C/svg%3E';
-                        observer.observe(img);
-                    }
-                }
+    // Initial check for deep links on page load
+    handleCategoryDeepLink();
+    handleInventoryDeepLink();
+    
+    // Update browser history when inventory link is clicked
+    const inventoryLinks = [document.getElementById('sideInventoryLink'), document.getElementById('inventoryLink')];
+    inventoryLinks.forEach(function(link) {
+        if (link) {
+            link.addEventListener('click', function(e) {
+                // Don't prevent default here - let the original click handler work
+                
+                // Update the URL without reloading the page
+                window.history.pushState({ inventory: true }, '', '#inventory');
             });
         }
-    }
-}
+    });
+});
 /**
  * Inventory Modal
  * 
@@ -4749,6 +3170,168 @@ document.addEventListener('DOMContentLoaded', function() {
                 .inventory-modal .nav-button {
                     transition: none;
                 }
+            }
+            /* Split Panel Styles */
+            .inventory-modal .split-view {
+                display: flex;
+                gap: 0;
+                height: 600px;
+            }
+            .inventory-modal .table-panel {
+                flex: 1 1 auto;
+                min-width: 0;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                transition: none;
+            }
+            .inventory-modal .table-panel.with-details {
+                flex: 0 0 55%;
+                min-width: 400px;
+            }
+            
+            /* Mobile Responsive Styles */
+            @media (max-width: 768px) {
+                .inventory-modal .split-view {
+                    flex-direction: column;
+                    height: auto;
+                }
+                .inventory-modal .table-panel {
+                    flex: 1 1 auto;
+                    max-height: 40vh;
+                }
+                .inventory-modal .table-panel.with-details {
+                    flex: 1 1 auto;
+                    max-height: 30vh;
+                }
+                .inventory-modal .details-panel {
+                    flex: 1 1 auto;
+                    max-height: 50vh;
+                    border-left: none;
+                    border-top: 3px solid #d4af37;
+                }
+                .inventory-modal .modal-dialog {
+                    max-width: 95%;
+                    margin: 0.5rem;
+                }
+                .inventory-modal .stone-card {
+                    margin-bottom: 0.75rem;
+                    padding: 0.75rem;
+                }
+                .inventory-modal .details-header {
+                    padding: 1rem;
+                }
+                .inventory-modal .details-header h5 {
+                    font-size: 1.1rem;
+                }
+                .inventory-modal .details-header small {
+                    font-size: 0.85rem;
+                }
+                .inventory-table {
+                    font-size: 0.85rem;
+                }
+                .inventory-table th,
+                .inventory-table td {
+                    padding: 0.4rem !important;
+                }
+            }
+            
+            .inventory-modal .details-panel {
+                flex: 0 0 45%;
+                background-color: #f8f9fa;
+                border-left: 2px solid #d4af37;
+                overflow-y: auto;
+                overflow-x: hidden;
+                display: none;
+                padding: 0;
+                position: relative;
+            }
+            .inventory-modal .details-panel.show {
+                display: block;
+            }
+            .inventory-modal .details-panel .close-details {
+                position: sticky;
+                top: 1rem;
+                float: right;
+                margin: 1rem 1rem 0 0;
+                background: #fff;
+                border: 2px solid #d4af37;
+                border-radius: 50%;
+                width: 36px;
+                height: 36px;
+                font-size: 1.8rem;
+                line-height: 1;
+                color: #333;
+                cursor: pointer;
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                transition: all 0.2s ease;
+            }
+            .inventory-modal .details-panel .close-details:hover {
+                background: #d4af37;
+                color: #fff;
+                transform: rotate(90deg) scale(1.1);
+            }
+            .inventory-modal .stone-card {
+                background-color: #fff;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                padding: 1rem;
+                margin-bottom: 1rem;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .inventory-modal .stone-card h6 {
+                color: #d4af37;
+                font-weight: bold;
+                margin-bottom: 0.75rem;
+                border-bottom: 2px solid #d4af37;
+                padding-bottom: 0.5rem;
+            }
+            .inventory-modal .info-row {
+                display: flex;
+                justify-content: space-between;
+                padding: 0.5rem 0;
+                border-bottom: 1px solid #e9ecef;
+            }
+            .inventory-modal .info-row:last-child {
+                border-bottom: none;
+            }
+            .inventory-modal .info-label {
+                font-weight: bold;
+                color: #495057;
+            }
+            .inventory-modal .info-value {
+                color: #212529;
+            }
+            .inventory-modal .details-header {
+                background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+                color: #fff;
+                padding: 1.5rem;
+                margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+                border-radius: 0;
+            }
+            .inventory-modal .details-header h5 {
+                color: #d4af37;
+                margin: 0 0 0.5rem 0;
+            }
+            .inventory-modal .details-loading {
+                text-align: center;
+                padding: 3rem 1rem;
+                color: #666;
+            }
+            .inventory-table tbody tr {
+                cursor: pointer;
+                transition: background-color 0.2s ease;
+            }
+            .inventory-table tbody tr:hover {
+                background-color: #e9ecef !important;
+            }
+            .inventory-table tbody tr.selected {
+                background-color: #fff3cd !important;
+                border-left: 3px solid #d4af37;
             }
         `;
         document.head.appendChild(style);
@@ -5208,16 +3791,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             try {
-                const url = `get_directory_files.php?search=${encodeURIComponent(designCode)}`;
-                const response = await fetch(url);
+                // Search across all product categories
+                const response = await fetch(`get_directory_files.php?search=${encodeURIComponent(designCode)}`);
                 if (!response.ok) throw new Error('Image search failed');
                 
                 const data = await response.json();
                 const images = [];
 
                 if (data.success && data.files && Array.isArray(data.files)) {
+                    // Filter for actual image files and deduplicate
                     const seenPaths = new Set();
                     data.files.forEach(file => {
+                        // All files from the search API are already images, just deduplicate
                         if (file.path && !seenPaths.has(file.path)) {
                             seenPaths.add(file.path);
                             images.push({
@@ -5236,6 +3821,382 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error(`Error searching images for ${designCode}:`, error);
                 imageCache.set(designCode, []); // Cache empty result to avoid retry
                 return [];
+            }
+        }
+
+        function parseNumericValue(value) {
+            if (value === null || value === undefined) return null;
+            if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+
+            const str = String(value).replace(/,/g, '').trim();
+            if (!str) return null;
+
+            const match = str.match(/-?\d+(?:\.\d+)?/);
+            if (!match) return null;
+
+            const num = Number(match[0]);
+            return Number.isFinite(num) ? num : null;
+        }
+
+        function parseDimensionTriplet(value) {
+            if (value === null || value === undefined) return null;
+
+            const str = String(value).trim();
+            if (!str) return null;
+
+            const match = str.match(/(\d+(?:\.\d+)?)\s*[x×*]\s*(\d+(?:\.\d+)?)\s*[x×*]\s*(\d+(?:\.\d+)?)/i);
+            if (!match) return null;
+
+            const a = parseNumericValue(match[1]);
+            const b = parseNumericValue(match[2]);
+            const c = parseNumericValue(match[3]);
+
+            if (!a || !b || !c) return null;
+            const unitHint = /\b(ft|feet|foot)\b|\'/i.test(str) ? 'ft' : null;
+            return { length: a, width: b, height: c, unitHint };
+        }
+
+        function getUnitHintFromStone(stone) {
+            if (!stone) return null;
+
+            const unitCandidate =
+                stone.Unit ?? stone.unit ?? stone.UOM ?? stone.uom ?? stone.Uom ?? stone.DimUnit ?? stone.dimUnit ?? stone.DimensionUnit ?? stone.dimensionUnit;
+            if (unitCandidate === null || unitCandidate === undefined) return null;
+
+            const str = String(unitCandidate).trim();
+            if (!str) return null;
+
+            if (/\b(ft|feet|foot)\b|\'/i.test(str)) return 'ft';
+            if (/\b(in|inch|inches)\b|\"/i.test(str)) return 'in';
+            return null;
+        }
+
+        function shouldTreatAsFeetByHeuristic(dims) {
+            if (!dims) return false;
+            const values = [dims.length, dims.width, dims.height].filter(v => typeof v === 'number' && Number.isFinite(v));
+            if (values.length !== 3) return false;
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            return min > 0 && min < 1 && max <= 20;
+        }
+
+        function toInchesIfNeeded(dims, unitHint) {
+            if (!dims) return null;
+            const hint = unitHint || null;
+
+            const treatAsFeet = hint === 'ft' || (!hint && shouldTreatAsFeetByHeuristic(dims));
+            if (!treatAsFeet) return { length: dims.length, width: dims.width, height: dims.height };
+
+            return {
+                length: dims.length * 12,
+                width: dims.width * 12,
+                height: dims.height * 12
+            };
+        }
+
+        function getStoneDimensionsInches(stone) {
+            if (!stone) return null;
+
+            const unitHintFromStone = getUnitHintFromStone(stone);
+
+            const length = parseNumericValue(
+                stone.Length ?? stone.length ?? stone.L ?? stone.l ?? stone.Len ?? stone.len ?? stone.LengthIn ?? stone.lengthIn
+            );
+            const width = parseNumericValue(
+                stone.Width ?? stone.width ?? stone.W ?? stone.w ?? stone.Wid ?? stone.wid ?? stone.WidthIn ?? stone.widthIn
+            );
+            const height = parseNumericValue(
+                stone.Height ?? stone.height ?? stone.H ?? stone.h ?? stone.Ht ?? stone.ht ?? stone.HeightIn ?? stone.heightIn
+            );
+
+            if (length && width && height) {
+                return toInchesIfNeeded({ length, width, height }, unitHintFromStone);
+            }
+
+            const dimSource =
+                stone.Dimensions ?? stone.dimensions ?? stone.Dimension ?? stone.dimension ?? stone.Size ?? stone.size ?? stone.Measurement ?? stone.measurement;
+            const parsed = parseDimensionTriplet(dimSource);
+            if (parsed) {
+                const unitHint = unitHintFromStone || parsed.unitHint;
+                return toInchesIfNeeded({ length: parsed.length, width: parsed.width, height: parsed.height }, unitHint);
+            }
+
+            return null;
+        }
+
+        function computeEstimatedWeightPoundsFromInches(stone) {
+            const dims = getStoneDimensionsInches(stone);
+            if (!dims) return null;
+
+            const { length, width, height } = dims;
+            if (!(length > 0 && width > 0 && height > 0)) return null;
+
+            const cubicFeet = (length * width * height) / 1728;
+            const cubicMeters = cubicFeet / 35.28;
+            const pounds = cubicMeters * 3000;
+
+            if (!Number.isFinite(pounds) || pounds <= 0) return null;
+            return pounds;
+        }
+
+        function renderStoneWeightRow(stone) {
+            const apiWeight = parseNumericValue(stone?.Weight ?? stone?.weight);
+            if (apiWeight) {
+                return `
+                    <div class="info-row">
+                        <span class="info-label">Weight:</span>
+                        <span class="info-value">${apiWeight} lbs</span>
+                    </div>
+                `;
+            }
+
+            const estimated = computeEstimatedWeightPoundsFromInches(stone);
+            if (!estimated) return '';
+
+            const rounded = Math.round(estimated);
+            return `
+                <div class="info-row">
+                    <span class="info-label">Weight:</span>
+                    <span class="info-value">${rounded} lbs</span>
+                </div>
+            `;
+        }
+        
+        // Function to close item details panel
+        window.closeItemDetails = function() {
+            const detailsPanel = document.getElementById('detailsPanel');
+            const tablePanel = document.getElementById('tablePanel');
+            const selectedRows = document.querySelectorAll('.inventory-table tbody tr.selected');
+            
+            if (detailsPanel) {
+                detailsPanel.classList.remove('show');
+                // Reset content to default state
+                const content = document.getElementById('detailsPanelContent');
+                if (content) {
+                    content.innerHTML = `
+                        <div class="details-loading">
+                            <i class="fas fa-hand-pointer fa-3x mb-3" style="color: #d4af37;"></i>
+                            <p>Click on any item to view details</p>
+                        </div>
+                    `;
+                }
+            }
+            if (tablePanel) {
+                tablePanel.classList.remove('with-details');
+            }
+            selectedRows.forEach(row => row.classList.remove('selected'));
+        };
+        
+        // Function to fetch detailed stone records for an item
+        async function fetchItemDetails(endProductCode) {
+            try {
+                const response = await fetch('inventory-proxy.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `action=getDetails&epcode=${encodeURIComponent(endProductCode)}`
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch item details');
+                }
+                
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching item details:', error);
+                throw error;
+            }
+        }
+        
+        // Function to show item details in split panel
+        async function showItemDetails(endProductCode, basicItem, clickedRow) {
+            const detailsPanel = document.getElementById('detailsPanel');
+            const tablePanel = document.getElementById('tablePanel');
+            const content = document.getElementById('detailsPanelContent');
+            
+            if (!detailsPanel || !content) {
+                console.error('Details panel not found');
+                return;
+            }
+            
+            // Remove previous selection and add to clicked row
+            document.querySelectorAll('.inventory-table tbody tr.selected').forEach(row => {
+                row.classList.remove('selected');
+            });
+            if (clickedRow) {
+                clickedRow.classList.add('selected');
+            }
+            
+            // Show panels
+            tablePanel.classList.add('with-details');
+            detailsPanel.classList.add('show');
+            
+            // Show loading state
+            content.innerHTML = `
+                <div class="details-loading">
+                    <div class="spinner-border" role="status" style="color: #d4af37;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3">Loading stone details...</p>
+                </div>
+            `;
+            
+            try {
+                const data = await fetchItemDetails(endProductCode);
+                const stones = data.stones || [];
+                
+                if (stones.length === 0) {
+                    content.innerHTML = `
+                        <div class="details-header">
+                            <h5>Item Details</h5>
+                            <small style="color: #adb5bd;">${basicItem.description}</small>
+                        </div>
+                        <div style="padding: 1rem;">
+                            <div class="stone-card">
+                                <h6>Product Information</h6>
+                                <div class="info-row">
+                                    <span class="info-label">Type:</span>
+                                    <span class="info-value">${basicItem.type}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Color:</span>
+                                    <span class="info-value">${basicItem.color}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Size:</span>
+                                    <span class="info-value">${basicItem.size}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Total Quantity:</span>
+                                    <span class="info-value">${basicItem.quantity}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Location:</span>
+                                    <span class="info-value">${basicItem.location}</span>
+                                </div>
+                            </div>
+                            <p class="text-muted mt-3"><i class="fas fa-info-circle"></i> Detailed stone records not available.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Show basic info and individual stones
+                let html = `
+                    <div class="details-header">
+                        <h5>Item Details</h5>
+                        <small style="color: #adb5bd;">${basicItem.description}</small>
+                    </div>
+                    <div style="padding: 0;">
+                        <div class="stone-card">
+                            <h6><i class="fas fa-info-circle"></i> Product Summary</h6>
+                            <div class="info-row">
+                                <span class="info-label">Type:</span>
+                                <span class="info-value">${basicItem.type}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Color:</span>
+                                <span class="info-value">${basicItem.color}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Size:</span>
+                                <span class="info-value">${basicItem.size}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Total Available:</span>
+                                <span class="info-value" style="color: #28a745; font-weight: bold;">${basicItem.quantity}</span>
+                            </div>
+                        </div>
+                        
+                        <h6 class="mt-3 mb-3" style="color: #495057; padding: 0 1rem;"><i class="fas fa-cubes"></i> Individual Stones (${stones.length})</h6>
+                    </div>
+                `;
+                
+                stones.forEach((stone, index) => {
+                    html += `
+                        <div class="stone-card">
+                            <h6>Stone #${index + 1}</h6>
+                            ${stone.Container ? `
+                                <div class="info-row">
+                                    <span class="info-label">Container:</span>
+                                    <span class="info-value">${stone.Container}</span>
+                                </div>
+                            ` : ''}
+                            ${stone.CrateNo ? `
+                                <div class="info-row">
+                                    <span class="info-label">Crate Number:</span>
+                                    <span class="info-value">${stone.CrateNo}</span>
+                                </div>
+                            ` : ''}
+                            ${stone.LocationName ? `
+                                <div class="info-row">
+                                    <span class="info-label">Location:</span>
+                                    <span class="info-value">${stone.LocationName}</span>
+                                </div>
+                            ` : ''}
+                            ${stone.SublocationName ? `
+                                <div class="info-row">
+                                    <span class="info-label">Sublocation:</span>
+                                    <span class="info-value">${stone.SublocationName}</span>
+                                </div>
+                            ` : ''}
+                            ${renderStoneWeightRow(stone)}
+                            ${stone.Status ? `
+                                <div class="info-row">
+                                    <span class="info-label">Status:</span>
+                                    <span class="info-value">${stone.Status}</span>
+                                </div>
+                            ` : ''}
+                            ${stone.StockId ? `
+                                <div class="info-row">
+                                    <span class="info-label">Stock ID:</span>
+                                    <span class="info-value">${stone.StockId}</span>
+                                </div>
+                            ` : ''}
+                            ${stone.Comments ? `
+                                <div class="info-row">
+                                    <span class="info-label">Notes:</span>
+                                    <span class="info-value">${stone.Comments}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+                
+                content.innerHTML = html;
+                
+                // Load and display product images at the bottom
+                const designCode = extractDesignCode(basicItem);
+                if (designCode) {
+                    const images = await searchProductImages(designCode);
+                    if (images.length > 0) {
+                        const imagesSection = document.createElement('div');
+                        imagesSection.className = 'stone-card';
+                        imagesSection.style.marginTop = '1rem';
+                        imagesSection.innerHTML = `
+                            <h6><i class="fas fa-images"></i> Product Images (${images.length})</h6>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem; margin-top: 0.75rem;">
+                                ${images.map(img => `
+                                    <div style="position: relative; padding-top: 100%; background: #f0f0f0; border-radius: 4px; overflow: hidden; cursor: pointer;" onclick="window.open('${img.path}', '_blank')">
+                                        <img src="${img.path}" alt="${img.name}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" onerror="this.parentElement.innerHTML='<span style=\'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.7rem; color: #999;\'>Error</span>';">
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <p class="text-muted mt-2" style="font-size: 0.85rem; margin-bottom: 0;"><i class="fas fa-info-circle"></i> Click any image to view full size</p>
+                        `;
+                        content.appendChild(imagesSection);
+                    }
+                }
+            } catch (error) {
+                content.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Error loading details</strong>
+                        <p>${error.message}</p>
+                    </div>
+                `;
             }
         }
         
@@ -5439,9 +4400,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 let timeoutId;
                 const timeoutPromise = new Promise((_, reject) => {
                     timeoutId = setTimeout(() => {
-                        console.log('Request timeout triggered after 60 seconds');
-                        reject(new Error('Request timeout after 60 seconds'));
-                    }, 60000);
+                        console.log('Request timeout triggered after 15 seconds');
+                        reject(new Error('Request timeout after 15 seconds'));
+                    }, 15000);
                     
                     // Track this timeout for cleanup
                     window._inventoryTimeouts.push(timeoutId);
@@ -5568,103 +4529,115 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 `;
                 
-                // Build the table HTML
+                // Build the table HTML with split-view structure
                 const tableHtml = `
-                    <div class="table-scroll-wrapper" style="max-height: 65vh;">
-                        <div id="inventoryTableContainer" class="table-responsive" style="max-height: 65vh; overflow-y: auto; overflow-x: auto;">
-                            <table id="inventoryTable" class="inventory-table table table-striped table-sm table-hover table-bordered align-middle w-100">
-                            <thead>
-                                <tr>
-                                    <!-- Product Code column hidden per client request -->
-                                    <th style="width: 80px;">Image</th>
-                                    <th>Description</th>
-                                    <th>
-                                        Type
-                                        <select class="form-select form-select-sm column-filter mt-1" id="typeFilter" data-col-index="2">
-                                            <option value="" ${currentPtype === '' ? 'selected' : ''}>All</option>
-                                            ${createOptions(productTypes, currentPtype)}
-                                        </select>
-                                    </th>
-                                    <th>
-                                        Color
-                                        <select class="form-select form-select-sm column-filter mt-1" id="colorFilter" data-col-index="3">
-                                            <option value="" ${currentPcolor === '' ? 'selected' : ''}>All</option>
-                                            ${createOptions(productColors, currentPcolor)}
-                                        </select>
-                                    </th>
-                                    <th>
-                                        Design
-                                        <select class="form-select form-select-sm column-filter mt-1" id="designFilter" data-col-index="4">
-                                            <option value="" ${currentPdesign === '' ? 'selected' : ''}>All</option>
-                                            ${createOptions(productDesigns, currentPdesign)}
-                                        </select>
-                                    </th>
-                                    <th>
-                                        Finish
-                                        <select class="form-select form-select-sm column-filter mt-1" id="finishFilter" data-col-index="5">
-                                            <option value="" ${currentPfinish === '' ? 'selected' : ''}>All</option>
-                                            ${createOptions(productFinishes, currentPfinish)}
-                                        </select>
-                                    </th>
-                                    <th>
-                                        Size
-                                        <select class="form-select form-select-sm column-filter mt-1" id="sizeFilter" data-col-index="6">
-                                            <option value="" ${currentPsize === '' ? 'selected' : ''}>All</option>
-                                            ${createOptions(productSizes, currentPsize)}
-                                        </select>
-                                    </th>
-                                    <th>
-                                        Location
-                                        <select class="form-select form-select-sm column-filter mt-1" id="locationFilter" data-col-index="7">
-                                            <option value="" ${currentLocation === '' ? 'selected' : ''}>All</option>
-                                            ${createOptions(locations, currentLocation)}
-                                        </select>
-                                    </th>
-                                    <th role="columnheader" tabindex="0">Quantity</th>
-                                </tr>
-                            </thead>
-                            <tbody id="inventoryTableBody">
-                                ${filteredItems.map(item => {
-                                    // Helper function to get field value with case-insensitive matching
-                                    const getField = (fieldName) => {
-                                        if (item[fieldName] !== undefined) return item[fieldName];
+                    <div class="split-view">
+                        <div class="table-panel" id="tablePanel">
+                            <div class="table-scroll-wrapper" style="max-height: 65vh;">
+                                <div id="inventoryTableContainer" class="table-responsive" style="max-height: 65vh; overflow-y: auto; overflow-x: auto;">
+                                    <table id="inventoryTable" class="inventory-table table table-striped table-sm table-hover table-bordered align-middle w-100">
+                                    <thead>
+                                        <tr>
+                                            <!-- Product Code column hidden per client request -->
+                                            <th style="width: 80px;">Image</th>
+                                            <th>Description</th>
+                                            <th>
+                                                Type
+                                                <select class="form-select form-select-sm column-filter mt-1" id="typeFilter" data-col-index="2">
+                                                    <option value="" ${currentPtype === '' ? 'selected' : ''}>All</option>
+                                                    ${createOptions(productTypes, currentPtype)}
+                                                </select>
+                                            </th>
+                                            <th>
+                                                Color
+                                                <select class="form-select form-select-sm column-filter mt-1" id="colorFilter" data-col-index="3">
+                                                    <option value="" ${currentPcolor === '' ? 'selected' : ''}>All</option>
+                                                    ${createOptions(productColors, currentPcolor)}
+                                                </select>
+                                            </th>
+                                            <th>
+                                                Design
+                                                <select class="form-select form-select-sm column-filter mt-1" id="designFilter" data-col-index="4">
+                                                    <option value="" ${currentPdesign === '' ? 'selected' : ''}>All</option>
+                                                    ${createOptions(productDesigns, currentPdesign)}
+                                                </select>
+                                            </th>
+                                            <th>
+                                                Finish
+                                                <select class="form-select form-select-sm column-filter mt-1" id="finishFilter" data-col-index="5">
+                                                    <option value="" ${currentPfinish === '' ? 'selected' : ''}>All</option>
+                                                    ${createOptions(productFinishes, currentPfinish)}
+                                                </select>
+                                            </th>
+                                            <th>
+                                                Size
+                                                <select class="form-select form-select-sm column-filter mt-1" id="sizeFilter" data-col-index="6">
+                                                    <option value="" ${currentPsize === '' ? 'selected' : ''}>All</option>
+                                                    ${createOptions(productSizes, currentPsize)}
+                                                </select>
+                                            </th>
+                                            <th>
+                                                Location
+                                                <select class="form-select form-select-sm column-filter mt-1" id="locationFilter" data-col-index="7">
+                                                    <option value="" ${currentLocation === '' ? 'selected' : ''}>All</option>
+                                                    ${createOptions(locations, currentLocation)}
+                                                </select>
+                                            </th>
+                                            <th role="columnheader" tabindex="0">Quantity</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="inventoryTableBody">
+                                        ${filteredItems.map(item => {
+                                            // Helper function to get field value with case-insensitive matching
+                                            const getField = (fieldName) => {
+                                                if (item[fieldName] !== undefined) return item[fieldName];
 
-                                        // Try lowercase matching
-                                        const lowerField = fieldName.toLowerCase();
-                                        const key = Object.keys(item).find(k => k.toLowerCase() === lowerField);
-                                        return key ? item[key] : '';
-                                    };
+                                                // Try lowercase matching
+                                                const lowerField = fieldName.toLowerCase();
+                                                const key = Object.keys(item).find(k => k.toLowerCase() === lowerField);
+                                                return key ? item[key] : '';
+                                            };
 
-                                    const rowText = Object.values(item).join(' ').toLowerCase();
-                                    const highlight = searchVal && rowText.includes(searchVal) ? ' search-highlight' : '';
-                                    
-                                    // Create safe JSON string for data attribute
-                                    const itemData = JSON.stringify(item).replace(/"/g, '&quot;');
-                                    const designCode = extractDesignCode(item);
+                                            const rowText = Object.values(item).join(' ').toLowerCase();
+                                            const highlight = searchVal && rowText.includes(searchVal) ? ' search-highlight' : '';
 
-                                    return `
-                                    <tr class="${highlight.trim()} inventory-row" data-item='${itemData}' data-design="${designCode || ''}" style="cursor: pointer;">
-                                        <!-- Product Code column hidden per client request -->
-                                        <td style="padding: 0.25rem; text-align: center;">
-                                            <div class="inventory-thumbnail" data-design="${designCode || ''}" style="width: 60px; height: 60px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 4px; overflow: hidden;">
-                                                ${designCode ? '<span style="font-size: 0.7rem; color: #999;">Loading...</span>' : ''}
-                                            </div>
-                                        </td>
-                                        <td>${getField('EndProductDescription')}</td>
-                                        <td>${getField('Ptype')}</td>
-                                        <td>${getField('PColor')}</td>
-                                        <td>${getField('PDesign')}</td>
-                                        <td>${getField('PFinish')}</td>
-                                        <td>${getField('Size')}</td>
-                                        <td>${getField('Locationname')}</td>
-                                        <td>${getField('Qty') || 0}</td>
-                                    </tr>
-                                    `;
-                                }).join('')}
-                            </tbody>
-                        </table>
+                                            const designCode = extractDesignCode(item);
+                                            return `
+                                            <tr class="${highlight.trim()} clickable-row" data-code="${getField('EndProductCode')}" data-design="${designCode || ''}" style="cursor: pointer;">
+                                                <!-- Product Code column hidden per client request -->
+                                                <td style="padding: 0.25rem; text-align: center;">
+                                                    <div class="inventory-thumbnail" data-design="${designCode || ''}" style="width: 60px; height: 60px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 4px; overflow: hidden;">
+                                                        ${designCode ? '<span style="font-size: 0.7rem; color: #999;">Loading...</span>' : ''}
+                                                    </div>
+                                                </td>
+                                                <td>${getField('EndProductDescription')}</td>
+                                                <td>${getField('Ptype')}</td>
+                                                <td>${getField('PColor')}</td>
+                                                <td>${getField('PDesign')}</td>
+                                                <td>${getField('PFinish')}</td>
+                                                <td>${getField('Size')}</td>
+                                                <td>${getField('Locationname')}</td>
+                                                <td>${getField('Qty') || 0}</td>
+                                            </tr>
+                                            `;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                                </div>
+                                <div class="scrollbar-track"><div class="scrollbar-thumb"></div></div>
+                            </div>
                         </div>
-                        <div class="scrollbar-track"><div class="scrollbar-thumb"></div></div>
+                        <div class="details-panel" id="detailsPanel">
+                            <div style="position: sticky; top: 0; z-index: 100; background: #f8f9fa; padding: 0.5rem 0.5rem 0 0; text-align: right;">
+                                <button class="close-details" onclick="window.closeItemDetails()">&times;</button>
+                            </div>
+                            <div id="detailsPanelContent" style="padding: 0 1.5rem 1.5rem 1.5rem;">
+                                <div class="details-loading">
+                                    <i class="fas fa-hand-pointer fa-3x mb-3" style="color: #d4af37;"></i>
+                                    <p>Click on any item to view details</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 `;
                 
@@ -5683,7 +4656,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 setupCustomScrollbar();
                 setupKeyboardNavigation();
                 setupNavigationButtons();
-                setupRowClickHandlers();
+                
+                // Set up row click listeners AFTER table is fully rendered
+                setupRowClickListeners(filteredItems);
                 
                 // Load thumbnails after DOM is fully rendered
                 setTimeout(() => loadThumbnails(), 100);
@@ -5833,69 +4808,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Function to load thumbnails for visible items
-        async function loadThumbnails() {
-            console.log('loadThumbnails() called');
-            const thumbnails = document.querySelectorAll('.inventory-thumbnail[data-design]');
-            console.log(`Found ${thumbnails.length} thumbnail elements`);
-            if (thumbnails.length === 0) {
-                console.warn('No thumbnail elements found in DOM!');
-                return;
-            }
-            
-            console.log(`Loading thumbnails for ${thumbnails.length} items...`);
-            
-            // Collect unique design codes first
-            const designCodes = new Set();
-            thumbnails.forEach(thumb => {
-                const code = thumb.getAttribute('data-design');
-                if (code && !thumb.querySelector('img') && !thumb.hasAttribute('data-loaded')) {
-                    designCodes.add(code);
-                }
-            });
-            
-            console.log(`Found ${designCodes.size} unique design codes:`, Array.from(designCodes).slice(0, 10));
-            
-            // Batch fetch all images first (uses cache)
-            const imagePromises = Array.from(designCodes).map(code => 
-                searchProductImages(code).then(images => ({ code, images }))
-            );
-            
-            const results = await Promise.all(imagePromises);
-            const imageMap = new Map(results.map(r => [r.code, r.images]));
-            
-            // Now update all thumbnails
-            thumbnails.forEach(thumbnail => {
-                const designCode = thumbnail.getAttribute('data-design');
-                if (!designCode || thumbnail.querySelector('img') || thumbnail.hasAttribute('data-loaded')) return;
-                
-                thumbnail.setAttribute('data-loaded', 'true');
-                const images = imageMap.get(designCode) || [];
-                
-                if (images.length > 0) {
-                    const img = document.createElement('img');
-                    img.src = images[0].path;
-                    img.alt = designCode;
-                    img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
-                    img.loading = 'lazy'; // Native lazy loading
-                    img.onerror = function() {
-                        console.warn(`Failed to load image: ${images[0].path}`);
-                        this.style.display = 'none';
-                    };
-                    img.onload = function() {
-                        console.log(`✓ Loaded: ${designCode}`);
-                    };
-                    thumbnail.innerHTML = '';
-                    thumbnail.appendChild(img);
-                    console.log(`Created img for ${designCode}: ${images[0].path}`);
-                } else {
-                    thumbnail.innerHTML = '';
-                }
-            });
-            
-            console.log(`Loaded ${imageMap.size} unique design images`);
-        }
-        
         // Function to set up filter event listeners
         function setupFilterListeners() {
             const typeFilter = document.getElementById('typeFilter');
@@ -5975,6 +4887,61 @@ document.addEventListener('DOMContentLoaded', function() {
             if (refreshBtnInline) {
                 refreshBtnInline.addEventListener('click', loadInventoryData);
             }
+        }
+        
+        // Function to load thumbnails for visible items
+        async function loadThumbnails() {
+            const thumbnails = document.querySelectorAll('.inventory-thumbnail[data-design]');
+            if (thumbnails.length === 0) return;
+            
+            console.log(`Loading thumbnails for ${thumbnails.length} items...`);
+            
+            // Collect unique design codes first
+            const designCodes = new Set();
+            thumbnails.forEach(thumb => {
+                const code = thumb.getAttribute('data-design');
+                if (code && !thumb.querySelector('img') && !thumb.hasAttribute('data-loaded')) {
+                    designCodes.add(code);
+                }
+            });
+            
+            // Batch fetch all images first (uses cache)
+            const imagePromises = Array.from(designCodes).map(code => 
+                searchProductImages(code).then(images => ({ code, images }))
+            );
+            
+            const results = await Promise.all(imagePromises);
+            const imageMap = new Map(results.map(r => [r.code, r.images]));
+            
+            // Now update all thumbnails
+            thumbnails.forEach(thumbnail => {
+                const designCode = thumbnail.getAttribute('data-design');
+                if (!designCode || thumbnail.querySelector('img') || thumbnail.hasAttribute('data-loaded')) return;
+                
+                thumbnail.setAttribute('data-loaded', 'true');
+                const images = imageMap.get(designCode) || [];
+                
+                if (images.length > 0) {
+                    const img = document.createElement('img');
+                    img.src = images[0].path;
+                    img.alt = designCode;
+                    img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+                    img.loading = 'lazy'; // Native lazy loading
+                    img.onerror = function() {
+                        console.warn(`Failed to load image: ${images[0].path}`);
+                        this.style.display = 'none';
+                    };
+                    img.onload = function() {
+                        console.log(`Loaded: ${designCode}`);
+                    };
+                    thumbnail.innerHTML = '';
+                    thumbnail.appendChild(img);
+                } else {
+                    thumbnail.innerHTML = '';
+                }
+            });
+            
+            console.log(`Loaded ${imageMap.size} unique design images`);
         }
         
         // Function to set up pagination event listeners
@@ -6165,514 +5132,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Function to setup click handlers for inventory rows
-        function setupRowClickHandlers() {
-            const rows = document.querySelectorAll('.inventory-row');
-            rows.forEach(row => {
-                row.addEventListener('click', function() {
-                    const itemData = this.getAttribute('data-item');
-                    if (itemData) {
-                        try {
-                            const item = JSON.parse(itemData);
-                            showItemDetailModal(item);
-                        } catch (e) {
-                            console.error('Error parsing item data:', e);
-                        }
-                    }
-                });
-                
-                // Add hover effect
-                row.addEventListener('mouseenter', function() {
-                    this.style.backgroundColor = '#f8f9fa';
-                });
-                row.addEventListener('mouseleave', function() {
-                    this.style.backgroundColor = '';
-                });
-            });
-        }
-        
-        // Function to show item detail modal
-        function showItemDetailModal(item) {
-            // Get the product code
-            const epcode = item.EndProductCode || item.endproductcode || '';
-            
-            if (!epcode) {
-                alert('Product code not available for this item');
-                return;
-            }
-            
-            // Create loading modal first
-            const loadingModalHtml = `
-                <div class="modal fade" id="itemDetailModal" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-                        <div class="modal-content" style="background: #2c2c2c; color: #fff;">
-                            <div class="modal-header" style="border-bottom: 1px solid #444;">
-                                <h5 class="modal-title">Loading Product Details...</h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body text-center" style="padding: 3rem;">
-                                <div class="spinner-border text-warning" role="status" style="width: 3rem; height: 3rem;">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                                <p class="mt-3">Fetching detailed information...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Remove existing modal if any
-            const existingModal = document.getElementById('itemDetailModal');
-            if (existingModal) {
-                existingModal.remove();
-            }
-            
-            // Add loading modal to body
-            document.body.insertAdjacentHTML('beforeend', loadingModalHtml);
-            
-            // Show loading modal
-            const modal = new bootstrap.Modal(document.getElementById('itemDetailModal'));
-            modal.show();
-            
-            // Fetch detailed data from API
-            const apiUrl = `inventory-proxy.php?action=getDetails&epcode=${encodeURIComponent(epcode)}`;
-            console.log('=== FETCHING DETAILS API ===');
-            console.log('API URL:', apiUrl);
-            console.log('Item being fetched:', item);
-            
-            fetch(apiUrl)
-                .then(response => {
-                    console.log('API Response status:', response.status);
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('API Response data:', data);
-                    console.log('Stones count:', data.stones ? data.stones.length : 0);
-                    
-                    if (!data.success || !data.stones || data.stones.length === 0) {
-                        console.error('No stones data returned from API');
-                        updateModalWithError('No detailed information available for this product.');
-                        return;
-                    }
-                    
-                    console.log('Calling updateModalWithDetails with', data.stones.length, 'stones');
-                    // Update modal with detailed information
-                    updateModalWithDetails(item, data.stones);
-                })
-                .catch(error => {
-                    console.error('Error fetching details:', error);
-                    updateModalWithError('Failed to load detailed information: ' + error.message);
-                });
-        }
-        
-        // Function to update modal with error
-        function updateModalWithError(errorMessage) {
-            const modalBody = document.querySelector('#itemDetailModal .modal-body');
-            const modalTitle = document.querySelector('#itemDetailModal .modal-title');
-            
-            if (modalTitle) {
-                modalTitle.textContent = 'Error';
-            }
-            
-            if (modalBody) {
-                modalBody.innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle"></i> ${errorMessage}
-                    </div>
-                `;
-            }
-        }
-        
-        // Function to update modal with detailed stone information
-        function updateModalWithDetails(item, stones) {
-            console.log('\n=== updateModalWithDetails CALLED ===');
-            console.log('Item:', item);
-            console.log('Stones array length:', stones.length);
-            console.log('Stones data:', stones);
-            
-            const modalTitle = document.querySelector('#itemDetailModal .modal-title');
-            const modalBody = document.querySelector('#itemDetailModal .modal-body');
-            
-            console.log('modalTitle element:', !!modalTitle);
-            console.log('modalBody element:', !!modalBody);
-            
-            if (!modalTitle || !modalBody) {
-                console.error('Modal elements not found!');
-                return;
-            }
-            
-            // Debug: Log the first stone to see the structure
-            console.log('Stone data structure:', stones[0]);
-            
-            modalTitle.textContent = `${item.EndProductDescription || 'Product Details'} (${stones.length} stones)`;
-            console.log('Set modal title to:', modalTitle.textContent);
-            
-            // Build stones table HTML
-            let stonesHtml = `
-                <div class="product-summary mb-4" style="background: #1a1a1a; padding: 1.5rem; border-radius: 8px;">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <label style="color: #d4af37; font-weight: bold;">Product Code:</label>
-                            <p style="font-size: 1.1rem;">${item.EndProductCode || 'N/A'}</p>
-                        </div>
-                        <div class="col-md-3">
-                            <label style="color: #d4af37; font-weight: bold;">Type:</label>
-                            <p style="font-size: 1.1rem;">${item.Ptype || 'N/A'}</p>
-                        </div>
-                        <div class="col-md-3">
-                            <label style="color: #d4af37; font-weight: bold;">Color:</label>
-                            <p style="font-size: 1.1rem;">${item.PColor || 'N/A'}</p>
-                        </div>
-                        <div class="col-md-3">
-                            <label style="color: #d4af37; font-weight: bold;">Total Stones:</label>
-                            <p style="font-size: 1.1rem; color: #d4af37;">${stones.length}</p>
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-md-4">
-                            <label style="color: #d4af37; font-weight: bold;">Design:</label>
-                            <p style="font-size: 1.1rem;">${item.PDesign || 'N/A'}</p>
-                        </div>
-                        <div class="col-md-4">
-                            <label style="color: #d4af37; font-weight: bold;">Finish:</label>
-                            <p style="font-size: 1.1rem;">${item.PFinish || 'N/A'}</p>
-                        </div>
-                        <div class="col-md-4">
-                            <label style="color: #d4af37; font-weight: bold;">Size:</label>
-                            <p style="font-size: 1.1rem;">${item.Size || 'N/A'}</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <h6 style="color: #d4af37; margin-bottom: 1rem; display: block !important;">Individual Stones:</h6>
-                <div class="table-responsive" style="display: block !important; min-height: 100px !important;">
-                    <table class="table table-dark table-striped table-hover" style="display: table !important; width: 100% !important; border-collapse: collapse !important;">
-                        <thead style="display: table-header-group !important;">
-                            <tr style="background: #1a1a1a; display: table-row !important;">
-                                <th style="display: table-cell !important; padding: 0.75rem !important;">#</th>
-                                <th style="display: table-cell !important; padding: 0.75rem !important;">Stock ID</th>
-                                <th style="display: table-cell !important; padding: 0.75rem !important;">Weight (lbs)</th>
-                                <th style="display: table-cell !important; padding: 0.75rem !important;">Container #</th>
-                                <th style="display: table-cell !important; padding: 0.75rem !important;">Crate #</th>
-                                <th style="display: table-cell !important; padding: 0.75rem !important;">Location</th>
-                            </tr>
-                        </thead>
-                        <tbody style="display: table-row-group !important;">
-            `;
-            
-            console.log('Building table rows for', stones.length, 'stones...');
-            stones.forEach((stone, index) => {
-                // Map the actual API field names
-                const stoneCode = stone.StockId || stone.stockid || `Stone #${index + 1}`;
-                const weight = stone.Weight || stone.weight || 'N/A';
-                const containerNum = stone.Container || stone.container || 'N/A';
-                const crateNum = stone.CrateNo || stone.crateno || stone.CrateNumber || 'N/A';
-                const location = stone.LocationName || stone.locationname || stone.Locationname || 'N/A';
-                
-                const weightDisplay = weight !== 'N/A' ? parseFloat(weight).toFixed(2) : 'N/A';
-                
-                console.log(`  Row ${index + 1}: ${stoneCode}, ${weightDisplay} lbs, ${location}`);
-                
-                stonesHtml += `
-                    <tr style="display: table-row !important; height: auto !important;">
-                        <td style="display: table-cell !important; padding: 0.5rem !important;">${index + 1}</td>
-                        <td style="display: table-cell !important; padding: 0.5rem !important;"><strong>${stoneCode}</strong></td>
-                        <td style="display: table-cell !important; padding: 0.5rem !important;">${weightDisplay}</td>
-                        <td style="display: table-cell !important; padding: 0.5rem !important;">${containerNum}</td>
-                        <td style="display: table-cell !important; padding: 0.5rem !important;">${crateNum}</td>
-                        <td style="display: table-cell !important; padding: 0.5rem !important;">${location}</td>
-                    </tr>
-                `;
-            });
-            console.log('Finished building table rows');
-            
-            stonesHtml += `
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            
-            console.log('Setting modalBody.innerHTML with stones table, length:', stonesHtml.length);
-            console.log('Stones HTML preview:', stonesHtml.substring(0, 200));
-            modalBody.innerHTML = stonesHtml;
-            modalBody.style.padding = '2rem';
-            modalBody.style.maxHeight = 'none';
-            modalBody.style.overflow = 'visible';
-            
-            // Force scroll to top to show the table
-            modalBody.scrollTop = 0;
-            const modalDialog = modalBody.closest('.modal-dialog');
-            if (modalDialog) {
-                modalDialog.scrollTop = 0;
-            }
-            console.log('modalBody after setting innerHTML:', modalBody.children.length, 'children');
-            console.log('modalBody innerHTML length:', modalBody.innerHTML.length);
-            console.log('modalBody actual HTML:', modalBody.innerHTML.substring(0, 500));
-            
-            // Check if table exists and force visibility
-            const table = modalBody.querySelector('table');
-            console.log('Table element found:', !!table);
-            if (table) {
-                console.log('Table rows:', table.querySelectorAll('tbody tr').length);
-                // Force table to be visible
-                table.style.display = 'table';
-                table.style.width = '100%';
-                table.style.marginBottom = '1rem';
-                const tableContainer = table.closest('.table-responsive');
-                if (tableContainer) {
-                    tableContainer.style.display = 'block';
-                    tableContainer.style.marginBottom = '1.5rem';
-                }
-            }
-            
-            // Also check for the h6 header and ensure it's visible
-            const headers = modalBody.querySelectorAll('h6');
-            headers.forEach(h => {
-                console.log('Found header:', h.textContent);
-                h.style.display = 'block';
-                h.style.visibility = 'visible';
-            });
-            
-            // Log all direct children of modalBody to see structure
-            console.log('modalBody direct children:');
-            Array.from(modalBody.children).forEach((child, i) => {
-                console.log(`  Child ${i}:`, child.tagName, child.className, 'visible:', window.getComputedStyle(child).display !== 'none');
-            });
-            
-            // Load and display product images at the bottom
-            const designCode = extractDesignCode(item);
-            console.log('Details modal - extracted design code:', designCode, 'from item:', item);
-            if (designCode) {
-                console.log('Searching for images for design code:', designCode);
-                searchProductImages(designCode).then(images => {
-                    console.log('Details modal - found images:', images.length, images);
-                    console.log('modalBody children BEFORE appending images:', modalBody.children.length);
-                    if (images.length > 0) {
-                        const imagesSection = document.createElement('div');
-                        imagesSection.style.cssText = 'background: #1a1a1a; padding: 1.5rem; border-radius: 8px; margin-top: 1.5rem;';
-                        imagesSection.innerHTML = `
-                            <h6 style="color: #d4af37; margin-bottom: 1rem;"><i class="fas fa-images"></i> Product Images (${images.length})</h6>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem;">
-                                ${images.map((img, idx) => `
-                                    <div style="position: relative; padding-top: 100%; background: #2c2c2c; border-radius: 4px; overflow: hidden; cursor: pointer;" onclick="openImageViewer(${idx})">
-                                        <img src="${img.path}" alt="${img.name}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" onerror="this.parentElement.innerHTML='<span style=\'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.7rem; color: #999;\'>Error</span>';">
-                                    </div>
-                                `).join('')}
-                            </div>
-                            <p class="text-muted mt-2" style="font-size: 0.85rem; margin-bottom: 0; color: #999;"><i class="fas fa-info-circle"></i> Click any image to view full size</p>
-                        `;
-                        modalBody.appendChild(imagesSection);
-                        console.log('modalBody children AFTER appending images:', modalBody.children.length);
-                        
-                        // Scroll back to top after adding images
-                        setTimeout(() => {
-                            modalBody.scrollTop = 0;
-                            const modalDialog = modalBody.closest('.modal-dialog');
-                            if (modalDialog) modalDialog.scrollTop = 0;
-                        }, 50);
-                        
-                        // Store images and item data for viewer
-                        window.currentViewerImages = images;
-                        window.currentViewerItem = item;
-                    }
-                }).catch(error => {
-                    console.error('Error loading images for details modal:', error);
-                });
-            }
-        }
-        
-        // Fullscreen image viewer with stock details (mobile-first)
-        window.openImageViewer = function(startIndex) {
-            const images = window.currentViewerImages || [];
-            const item = window.currentViewerItem || {};
-            if (images.length === 0) return;
-            
-            let currentIndex = startIndex;
-            let showDetails = true;
-            
-            // Create viewer overlay
-            const viewer = document.createElement('div');
-            viewer.id = 'imageViewer';
-            viewer.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.95);
-                z-index: 10000;
-                display: flex;
-                flex-direction: column;
-                touch-action: none;
-            `;
-            
-            // Top bar
-            const topBar = document.createElement('div');
-            topBar.style.cssText = `
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 1rem;
-                background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
-                transition: opacity 0.3s;
-            `;
-            topBar.innerHTML = `
-                <button onclick="closeImageViewer()" style="background: none; border: none; color: white; font-size: 2rem; cursor: pointer; padding: 0.5rem;">
-                    <i class="fas fa-times"></i>
-                </button>
-                <div style="background: rgba(0,0,0,0.6); padding: 0.5rem 1rem; border-radius: 1rem; color: white; font-weight: 500;">
-                    <span id="imageCounter">${currentIndex + 1} / ${images.length}</span>
-                </div>
-                <div style="width: 48px;"></div>
-            `;
-            
-            // Image container
-            const imageContainer = document.createElement('div');
-            imageContainer.style.cssText = `
-                flex: 1;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                position: relative;
-                overflow: hidden;
-            `;
-            
-            const img = document.createElement('img');
-            img.id = 'viewerImage';
-            img.style.cssText = `
-                max-width: 90%;
-                max-height: 90%;
-                object-fit: contain;
-                cursor: pointer;
-            `;
-            img.src = images[currentIndex].path;
-            img.onclick = () => toggleDetails();
-            
-            // Navigation arrows (desktop)
-            if (images.length > 1) {
-                const prevBtn = document.createElement('button');
-                prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
-                prevBtn.style.cssText = `
-                    position: absolute;
-                    left: 1rem;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    background: rgba(0,0,0,0.6);
-                    border: none;
-                    color: white;
-                    font-size: 2rem;
-                    padding: 1rem;
-                    cursor: pointer;
-                    border-radius: 50%;
-                    width: 60px;
-                    height: 60px;
-                    display: none;
-                `;
-                prevBtn.onclick = (e) => { e.stopPropagation(); navigateImage(-1); };
-                
-                const nextBtn = document.createElement('button');
-                nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
-                nextBtn.style.cssText = prevBtn.style.cssText.replace('left: 1rem', 'right: 1rem');
-                nextBtn.onclick = (e) => { e.stopPropagation(); navigateImage(1); };
-                
-                // Show arrows on desktop only
-                if (window.innerWidth > 768) {
-                    prevBtn.style.display = 'flex';
-                    nextBtn.style.display = 'flex';
-                    prevBtn.style.alignItems = 'center';
-                    prevBtn.style.justifyContent = 'center';
-                    nextBtn.style.alignItems = 'center';
-                    nextBtn.style.justifyContent = 'center';
-                }
-                
-                imageContainer.appendChild(prevBtn);
-                imageContainer.appendChild(nextBtn);
-            }
-            
-            imageContainer.appendChild(img);
-            
-            // Bottom details panel
-            const detailsPanel = document.createElement('div');
-            detailsPanel.id = 'detailsPanel';
-            detailsPanel.style.cssText = `
-                background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.7), transparent);
-                padding: 1.5rem;
-                color: white;
-                transition: transform 0.3s;
-                transform: translateY(0);
-            `;
-            detailsPanel.innerHTML = `
-                <div style="text-align: center; margin-bottom: 0.5rem;">
-                    <div style="width: 40px; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; margin: 0 auto;"></div>
-                </div>
-                <h5 style="color: #d4af37; margin-bottom: 1rem;">${item.EndProductDescription || 'Product Details'}</h5>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; font-size: 0.9rem;">
-                    <div><strong>Code:</strong> ${item.EndProductCode || 'N/A'}</div>
-                    <div><strong>Design:</strong> ${item.PDesign || extractDesignCode(item) || 'N/A'}</div>
-                    <div><strong>Quantity:</strong> ${item.Qty || 'N/A'} available</div>
-                    <div><strong>Location:</strong> ${item.Locationname || 'N/A'}</div>
-                    <div><strong>Color:</strong> ${item.PColor || 'N/A'}</div>
-                    <div><strong>Size:</strong> ${item.Size || 'N/A'}</div>
-                </div>
-                <p style="text-align: center; margin-top: 1rem; font-size: 0.8rem; color: rgba(255,255,255,0.6);">
-                    <i class="fas fa-info-circle"></i> Tap image to hide details • Swipe or use arrows for more images
-                </p>
-            `;
-            
-            viewer.appendChild(topBar);
-            viewer.appendChild(imageContainer);
-            viewer.appendChild(detailsPanel);
-            document.body.appendChild(viewer);
-            
-            // Touch gestures for mobile
-            let touchStartX = 0;
-            let touchEndX = 0;
-            
-            imageContainer.addEventListener('touchstart', (e) => {
-                touchStartX = e.changedTouches[0].screenX;
-            });
-            
-            imageContainer.addEventListener('touchend', (e) => {
-                touchEndX = e.changedTouches[0].screenX;
-                handleSwipe();
-            });
-            
-            function handleSwipe() {
-                const swipeThreshold = 50;
-                if (touchStartX - touchEndX > swipeThreshold) {
-                    navigateImage(1); // Swipe left = next
-                } else if (touchEndX - touchStartX > swipeThreshold) {
-                    navigateImage(-1); // Swipe right = prev
-                }
-            }
-            
-            // Keyboard navigation
-            window.addEventListener('keydown', handleKeyPress);
-            
-            function handleKeyPress(e) {
-                if (e.key === 'Escape') closeImageViewer();
-                else if (e.key === 'ArrowLeft') navigateImage(-1);
-                else if (e.key === 'ArrowRight') navigateImage(1);
-            }
-            
-            function navigateImage(direction) {
-                currentIndex = (currentIndex + direction + images.length) % images.length;
-                img.src = images[currentIndex].path;
-                document.getElementById('imageCounter').textContent = `${currentIndex + 1} / ${images.length}`;
-            }
-            
-            function toggleDetails() {
-                showDetails = !showDetails;
-                topBar.style.opacity = showDetails ? '1' : '0';
-                detailsPanel.style.transform = showDetails ? 'translateY(0)' : 'translateY(100%)';
-            }
-            
-            window.closeImageViewer = function() {
-                window.removeEventListener('keydown', handleKeyPress);
-                viewer.remove();
-            };
-        }
-
         // Function to set up navigation buttons for horizontal scrolling
         function setupNavigationButtons() {
             const leftBtn = document.querySelector('.nav-button-left');
@@ -6700,6 +5159,44 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // Function to set up row click listeners for showing details
+        function setupRowClickListeners(items) {
+            const rows = document.querySelectorAll('#inventoryTable tbody tr.clickable-row');
+            
+            rows.forEach(row => {
+                row.addEventListener('click', function(e) {
+                    // Prevent event bubbling
+                    e.stopPropagation();
+                    
+                    // Don't trigger if clicking on a dropdown, filter, or button
+                    if (e.target.closest('.dropdown, select, button, input')) {
+                        return;
+                    }
+                    
+                    const code = this.getAttribute('data-code');
+                    if (code) {
+                        // Find the item data
+                        const item = items.find(i => {
+                            const itemCode = i.EndProductCode || i.endProductCode || i.code;
+                            return itemCode === code;
+                        });
+                        
+                        if (item) {
+                            const basicItem = {
+                                description: item.EndProductDescription || item.description || '',
+                                type: item.Ptype || item.type || '',
+                                color: item.PColor || item.color || '',
+                                size: item.Size || item.size || '',
+                                quantity: item.Qty || item.quantity || 0,
+                                location: item.Locationname || item.location || ''
+                            };
+                            showItemDetails(code, basicItem, this);
+                        }
+                    }
+                });
+            });
+        }
+        
         // Function to set up keyboard navigation for accessibility
         function setupKeyboardNavigation() {
             const container = document.getElementById('inventoryTableContainer');
@@ -6768,7 +5265,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Function to clean up all event listeners
         function cleanupEventListeners() {
-            console.log('Cleaning up all event listeners...');
+            console.log('Cleaning up inventory modal event listeners...');
             
             // Clean up filter listeners
             const filterSelects = document.querySelectorAll('.column-filter');
@@ -6865,7 +5362,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 window._inventoryAbortControllers = [];
             }
 
-            if (escKeyHandler) {
+            const modalElement = document.getElementById('inventoryModal');
+            if (modalElement && escKeyHandler) {
                 window.removeEventListener('keydown', escKeyHandler, true);
                 escKeyHandler = null;
             }
@@ -6896,26 +5394,27 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (escKeyHandler) {
                             window.removeEventListener('keydown', escKeyHandler, true);
                         }
-                        escKeyHandler = function(e) {
-                            if (e.key !== 'Escape') return;
+                        escKeyHandler = function(event) {
+                            if (event.key !== 'Escape') return;
 
-                            const detailsModalEl = document.getElementById('itemDetailModal');
-                            if (detailsModalEl && detailsModalEl.classList.contains('show')) {
-                                e.preventDefault();
-                                e.stopImmediatePropagation();
-                                const detailsInstance = bootstrap.Modal.getInstance(detailsModalEl);
-                                if (detailsInstance) {
-                                    detailsInstance.hide();
-                                } else {
-                                    detailsModalEl.classList.remove('show');
-                                    detailsModalEl.style.display = 'none';
+                            const detailsPanel = document.getElementById('detailsPanel');
+                            const tablePanel = document.getElementById('tablePanel');
+                            const detailsOpen =
+                                (detailsPanel && detailsPanel.classList.contains('show')) ||
+                                (tablePanel && tablePanel.classList.contains('with-details')) ||
+                                document.querySelectorAll('.inventory-table tbody tr.selected').length > 0;
+                            if (detailsOpen) {
+                                event.preventDefault();
+                                event.stopImmediatePropagation();
+                                if (typeof window.closeItemDetails === 'function') {
+                                    window.closeItemDetails();
                                 }
                                 return;
                             }
 
                             if (inventoryModalInstance) {
-                                e.preventDefault();
-                                e.stopImmediatePropagation();
+                                event.preventDefault();
+                                event.stopImmediatePropagation();
                                 inventoryModalInstance.hide();
                             }
                         };
@@ -6933,15 +5432,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         const hiddenHandler = function() {
                             console.log('Modal hidden event fired');
 
-                            const detailsModalEl = document.getElementById('itemDetailModal');
-                            if (detailsModalEl && detailsModalEl.classList.contains('show')) {
-                                const detailsInstance = bootstrap.Modal.getInstance(detailsModalEl);
-                                if (detailsInstance) {
-                                    detailsInstance.hide();
-                                } else {
-                                    detailsModalEl.classList.remove('show');
-                                    detailsModalEl.style.display = 'none';
-                                }
+                            if (typeof window.closeItemDetails === 'function') {
+                                window.closeItemDetails();
                             }
                             
                             // Use the centralized cleanup function to remove all event listeners
@@ -6971,6 +5463,35 @@ document.addEventListener('DOMContentLoaded', function() {
                         modalElement.classList.add('show');
                         modalElement.style.display = 'block';
                         document.body.classList.add('modal-open');
+
+                        if (escKeyHandler) {
+                            window.removeEventListener('keydown', escKeyHandler, true);
+                        }
+                        escKeyHandler = function(event) {
+                            if (event.key !== 'Escape') return;
+
+                            const detailsPanel = document.getElementById('detailsPanel');
+                            if (detailsPanel && detailsPanel.classList.contains('show')) {
+                                event.preventDefault();
+                                event.stopImmediatePropagation();
+                                if (typeof window.closeItemDetails === 'function') {
+                                    window.closeItemDetails();
+                                }
+                                return;
+                            }
+
+                            if (modalElement.classList.contains('show')) {
+                                event.preventDefault();
+                                event.stopImmediatePropagation();
+                                modalElement.classList.remove('show');
+                                modalElement.style.display = 'none';
+                                document.body.classList.remove('modal-open');
+                                const backdrop = document.querySelector('.modal-backdrop');
+                                if (backdrop) backdrop.remove();
+                                cleanupEventListeners();
+                            }
+                        };
+                        window.addEventListener('keydown', escKeyHandler, true);
                         
                         // Create backdrop manually if needed
                         if (!document.querySelector('.modal-backdrop')) {
@@ -7071,576 +5592,5 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Expose the openModal function globally for deep linking
         window.openInventoryModal = openModal;
-    });
-});
-class PromotionBanner {
-    constructor() {
-        this.banner = document.querySelector('.promotion-banner');
-        if (!this.banner) return;
-        
-        this.currentIndex = 0;
-        this.promotions = [];
-        this.carouselInterval = null;
-        this.minimized = false;
-        this.initializeControls();
-        this.loadPromotions();
-    }
-
-    initializeControls() {
-        const minimizeBtn = this.banner.querySelector('.minimize-btn');
-        const closeBtn = this.banner.querySelector('.close-btn');
-        
-        // Check if banner was previously closed
-        if (sessionStorage.getItem('promotionClosed') === 'true') {
-            this.banner.style.display = 'none';
-            return;
-        }
-
-        // Only add listeners if elements exist
-        if (minimizeBtn) {
-            minimizeBtn.addEventListener('click', () => {
-                this.minimized = !this.minimized;
-                this.banner.classList.toggle('minimized', this.minimized);
-                
-                const icon = minimizeBtn.querySelector('i');
-                if (this.minimized) {
-                    icon.classList.remove('bi-chevron-up');
-                    icon.classList.add('bi-chevron-down');
-                    minimizeBtn.title = 'Expand';
-                } else {
-                    icon.classList.remove('bi-chevron-down');
-                    icon.classList.add('bi-chevron-up');
-                    minimizeBtn.title = 'Minimize';
-                }
-            });
-        }
-
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                this.banner.style.display = 'none';
-                sessionStorage.setItem('promotionClosed', 'true');
-                if (this.carouselInterval) {
-                    clearInterval(this.carouselInterval);
-                }
-            });
-        }
-    }
-
-    async loadPromotions() {
-        try {
-            const response = await fetch('/crm/ajax/get_active_promotions.php');
-            
-            // Attempt to get response text regardless of response.ok for better error reporting
-            const responseText = await response.text();
-
-            if (!response.ok) {
-                // Include responseText in the error message if available
-                throw new Error(`HTTP error! status: ${response.status}. Response: ${responseText}`);
-            }
-            
-            let data;
-            try {
-                data = JSON.parse(responseText); 
-            } catch (parseError) {
-                // Log the raw response text that caused the JSON parsing error
-                console.error('Error parsing JSON from /crm/ajax/get_active_promotions.php:', parseError);
-                console.error('Raw response causing error:', responseText);
-                this.banner.style.display = 'none'; 
-                return; 
-            }
-            
-            // Check for success flag and promotions array in response
-            if (data.success && Array.isArray(data.promotions) && data.promotions.length > 0) {
-                this.promotions = data.promotions;
-                this.showPromotion(0);
-                if (this.promotions.length > 1) {
-                    this.startCarousel();
-                }
-            } else {
-                 // Log details if data.success is false or promotions array is missing/empty
-                console.log('No active promotions, or unsuccessful/invalid response. Data:', data);
-                this.banner.style.display = 'none';
-            }
-        } catch (error) {
-            // This will catch errors from fetch itself, or the new Error thrown for !response.ok, or re-thrown parseError
-            console.error('Error loading promotions:', error);
-            this.banner.style.display = 'none';
-        }
-    }
-
-    showPromotion(index) {
-        const promotion = this.promotions[index];
-        const content = this.banner.querySelector('.promotion-content');
-        
-        content.innerHTML = `
-            <a href="${promotion.link_url}" class="promotion-text-link">
-                <div class="promotion-image-link">
-                    <img src="${promotion.image_url}" alt="${promotion.title}" class="promotion-image">
-                </div>
-                <div class="promotion-text">
-                    <h3>${promotion.title}</h3>
-                    <p>${promotion.description}</p>
-                </div>
-            </a>
-            <div class="promotion-expanded">
-                <a href="${promotion.link_url}" class="promotion-link desktop-only">Shop Now</a>
-            </div>
-            <div class="promotion-controls">
-                <button type="button" class="promotion-btn minimize-btn" title="Minimize">
-                    <i class="bi bi-chevron-up"></i>
-                </button>
-                <button type="button" class="promotion-btn close-btn" title="Close">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-        `;
-        
-        this.initializeControls();
-    }
-
-    startCarousel() {
-        this.carouselInterval = setInterval(() => {
-            this.currentIndex = (this.currentIndex + 1) % this.promotions.length;
-            this.showPromotion(this.currentIndex);
-        }, 5000); 
-    }
-}
-
-// Initialize when DOM is loaded - only if not already loaded by inline code
-document.addEventListener('DOMContentLoaded', () => {
-    if (!window.PROMO_BANNER_LOADED) {
-        new PromotionBanner();
-    }
-});
-class CategoryCarousel {
-    constructor() {
-        this.carousel = document.querySelector('.category-carousel');
-        this.items = document.querySelectorAll('.category-item');
-        this.prevBtn = document.querySelector('.carousel-prev');
-        this.nextBtn = document.querySelector('.carousel-next');
-        this.currentPage = 0;
-        this.itemsPerPage = 3; // Show 3 items at a time
-        this.totalPages = Math.ceil(this.items.length / this.itemsPerPage);
-
-        this.init();
-    }
-
-    init() {
-        if (!this.carousel || !this.items.length) return;
-
-        this.updateCarousel();
-        this.bindEvents();
-    }
-
-    updateCarousel() {
-        this.items.forEach((item, index) => {
-            const startIndex = this.currentPage * this.itemsPerPage;
-            const endIndex = startIndex + this.itemsPerPage;
-            
-            if (index >= startIndex && index < endIndex) {
-                item.classList.remove('hidden');
-            } else {
-                item.classList.add('hidden');
-            }
-        });
-        
-        // Update button states
-        if (this.prevBtn) {
-            this.prevBtn.style.opacity = this.currentPage === 0 ? '0.5' : '1';
-        }
-        if (this.nextBtn) {
-            this.nextBtn.style.opacity = this.currentPage === this.totalPages - 1 ? '0.5' : '1';
-        }
-    }
-
-    bindEvents() {
-        if (this.prevBtn) {
-            this.prevBtn.addEventListener('click', () => {
-                if (this.currentPage > 0) {
-                    this.currentPage--;
-                    this.updateCarousel();
-                }
-            });
-        }
-
-        if (this.nextBtn) {
-            this.nextBtn.addEventListener('click', () => {
-                if (this.currentPage < this.totalPages - 1) {
-                    this.currentPage++;
-                    this.updateCarousel();
-                }
-            });
-        }
-    }
-}
-
-// Initialize carousel when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    new CategoryCarousel();
-}); 
-/**
- * Legal Modals Handler
- * Loads legal document content dynamically into modals
- */
-document.addEventListener('DOMContentLoaded', function() {
-    // Cache for loaded content
-    const contentCache = {};
-    
-    // Helper function to extract and clean content from HTML pages
-    function extractContentFromHTML(html) {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        
-        // Create a container for the cleaned content
-        const container = document.createElement('div');
-        
-        // Extract the title
-        const title = doc.querySelector('h1');
-        if (title) {
-            const titleElement = document.createElement('h1');
-            titleElement.textContent = title.textContent.trim();
-            container.appendChild(titleElement);
-        }
-        
-        // Extract the effective date if it exists
-        const paragraphs = doc.querySelectorAll('p');
-        if (paragraphs.length > 0 && paragraphs[0].textContent.includes('Effective Date')) {
-            const dateElement = document.createElement('p');
-            dateElement.className = 'effective-date';
-            dateElement.textContent = paragraphs[0].textContent.trim();
-            container.appendChild(dateElement);
-        }
-        
-        // Extract all other content
-        const contentElements = doc.querySelectorAll('body > *');
-        contentElements.forEach(element => {
-            // Skip the title we already added
-            if (element.tagName === 'H1') return;
-            
-            // Skip the first paragraph if it's the effective date we already added
-            if (element.tagName === 'P' && element.textContent.includes('Effective Date') && 
-                Array.from(paragraphs).indexOf(element) === 0) return;
-            
-            // Create a clean copy of the element
-            const cleanElement = document.createElement(element.tagName);
-            
-            // Copy text content and clean it
-            cleanElement.textContent = element.textContent.trim();
-            
-            // Copy important attributes for links
-            if (element.tagName === 'A') {
-                cleanElement.href = element.getAttribute('href');
-                cleanElement.target = '_blank';
-                cleanElement.rel = 'noopener';
-            }
-            
-            // For lists, properly recreate list items
-            if (element.tagName === 'UL' || element.tagName === 'OL') {
-                element.querySelectorAll('li').forEach(li => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = li.textContent.trim();
-                    cleanElement.appendChild(listItem);
-                });
-            }
-            
-            // Add the clean element to our container
-            container.appendChild(cleanElement);
-        });
-        
-        return container.innerHTML;
-    }
-    
-    // Function to load content into modal
-    function loadLegalContent(modalId, contentUrl) {
-        const contentElement = document.getElementById(modalId + 'Content');
-        
-        // Return if already loaded
-        if (contentCache[modalId]) {
-            contentElement.innerHTML = contentCache[modalId];
-            return;
-        }
-        
-        // Set loading state
-        contentElement.innerHTML = `
-            <div class="text-center">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p>Loading content...</p>
-            </div>
-        `;
-        
-        // Fetch the content
-        fetch(contentUrl)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.text();
-            })
-            .then(html => {
-                // Extract and clean content
-                const content = extractContentFromHTML(html);
-                
-                // Update modal content
-                contentElement.innerHTML = content;
-                
-                // Cache the content
-                contentCache[modalId] = content;
-            })
-            .catch(error => {
-                console.error('Error loading content:', error);
-                contentElement.innerHTML = `
-                    <div class="alert alert-danger">
-                        <p>Sorry, we couldn't load the content. Please try again later.</p>
-                    </div>
-                `;
-            });
-    }
-    
-    // Setup event listeners for each modal
-    const modalMappings = [
-        { id: 'privacyPolicy', url: 'privacy-policy.html' },
-        { id: 'termsOfService', url: 'terms-of-service.html' },
-        { id: 'smsTerms', url: 'sms-terms.html' }
-    ];
-    
-    modalMappings.forEach(modal => {
-        const modalElement = document.getElementById(modal.id + 'Modal');
-        
-        if (modalElement) {
-            // Load content when modal is shown
-            modalElement.addEventListener('show.bs.modal', function() {
-                loadLegalContent(modal.id, modal.url);
-            });
-        }
-    });
-    
-    // Add improved styling for legal content in modals
-    const style = document.createElement('style');
-    style.textContent = `
-        .legal-modal .modal-body {
-            padding: 2rem;
-            color: #f8f9fa;
-            background-color: #212529;
-        }
-        .legal-modal .modal-header {
-            border-bottom: 1px solid #444;
-            background-color: #212529;
-            color: #f8f9fa;
-        }
-        .legal-modal .modal-content {
-            background-color: #212529;
-            border: 1px solid #444;
-        }
-        .legal-modal .btn-close {
-            filter: invert(1) grayscale(100%) brightness(200%);
-        }
-        .legal-modal h1 {
-            font-size: 1.8rem;
-            margin-bottom: 1.5rem;
-            color: #f8f9fa;
-            border-bottom: 1px solid #444;
-            padding-bottom: 0.5rem;
-        }
-        .legal-modal h2 {
-            font-size: 1.4rem;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            color: #f8f9fa;
-        }
-        .legal-modal p {
-            font-size: 1rem;
-            line-height: 1.7;
-            margin-bottom: 1rem;
-            color: #f8f9fa;
-        }
-        .legal-modal .effective-date {
-            font-style: italic;
-            margin-bottom: 1.5rem;
-            color: #adb5bd;
-        }
-        .legal-modal ul, .legal-modal ol {
-            padding-left: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-        .legal-modal li {
-            margin-bottom: 0.5rem;
-            color: #f8f9fa;
-        }
-        .legal-modal a {
-            color: #d4af37;
-            text-decoration: none;
-        }
-        .legal-modal a:hover {
-            text-decoration: underline;
-        }
-    `;
-    document.head.appendChild(style);
-});
-/**
- * Deep Linking support for Angel Granites product categories and inventory
- * 
- * This script enables deep linking to product categories via URL parameters
- * and to the inventory modal via URL hash.
- * For example: 
- * - ?category=monuments will open the monuments category
- * - #inventory will open the inventory modal
- */
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Function to handle inventory modal deep linking via hash
-    function handleInventoryDeepLink() {
-        if (window.location.hash === '#inventory') {
-            console.log('Deep linking: Opening inventory modal from hash');
-            
-            // Wait a moment for all scripts to load
-            setTimeout(function() {
-                // Try to find and click the inventory link
-                const sideInventoryLink = document.getElementById('sideInventoryLink');
-                const inventoryLink = document.getElementById('inventoryLink');
-                
-                if (sideInventoryLink) {
-                    console.log('Deep linking: Clicking side inventory link');
-                    sideInventoryLink.click();
-                } else if (inventoryLink) {
-                    console.log('Deep linking: Clicking footer inventory link');
-                    inventoryLink.click();
-                } else {
-                    console.log('Deep linking: No inventory link found, trying direct modal open');
-                    // Try to open the modal directly if available
-                    if (typeof window.openInventoryModal === 'function') {
-                        window.openInventoryModal();
-                    }
-                }
-            }, 800);
-        }
-    }
-    
-    // Function to handle category opening based on URL parameters
-    function handleCategoryDeepLink() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const categoryParam = urlParams.get('category');
-        
-        if (categoryParam) {
-            // Scroll to the featured products section
-            const featuredProductsSection = document.getElementById('featured-products');
-            if (featuredProductsSection) {
-                featuredProductsSection.scrollIntoView({ behavior: 'smooth' });
-                
-                // Find the corresponding collection ID and category name
-                let collectionId = '';
-                let categoryName = '';
-                
-                switch(categoryParam) {
-                    case 'mbna_2025':
-                        collectionId = 'mbna_2025-collection';
-                        categoryName = 'MBNA_2025';
-                        break;
-                    case 'monuments':
-                        collectionId = 'monuments-collection';
-                        categoryName = 'Monuments';
-                        break;
-                    case 'columbarium':
-                        collectionId = 'columbarium-collection';
-                        categoryName = 'Columbarium';
-                        break;
-                    case 'designs':
-                        collectionId = 'Designs-collection';
-                        categoryName = 'Designs';
-                        break;
-                    case 'benches':
-                        collectionId = 'benches-collection';
-                        categoryName = 'Benches';
-                        break;
-                }
-                
-                if (collectionId) {
-                    // Allow time for page to render and smooth scroll
-                    setTimeout(function() {
-                        // Try multiple approaches to open the collection
-                        
-                        // APPROACH 1: Find and click the link with data-collection attribute
-                        const categoryLinks = document.querySelectorAll('.category-link');
-                        let targetLink = null;
-                        
-                        for (const link of categoryLinks) {
-                            if (link.getAttribute('data-collection') === collectionId) {
-                                targetLink = link;
-                                break;
-                            }
-                        }
-                        
-                        if (targetLink) {
-                            console.log('Deep linking: Found target link for', categoryParam);
-                            // Try both jQuery click and native click
-                            if (typeof jQuery !== 'undefined') {
-                                jQuery(targetLink).trigger('click');
-                            } else {
-                                targetLink.click();
-                            }
-                            
-                            // APPROACH 2: Direct modal creation if clicking doesn't work
-                            setTimeout(function() {
-                                // If clicking didn't work, try to create/show the modal directly
-                                const modalExists = document.querySelector('#category-modal');
-                                const modalDisplayed = modalExists && 
-                                    window.getComputedStyle(modalExists).display !== 'none';
-                                
-                                if (!modalDisplayed && window.showCategoryModal && categoryName) {
-                                    console.log('Deep linking: Attempting direct modal creation for', categoryName);
-                                    // If the page has the showCategoryModal function, call it directly
-                                    try {
-                                        window.showCategoryModal(categoryName, []);
-                                    } catch(e) {
-                                        console.error('Deep linking: Error showing category modal:', e);
-                                    }
-                                }
-                            }, 300);
-                        }
-                    }, 800);
-                }
-            }
-        }
-    }
-    
-    // Update browser history when a category link is clicked
-    document.querySelectorAll('.category-link').forEach(function(link) {
-        link.addEventListener('click', function() {
-            // Don't prevent default - let the original click handler work
-            
-            // Update the URL without reloading the page
-            const href = this.getAttribute('href');
-            if (href && href.startsWith('?category=')) {
-                const categoryValue = href.replace('?category=', '');
-                const newUrl = window.location.pathname + '?category=' + categoryValue;
-                
-                // Update browser history state
-                window.history.pushState({ category: categoryValue }, '', newUrl);
-            }
-        });
-    });
-    
-    // Handle back/forward navigation
-    window.addEventListener('popstate', function() {
-        // Re-handle the URL parameters when navigation changes
-        handleCategoryDeepLink();
-    });
-    
-    // Initial check for deep links on page load
-    handleCategoryDeepLink();
-    handleInventoryDeepLink();
-    
-    // Update browser history when inventory link is clicked
-    const inventoryLinks = [document.getElementById('sideInventoryLink'), document.getElementById('inventoryLink')];
-    inventoryLinks.forEach(function(link) {
-        if (link) {
-            link.addEventListener('click', function(e) {
-                // Don't prevent default here - let the original click handler work
-                
-                // Update the URL without reloading the page
-                window.history.pushState({ inventory: true }, '', '#inventory');
-            });
-        }
     });
 });

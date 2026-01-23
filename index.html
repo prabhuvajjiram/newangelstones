@@ -63,7 +63,7 @@
 	    	padding: 0 !important;
 	    	border: 0 !important;
 	}
-        /* Gold caption style with ultra-high specificity */
+        /* White caption style with ultra-high specificity */
         html body .caption p, 
         html body #variety-of-granites .caption p,
         html body .owl-carousel .caption p,
@@ -73,8 +73,8 @@
         [id="variety-of-granites"] [class*="caption"] p,
         #variety-of-granites .owl-carousel .owl-item .caption p,
         .owl-carousel.color-row .caption p {
-            color: #d4af37 !important;
-            text-shadow: 1px 1px 3px rgba(0,0,0,1) !important;
+            color: #ffffff !important;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.9) !important;
             font-weight: 700 !important;
             visibility: visible !important;
             opacity: 1 !important;
@@ -334,7 +334,7 @@
     <link rel="stylesheet" media="all" href="css/animate.css">
     <link rel="stylesheet" href="css/specials/specials.css" media="all">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="css/color-carousel.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/color-carousel.min.css?v=3.1" media="print" onload="this.media='all'">
 -->
     <!-- Preload critical CSS -->
     <link rel="preload" href="css/style.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -343,7 +343,7 @@
 <!-- Defer non-critical CSS -->
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <link rel="preload" href="css/hamburger.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<link rel="preload" href="css/color-carousel.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" href="css/color-carousel.min.css?v=3.1" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <link rel="preload" href="css/inline-fixes.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 
 <!-- Fallback for when JavaScript is disabled -->
@@ -351,7 +351,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="css/hamburger.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
-  <link rel="stylesheet" href="css/color-carousel.min.css">
+  <link rel="stylesheet" href="css/color-carousel.min.css?v=3.1">
   <link rel="stylesheet" href="css/inline-fixes.css">
 </noscript>
     <!-- Add size containment hints for layout stability -->
@@ -445,7 +445,7 @@
         }
     </style>
     
-    <!-- Direct gold caption styling -->
+    <!-- Direct white caption styling -->
     <style>
         .caption p, 
         #variety-of-granites .caption p, 
@@ -454,9 +454,9 @@
         .variety-of-granites .caption p,
         [class*="caption"] p,
         .owl-carousel .owl-item .caption p {
-            color: #d4af37 !important;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.9) !important;
-            font-weight: 600 !important;
+            color: #ffffff !important;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.9) !important;
+            font-weight: 700 !important;
             visibility: visible !important;
             opacity: 1 !important;
         }
@@ -466,7 +466,7 @@
         html body #variety-of-granites .caption p,
         html body .owl-carousel .caption p,
         body .owl-item .caption p {
-            color: #d4af37 !important;
+            color: #ffffff !important;
         }
     </style>
     
@@ -507,8 +507,8 @@
     <meta name="theme-color" content="#262626">
     
     <!-- Color Gallery Styles -->
-    <link rel="preload" href="/css/color-gallery.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="/css/color-gallery.min.css"></noscript>
+    <link rel="preload" href="/css/color-gallery.min.css?v=3.1" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/css/color-gallery.min.css?v=3.1"></noscript>
     
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -878,7 +878,7 @@
             <li><a href="#home">Home</a></li>
             <li><a href="#featured-products">Featured Products</a></li>
             <li><a href="#specials">Special Flyers</a></li>
-            <li><a href="#variety-of-granites">Granite Varieties</a></li>
+            <li><a href="#variety-of-granites">Granite Colors</a></li>
             <li><a href="#inventory" id="sideInventoryLink">Current Inventory</a></li>
             <li><a href="#our-product">Our Products and Services</a></li>
             <li><a href="#why-choose-as">Why Choose Us</a></li>
@@ -1097,7 +1097,7 @@
                                     Angel Granites
                                     <img src="images/title-star.svg" alt="Angel Stones">
                                 </div>
-                                <div class="title">Granite Varieties</div>
+                                <div class="title">Granite Colors</div>
                             </div>
                         </div>
                     </div>
@@ -1716,7 +1716,7 @@
     <script src="js/critical.bundle.js?v=1.0.0" defer></script>
     
     <!-- Features Bundle: Products, modals, carousels, all features (288KB) -->
-    <script src="js/features.bundle.js?v=2.8.0" defer></script>
+    <script src="js/features.bundle.js?v=3.1.0" defer></script>
     
     <!-- Bootstrap is loaded separately but deferred -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
@@ -2413,24 +2413,24 @@
         // Force gold captions as soon as possible
         document.addEventListener('DOMContentLoaded', function() {
             // Add inline styles to all captions
-            function forceGoldCaptions() {
+            function forceWhiteCaptions() {
                 const captions = document.querySelectorAll('.caption p, #variety-of-granites .caption p, .owl-item .caption p');
                 captions.forEach(function(caption) {
-                    caption.style.color = '#d4af37';
-                    caption.style.textShadow = '1px 1px 3px rgba(0,0,0,0.9)';
-                    caption.style.fontWeight = '600';
+                    caption.style.color = '#ffffff';
+                    caption.style.textShadow = '2px 2px 4px rgba(0,0,0,0.9)';
+                    caption.style.fontWeight = '700';
                     caption.style.visibility = 'visible';
                     caption.style.opacity = '1';
                 });
             }
             
             // Run multiple times to catch dynamically loaded content
-            forceGoldCaptions();
-            setTimeout(forceGoldCaptions, 500);
-            setTimeout(forceGoldCaptions, 1500);
+            forceWhiteCaptions();
+            setTimeout(forceWhiteCaptions, 500);
+            setTimeout(forceWhiteCaptions, 1500);
             
             // Run again when images load
-            window.addEventListener('load', forceGoldCaptions);
+            window.addEventListener('load', forceWhiteCaptions);
         });
     </script>
     <script>
@@ -2800,7 +2800,7 @@
                 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css',
                 'css/hamburger.css',
                 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css',
-                'css/color-carousel.min.css'
+                'css/color-carousel.min.css?v=3.1'
             ];
             
             styles.forEach(href => {

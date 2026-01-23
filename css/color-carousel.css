@@ -72,9 +72,11 @@
     padding: 10px;
     text-align: center;
     background-color: #262626;
-    color: #ffffff;
+    color: #ffffff !important;
     font-family: 'Didact Gothic', sans-serif;
     letter-spacing: 1px;
+    font-weight: 700 !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
 }
 
 /* Fullscreen View */
@@ -314,6 +316,8 @@
     margin: 0;
     font-family: 'Didact Gothic', sans-serif;
     letter-spacing: 1px;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
 }
 
 /* Scroll hint animation */

@@ -1,0 +1,69 @@
+Angel Stones Website: Bundled JavaScript Architecture and Deployment Rules
+#deployment
+#javascript_bundling
+#production_rules
+#cloudflare
+#critical_process
+
+Edit
+CRITICAL DEPLOYMENT RULES for Angel Stones website (theangelstones.com):
+
+ARCHITECTURE:
+
+Site uses BUNDLED JavaScript: features.bundle.js combines multiple JS files
+Site uses MINIFIED CSS loaded dynamically
+Cloudflare caching is aggressive - requires cache purging after changes
+MANDATORY STEPS FOR ANY JS/CSS CHANGES:
+
+Before Making Changes:
+Create a new git branch for testing
+Never edit directly on main branch for production changes
+JavaScript Changes (any file in js/ folder):
+Edit the source file (e.g., color-carousel.js)
+MUST rebuild bundle: Run Get-Content js\featured-products.js, js\color-carousel.js, js\color-gallery.js, js\promotion-banner.js, js\category-carousel.js, js\legal-modals.js, js\deep-linking.js, js\inventory-modal.js | Set-Content js\features.bundle.js
+Update version in index.html: Change js/features.bundle.js?v=X.X.X to new version
+Test locally BEFORE deploying
+CSS Changes:
+Check if page loads .min.css or .css version
+If .min.css: Must minify after editing OR change HTML to load .css version
+Add version parameter to CSS file reference for cache busting
+Deployment Checklist:
+Upload ALL modified files (source + bundle + HTML)
+Purge Cloudflare cache for changed files
+Test in incognito/private window
+Hard refresh (Ctrl+Shift+R)
+FILES IN features.bundle.js (in order):
+
+featured-products.js
+color-carousel.js
+color-gallery.js
+promotion-banner.js
+category-carousel.js
+legal-modals.js
+deep-linking.js
+inventory-modal.js
+COMMON PITFALLS:
+
+Editing source JS but not rebuilding bundle = changes won't appear
+Editing .css but page loads .min.css = changes won't appear
+Not updating version numbers = browser serves cached old version
+Not purging Cloudflare = changes don't propagate
+ROLLBACK PROCEDURE: If production breaks:
+
+git checkout main (or specific commit hash)
+git checkout <commit-hash> -- index.html js/features.bundle.js js/color-carousel.js css/color-carousel.css
+Upload restored files
+Purge Cloudflare cache
+Drop to add to Cascade
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
