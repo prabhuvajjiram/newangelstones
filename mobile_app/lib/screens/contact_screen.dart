@@ -8,7 +8,7 @@ import '../theme/app_theme.dart';
 import '../services/mautic_service.dart';
 import '../config/security_config.dart';
 import 'webview_screen.dart';
-import 'asset_sync_screen.dart';
+import 'package:go_router/go_router.dart';
 
 class ContactScreen extends StatefulWidget {
   const ContactScreen({super.key});
@@ -502,14 +502,17 @@ class _ContactScreenState extends State<ContactScreen> {
                   ),
                   _buildContactCard(
                     context: context,
-                    icon: Icons.sync,
-                    title: 'Asset Sync',
-                    subtitle: 'Manage bundled and downloaded images',
+                    icon: Icons.person_outline,
+                    title: 'Login to Account',
+                    subtitle: 'Access your customer portal',
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const AssetSyncScreen(),
+                          builder: (context) => WebViewScreen(
+                            url: '${SecurityConfig.monumentBusinessBaseUrl}/GV/Account/Login',
+                            title: 'Customer Portal',
+                          ),
                         ),
                       );
                     },

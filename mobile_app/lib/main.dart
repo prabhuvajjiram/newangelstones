@@ -8,6 +8,7 @@ import 'services/directory_service.dart';
 import 'services/connectivity_service.dart';
 import 'services/offline_catalog_service.dart';
 import 'services/system_ui_service.dart';
+import 'services/image_sync_service.dart';
 import 'navigation/app_router.dart';
 import 'theme/app_theme.dart';
 import 'state/cart_state.dart';
@@ -79,6 +80,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late final ConnectivityService _connectivityService;
   late final OfflineCatalogService _offlineCatalogService;
   late final AppRouter _router;
+  late final ImageSyncService _imageSyncService;
 
   // Analytics observer is created but not currently used with GoRouter
   // Uncomment if needed for MaterialApp navigation
@@ -97,6 +99,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       apiService: _apiService,
       connectivityService: _connectivityService,
     );
+    
+    // Initialize image sync service
+    _imageSyncService = ImageSyncService(apiService: _apiService);
     
     // Initialize router immediately for UI
     _router = AppRouter(
@@ -144,32 +149,52 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     // Stagger initialization to prevent resource contention
     
     // Initialize inventory service
-    _inventoryService.initialize().timeout(
-      const Duration(seconds: 2),
-      onTimeout: () => null,
+    unawaited(
+      _inventoryService.initialize().timeout(
+        const Duration(seconds: 2),
+        onTimeout: () => null,
+      )
     );
     
     // Small delay before next service
     await Future<void>.delayed(const Duration(milliseconds: 100));
     
     // Initialize directory service
-    _directoryService.initialize().timeout(
-      const Duration(seconds: 2),
-      onTimeout: () => null,
+    unawaited(
+      _directoryService.initialize().timeout(
+        const Duration(seconds: 2),
+        onTimeout: () => null,
+      )
     );
     
     // Initialize Firebase messaging (Firebase already initialized)
-    Future<void>.delayed(const Duration(milliseconds: 500), () {
-      FirebaseMessagingHandler.setup().catchError((Object e) {
-        debugPrint('Firebase messaging error: $e');
-        return null;
-      });
-    });
+    unawaited(
+      Future<void>.delayed(const Duration(milliseconds: 500), () async {
+        try {
+          await FirebaseMessagingHandler.setup();
+        } catch (e) {
+          debugPrint('Firebase messaging error: $e');
+        }
+      })
+    );
+    
+    // Sync images on app launch (medium priority)
+    unawaited(
+      Future<void>.delayed(const Duration(milliseconds: 800), () async {
+        try {
+          await _imageSyncService.syncAllImages();
+        } catch (e) {
+          debugPrint('Image sync error: $e');
+        }
+      })
+    );
     
     // Background sync (very low priority)
-    Future<void>.delayed(const Duration(seconds: 1), () {
-      _offlineCatalogService.syncCatalog();
-    });
+    unawaited(
+      Future<void>.delayed(const Duration(seconds: 1), () {
+        _offlineCatalogService.syncCatalog();
+      })
+    );
     
   }
   

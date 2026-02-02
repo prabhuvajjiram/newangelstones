@@ -28,7 +28,7 @@ class DesignGalleryScreen extends StatelessWidget {
     // Configure system UI for gallery mode with Android 15+ compatibility
     SystemUIService.instance.configureForScreen('gallery');
     
-    // Fetch product images with codes
+    // Fetch product images with codes (uses cache first, then syncs in background)
     final futureProductImages = apiService.fetchProductImagesWithCodes(categoryId);
     
     return Scaffold(

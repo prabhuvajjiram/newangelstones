@@ -207,7 +207,7 @@ class HybridAssetService {
       final response = await http.get(
         Uri.parse('https://theangelstones.com/get_directory_files.php?directory=products'),
         headers: {'Accept': 'application/json'},
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 30));
       
       if (response.statusCode != 200) {
         debugPrint('⚠️ Server returned ${response.statusCode}');

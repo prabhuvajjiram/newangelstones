@@ -17,7 +17,8 @@ class _ColorsScreenState extends State<ColorsScreen> {
   @override
   void initState() {
     super.initState();
-    // Try to fetch colors from server, fall back to local if needed
+    // Fetch colors from API (which returns all 40 colors with proper URLs)
+    // Images will load from bundled assets first (via localImagePath), then fallback to URL
     _futureColors = widget.apiService.fetchColors();
   }
 

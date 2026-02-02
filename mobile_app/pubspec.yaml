@@ -1,6 +1,6 @@
 name: angel_granites_app
 description: Mobile app for Angel Granites.
-version: 3.2.0+30 # versionName + versionCode
+version: 4.0.0+31 # versionName + versionCode
 
 
 environment:
@@ -38,15 +38,16 @@ dependencies:
   firebase_analytics: ^12.0.2
   firebase_messaging: ^16.0.2
   firebase_crashlytics: ^5.0.2
-  flutter_local_notifications: ^19.4.0
+  flutter_local_notifications: ^20.0.0
   timezone: ^0.10.1
 
-  shared_preferences: ^2.5.3  # Fallback storage
   collection: any
   map_launcher: ^4.0.0
   cached_network_image: ^3.4.1  # High-performance image caching
   share_plus: ^12.0.0  # Share functionality
   webview_flutter: ^4.10.0  # In-app browser for payment pages
+  webview_flutter_android: ^4.0.0  # Android-specific WebView implementation
+  webview_flutter_wkwebview: ^3.13.0  # iOS-specific WebView implementation
   flutter_typeahead: ^5.2.0  # Search autocomplete
   package_info_plus: ^9.0.0  # App version info
 
@@ -96,34 +97,13 @@ flutter:
     - assets/colors/
     - assets/pdfs/specials/
     - assets/products/
-    - assets/colors/
-    - assets/pdfs/specials/
-    - assets/products/
-    - assets/colors/
-    - assets/pdfs/specials/
-    - assets/products/
-    - assets/pdfs/specials/
-    - assets/products/
-    - assets/pdfs/specials/
-    - assets/products/
-    - assets/pdfs/specials/
-    - assets/products/
-    - assets/pdfs/specials/
-    - assets/products/
-    - assets/pdfs/specials/
-    - assets/products/
-    - assets/pdfs/specials/
-    - assets/products/
-    - assets/pdfs/specials/
-    - assets/products/
-    - assets/colors/
-    - assets/pdfs/specials/
     - assets/icon/
     - assets/logo.png
     - assets/featured_products.json
     - assets/inventory.json
     - assets/colors.json
     - assets/specials.json
+    - assets/color_asset_mapping.json
     - assets/fonts/
     - assets/product_manifest.json
     - assets/pdf_manifest.json

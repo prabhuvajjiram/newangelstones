@@ -84,6 +84,8 @@ class _SplashScreenState extends State<SplashScreen>
       }
     });
     
+    // Extend animation to 12 seconds for slower connections (WiFi)
+    _progressAnimationController.duration = const Duration(seconds: 12);
     _progressAnimationController.forward();
   }
 

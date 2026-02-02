@@ -96,5 +96,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSKeychainUsageDescription</key>
+	<string>This app uses secure storage to save your account information and preferences.</string>
 </dict>
 </plist>

@@ -41,10 +41,30 @@ class _InventoryScreenState extends State<InventoryScreen> {
       _selectedColor = widget.initialColorFilter;
     }
     
-    _loadInventory();
-    
-    // Load initial filter options
+    // Load initial filter options immediately
     _fetchFilterOptions();
+    
+    // Load inventory from cache/local first (offline-first strategy)
+    _loadInventoryOfflineFirst();
+    
+    // Sync fresh data in background
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _loadInventory(forceRefresh: true).catchError((e) {
+        debugPrint('Background inventory sync error: $e');
+      });
+    });
+  }
+  
+  Future<void> _loadInventoryOfflineFirst() async {
+    setState(() {
+      _futureInventory = widget.inventoryService.fetchInventory(
+        pageSize: 100,
+        searchQuery: _searchQuery.isNotEmpty ? _searchQuery : null,
+        type: _selectedType,
+        color: _selectedColor,
+        forceRefresh: false, // Use cache first
+      );
+    });
   }
   
   void _fetchFilterOptions() async {

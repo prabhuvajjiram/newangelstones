@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 
@@ -31,39 +33,72 @@ class _WebViewScreenState extends State<WebViewScreen> {
     super.initState();
     _currentUrl = widget.url;
     
-    _controller = WebViewController()
+    // Platform-specific initialization to disable ORB
+    late final PlatformWebViewControllerCreationParams params;
+    if (WebViewPlatform.instance is WebKitWebViewPlatform) {
+      params = WebKitWebViewControllerCreationParams(
+        allowsInlineMediaPlayback: true,
+        mediaTypesRequiringUserAction: const <PlaybackMediaTypes>{},
+      );
+    } else if (WebViewPlatform.instance is AndroidWebViewPlatform) {
+      params = AndroidWebViewControllerCreationParams();
+    } else {
+      params = const PlatformWebViewControllerCreationParams();
+    }
+    
+    _controller = WebViewController.fromPlatformCreationParams(params)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.white)
       ..enableZoom(true)
-      // Enhanced settings for stability
+      // Use Chrome user agent to avoid platform-specific issues
       ..setUserAgent('Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36')
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (String url) {
-            setState(() {
-              _isLoading = true;
-              _currentUrl = url;
-            });
+            debugPrint('📄 Page started loading: $url');
+            if (mounted) {
+              setState(() {
+                _isLoading = true;
+                _currentUrl = url;
+              });
+            }
           },
           onPageFinished: (String url) async {
-            setState(() {
-              _isLoading = false;
-              _currentUrl = url;
-            });
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+                _currentUrl = url;
+              });
+            }
+            
+            // Log successful page load
+            debugPrint('✅ Page loaded successfully: $url');
             
             // Update navigation state
             final canGoBack = await _controller.canGoBack();
             final canGoForward = await _controller.canGoForward();
-            setState(() {
-              _canGoBack = canGoBack;
-              _canGoForward = canGoForward;
-            });
+            if (mounted) {
+              setState(() {
+                _canGoBack = canGoBack;
+                _canGoForward = canGoForward;
+              });
+            }
           },
           onWebResourceError: (WebResourceError error) {
-            debugPrint('❌ WebView error: ${error.description} (code: ${error.errorCode})');
-            setState(() {
-              _isLoading = false;
-            });
+            debugPrint('❌ WebView error: ${error.description} (code: ${error.errorCode}, type: ${error.errorType})');
+            
+            // Ignore ORB errors - they're security restrictions that don't prevent page rendering
+            if (error.description.contains('ERR_BLOCKED_BY_ORB') ||
+                error.description.contains('BLOCKED_BY_ORB')) {
+              debugPrint('🔒 ORB error detected - ignoring (security restriction)');
+              return;
+            }
+            
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+            }
             
             // Only show error for critical failures (not for images, scripts, etc.)
             if (error.errorType == WebResourceErrorType.unknown ||
@@ -96,8 +131,33 @@ class _WebViewScreenState extends State<WebViewScreen> {
             return NavigationDecision.navigate;
           },
         ),
-      )
-      ..loadRequest(Uri.parse(widget.url));
+      );
+    
+    // Load the URL - errors will be caught in error handler
+    _controller.loadRequest(
+      Uri.parse(widget.url),
+      headers: {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+      },
+    );
+    
+    // Platform-specific configuration for Android
+    if (_controller.platform is AndroidWebViewController) {
+      AndroidWebViewController.enableDebugging(true);
+      (_controller.platform as AndroidWebViewController)
+        ..setMediaPlaybackRequiresUserGesture(false)
+        ..setGeolocationPermissionsPromptCallbacks(
+          onShowPrompt: (request) async {
+            return GeolocationPermissionsResponse(
+              allow: true,
+              retain: true,
+            );
+          },
+        );
+    }
   }
 
   Future<void> _openInBrowser() async {

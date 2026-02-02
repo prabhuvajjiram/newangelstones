@@ -22,5 +22,13 @@
     "image": "https://www.theangelstones.com/images/specials/thumbnails/Flyer-3.webp",
     "pdf": "https://www.theangelstones.com/images/specials/pdfs/Convention_special_Flyer.pdf",
     "label": "Special"
+  },
+  {
+    "id": "Special Designs Flyer_4",
+    "name": "Special Designs Flyer 4",
+    "description": "Special designs and custom options",
+    "image": "https://www.theangelstones.com/images/specials/thumbnails/Flyer-4.webp",
+    "pdf": "https://www.theangelstones.com/images/specials/pdfs/Special Designs Flyer_4.pdf",
+    "label": "Special"
   }
 ]

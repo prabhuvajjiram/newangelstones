@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:async';
 import '../models/product.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
@@ -16,6 +17,7 @@ import '../theme/app_theme.dart';
 import '../widgets/skeleton_loaders.dart';
 import '../utils/app_store_utils.dart';
 import '../utils/image_utils.dart';
+import '../services/image_sync_service.dart';
 
 class NavigationService {
   static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -63,22 +65,37 @@ class _HomeScreenState extends State<HomeScreen> {
     // Initialize hybrid assets and sync new images in background
     _initializeHybridAssets();
     
-    // Try to fetch featured products from server, fall back to local if needed
-    _futureFeatured = widget.apiService.fetchFeaturedProducts();
-    _futureInventorySummary =
-        widget.inventoryService.fetchInventory(pageSize: 1000);
-    _futureSpecials = widget.apiService.fetchSpecials();
+    // Load from local bundled assets immediately (offline-first strategy)
+    _futureFeatured = widget.apiService.loadLocalProducts('assets/featured_products.json');
+    _futureInventorySummary = widget.inventoryService.fetchInventory(pageSize: 1000);
+    _futureSpecials = widget.apiService.loadLocalProducts('assets/specials.json');
     _directoryService = widget.directoryService;
     
-    // Load promotions
-    _loadPromotions();
+    // Sync data in background with force refresh (non-blocking)
+    Future.delayed(const Duration(milliseconds: 300), () {
+      widget.apiService.fetchFeaturedProducts(forceRefresh: true).catchError((e) {
+        debugPrint('Background featured products sync error: $e');
+        return <Product>[];
+      });
+      widget.inventoryService.fetchInventory(pageSize: 1000, forceRefresh: true).catchError((e) {
+        debugPrint('Background inventory sync error: $e');
+        return <InventoryItem>[];
+      });
+      widget.apiService.fetchSpecials(forceRefresh: true).catchError((e) {
+        debugPrint('Background specials sync error: $e');
+        return <Product>[];
+      });
+    });
+    
+    // Load promotions in background
+    _loadPromotionsBackground();
     
     // Schedule review prompt to show after 5 seconds (regardless of screen)
     _scheduleReviewPrompt();
   }
 
-  /// Load promotions from server
-  Future<void> _loadPromotions() async {
+  /// Load promotions in background (non-blocking)
+  Future<void> _loadPromotionsBackground() async {
     try {
       final promotions = await _promotionService.fetchPromotions();
       if (mounted) {
@@ -146,15 +163,27 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _refreshData() async {
-    setState(() {
-      // Fetch featured products dynamically from server with force refresh
-      _futureFeatured = widget.apiService.fetchFeaturedProducts(forceRefresh: true);
-      // Fetch inventory summary from API
-      _futureInventorySummary =
-          widget.inventoryService.fetchInventory(pageSize: 1000, forceRefresh: true);
-      // Refresh specials
-      _futureSpecials = widget.apiService.fetchSpecials(forceRefresh: true);
-    });
+    // Sync images on refresh (non-blocking)
+    unawaited(
+      ImageSyncService(apiService: widget.apiService)
+          .syncAllImages()
+          .catchError((e) {
+            debugPrint('Image sync error during refresh: $e');
+            return null;
+          })
+    );
+    
+    if (mounted) {
+      setState(() {
+        // Fetch featured products dynamically from server with force refresh
+        _futureFeatured = widget.apiService.fetchFeaturedProducts(forceRefresh: true);
+        // Fetch inventory summary from API
+        _futureInventorySummary =
+            widget.inventoryService.fetchInventory(pageSize: 1000, forceRefresh: true);
+        // Refresh specials
+        _futureSpecials = widget.apiService.fetchSpecials(forceRefresh: true);
+      });
+    }
   }
 
   String _getErrorMessage(Object? error) {
