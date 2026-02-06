@@ -1,11 +1,15 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "com.angelgranites.app",
       "sha256_cert_fingerprints": [
-        "AA:EB:77:DF:EB:75:AC:53:B3:77:DC:05:F1:08:EA:62:9E:C8:2B:38:1D:40:89:A4:53:67:C4:6B:09:89:76:86"
+        "AA:EB:77:DF:EB:75:AC:53:B3:77:DC:05:F1:08:EA:62:9E:C8:2B:38:1D:40:89:A4:53:67:C4:6B:09:89:76:86",
+        "39:1C:30:B5:B8:94:6C:83:A3:D6:7C:FF:89:4D:0B:BD:2B:79:8C:34:E1:98:0A:DF:5C:85:C7:E0:FA:ED:17:1C"
       ]
     }
   }
