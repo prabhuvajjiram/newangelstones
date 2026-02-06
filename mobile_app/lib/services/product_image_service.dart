@@ -123,7 +123,7 @@ class ProductImageService {
             
             // Check if it's an image file (handle URLs with or without version parameters)
             final bool isImage = imageUrl != null && 
-                (imageUrl.contains('.jpg') || imageUrl.contains('.png') || imageUrl.contains('.jpeg'));
+                (imageUrl.contains('.jpg') || imageUrl.contains('.png') || imageUrl.contains('.jpeg') || imageUrl.contains('.webp') || imageUrl.contains('.gif'));
             
             if (isImage) {
               // Build full URL if it's a relative path

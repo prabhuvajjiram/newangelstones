@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:go_router/go_router.dart';
 import '../models/product_image.dart';
 import '../services/firebase_service.dart';
 import '../services/inventory_service.dart';
+import '../services/image_share_service.dart';
 
 class FullScreenImage extends StatefulWidget {
   final String imageUrl;
@@ -66,10 +66,20 @@ class _FullScreenImageState extends State<FullScreenImage> {
       'gallery_position': _currentIndex,
     });
 
-    await SharePlus.instance.share(ShareParams(
-      text: 'Check out this ${currentProduct.productCode.isNotEmpty ? currentProduct.productCode : 'design'} from Angel Granites!\n\n${currentProduct.imageUrl}',
-      subject: 'Angel Granites - ${currentProduct.productCode}',
-    ));
+    final fileName = currentProduct.imageUrl.split('/').last.split('?').first;
+    
+    final success = await ImageShareService.shareImage(
+      imageUrl: currentProduct.imageUrl,
+      fileName: fileName,
+      productName: currentProduct.productCode.isNotEmpty ? currentProduct.productCode : 'Design',
+      productCode: currentProduct.productCode,
+    );
+    
+    if (!success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to share image')),
+      );
+    }
   }
 
   void _trackAnalyticsEvent(String eventName, Map<String, Object> parameters) {

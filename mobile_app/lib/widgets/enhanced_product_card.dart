@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../services/saved_items_service.dart';
+import '../services/image_share_service.dart';
 import 'skeleton_loaders.dart';
 
 class EnhancedProductCard extends StatefulWidget {
@@ -78,6 +79,43 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _shareProduct() async {
+    try {
+      final imageUrl = widget.product['imageUrl']?.toString() ?? '';
+      final productName = widget.product['name']?.toString() ?? '';
+      final productCode = widget.product['code']?.toString();
+      
+      if (imageUrl.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No image to share')),
+        );
+        return;
+      }
+      
+      // Extract filename from URL
+      final fileName = imageUrl.split('/').last.split('?').first;
+      
+      final success = await ImageShareService.shareImage(
+        imageUrl: imageUrl,
+        fileName: fileName,
+        productName: productName,
+        productCode: productCode,
+      );
+      
+      if (!success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to share image')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error sharing image')),
+        );
       }
     }
   }
@@ -187,9 +225,17 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                           color: _isSaved ? Theme.of(context).primaryColor : null,
                         ),
                         onPressed: _toggleSave,
+                        tooltip: 'Save for later',
                       ),
                     
-                    // Add to Cart Button
+                    // Share Button
+                    IconButton(
+                      icon: const Icon(Icons.share_outlined),
+                      onPressed: () => _shareProduct(),
+                      tooltip: 'Share image',
+                    ),
+                    
+                    // View Full Details Button
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {

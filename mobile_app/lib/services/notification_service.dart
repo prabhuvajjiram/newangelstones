@@ -61,14 +61,16 @@ class NotificationService {
       iOS: iosSettings,
     );
     
-    await _localNotifications.initialize(initSettings,
-        onDidReceiveNotificationResponse: (response) {
-      final payload = response.payload;
-      if (payload != null) {
-        debugPrint('📱 Notification tapped with payload: $payload');
-        // Handle deep linking or navigation here
-      }
-    });
+    await _localNotifications.initialize(
+      settings: initSettings,
+      onDidReceiveNotificationResponse: (response) {
+        final payload = response.payload;
+        if (payload != null) {
+          debugPrint('📱 Notification tapped with payload: $payload');
+          // Handle deep linking or navigation here
+        }
+      },
+    );
 
     // Handle foreground notifications
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -145,7 +147,12 @@ class NotificationService {
       priority: Priority.defaultPriority,
     );
     const NotificationDetails details = NotificationDetails(android: androidDetails);
-    await _localNotifications.show(0, payload.title, payload.body, details,
-        payload: payload.deepLink);
+    await _localNotifications.show(
+      id: 0,
+      title: payload.title,
+      body: payload.body,
+      notificationDetails: details,
+      payload: payload.deepLink,
+    );
   }
 }

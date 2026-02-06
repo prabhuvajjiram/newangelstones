@@ -19,6 +19,7 @@ class ApiService {
   final Map<String, CacheEntry<List<String>>> _categoryCache = {};
   CacheEntry<List<Product>>? _productCache;
   StorageService? _storageService;
+  Map<String, String> _colorAssetMapping = {};
   
   /// Initialize the API service with error handling and timeout
   Future<void> initialize() async {
@@ -29,6 +30,7 @@ class ApiService {
       await Future.wait([
         _preloadAsset('assets/featured_products.json'),
         _preloadAsset('assets/colors.json'),
+        _loadColorAssetMapping(),
       ]).timeout(
         const Duration(seconds: 10),
         onTimeout: () {
@@ -43,6 +45,23 @@ class ApiService {
       debugPrint('⚠️ ApiService initialization error: $e');
       // Mark as initialized anyway to prevent repeated init attempts
       _isInitialized = true;
+    }
+  }
+  
+  /// Load color-to-asset mapping from configuration file
+  Future<void> _loadColorAssetMapping() async {
+    try {
+      final mappingJson = await rootBundle.loadString('assets/color_asset_mapping.json');
+      final data = json.decode(mappingJson) as Map<String, dynamic>;
+      final mappings = data['colorAssetMappings'] as Map<String, dynamic>?;
+      
+      if (mappings != null) {
+        _colorAssetMapping = mappings.cast<String, String>();
+        debugPrint('✅ Loaded ${_colorAssetMapping.length} color-to-asset mappings');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error loading color asset mapping: $e');
+      // Continue without mappings - images will load from URLs
     }
   }
   
@@ -139,10 +158,13 @@ class ApiService {
     final bool isSearching = searchQuery != null && searchQuery.isNotEmpty;
     final String normalizedSearchQuery = isSearching ? searchQuery.toLowerCase() : '';
     
+    // Normalize category for consistent caching
+    final normalizedCategory = category.toLowerCase();
+    
     // Use cache if available and not searching
-    final cacheEntry = _productImageCache[category];
+    final cacheEntry = _productImageCache[normalizedCategory];
     if (!isSearching && cacheEntry != null && !cacheEntry.isExpired(_memoryCacheTTL)) {
-      debugPrint('📦 Using cached product images for category: $category');
+      debugPrint('📦 Using cached product images for category: $normalizedCategory');
       return cacheEntry.data;
     }
     
@@ -157,7 +179,7 @@ class ApiService {
       }
       
       // Otherwise fetch from network
-      final url = '${SecurityConfig.angelStonesBaseUrl}/get_directory_files.php?directory=products/${SecurityConfig.sanitizeInput(category)}';
+      final url = '${SecurityConfig.angelStonesBaseUrl}/get_directory_files.php?directory=products/${SecurityConfig.sanitizeInput(normalizedCategory)}';
       debugPrint('🌐 Fetching category images from: $url');
       
       final response = await _secureClient.secureGet(url);
@@ -167,10 +189,28 @@ class ApiService {
         final List<dynamic> files = jsonData['files'] as List<dynamic>? ?? [];
         productImages = files
             .whereType<Map<String, dynamic>>()
-            .map((e) => ProductImage(
-                  imageUrl: '${SecurityConfig.angelStonesBaseUrl}/${e['path'] ?? ''}',
-                  productCode: _extractProductCode((e['fullname'] ?? e['name'] ?? '') as String),
-                ))
+            .map((e) {
+              final path = (e['path'] ?? '') as String;
+              return ProductImage(
+                imageUrl: path.isNotEmpty ? '${SecurityConfig.angelStonesBaseUrl}/$path' : '',
+                productCode: _extractProductCode((e['fullname'] ?? e['name'] ?? '') as String),
+              );
+            })
+            .where((image) {
+              // Filter out images with empty URLs or invalid paths
+              final isValid = image.imageUrl.isNotEmpty && 
+                  !image.imageUrl.endsWith('/') &&
+                  image.productCode.isNotEmpty &&
+                  (image.imageUrl.contains('.jpg') || 
+                   image.imageUrl.contains('.jpeg') || 
+                   image.imageUrl.contains('.png') ||
+                   image.imageUrl.contains('.gif') ||
+                   image.imageUrl.contains('.webp'));
+              if (!isValid) {
+                debugPrint('⚠️ Skipping invalid image: ${image.imageUrl}');
+              }
+              return isValid;
+            })
             .toList();
             
         // Save product images as products to secure storage
@@ -202,8 +242,8 @@ class ApiService {
         }
         debugPrint('✅ Successfully loaded ${productImages.length} product images with codes');
         
-        // Cache the full results
-        _productImageCache[category] = CacheEntry(productImages);
+        // Cache the full results using normalized category key for consistency
+        _productImageCache[normalizedCategory] = CacheEntry(productImages);
         
         // If searching, filter the results
         if (isSearching) {
@@ -524,6 +564,38 @@ class ApiService {
           
           debugPrint('🏷️ Filtered to ${items.length} product categories');
           
+          // Fetch first image from each category to use as thumbnail (in parallel to avoid N+1)
+          final List<Map<String, dynamic>> productsWithImages = [];
+          final List<Future<void>> imageFutures = [];
+          
+          for (final item in items) {
+            if (item is Map<String, dynamic>) {
+              final categoryId = item['id'] as String;
+              imageFutures.add(
+                Future<void>(() async {
+                  try {
+                    // Fetch images for this category
+                    final categoryImages = await fetchProductImagesWithCodes(categoryId);
+                    if (categoryImages.isNotEmpty) {
+                      // Use first image as category thumbnail
+                      item['image'] = categoryImages.first.imageUrl;
+                      debugPrint('✅ Set thumbnail for $categoryId: ${item['image']}');
+                    } else {
+                      debugPrint('⚠️ No images found for category: $categoryId');
+                    }
+                  } catch (e) {
+                    debugPrint('⚠️ Error fetching images for category $categoryId: $e');
+                  }
+                })
+              );
+              productsWithImages.add(item);
+            }
+          }
+          
+          // Wait for all image fetches to complete in parallel
+          await Future.wait(imageFutures, eagerError: false);
+          items = productsWithImages;
+          
           debugPrint('💾 Converted ${items.length} directory files to featured products');
         }
         // Handle inventory API response format
@@ -666,6 +738,9 @@ class ApiService {
                 .toList();
                 
             debugPrint('✅ Using enhanced API schema data with ${serverProducts.length} products');
+            
+            // Apply bundled asset mappings to all colors
+            serverProducts = _applyColorAssetMappings(serverProducts);
           } else {
             // Legacy API format - build schema ourselves
             final List<dynamic> colorItems = data['colors'] as List;
@@ -743,6 +818,9 @@ class ApiService {
             serverProducts = itemListElements
                 .map((e) => Product.fromJson(e['item'] as Map<String, dynamic>))
                 .toList();
+            
+            // Apply bundled asset mappings to all colors
+            serverProducts = _applyColorAssetMappings(serverProducts);
           }
           
           // Update local JSON file with new data
@@ -768,6 +846,37 @@ class ApiService {
       _colorsCache = CacheEntry(localProducts);
       return localProducts;
     }
+  }
+  
+  /// Apply bundled asset mappings to color products
+  /// This ensures all colors load from bundled assets first, then fallback to URL
+  /// New colors without mappings will automatically load from API URLs
+  /// Returns a new list with mapped products (maintains immutability)
+  List<Product> _applyColorAssetMappings(List<Product> colors) {
+    int mappedCount = 0;
+    int unmappedCount = 0;
+    
+    final mappedColors = colors.map((color) {
+      // Skip colors with empty names
+      if (color.name.isEmpty) {
+        unmappedCount++;
+        return color;
+      }
+      
+      final assetPath = _colorAssetMapping[color.name];
+      if (assetPath != null && assetPath.isNotEmpty) {
+        mappedCount++;
+        debugPrint('✅ Mapped ${color.name} to $assetPath');
+        return color.copyWith(localImagePath: assetPath);
+      } else {
+        unmappedCount++;
+        debugPrint('ℹ️ No bundled asset for ${color.name} - will load from API URL');
+        return color;
+      }
+    }).toList();
+    
+    debugPrint('📊 Color mapping summary: $mappedCount bundled, $unmappedCount from API');
+    return mappedColors;
   }
 
   /// Fetch specials/flyer data from the server
@@ -883,5 +992,10 @@ class ApiService {
     if (_specialsCache != null && _specialsCache!.isExpired(_memoryCacheTTL)) {
       _specialsCache = null;
     }
+    
+    // Reload color asset mappings to pick up any updates
+    _loadColorAssetMapping().catchError((e) {
+      debugPrint('⚠️ Error reloading color asset mappings: $e');
+    });
   }
 }

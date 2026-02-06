@@ -20,6 +20,41 @@ class Product {
     this.localImagePath,
     this.category,
   });
+  
+  /// Create a copy of this product with optional field overrides
+  Product copyWith({
+    String? id,
+    String? name,
+    String? description,
+    String? imageUrl,
+    double? price,
+    String? label,
+    String? pdfUrl,
+    String? localImagePath,
+    String? category,
+  }) {
+    return Product(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      imageUrl: imageUrl ?? this.imageUrl,
+      price: price ?? this.price,
+      label: label ?? this.label,
+      pdfUrl: pdfUrl ?? this.pdfUrl,
+      localImagePath: localImagePath ?? this.localImagePath,
+      category: category ?? this.category,
+    );
+  }
+  
+  /// Get the best available image path (local first, fallback to URL)
+  String getImagePath() {
+    // Prefer local path if available
+    if (localImagePath != null && localImagePath!.isNotEmpty) {
+      return localImagePath!;
+    }
+    // Fallback to URL
+    return imageUrl;
+  }
 
   factory Product.fromJson(Map<String, dynamic> json) {
     final Map<String, dynamic> data =
@@ -38,27 +73,45 @@ class Product {
       imageUrl = imageField;
     }
 
-    final priceField =
-        (data['offers'] is Map) ? (data['offers']['price']) : data['price'];
+    // Extract price from either offers.price or price field
+    dynamic priceField;
+    if (data['offers'] is Map<String, dynamic>) {
+      priceField = (data['offers'] as Map<String, dynamic>)['price'];
+    } else {
+      priceField = data['price'];
+    }
+    
+    // Parse price safely, defaulting to 0.0 if missing or invalid
+    double price = 0.0;
+    if (priceField != null) {
+      final parsed = double.tryParse(priceField.toString());
+      if (parsed != null && parsed >= 0) {
+        price = parsed;
+      }
+    }
 
     String? label;
+    String? category;
+    
     if (data['label'] != null) {
       label = data['label'].toString();
     } else if (data['category'] is List && (data['category'] as List).isNotEmpty) {
       label = (data['category'] as List).first.toString();
+      // Extract category from list for category field
+      category = label;
     } else if (data['category'] is String) {
       label = data['category'] as String;
+      category = label;
     }
 
     final localImagePath = data['localImagePath']?.toString();
-    final category = data['category'] is String ? data['category'] as String : null;
 
     return Product(
       id: (data['sku'] ?? data['id'] ?? '').toString(),
       name: (data['name'] ?? '') as String,
       description: (data['description'] ?? '') as String,
       imageUrl: imageUrl,
-      price: double.tryParse(priceField?.toString() ?? '') ?? 0.0,
+      price: price,
       label: label,
       pdfUrl: data['pdf']?.toString(),
       localImagePath: localImagePath,

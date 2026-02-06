@@ -42,9 +42,6 @@ post_install do |installer|
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
       
-      # Enable dSYM generation for all configurations
-      config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
-      
       # Disable code signing for resource bundles
       if config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] != nil && config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'].end_with?('.bundle')
         config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
@@ -58,9 +55,6 @@ post_install do |installer|
       if config.build_settings['HEADER_SEARCH_PATHS']
         config.build_settings['SYSTEM_HEADER_SEARCH_PATHS'] = config.build_settings['HEADER_SEARCH_PATHS']
       end
-      
-      # Disable warnings for user script sandboxes
-      config.build_settings['USER_SCRIPT_SANDBOXING'] = 'NO'
     end
   end
   

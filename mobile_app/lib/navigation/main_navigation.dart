@@ -7,6 +7,7 @@ import '../screens/home_screen.dart';
 import '../screens/colors_screen.dart';
 import '../screens/inventory_screen.dart';
 import '../screens/contact_screen.dart';
+import '../screens/webview_screen.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import '../services/inventory_service.dart';
@@ -17,6 +18,7 @@ import '../widgets/cart_icon.dart';
 import '../widgets/edge_to_edge_wrapper.dart';
 import '../theme/app_theme.dart';
 import '../widgets/splash_screen.dart';
+import '../config/security_config.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({
@@ -85,11 +87,11 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
   Future<void> _initializeServices() async {
     debugPrint('🚀 Starting service initialization...');
     
-    // Show custom splash for minimum 5 seconds to ensure visibility
-    final splashTimer = Future<void>.delayed(const Duration(seconds: 5));
+    // Show custom splash for minimum 12 seconds to ensure visibility on slow WiFi
+    final splashTimer = Future<void>.delayed(const Duration(seconds: 12));
     
     // Fallback timer
-    Future<void>.delayed(const Duration(seconds: 10), () {
+    Future<void>.delayed(const Duration(seconds: 15), () {
       if (mounted && !_isInitialized) {
         debugPrint('⏰ Fallback timer triggered');
         setState(() => _isInitialized = true);
@@ -244,14 +246,14 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
           ),
           IconButton(
             icon: const Icon(Icons.person_outline, color: Color(0xFFFFD700)),
-            tooltip: 'Login',
+            tooltip: 'Customer Portal',
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Login coming soon'),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(8)),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => WebViewScreen(
+                    url: '${SecurityConfig.monumentBusinessBaseUrl}/GV/Account/Login',
+                    title: 'Customer Portal',
                   ),
                 ),
               );
