@@ -4,7 +4,7 @@
     "details": [
         {
           "appID": "U55GQ8Q98L.com.angelgranites.app",
-          "paths": [ "*" ]
+          "paths": [ "/app/*", "NOT /giveaway/*", "NOT /giveaway" ]
         }
       ]
   }

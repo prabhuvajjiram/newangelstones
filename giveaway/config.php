@@ -12,8 +12,8 @@ return [
     'charset' => 'utf8mb4',
   ],
 
-  // Event slug used by default (QR can add ?event=midatlantic-2026)
-  'default_event_slug' => 'midatlantic-2026',
+  // Event slug used by default (QR can add ?event=mbna-2026)
+  'default_event_slug' => 'mbna-2026',
 
   // Admin login for /giveaway/admin
   'admin' => [
