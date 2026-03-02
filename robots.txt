@@ -1,5 +1,5 @@
 # robots.txt for theangelstones.com
-# Last updated: 2025-01-30
+# Last updated: 2026-02-25
 
 User-agent: *
 
@@ -20,13 +20,18 @@ Disallow: /*/feed/
 Disallow: /*/feed/rss/$
 Disallow: /trackback/
 
-# Block search and filter pages
+# Block search and filter pages (specific patterns only — do NOT block all query strings)
 Disallow: /search/
 Disallow: /?s=
-Disallow: /*?*
+
+# Block admin and utility pages from indexing
+Disallow: /promotions.html
+Disallow: /clear-cache.php
+Disallow: /upgrademautic.php
 
 # Block error pages
 Disallow: /404.html
+Disallow: /500.html
 Disallow: /error/
 Disallow: /errors/
 
@@ -38,9 +43,6 @@ Disallow: /*.bak$
 Disallow: /*.old$
 Disallow: /*.swp$
 Disallow: /*.tmp$
-
-# Allow query-based and dynamic content for indexing
-Allow: /*?*
 
 # Allow important assets for page rendering
 Allow: /*.js$

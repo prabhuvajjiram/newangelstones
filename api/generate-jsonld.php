@@ -41,13 +41,7 @@ $jsonLd = [
                 'description' => $product['description'] ?? '',
                 'image' => $imageUrl,
                 'url' => 'https://www.theangelstones.com/colors/' . 
-                         strtolower(str_replace(' ', '-', $product['name'] ?? '')),
-                'offers' => [
-                    '@type' => 'Offer',
-                    'priceCurrency' => 'USD',
-                    'price' => '0',
-                    'availability' => 'https://schema.org/InStock'
-                ]
+                         strtolower(str_replace(' ', '-', $product['name'] ?? ''))
             ]
         ];
     }, $colors['itemListElement'] ?? [])

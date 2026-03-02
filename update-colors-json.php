@@ -260,14 +260,10 @@ foreach ($colorImages as $imagePath) {
                     'value' => 'Memorials, Monuments, Headstones'
                 ]
             ],
-            'offers' => [
-                '@type' => 'Offer',
-                'priceCurrency' => 'USD',
-                'price' => '0',
-                'priceValidUntil' => date('Y-m-d', strtotime('+1 year')),
-                'availability' => 'https://schema.org/InStock',
-                'url' => 'https://www.theangelstones.com/colors/' . $slug
-            ],
+            // NOTE: 'offers' block intentionally omitted.
+            // Granite monuments are custom-quoted, not fixed-price.
+            // price: "0" causes Google Rich Results Test failures and
+            // risks a manual penalty for misleading structured data.
             'brand' => [
                 '@type' => 'Brand',
                 'name' => 'Angel Stones',

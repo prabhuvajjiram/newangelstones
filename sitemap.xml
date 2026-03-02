@@ -1,567 +1,1009 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd">
   <url>
-    <loc>https://www.theangelstones.com</loc>
-    <lastmod>2025-07-12</lastmod>
+    <loc>https://www.theangelstones.com/</loc>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.theangelstones.com/about</loc>
-    <lastmod>2025-07-12</lastmod>
+    <loc>https://www.theangelstones.com/monuments/</loc>
+    <lastmod>2026-03-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.theangelstones.com/inventory/</loc>
+    <lastmod>2026-03-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.theangelstones.com/granite-colors/</loc>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.theangelstones.com/contact</loc>
-    <lastmod>2025-07-12</lastmod>
+    <loc>https://www.theangelstones.com/benches/</loc>
+    <lastmod>2026-03-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.theangelstones.com/designs/</loc>
+    <lastmod>2026-03-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.theangelstones.com/contact/</loc>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/gallery</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/colors</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.theangelstones.com/discovered.html</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.theangelstones.com/privacy-policy.html</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.theangelstones.com/terms-of-service.html</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.theangelstones.com/sms-terms.html</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.theangelstones.com/?category=mbna_2025</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-116.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-116</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-116 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-116.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-116</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-116 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-118M.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-118M</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-118M by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-118M.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-118M</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-118M by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-186-Paradiso.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-186-PARADISO</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-186-PARADISO by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-186-Paradiso.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-186-PARADISO</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-186-PARADISO by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/mbna_thumbnail.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — MBNA_THUMBNAIL</image:title>
+      <image:caption>MBNA 2025 Granite Monument MBNA_THUMBNAIL by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-957.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-957</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-957 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-957.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-957</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-957 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-956.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-956</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-956 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-956.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-956</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-956 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-954.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-954</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-954 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-954.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-954</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-954 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-955.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-955</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-955 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-955.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-955</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-955 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-951.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-951</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-951 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-951.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-951</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-951 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-950.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-950</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-950 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-950.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-950</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-950 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-952.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-952</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-952 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-946.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-946</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-946 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-946.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-946</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-946 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-952.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-952</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-952 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-953.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-953</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-953 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-947.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-947</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-947 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-947.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-947</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-947 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-953.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-953</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-953 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-396.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-396</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-396 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-396.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-396</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-396 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-949.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-949</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-949 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-961.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-961</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-961 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-949.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-949</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-949 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-961.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-961</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-961 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-960.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-960</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-960 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-948.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-948</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-948 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-960.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-960</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-960 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-948.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-948</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-948 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-186.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-186</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-186 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-186.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-186</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-186 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-958.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-958</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-958 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-958.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-958</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-958 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-959.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-959</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-959 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-959.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-959</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-959 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-193.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-193</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-193 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-193.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-193</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-193 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-543.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-543</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-543 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-543.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-543</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-543 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-907.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-907</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-907 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-907.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-907</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-907 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-253.png</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-253</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-253 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/MBNA_2025/AG-253.jpg</image:loc>
+      <image:title>MBNA 2025 Granite Monument — AG-253</image:title>
+      <image:caption>MBNA 2025 Granite Monument AG-253 by Angel Granites</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/?category=monuments</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-539.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-539</image:title>
+      <image:caption>Custom Granite Monument AG-539 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-880A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-880A</image:title>
+      <image:caption>Custom Granite Monument AG-880A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-642A.png</image:loc>
+      <image:title>Custom Granite Monument — AG-642A</image:title>
+      <image:caption>Custom Granite Monument AG-642A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-623A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-623A</image:title>
+      <image:caption>Custom Granite Monument AG-623A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-727A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-727A</image:title>
+      <image:caption>Custom Granite Monument AG-727A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AS-643A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AS-643A</image:title>
+      <image:caption>Custom Granite Monument AS-643A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-530 Black.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-530 BLACK</image:title>
+      <image:caption>Custom Granite Monument AG-530 BLACK by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AS-670.jpg</image:loc>
+      <image:title>Custom Granite Monument — AS-670</image:title>
+      <image:caption>Custom Granite Monument AS-670 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AS-612-2.jpg</image:loc>
+      <image:title>Custom Granite Monument — AS-612-2</image:title>
+      <image:caption>Custom Granite Monument AS-612-2 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AS-642A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AS-642A</image:title>
+      <image:caption>Custom Granite Monument AS-642A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AS-513.jpg</image:loc>
+      <image:title>Custom Granite Monument — AS-513</image:title>
+      <image:caption>Custom Granite Monument AS-513 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/granite-monuments-project02.jpg</image:loc>
+      <image:title>Custom Granite Monument — GRANITE-MONUMENTS-PROJECT02</image:title>
+      <image:caption>Custom Granite Monument GRANITE-MONUMENTS-PROJECT02 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-918.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-918</image:title>
+      <image:caption>Custom Granite Monument AG-918 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/DF-32 Bahama Blue.jpg</image:loc>
+      <image:title>Custom Granite Monument — DF-32 BAHAMA BLUE</image:title>
+      <image:caption>Custom Granite Monument DF-32 BAHAMA BLUE by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-758.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-758</image:title>
+      <image:caption>Custom Granite Monument AG-758 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-849A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-849A</image:title>
+      <image:caption>Custom Granite Monument AG-849A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/DF-32 Coral Grey.jpg</image:loc>
+      <image:title>Custom Granite Monument — DF-32 CORAL GREY</image:title>
+      <image:caption>Custom Granite Monument DF-32 CORAL GREY by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-865A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-865A</image:title>
+      <image:caption>Custom Granite Monument AG-865A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-804A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-804A</image:title>
+      <image:caption>Custom Granite Monument AG-804A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-557A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-557A</image:title>
+      <image:caption>Custom Granite Monument AG-557A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-869A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-869A</image:title>
+      <image:caption>Custom Granite Monument AG-869A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/granite-monuments.jpg</image:loc>
+      <image:title>Custom Granite Monument — GRANITE-MONUMENTS</image:title>
+      <image:caption>Custom Granite Monument GRANITE-MONUMENTS by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-561.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-561</image:title>
+      <image:caption>Custom Granite Monument AG-561 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AS-612.jpg</image:loc>
+      <image:title>Custom Granite Monument — AS-612</image:title>
+      <image:caption>Custom Granite Monument AS-612 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-628A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-628A</image:title>
+      <image:caption>Custom Granite Monument AG-628A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AS-570.jpg</image:loc>
+      <image:title>Custom Granite Monument — AS-570</image:title>
+      <image:caption>Custom Granite Monument AS-570 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-798A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-798A</image:title>
+      <image:caption>Custom Granite Monument AG-798A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-809A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-809A</image:title>
+      <image:caption>Custom Granite Monument AG-809A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-396.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-396</image:title>
+      <image:caption>Custom Granite Monument AG-396 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-547.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-547</image:title>
+      <image:caption>Custom Granite Monument AG-547 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-774A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-774A</image:title>
+      <image:caption>Custom Granite Monument AG-774A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-631A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-631A</image:title>
+      <image:caption>Custom Granite Monument AG-631A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-627A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-627A</image:title>
+      <image:caption>Custom Granite Monument AG-627A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-535A Black.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-535A BLACK</image:title>
+      <image:caption>Custom Granite Monument AG-535A BLACK by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-557A-2.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-557A-2</image:title>
+      <image:caption>Custom Granite Monument AG-557A-2 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AS-535A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AS-535A</image:title>
+      <image:caption>Custom Granite Monument AS-535A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-544.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-544</image:title>
+      <image:caption>Custom Granite Monument AG-544 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-550.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-550</image:title>
+      <image:caption>Custom Granite Monument AG-550 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AS-535A.png</image:loc>
+      <image:title>Custom Granite Monument — AS-535A</image:title>
+      <image:caption>Custom Granite Monument AS-535A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-627.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-627</image:title>
+      <image:caption>Custom Granite Monument AG-627 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/DF-32 Black.jpg</image:loc>
+      <image:title>Custom Granite Monument — DF-32 BLACK</image:title>
+      <image:caption>Custom Granite Monument DF-32 BLACK by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-851A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-851A</image:title>
+      <image:caption>Custom Granite Monument AG-851A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AS-758-2.jpg</image:loc>
+      <image:title>Custom Granite Monument — AS-758-2</image:title>
+      <image:caption>Custom Granite Monument AS-758-2 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/DF-32 India Red.jpg</image:loc>
+      <image:title>Custom Granite Monument — DF-32 INDIA RED</image:title>
+      <image:caption>Custom Granite Monument DF-32 INDIA RED by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-233.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-233</image:title>
+      <image:caption>Custom Granite Monument AG-233 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AS-430.jpg</image:loc>
+      <image:title>Custom Granite Monument — AS-430</image:title>
+      <image:caption>Custom Granite Monument AS-430 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-430 Black.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-430 BLACK</image:title>
+      <image:caption>Custom Granite Monument AG-430 BLACK by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AS-356.jpg</image:loc>
+      <image:title>Custom Granite Monument — AS-356</image:title>
+      <image:caption>Custom Granite Monument AS-356 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-699A-BB.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-699A-BB</image:title>
+      <image:caption>Custom Granite Monument AG-699A-BB by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-647A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-647A</image:title>
+      <image:caption>Custom Granite Monument AG-647A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-233-Sanfransisco Green.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-233-SANFRANSISCO GREEN</image:title>
+      <image:caption>Custom Granite Monument AG-233-SANFRANSISCO GREEN by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AS-814.jpg</image:loc>
+      <image:title>Custom Granite Monument — AS-814</image:title>
+      <image:caption>Custom Granite Monument AS-814 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AS-196.jpg</image:loc>
+      <image:title>Custom Granite Monument — AS-196</image:title>
+      <image:caption>Custom Granite Monument AS-196 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AS-758-3.jpg</image:loc>
+      <image:title>Custom Granite Monument — AS-758-3</image:title>
+      <image:caption>Custom Granite Monument AS-758-3 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AS-551.jpg</image:loc>
+      <image:title>Custom Granite Monument — AS-551</image:title>
+      <image:caption>Custom Granite Monument AS-551 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-525 Premium Jet Black.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-525 PREMIUM JET BLACK</image:title>
+      <image:caption>Custom Granite Monument AG-525 PREMIUM JET BLACK by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-775A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-775A</image:title>
+      <image:caption>Custom Granite Monument AG-775A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-631A-2.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-631A-2</image:title>
+      <image:caption>Custom Granite Monument AG-631A-2 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-876.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-876</image:title>
+      <image:caption>Custom Granite Monument AG-876 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-530 Bahama Blue.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-530 BAHAMA BLUE</image:title>
+      <image:caption>Custom Granite Monument AG-530 BAHAMA BLUE by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/basketball2.jpg</image:loc>
+      <image:title>Custom Granite Monument — BASKETBALL2</image:title>
+      <image:caption>Custom Granite Monument BASKETBALL2 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-849A-2.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-849A-2</image:title>
+      <image:caption>Custom Granite Monument AG-849A-2 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-837A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-837A</image:title>
+      <image:caption>Custom Granite Monument AG-837A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-872.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-872</image:title>
+      <image:caption>Custom Granite Monument AG-872 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AS-530.jpg</image:loc>
+      <image:title>Custom Granite Monument — AS-530</image:title>
+      <image:caption>Custom Granite Monument AS-530 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/tree1.jpg</image:loc>
+      <image:title>Custom Granite Monument — TREE1</image:title>
+      <image:caption>Custom Granite Monument TREE1 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AG-801A.jpg</image:loc>
+      <image:title>Custom Granite Monument — AG-801A</image:title>
+      <image:caption>Custom Granite Monument AG-801A by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/Black pearl.jpeg</image:loc>
+      <image:title>Custom Granite Monument — BLACK PEARL</image:title>
+      <image:caption>Custom Granite Monument BLACK PEARL by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AS-525.png</image:loc>
+      <image:title>Custom Granite Monument — AS-525</image:title>
+      <image:caption>Custom Granite Monument AS-525 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Monuments/AS-531.jpg</image:loc>
+      <image:title>Custom Granite Monument — AS-531</image:title>
+      <image:caption>Custom Granite Monument AS-531 by Angel Granites</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/?category=columbarium</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/columbarium/CM-2V-3.jpg</image:loc>
+      <image:title>Granite Columbarium Unit — CM-2V-3</image:title>
+      <image:caption>Granite Columbarium Unit CM-2V-3 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/columbarium/customized-designs-project03.png</image:loc>
+      <image:title>Granite Columbarium Unit — CUSTOMIZED-DESIGNS-PROJECT03</image:title>
+      <image:caption>Granite Columbarium Unit CUSTOMIZED-DESIGNS-PROJECT03 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/columbarium/customized-designs-project03.jpg</image:loc>
+      <image:title>Granite Columbarium Unit — CUSTOMIZED-DESIGNS-PROJECT03</image:title>
+      <image:caption>Granite Columbarium Unit CUSTOMIZED-DESIGNS-PROJECT03 by Angel Granites</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/?category=designs</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Designs/chess.jpg</image:loc>
+      <image:title>Custom Granite Design — CHESS</image:title>
+      <image:caption>Custom Granite Design CHESS by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Designs/Vases-3.jpg</image:loc>
+      <image:title>Custom Granite Design — VASES-3</image:title>
+      <image:caption>Custom Granite Design VASES-3 by Angel Granites</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/?category=benches</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Benches/main-slider04.jpg</image:loc>
+      <image:title>Granite Memorial Bench — MAIN-SLIDER04</image:title>
+      <image:caption>Granite Memorial Bench MAIN-SLIDER04 by Angel Granites</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/products/Benches/Founain2.png</image:loc>
+      <image:title>Granite Memorial Bench — FOUNAIN2</image:title>
+      <image:caption>Granite Memorial Bench FOUNAIN2 by Angel Granites</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors/bahama-blue-granite</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/Bahama-Blue.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/Bahama-Blue.jpg</image:loc>
+      <image:title>Bahama Blue Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Bahama Blue Granite Color Sample</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors/baltic-green-granite</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/Baltic Green.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/Baltic Green.jpg</image:loc>
+      <image:title>Baltic Green Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Baltic Green Granite Color Sample</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors/dark-barre-gray-granite</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/Dark Barre Gray.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/Dark Barre Gray.jpg</image:loc>
+      <image:title>Dark Barre Gray Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Dark Barre Gray Granite Color Sample</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors/forest-green-granite</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/Forest Green.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/Forest Green.jpg</image:loc>
+      <image:title>Forest Green Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Forest Green Granite Color Sample</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors/georgia-gray-granite</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/Georgia Gray.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/Georgia Gray.jpg</image:loc>
+      <image:title>Georgia Gray Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Georgia Gray Granite Color Sample</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors/green-breeze-granite</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/Green Breeze.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/Green Breeze.jpg</image:loc>
+      <image:title>Green Breeze Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Green Breeze Granite Color Sample</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors/green-dream-granite</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/Green Dream.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/Green Dream.jpg</image:loc>
+      <image:title>Green Dream Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Green Dream Granite Color Sample</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors/green-pearl-granite</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/Green Pearl.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/Green Pearl.jpg</image:loc>
+      <image:title>Green Pearl Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Green Pearl Granite Color Sample</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors/green-wave-quartzite</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/Green Wave Quartzite.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/Green Wave Quartzite.jpg</image:loc>
+      <image:title>Green Wave Quartzite - Premium Granite Monument Color</image:title>
+      <image:caption>Green Wave Quartzite Color Sample</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors/imperial-green-granite</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/Imperial Green.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/Imperial Green.jpg</image:loc>
+      <image:title>Imperial Green Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Imperial Green Granite Color Sample</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors/jet-black-granite</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/Jet-Black.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/Jet-Black.jpg</image:loc>
+      <image:title>Jet Black Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Jet Black Granite Color Sample</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors/medium-barre-gray-granite</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/Medium Barre Gray.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/Medium Barre Gray.jpg</image:loc>
+      <image:title>Medium Barre Gray Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Medium Barre Gray Granite Color Sample</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors/nh-red-granite</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/NH-Red.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/NH-Red.jpg</image:loc>
+      <image:title>NH Red Granite - Premium Granite Monument Color</image:title>
+      <image:caption>NH Red Granite Color Sample</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors/olive-green-granite</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/Olive Green.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/Olive Green.jpg</image:loc>
+      <image:title>Olive Green Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Olive Green Granite Color Sample</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors/granite</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/Oriental Green.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/Pacific Gray.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/Queens Green.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/Rain Forest Green.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/Rustic Brown.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/Sanfrancisco Green.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/Oriental Green.jpg</image:loc>
+      <image:title>Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Granite Color Sample</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/Pacific Gray.jpg</image:loc>
+      <image:title>Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Granite Color Sample</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/Queens Green.jpg</image:loc>
+      <image:title>Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Granite Color Sample</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/Rain Forest Green.jpg</image:loc>
+      <image:title>Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Granite Color Sample</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/Rustic Brown.jpg</image:loc>
+      <image:title>Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Granite Color Sample</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/Sanfrancisco Green.jpg</image:loc>
+      <image:title>Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Granite Color Sample</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/aurora.jpg</image:loc>
+      <image:title>Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Granite Color Sample</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/galaxy.jpg</image:loc>
+      <image:title>Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Granite Color Sample</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/green.jpg</image:loc>
+      <image:title>Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Granite Color Sample</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/indian-black.jpg</image:loc>
+      <image:title>Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Granite Color Sample</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/white-and-red.jpg</image:loc>
+      <image:title>Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Granite Color Sample</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors/tropical-green-granite</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/Tropical Green.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/aurora.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/Tropical Green.jpg</image:loc>
+      <image:title>Tropical Green Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Tropical Green Granite Color Sample</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors/blue-pearl-granite</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/bluepearl.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/galaxy.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/green.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/bluepearl.jpg</image:loc>
+      <image:title>Blue Pearl Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Blue Pearl Granite Color Sample</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors/himalayan-blue-granite</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/himalayan-blue.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/indian-black.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/himalayan-blue.jpg</image:loc>
+      <image:title>Himalayan Blue Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Himalayan Blue Granite Color Sample</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors/paradiso-granite</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/paradiso.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/paradiso.jpg</image:loc>
+      <image:title>Paradiso Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Paradiso Granite Color Sample</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.theangelstones.com/colors/vizag-blue-granite</loc>
-    <lastmod>2025-07-12</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/vizag-blue.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/white-and-red.jpg</loc>
-    <lastmod>2025-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/bahama-blue</loc>
-    <lastmod>2025-04-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/baltic-green</loc>
-    <lastmod>2025-06-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/dark-barre-gray</loc>
-    <lastmod>2025-06-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/forest-green</loc>
-    <lastmod>2025-06-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/georgia-gray</loc>
-    <lastmod>2025-06-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/green-breeze</loc>
-    <lastmod>2025-06-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/green-dream</loc>
-    <lastmod>2025-06-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/green-pearl</loc>
-    <lastmod>2025-06-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/green-wave-quartzite</loc>
-    <lastmod>2025-06-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/imperial-green</loc>
-    <lastmod>2025-06-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/jet-black</loc>
-    <lastmod>2025-04-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/medium-barre-gray</loc>
-    <lastmod>2025-06-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/nh-red</loc>
-    <lastmod>2025-04-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/olive-green</loc>
-    <lastmod>2025-06-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/oriental-green</loc>
-    <lastmod>2025-06-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/pacific-gray</loc>
-    <lastmod>2025-06-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/queens-green</loc>
-    <lastmod>2025-06-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/rain-forest-green</loc>
-    <lastmod>2025-06-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/rustic-brown</loc>
-    <lastmod>2025-06-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/sanfrancisco-green</loc>
-    <lastmod>2025-06-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/tropical-green</loc>
-    <lastmod>2025-06-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/aurora</loc>
-    <lastmod>2024-11-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/blue-pearl</loc>
-    <lastmod>2024-11-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/black-galaxy</loc>
-    <lastmod>2024-11-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/green</loc>
-    <lastmod>2024-11-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/himalayan-blue</loc>
-    <lastmod>2024-11-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/indian-black</loc>
-    <lastmod>2024-11-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/paradiso</loc>
-    <lastmod>2024-11-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/vizag-blue</loc>
-    <lastmod>2024-11-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.theangelstones.com/images/colors/white-red</loc>
-    <lastmod>2024-11-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.theangelstones.com/images/colors/vizag-blue.jpg</image:loc>
+      <image:title>Vizag Blue Granite - Premium Granite Monument Color</image:title>
+      <image:caption>Vizag Blue Granite Color Sample</image:caption>
+    </image:image>
   </url>
 </urlset>
