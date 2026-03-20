@@ -1229,7 +1229,7 @@
                         <div class="col-md-6 mb-5">
                             <h2 class="section-contitle">Feel free to write</h2>
                             <p>We would like to hear from you</p>
-                            <form id="contactForm" class="contact__form" action="https://theangelstones.com/mautic/form/submit?formId=1" method="post" autocomplete="false" role="form">
+                            <form id="contactForm" class="contact__form" action="/contact-submit.php" method="post" autocomplete="false" role="form">
                                 <input type="hidden" name="mauticform[formId]" value="1" />
                                 <input type="hidden" name="mauticform[return]" value="" />
                                 <input type="hidden" name="mauticform[formName]" value="contact_us" />
@@ -1259,6 +1259,9 @@
                                     </div>
                                     <div class="col-md-12">
                                         <div id="form-messages" class="mt-3" aria-live="polite"></div>
+                                    </div>
+                                    <div class="col-md-12 mt-2">
+                                        <div class="cf-turnstile" data-sitekey="0x4AAAAAACt2E8Px0M9iEK9G"></div>
                                     </div>
                                     <div class="col-md-12 mt-2">
                                         <button type="submit" id="form-submit" class="contact-submit-btn">
@@ -1363,6 +1366,13 @@
                                         return false;
                                     }
 
+                                    // Verify Turnstile was completed
+                                    const turnstileToken = form.querySelector('[name="cf-turnstile-response"]')?.value;
+                                    if (!turnstileToken) {
+                                        showMessage('Please complete the security check before submitting.', 'danger');
+                                        return false;
+                                    }
+
                                     if (formMessages) {
                                         formMessages.innerHTML = '';
                                     }
@@ -1385,19 +1395,16 @@
                                         method: 'POST',
                                         body: formData
                                     })
-                                    .then(response => {
-                                        // Check if the response is ok (status 200-299)
-                                        if (response.ok) {
-                                            return response.text();
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            showMessage(data.message, 'success');
+                                            form.reset();
+                                            if (typeof turnstile !== 'undefined') turnstile.reset();
                                         } else {
-                                            throw new Error('Network response was not ok');
+                                            showMessage(data.message || 'An error occurred. Please try again.', 'danger');
+                                            if (typeof turnstile !== 'undefined') turnstile.reset();
                                         }
-                                    })
-                                    .then(responseText => {
-                                        // Mautic typically returns HTML or redirects on success
-                                        // If we get here without an error, consider it successful
-                                        showMessage('Thank you for your message! We will get back to you soon.', 'success');
-                                        form.reset();
                                     })
                                     .catch(error => {
                                         console.error('Error:', error);
@@ -2690,5 +2697,6 @@
 
     <!-- Bing UET Tag -->
     <script>(function(w,d,t,r,u){var f,n,i;w[u]=w[u]||[],f=function(){var o={ti:"187201759", enableAutoSpaTracking: true};o.q=w[u],w[u]=new UET(o),w[u].push("pageLoad")},n=d.createElement(t),n.src=r,n.async=1,n.onload=n.onreadystatechange=function(){var s=this.readyState;s&&s!=="loaded"&&s!=="complete"||(f(),n.onload=n.onreadystatechange=null)},i=d.getElementsByTagName(t)[0],i.parentNode.insertBefore(n,i)})(window,document,"script","//bat.bing.com/bat.js","uetq");</script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </body>
 </html>

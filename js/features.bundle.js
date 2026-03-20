@@ -3756,7 +3756,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             .color-grid-name {
-                color: #333;
+                color: #fff;
                 font-weight: 500;
                 white-space: nowrap;
                 overflow: hidden;
