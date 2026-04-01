@@ -1,6 +1,6 @@
 name: angel_granites_app
 description: Mobile app for Angel Granites.
-version: 4.0.0+31 # versionName + versionCode
+version: 4.1.0+32 # versionName + versionCode
 
 
 environment:
@@ -38,8 +38,8 @@ dependencies:
   firebase_analytics: ^12.0.2
   firebase_messaging: ^16.0.2
   firebase_crashlytics: ^5.0.2
-  flutter_local_notifications: ^20.0.0
-  timezone: ^0.10.1
+  flutter_local_notifications: ^21.0.0
+  timezone: ^0.11.0
 
   collection: any
   map_launcher: ^4.0.0
@@ -56,6 +56,12 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0  # Latest stable version
   flutter_launcher_icons: ^0.14.4
+
+dependency_overrides:
+  # path_provider_foundation 2.6.0 switched to an Objective-C FFI framework
+  # that is being archived without a matching dSYM in this project/Xcode setup.
+  # Pinning to 2.5.1 restores the plugin-based iOS implementation.
+  path_provider_foundation: 2.5.1
 
 flutter_launcher_icons:
   android: true
@@ -97,6 +103,11 @@ flutter:
     - assets/colors/
     - assets/pdfs/specials/
     - assets/products/
+    - assets/products/benches/
+    - assets/products/monuments/
+    - assets/products/designs/
+    - assets/products/MBNA_2025/
+    - assets/products/columbarium/
     - assets/icon/
     - assets/logo.png
     - assets/featured_products.json

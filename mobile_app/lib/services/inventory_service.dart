@@ -145,47 +145,6 @@ class InventoryService {
     }
   }
   
-  /// Test API connection without blocking app startup
-  Future<void> _testApiConnection() async {
-    try {
-      final baseUrl = await _getBaseUrl();
-      final apiKey = await _getApiKey();
-      final orgId = await _getOrgId();
-      final uri = Uri.parse('$baseUrl/Api/Inventory/GetAllStock');
-      
-      final requestBody = json.encode({
-        'orgid': orgId,
-        'hasdesc': false,
-        'description': '',
-        'ptype': '',
-        'pcolor': '',
-        'pdesign': '',
-        'pfinish': '',
-        'psize': '',
-        'locid': '',
-        'page': 1,
-        'pagesize': 10
-      });
-      
-      final response = await http.post(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': apiKey,
-        },
-        body: requestBody,
-      ).timeout(const Duration(seconds: 15));
-      
-      if (response.statusCode == 200) {
-        debugPrint('✅ Inventory API connection successful');
-      } else {
-        debugPrint('⚠️ Inventory API returned status code: ${response.statusCode}');
-      }
-    } catch (e) {
-      debugPrint('⚠️ Inventory API connection test failed: $e');
-    }
-  }
-
   // Complete list of filter options based on the screenshot
   final List<String> _defaultTypes = [
     'All',

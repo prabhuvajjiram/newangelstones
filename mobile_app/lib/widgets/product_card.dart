@@ -22,7 +22,7 @@ class ProductCard extends StatelessWidget {
             child: Semantics(
               label: product.name,
               child: ImageUtils.buildImage(
-                imageUrl: product.imageUrl,
+                imageUrl: product.getImagePath(),
                 fit: BoxFit.cover,
                 errorWidget: const Icon(Icons.broken_image, size: 32),
               ),

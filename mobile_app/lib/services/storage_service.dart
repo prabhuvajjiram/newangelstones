@@ -9,7 +9,8 @@ class StorageService {
   static const _timestampKey = 'cached_products_timestamp';
   static const Duration ttl = Duration(hours: 24);
   bool _isInitialized = false;
-  
+  Completer<void>? _initCompleter;
+
   // Configure FlutterSecureStorage with platform-specific options
   final _storage = const FlutterSecureStorage(
     iOptions: IOSOptions(
@@ -17,56 +18,51 @@ class StorageService {
       synchronizable: false,
     ),
     aOptions: AndroidOptions(
-      encryptedSharedPreferences: true,
       resetOnError: true, // Auto-recover from encryption errors
     ),
   );
   
-  /// Initialize the storage service with error handling and timeout
+  /// Initialize the storage service with error handling and timeout.
+  /// Concurrent callers wait for the first in-progress call to complete.
   Future<void> initialize() async {
     if (_isInitialized) return;
-    
+    if (_initCompleter != null) {
+      return _initCompleter!.future;
+    }
+    _initCompleter = Completer<void>();
+
     try {
-      // Test FlutterSecureStorage access with timeout
+      // Test FlutterSecureStorage access with a single write+read.
+      // 5 s is generous but won't hang indefinitely on first launch.
       await _storage.write(key: 'init_test', value: 'ok')
-          .timeout(const Duration(seconds: 15), 
+          .timeout(const Duration(seconds: 5),
           onTimeout: () {
             throw TimeoutException('FlutterSecureStorage write timed out');
           });
-      
-      // Add delay for iOS/Android to ensure write is flushed
-      await Future.delayed(const Duration(milliseconds: 200));
-      
-      // Verify we can read
+
       final testValue = await _storage.read(key: 'init_test')
-          .timeout(const Duration(seconds: 15),
+          .timeout(const Duration(seconds: 5),
           onTimeout: () {
             throw TimeoutException('FlutterSecureStorage read timed out');
           });
-      
-      // On emulators, read might return null even after write succeeds
-      // This is a known issue - we'll consider it a success if write didn't throw
+
       if (testValue == null) {
         debugPrint('⚠️ FlutterSecureStorage read returned null (common on emulators)');
       } else if (testValue != 'ok') {
-        throw Exception('FlutterSecureStorage verification failed - got: $testValue');
+        throw Exception('FlutterSecureStorage verification failed: $testValue');
       }
-      
-      // Clean up test key
+
       try {
         await _storage.delete(key: 'init_test');
-      } catch (e) {
-        debugPrint('⚠️ Error deleting test key: $e');
-      }
-      
+      } catch (_) {}
+
       _isInitialized = true;
-      debugPrint('✅ Secure storage initialized successfully');
+      debugPrint('✅ Secure storage initialized');
+      _initCompleter!.complete();
     } catch (e) {
-      // Log detailed error for debugging
-      debugPrint('❌ Secure storage initialization failed: $e');
-      // Continue without storage - app will work with reduced functionality
+      debugPrint('❌ Secure storage init failed: $e — continuing in-memory only');
       _isInitialized = true;
-      debugPrint('⚠️ Continuing without secure storage - using in-memory cache only');
+      _initCompleter!.complete();
     }
   }
 

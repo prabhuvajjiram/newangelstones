@@ -4,8 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
-import '../models/product.dart';
 import 'api_service.dart';
+
+const Duration _syncCooldown = Duration(hours: 24);
 
 /// Service to sync and cache images locally for better performance
 class ImageSyncService {
@@ -17,29 +18,36 @@ class ImageSyncService {
   
   ImageSyncService({required ApiService apiService}) : _apiService = apiService;
   
-  /// Sync all images on app launch
-  /// Only downloads missing or updated images (not already in assets)
-  Future<void> syncAllImages() async {
-    // Prevent concurrent syncs using Completer for thread-safe locking
+  /// Sync all images on app launch.
+  /// Skipped if a successful sync ran within the last 24 hours unless [forceSync] is true.
+  Future<void> syncAllImages({bool forceSync = false}) async {
+    // Prevent concurrent syncs
     if (_syncCompleter != null && !_syncCompleter!.isCompleted) {
       debugPrint('⏭️ Image sync already in progress, skipping...');
       return;
     }
-    
+
+    // Throttle: skip if last sync was recent (bypassed by forceSync)
+    if (!forceSync && await _syncedRecently()) {
+      debugPrint('⏭️ Image sync skipped — synced within last 24 h');
+      return;
+    }
+
     _syncCompleter = Completer<void>();
-    
+
     try {
       debugPrint('🔄 Starting image sync...');
-      
+
       // Sync featured products images (only missing/new)
       await _syncFeaturedProductsImages();
-      
+
       // Sync category images (benches, monuments, columbarium, designs, etc.)
       await _syncCategoryImages();
-      
+
       // Sync color images
       await _syncColorImages();
-      
+
+      await _writeSyncTimestamp();
       debugPrint('✅ Image sync completed successfully');
       _syncCompleter!.complete();
     } catch (e) {
@@ -47,6 +55,34 @@ class ImageSyncService {
       if (!_syncCompleter!.isCompleted) {
         _syncCompleter!.completeError(e);
       }
+    }
+  }
+
+  Future<File> _syncTimestampFile() async {
+    final dir = await getApplicationDocumentsDirectory();
+    return File('${dir.path}/image_sync/.last_sync');
+  }
+
+  Future<bool> _syncedRecently() async {
+    try {
+      final file = await _syncTimestampFile();
+      if (!await file.exists()) return false;
+      final ms = int.tryParse(await file.readAsString()) ?? 0;
+      final last = DateTime.fromMillisecondsSinceEpoch(ms);
+      return DateTime.now().difference(last) < _syncCooldown;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _writeSyncTimestamp() async {
+    try {
+      final file = await _syncTimestampFile();
+      await file.parent.create(recursive: true);
+      await file.writeAsString(
+          DateTime.now().millisecondsSinceEpoch.toString());
+    } catch (e) {
+      debugPrint('⚠️ Could not write sync timestamp: $e');
     }
   }
   
@@ -79,7 +115,7 @@ class ImageSyncService {
   /// Sync featured product images
   Future<void> _syncFeaturedProductsImages() async {
     try {
-      debugPrint('� Syncing featured product images...');
+      debugPrint('[sync] Syncing featured product images...');
       
       final featuredProducts = await _apiService.fetchFeaturedProducts();
       final cacheDir = await _getCacheDirectory(_productsDir);

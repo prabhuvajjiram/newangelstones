@@ -14,11 +14,11 @@ Future<void> scheduleDaily(NotificationPayload payload, TimeOfDay time) async {
   const details = NotificationDetails(android: androidDetails);
 
   await _plugin.zonedSchedule(
-    0,
-    payload.title,
-    payload.body,
-    _nextInstanceOf(time),
-    details,
+    id: 0,
+    title: payload.title,
+    body: payload.body,
+    scheduledDate: _nextInstanceOf(time),
+    notificationDetails: details,
     androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     payload: payload.deepLink,
     matchDateTimeComponents: DateTimeComponents.time,

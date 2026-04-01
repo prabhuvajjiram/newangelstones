@@ -97,7 +97,7 @@ class _PromotionCarouselState extends State<PromotionCarousel> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -191,7 +191,7 @@ class _PromotionCarouselState extends State<PromotionCarousel> {
                         shape: BoxShape.circle,
                         color: _currentPage == index
                             ? Colors.white
-                            : Colors.white.withOpacity(0.4),
+                            : Colors.white.withValues(alpha: 0.4),
                       ),
                     ),
                   ),
@@ -203,7 +203,7 @@ class _PromotionCarouselState extends State<PromotionCarousel> {
               top: 8,
               right: 8,
               child: Material(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: 0.5),
                 shape: const CircleBorder(),
                 child: InkWell(
                   onTap: widget.onClose,

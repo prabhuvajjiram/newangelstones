@@ -721,11 +721,11 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
 
   Widget _buildProductTile(Product product) {
     return ListTile(
-      leading: product.imageUrl.isNotEmpty
+      leading: product.getImagePath().isNotEmpty
           ? ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: ImageUtils.buildImage(
-                imageUrl: product.imageUrl,
+                imageUrl: product.getImagePath(),
                 width: 50,
                 height: 50,
                 fit: BoxFit.cover,

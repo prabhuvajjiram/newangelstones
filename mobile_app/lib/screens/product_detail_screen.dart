@@ -94,7 +94,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       // Filter items that match the color using flexible matching
       final matchingItems = allItems.where((item) {
         final itemColor = _normalizeColorName(item.color);
-        final itemDesc = _normalizeColorName(item.description);
         final itemColorLower = item.color.toLowerCase();
         final itemDescLower = item.description.toLowerCase();
         
@@ -173,7 +172,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             Semantics(
               label: widget.product.name,
               child: ImageUtils.buildImage(
-                imageUrl: widget.product.imageUrl,
+                imageUrl: widget.product.getImagePath(),
                 height: 200,
                 fit: BoxFit.cover,
               ),
@@ -262,7 +261,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.1),
+                      color: Colors.green.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(

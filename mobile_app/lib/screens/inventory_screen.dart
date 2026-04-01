@@ -46,25 +46,28 @@ class _InventoryScreenState extends State<InventoryScreen> {
     
     // Load inventory from cache/local first (offline-first strategy)
     _loadInventoryOfflineFirst();
-    
-    // Sync fresh data in background
-    Future.delayed(const Duration(milliseconds: 500), () {
-      _loadInventory(forceRefresh: true).catchError((e) {
-        debugPrint('Background inventory sync error: $e');
-      });
-    });
   }
   
   Future<void> _loadInventoryOfflineFirst() async {
+    // Try in-memory cache first (fastest), then local file, then network
     setState(() {
-      _futureInventory = widget.inventoryService.fetchInventory(
-        pageSize: 100,
-        searchQuery: _searchQuery.isNotEmpty ? _searchQuery : null,
-        type: _selectedType,
-        color: _selectedColor,
-        forceRefresh: false, // Use cache first
-      );
+      _futureInventory = _loadFromCacheOrLocal();
     });
+  }
+
+  Future<List<InventoryItem>> _loadFromCacheOrLocal() async {
+    // fetchInventory with forceRefresh:false returns in-memory cache instantly
+    // if populated by InventoryService.initialize() at startup
+    final cached = await widget.inventoryService.fetchInventory(
+      searchQuery: _searchQuery.isNotEmpty ? _searchQuery : null,
+      type: _selectedType,
+      color: _selectedColor,
+      forceRefresh: false,
+    );
+    if (cached.isNotEmpty) return cached;
+
+    // Fallback: read from local file (populated by startup sync)
+    return widget.inventoryService.loadLocalInventory();
   }
   
   void _fetchFilterOptions() async {

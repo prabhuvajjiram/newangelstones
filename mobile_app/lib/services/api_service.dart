@@ -20,6 +20,8 @@ class ApiService {
   CacheEntry<List<Product>>? _productCache;
   StorageService? _storageService;
   Map<String, String> _colorAssetMapping = {};
+  // category (lowercase) → list of bundled ProductImages from product_manifest.json
+  final Map<String, List<ProductImage>> _bundledProductImages = {};
   
   /// Initialize the API service with error handling and timeout
   Future<void> initialize() async {
@@ -31,6 +33,7 @@ class ApiService {
         _preloadAsset('assets/featured_products.json'),
         _preloadAsset('assets/colors.json'),
         _loadColorAssetMapping(),
+        _loadProductManifest(),
       ]).timeout(
         const Duration(seconds: 10),
         onTimeout: () {
@@ -48,6 +51,37 @@ class ApiService {
     }
   }
   
+  /// Load bundled product manifest so gallery screens can show assets instantly
+  Future<void> _loadProductManifest() async {
+    try {
+      final manifestJson = await rootBundle.loadString('assets/product_manifest.json');
+      final data = json.decode(manifestJson) as Map<String, dynamic>;
+      final images = data['images'] as List<dynamic>? ?? [];
+      for (final entry in images) {
+        final map = entry as Map<String, dynamic>;
+        final assetPath = (map['asset_path'] ?? map['path'] ?? '') as String;
+        if (assetPath.isEmpty) continue;
+        final parts = assetPath.split('/');
+        if (parts.length < 4) continue; // must have assets/products/CATEGORY/filename
+        final category = parts[2].toLowerCase(); // e.g. 'monuments', 'mbna_2025'
+        final name = (map['name'] ?? '') as String;
+        _bundledProductImages.putIfAbsent(category, () => []);
+        _bundledProductImages[category]!.add(
+          ProductImage(imageUrl: '', productCode: name, assetPath: assetPath),
+        );
+      }
+      debugPrint('✅ Loaded bundled product images for ${_bundledProductImages.length} categories');
+    } catch (e) {
+      debugPrint('⚠️ Error loading product manifest: $e');
+    }
+  }
+
+  /// Synchronously returns bundled images for a category (instant, no network).
+  /// Returns null if no bundled images exist for that category.
+  List<ProductImage>? getBundledProductImages(String category) {
+    return _bundledProductImages[category.toLowerCase()];
+  }
+
   /// Load color-to-asset mapping from configuration file
   Future<void> _loadColorAssetMapping() async {
     try {
@@ -684,6 +718,15 @@ class ApiService {
     }
   }
   
+  /// Return colors instantly from in-memory cache or bundled local JSON.
+  /// Does NOT hit the network. Used for immediate offline-first display.
+  Future<List<Product>> getLocalColors() async {
+    if (_colorsCache != null && !_colorsCache!.isExpired(_memoryCacheTTL)) {
+      return _colorsCache!.data;
+    }
+    return _applyColorAssetMappings(await loadLocalProducts('assets/colors.json'));
+  }
+
   /// Fetch colors from the enhanced website API and update local JSON
   /// Returns the list of products (either from server or local fallback)
   /// Set forceRefresh to true to bypass the cache (used for pull-to-refresh)
@@ -841,8 +884,10 @@ class ApiService {
       }
     } catch (e) {
       debugPrint('⚠️ Error fetching colors: $e');
-      // Fall back to local data
-      final localProducts = await loadLocalProducts('assets/colors.json');
+      // Fall back to local data with asset mappings applied
+      final localProducts = _applyColorAssetMappings(
+        await loadLocalProducts('assets/colors.json'),
+      );
       _colorsCache = CacheEntry(localProducts);
       return localProducts;
     }
@@ -994,7 +1039,7 @@ class ApiService {
     }
     
     // Reload color asset mappings to pick up any updates
-    _loadColorAssetMapping().catchError((e) {
+    _loadColorAssetMapping().catchError((Object e) {
       debugPrint('⚠️ Error reloading color asset mappings: $e');
     });
   }

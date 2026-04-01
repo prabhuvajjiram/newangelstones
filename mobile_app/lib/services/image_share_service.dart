@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:share_plus/share_plus.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -28,21 +30,29 @@ class ImageShareService {
       }
       
       // Share the image
-      await Share.shareXFiles(
-        [XFile(imageFile.path)],
-        text: shareText,
+      await SharePlus.instance.share(
+        ShareParams(files: [XFile(imageFile.path)], text: shareText),
       );
       
       return true;
     } catch (e) {
-      print('❌ Error sharing image: $e');
+      debugPrint('❌ Error sharing image: $e');
       return false;
     }
   }
   
   /// Get image file - either from cache or download it
   static Future<File> _getImageFile(String imageUrl, String fileName) async {
-    // Check if it's a local file path
+    // Handle bundled asset paths (assets/products/... or assets/colors/...)
+    if (imageUrl.startsWith('assets/')) {
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File('${tempDir.path}/$fileName');
+      if (await tempFile.exists()) return tempFile;
+      final bytes = await rootBundle.load(imageUrl);
+      await tempFile.writeAsBytes(bytes.buffer.asUint8List());
+      return tempFile;
+    }
+    // Check if it's a local filesystem path
     if (!imageUrl.startsWith('http')) {
       return File(imageUrl);
     }

@@ -4,7 +4,6 @@ import 'dart:io';
 import '../models/product.dart';
 import '../services/api_service.dart';
 import '../services/directory_service.dart';
-import '../services/image_share_service.dart';
 import 'package:go_router/go_router.dart';
 import '../utils/error_utils.dart';
 import 'skeleton_loaders.dart';
@@ -33,7 +32,7 @@ class ProductFolderSection extends StatelessWidget {
     String assetPath = 'assets/products/$fileName'; // fallback
     
     if (urlParts.length >= 2) {
-      final possibleCategory = urlParts[urlParts.length - 2];
+      final possibleCategory = urlParts[urlParts.length - 2].toLowerCase();
       // Try category-based path first
       assetPath = 'assets/products/$possibleCategory/$fileName';
     }
@@ -89,37 +88,6 @@ class ProductFolderSection extends StatelessWidget {
       return url.split('/').last.split('?').first;
     } catch (e) {
       return 'image.jpg';
-    }
-  }
-
-  /// Share product image
-  Future<void> _shareProduct(BuildContext context, Product product) async {
-    try {
-      if (product.imageUrl.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No image to share')),
-        );
-        return;
-      }
-
-      final fileName = _extractFileName(product.imageUrl);
-      
-      final success = await ImageShareService.shareImage(
-        imageUrl: product.imageUrl,
-        fileName: fileName,
-        productName: product.name,
-        productCode: product.id,
-      );
-      
-      if (!success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to share image')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error sharing image')),
-      );
     }
   }
 

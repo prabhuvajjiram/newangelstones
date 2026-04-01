@@ -4,15 +4,12 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../firebase_options.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:permission_handler/permission_handler.dart'; // optional but helps on Android 13+
 
 
 /// Service class to handle Firebase initialization and provide access to Firebase services
 class FirebaseService {
   static FirebaseService? _instance;
   late final FirebaseAnalytics _analytics;
-  late final FirebaseMessaging _messaging;
 
   
   // Private constructor
@@ -31,43 +28,6 @@ class FirebaseService {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
-      
-      // Initialize FCM
-      _messaging = FirebaseMessaging.instance;
-
-      // iOS: Request permission to show notifications
-      NotificationSettings settings = await _messaging.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-        sound: true,
-      );
-      debugPrint('FCM Permission: ${settings.authorizationStatus}');
-
-      // Android 13+: ask runtime permission (optional, use if you want control)
-      if (defaultTargetPlatform == TargetPlatform.android) {
-        if (await Permission.notification.isDenied) {
-          await Permission.notification.request();
-        }
-      }
-
-      try {
-        final fcmToken = await _messaging.getToken();
-        debugPrint('✅ FCM Token: $fcmToken');
-      } catch (e) {
-        debugPrint('❌ Failed to get FCM token: $e');
-      }
-
-      await _messaging.subscribeToTopic('all');
-      debugPrint('📡 Subscribed to topic: all');
-
-
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        debugPrint('📩 FCM Foreground Message: ${message.notification?.title}');
-      });
 
       // Initialize Analytics
       _analytics = FirebaseAnalytics.instance;
@@ -82,7 +42,7 @@ class FirebaseService {
         await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(false);
       }
       
-      debugPrint('Firebase initialized successfully');
+      debugPrint('Firebase core initialized successfully');
     } catch (e) {
       debugPrint('Failed to initialize Firebase: $e');
       // Handle initialization errors gracefully

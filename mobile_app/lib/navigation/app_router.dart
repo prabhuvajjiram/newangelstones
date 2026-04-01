@@ -82,13 +82,17 @@ class AppRouter {
       GoRoute(
         path: '/',
         name: home,
-        builder: (context, state) => MainNavigation(
-          apiService: apiService,
-          storageService: storageService,
-          inventoryService: inventoryService,
-          directoryService: directoryService,
-          connectivityService: connectivityService,
-        ),
+        builder: (context, state) {
+          final tab = int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0;
+          return MainNavigation(
+            apiService: apiService,
+            storageService: storageService,
+            inventoryService: inventoryService,
+            directoryService: directoryService,
+            connectivityService: connectivityService,
+            initialTabIndex: tab,
+          );
+        },
       ),
       GoRoute(
         path: '/colors',

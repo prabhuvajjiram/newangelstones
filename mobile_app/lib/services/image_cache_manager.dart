@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import '../config/offline_config.dart';
 
@@ -75,7 +76,7 @@ class ImageCacheManager {
     }
     
     if (removedCount > 0) {
-      print('🧹 Removed $removedCount duplicate image files');
+      debugPrint('🧹 Removed $removedCount duplicate image files');
     }
   }
 }

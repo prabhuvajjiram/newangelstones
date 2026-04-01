@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -7,6 +9,14 @@ plugins {
     id("com.google.firebase.crashlytics")
 }
 
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.inputStream().use { input ->
+        keystoreProperties.load(input)
+    }
+}
+
 android {
     namespace = "com.angelgranites.app"
     compileSdk = 36
@@ -14,24 +24,40 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("../upload-keystore.jks")
-            storePassword = "AngelStones@2025"
-            keyAlias = "upload"
-            keyPassword = "AngelStones@2025"
+            val storeFilePath =
+                keystoreProperties.getProperty("storeFile")
+                    ?: System.getenv("ANDROID_KEYSTORE_PATH")
+            val storePasswordValue =
+                keystoreProperties.getProperty("storePassword")
+                    ?: System.getenv("ANDROID_KEYSTORE_PASSWORD")
+            val keyAliasValue =
+                keystoreProperties.getProperty("keyAlias")
+                    ?: System.getenv("ANDROID_KEY_ALIAS")
+            val keyPasswordValue =
+                keystoreProperties.getProperty("keyPassword")
+                    ?: System.getenv("ANDROID_KEY_PASSWORD")
+
+            if (!storeFilePath.isNullOrBlank()) {
+                storeFile = file(storeFilePath)
+            }
+            if (!storePasswordValue.isNullOrBlank()) {
+                storePassword = storePasswordValue
+            }
+            if (!keyAliasValue.isNullOrBlank()) {
+                keyAlias = keyAliasValue
+            }
+            if (!keyPasswordValue.isNullOrBlank()) {
+                keyPassword = keyPasswordValue
+            }
         }
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_25
-        targetCompatibility = JavaVersion.VERSION_25
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
     }
 
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25)
-        }
-    }
 
     defaultConfig {
         multiDexEnabled = true
@@ -68,9 +94,7 @@ flutter {
 }
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
-    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.9.0"))
     implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-crashlytics")
 }
-
-

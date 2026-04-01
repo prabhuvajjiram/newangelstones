@@ -66,10 +66,11 @@ class _FullScreenImageState extends State<FullScreenImage> {
       'gallery_position': _currentIndex,
     });
 
-    final fileName = currentProduct.imageUrl.split('/').last.split('?').first;
+    final displayPath = currentProduct.getDisplayPath();
+    final fileName = displayPath.split('/').last.split('?').first;
     
     final success = await ImageShareService.shareImage(
-      imageUrl: currentProduct.imageUrl,
+      imageUrl: currentProduct.getDisplayPath(),
       fileName: fileName,
       productName: currentProduct.productCode.isNotEmpty ? currentProduct.productCode : 'Design',
       productCode: currentProduct.productCode,
@@ -91,6 +92,30 @@ class _FullScreenImageState extends State<FullScreenImage> {
     } catch (e) {
       // Silently handle analytics errors
     }
+  }
+
+  Widget _buildNetworkImage(String url) {
+    if (url.isEmpty) {
+      return const Center(child: Icon(Icons.broken_image, size: 64, color: Colors.white));
+    }
+    return Image.network(
+      url,
+      fit: BoxFit.contain,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Center(
+          child: CircularProgressIndicator(
+            value: loadingProgress.expectedTotalBytes != null
+                ? loadingProgress.cumulativeBytesLoaded /
+                    (loadingProgress.expectedTotalBytes ?? 1)
+                : null,
+          ),
+        );
+      },
+      errorBuilder: (_, __, ___) => const Center(
+        child: Icon(Icons.broken_image, size: 64, color: Colors.white),
+      ),
+    );
   }
 
   Future<void> _navigateToInventory() async {
@@ -123,7 +148,7 @@ class _FullScreenImageState extends State<FullScreenImage> {
     });
     // Show loading indicator
     if (!mounted) return;
-    showDialog(
+    showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(
@@ -233,28 +258,13 @@ class _FullScreenImageState extends State<FullScreenImage> {
                     minScale: 0.5,
                     maxScale: 4.0,
                     child: Center(
-                      child: Image.network(
-                        product.imageUrl,
-                        fit: BoxFit.contain,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      (loadingProgress.expectedTotalBytes ?? 1)
-                                  : null,
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stack) => const Center(
-                          child: Icon(
-                            Icons.broken_image,
-                            size: 64,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
+                      child: product.hasBundledAsset
+                          ? Image.asset(
+                              product.assetPath!,
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => _buildNetworkImage(product.imageUrl),
+                            )
+                          : _buildNetworkImage(product.imageUrl),
                     ),
                   ),
                 );

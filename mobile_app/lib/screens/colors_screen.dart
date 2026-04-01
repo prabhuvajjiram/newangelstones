@@ -17,14 +17,26 @@ class _ColorsScreenState extends State<ColorsScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch colors from API (which returns all 40 colors with proper URLs)
-    // Images will load from bundled assets first (via localImagePath), then fallback to URL
-    _futureColors = widget.apiService.fetchColors();
+    // Show local/cached colors immediately (zero network wait)
+    _futureColors = widget.apiService.getLocalColors();
+    // Refresh from server in background to pick up any new colors
+    _backgroundRefresh();
+  }
+
+  void _backgroundRefresh() {
+    widget.apiService.fetchColors().then((serverColors) {
+      if (mounted) {
+        setState(() {
+          _futureColors = Future.value(serverColors);
+        });
+      }
+    }).catchError((Object e) {
+      debugPrint('Background colors refresh error: $e');
+    });
   }
 
   Future<void> _refreshData() async {
     setState(() {
-      // Force refresh colors from server
       _futureColors = widget.apiService.fetchColors(forceRefresh: true);
     });
   }

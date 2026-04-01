@@ -8,7 +8,6 @@ import '../theme/app_theme.dart';
 import '../services/mautic_service.dart';
 import '../config/security_config.dart';
 import 'webview_screen.dart';
-import 'package:go_router/go_router.dart';
 
 class ContactScreen extends StatefulWidget {
   const ContactScreen({super.key});
@@ -490,7 +489,7 @@ class _ContactScreenState extends State<ContactScreen> {
                         ? () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
+                              MaterialPageRoute<void>(
                                 builder: (context) => WebViewScreen(
                                   url: _paymentUrl!,
                                   title: 'Payment',
@@ -508,8 +507,8 @@ class _ContactScreenState extends State<ContactScreen> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => WebViewScreen(
+                        MaterialPageRoute<void>(
+                          builder: (context) => const WebViewScreen(
                             url: '${SecurityConfig.monumentBusinessBaseUrl}/GV/Account/Login',
                             title: 'Customer Portal',
                           ),

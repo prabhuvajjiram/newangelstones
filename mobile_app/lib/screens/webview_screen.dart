@@ -151,7 +151,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
         ..setMediaPlaybackRequiresUserGesture(false)
         ..setGeolocationPermissionsPromptCallbacks(
           onShowPrompt: (request) async {
-            return GeolocationPermissionsResponse(
+            return const GeolocationPermissionsResponse(
               allow: true,
               retain: true,
             );

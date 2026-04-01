@@ -141,7 +141,7 @@ class _ProductImageViewerState extends State<ProductImageViewer> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withOpacity(0.7),
+                      Colors.black.withValues(alpha: 0.7),
                       Colors.transparent,
                     ],
                   ),
@@ -160,7 +160,7 @@ class _ProductImageViewerState extends State<ProductImageViewer> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.6),
+                          color: Colors.black.withValues(alpha: 0.6),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
@@ -200,7 +200,7 @@ class _ProductImageViewerState extends State<ProductImageViewer> {
                     color: const Color(0xFF1a1a1a),
                     border: Border(
                       top: BorderSide(
-                        color: const Color(0xFFd4af37).withOpacity(0.3),
+                        color: const Color(0xFFd4af37).withValues(alpha: 0.3),
                         width: 1,
                       ),
                     ),
@@ -237,7 +237,7 @@ class _ProductImageViewerState extends State<ProductImageViewer> {
                   borderRadius: BorderRadius.circular(3),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFd4af37).withOpacity(0.3),
+                      color: const Color(0xFFd4af37).withValues(alpha: 0.3),
                       blurRadius: 4,
                       spreadRadius: 1,
                     ),
@@ -247,15 +247,15 @@ class _ProductImageViewerState extends State<ProductImageViewer> {
             ),
             
             // Stock details header
-            Row(
+            const Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.info_outline,
                   color: Color(0xFFd4af37),
                   size: 20,
                 ),
-                const SizedBox(width: 8),
-                const Text(
+                SizedBox(width: 8),
+                Text(
                   'Stock Details',
                   style: TextStyle(
                     color: Color(0xFFd4af37),
@@ -285,7 +285,7 @@ class _ProductImageViewerState extends State<ProductImageViewer> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -312,7 +312,7 @@ class _ProductImageViewerState extends State<ProductImageViewer> {
               child: Text(
                 'Tap image to ${_showDetails ? 'hide' : 'show'} details',
                 style: TextStyle(
-                  color: const Color(0xFFd4af37).withOpacity(0.7),
+                  color: const Color(0xFFd4af37).withValues(alpha: 0.7),
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -324,12 +324,6 @@ class _ProductImageViewerState extends State<ProductImageViewer> {
     );
   }
   
-  Widget _buildOldContent() {
-    return Container(
-      // OLD CODE REMOVED
-    );
-  }
-
   Widget _buildDetailRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),

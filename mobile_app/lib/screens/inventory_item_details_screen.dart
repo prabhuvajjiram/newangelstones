@@ -375,7 +375,7 @@ class _InventoryItemDetailsScreenState extends State<InventoryItemDetailsScreen>
                           onTap: () {
                             // Open fullscreen viewer with stock details
                             Navigator.of(context).push(
-                              MaterialPageRoute(
+                              MaterialPageRoute<void>(
                                 builder: (context) => ProductImageViewer(
                                   images: productImages,
                                   item: widget.item,

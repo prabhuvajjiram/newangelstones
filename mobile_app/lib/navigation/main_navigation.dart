@@ -17,7 +17,6 @@ import '../services/system_ui_service.dart';
 import '../widgets/cart_icon.dart';
 import '../widgets/edge_to_edge_wrapper.dart';
 import '../theme/app_theme.dart';
-import '../widgets/splash_screen.dart';
 import '../config/security_config.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -28,6 +27,7 @@ class MainNavigation extends StatefulWidget {
     required this.inventoryService,
     required this.directoryService,
     this.connectivityService,
+    this.initialTabIndex = 0,
   });
 
   final ApiService apiService;
@@ -35,13 +35,14 @@ class MainNavigation extends StatefulWidget {
   final InventoryService inventoryService;
   final DirectoryService directoryService;
   final ConnectivityService? connectivityService;
+  final int initialTabIndex;
 
   @override
   State<MainNavigation> createState() => _MainNavigationState();
 }
 
 class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObserver {
-  int _currentIndex = 0;
+  late int _currentIndex;
   late final List<Widget> _pages;
   bool _isInitialized = false;
   String? _initError;
@@ -54,11 +55,16 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    
+    _currentIndex = widget.initialTabIndex.clamp(0, 3);
+
     // Configure system UI for main navigation
     SystemUIService.instance.configureForScreen('home');
-    
-    _initializeServices();
+
+    // All assets are bundled — show the home screen immediately.
+    // Storage/API init runs in the background after the first frame.
+    _isInitialized = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initializeServices());
+
     _connectivityService = widget.connectivityService;
     if (_connectivityService != null) {
       _setupConnectivityMonitoring();
@@ -85,57 +91,28 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
   }
 
   Future<void> _initializeServices() async {
-    debugPrint('🚀 Starting service initialization...');
-    
-    // Show custom splash for minimum 12 seconds to ensure visibility on slow WiFi
-    final splashTimer = Future<void>.delayed(const Duration(seconds: 12));
-    
-    // Fallback timer
-    Future<void>.delayed(const Duration(seconds: 15), () {
-      if (mounted && !_isInitialized) {
-        debugPrint('⏰ Fallback timer triggered');
-        setState(() => _isInitialized = true);
-      }
-    });
-    
+    debugPrint('🚀 Initializing services in background...');
     try {
-      // Add delay before service initialization to ensure splash shows
-      await Future<void>.delayed(const Duration(milliseconds: 1000));
-      debugPrint('💾 Initializing critical services...');
-      
-      // Initialize critical services
       await Future.wait([
         widget.storageService.initialize().timeout(
-          const Duration(seconds: 2), 
+          const Duration(seconds: 8),
           onTimeout: () {
             debugPrint('⚠️ Storage service timeout');
             return null;
-          }
+          },
         ),
         widget.apiService.initialize().timeout(
-          const Duration(seconds: 2), 
+          const Duration(seconds: 8),
           onTimeout: () {
             debugPrint('⚠️ API service timeout');
             return null;
-          }
+          },
         ),
       ]);
-      
-      debugPrint('✅ Critical services initialized');
-      
-      // Background initialization (non-blocking)
+      debugPrint('✅ Services initialized');
       _initializeBackgroundServices();
-      
-      // Wait for minimum splash duration to ensure custom splash is visible
-      debugPrint('⏳ Waiting for splash timer...');
-      await splashTimer;
-      
-      debugPrint('🎯 Splash complete, showing main app');
-      if (mounted) setState(() => _isInitialized = true);
     } catch (e) {
       debugPrint('❌ Service initialization error: $e');
-      await splashTimer;
-      if (mounted) setState(() => _isInitialized = true);
     }
   }
   
@@ -152,6 +129,16 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
           .timeout(const Duration(seconds: 2), onTimeout: () => []);
     } catch (e) {
       // Continue without preloaded data
+    }
+  }
+
+  @override
+  void didUpdateWidget(MainNavigation oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialTabIndex != oldWidget.initialTabIndex) {
+      setState(() {
+        _currentIndex = widget.initialTabIndex.clamp(0, 3);
+      });
     }
   }
 
@@ -197,8 +184,11 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
               ),
             ),
             const SizedBox(width: 12),
-            Flexible(
-              fit: FlexFit.tight,
+            // Constrained width to leave room for actions (3 icons ~144px needed)
+            Container(
+              constraints: BoxConstraints(
+                maxWidth: screenWidth * 0.30, // 30% of screen width
+              ),
               child: ShaderMask(
                 blendMode: BlendMode.srcIn,
                 shaderCallback: (Rect bounds) {
@@ -218,8 +208,7 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
                   child: Text(
                     'ANGEL GRANITES',
                     style: TextStyle(
-                      //fontSize: 18, // this acts as max size
-                      fontSize: dynamicFontSize.clamp(14.0, 22.0), // keeps it readable on all devices
+                      fontSize: dynamicFontSize.clamp(14.0, 22.0),
                       fontWeight: FontWeight.w700,
                       fontFamily: 'OpenSans',
                       letterSpacing: 0.5,
@@ -250,8 +239,8 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => WebViewScreen(
+                MaterialPageRoute<void>(
+                  builder: (context) => const WebViewScreen(
                     url: '${SecurityConfig.monumentBusinessBaseUrl}/GV/Account/Login',
                     title: 'Customer Portal',
                   ),
@@ -339,8 +328,13 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
       ),
     ),
     );
+    // Skip splash screen - show main content immediately
     if (!_isInitialized) {
-      return const SplashScreen();
+      // Return main content directly instead of splash
+      // Splash animation was causing hang issues
+      setState(() {
+        _isInitialized = true;
+      });
     }
 
     if (_initError != null) {

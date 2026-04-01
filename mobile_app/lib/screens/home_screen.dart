@@ -15,7 +15,6 @@ import '../models/promotion.dart';
 import '../widgets/promotion_carousel.dart';
 import '../theme/app_theme.dart';
 import '../widgets/skeleton_loaders.dart';
-import '../utils/app_store_utils.dart';
 import '../utils/image_utils.dart';
 import '../services/image_sync_service.dart';
 
@@ -51,9 +50,9 @@ class _HomeScreenState extends State<HomeScreen> {
   
   final PromotionService _promotionService = PromotionService();
   List<Promotion> _promotions = [];
-  bool _isLoadingPromotions = true;
   bool _showPromotionBanner = true;
   bool _promotionBannerDismissed = false;
+  late final ImageSyncService _imageSyncService;
 
   @override
   void initState() {
@@ -61,6 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
     
     // Track app launch for review prompt
     ReviewPromptService.trackAppLaunch();
+    _imageSyncService = ImageSyncService(apiService: widget.apiService);
     
     // Initialize hybrid assets and sync new images in background
     _initializeHybridAssets();
@@ -72,16 +72,16 @@ class _HomeScreenState extends State<HomeScreen> {
     _directoryService = widget.directoryService;
     
     // Sync data in background with force refresh (non-blocking)
-    Future.delayed(const Duration(milliseconds: 300), () {
-      widget.apiService.fetchFeaturedProducts(forceRefresh: true).catchError((e) {
+    Future<void>.delayed(const Duration(milliseconds: 300), () {
+      widget.apiService.fetchFeaturedProducts(forceRefresh: true).catchError((Object e) {
         debugPrint('Background featured products sync error: $e');
         return <Product>[];
       });
-      widget.inventoryService.fetchInventory(pageSize: 1000, forceRefresh: true).catchError((e) {
+      widget.inventoryService.fetchInventory(pageSize: 1000, forceRefresh: true).catchError((Object e) {
         debugPrint('Background inventory sync error: $e');
         return <InventoryItem>[];
       });
-      widget.apiService.fetchSpecials(forceRefresh: true).catchError((e) {
+      widget.apiService.fetchSpecials(forceRefresh: true).catchError((Object e) {
         debugPrint('Background specials sync error: $e');
         return <Product>[];
       });
@@ -101,15 +101,12 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         setState(() {
           _promotions = promotions;
-          _isLoadingPromotions = false;
         });
       }
     } catch (e) {
       debugPrint('⚠️ Error loading promotions: $e');
       if (mounted) {
-        setState(() {
-          _isLoadingPromotions = false;
-        });
+        setState(() {});
       }
     }
   }
@@ -134,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           }
         }
-      }).catchError((e) {
+      }).catchError((Object e) {
         debugPrint('⚠️ Error syncing new assets: $e');
       });
     } catch (e) {
@@ -153,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final shouldShow = await ReviewPromptService.shouldShowReviewPrompt();
         if (shouldShow) {
           // Wait a bit more to ensure user is engaged
-          await Future.delayed(const Duration(seconds: 2));
+          await Future<void>.delayed(const Duration(seconds: 2));
           if (context.mounted) {
             await ReviewPromptService.showReviewPromptIfAppropriate(context);
           }
@@ -163,14 +160,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _refreshData() async {
-    // Sync images on refresh (non-blocking)
+    // Force image sync on pull-to-refresh, bypassing the 24 h throttle
     unawaited(
-      ImageSyncService(apiService: widget.apiService)
-          .syncAllImages()
-          .catchError((e) {
+      _imageSyncService
+          .syncAllImages(forceSync: true)
+          .catchError((Object e) {
             debugPrint('Image sync error during refresh: $e');
             return null;
-          })
+          }),
     );
     
     if (mounted) {
@@ -314,14 +311,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: AppTheme.accentColor.withOpacity(0.2),
+                        color: AppTheme.accentColor.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: AppTheme.accentColor.withOpacity(0.5),
+                          color: AppTheme.accentColor.withValues(alpha: 0.5),
                           width: 1,
                         ),
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
@@ -329,7 +326,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             size: 16,
                             color: AppTheme.accentColor,
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           Text(
                             'Show Promotions',
                             style: TextStyle(

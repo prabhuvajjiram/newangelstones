@@ -25,32 +25,11 @@ void main() async {
   
   // Configure system UI for Android 15+ edge-to-edge compatibility
   SystemUIService.instance.configureNormalMode();
-  
-  // Initialize Firebase first (required for Crashlytics)
-  try {
-    await FirebaseService.instance.initialize();
-    debugPrint('Firebase initialized successfully');
-    
-    // Now set up Crashlytics error handling
-    FlutterError.onError = (FlutterErrorDetails details) {
-      FlutterError.presentError(details);
-      FirebaseCrashlytics.instance.recordFlutterFatalError(details);
-    };
 
-    // Handle uncaught async errors
-    WidgetsBinding.instance.platformDispatcher.onError = (error, stack) {
-      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-      return true;
-    };
-  } catch (e) {
-    debugPrint('Firebase initialization failed: $e');
-    // Set up basic error handling without Crashlytics
-    FlutterError.onError = (FlutterErrorDetails details) {
-      FlutterError.presentError(details);
-    };
-  }
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+  };
   
-  // Start app immediately - Firebase will initialize in background
   runApp(
     MultiProvider(
       providers: [
@@ -62,6 +41,26 @@ void main() async {
       child: const MyApp(),
     ),
   );
+
+  unawaited(_initializeFirebaseInBackground());
+}
+
+Future<void> _initializeFirebaseInBackground() async {
+  try {
+    await FirebaseService.instance.initialize();
+
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+      FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+    };
+
+    WidgetsBinding.instance.platformDispatcher.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
+  } catch (e) {
+    debugPrint('Firebase initialization failed: $e');
+  }
 }
 
 class MyApp extends StatefulWidget {
@@ -73,7 +72,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   // Initialize services
-  late final StorageService _storageService = StorageService();
+  late final StorageService _storageService;
   late final ApiService _apiService;
   final InventoryService _inventoryService = InventoryService();
   final DirectoryService _directoryService = DirectoryService();
@@ -92,16 +91,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
     WidgetsBinding.instance.addObserver(this);
 
-    // Initialize only essential services synchronously
+    // Initialize storage service synchronously (required by router)
+    _storageService = StorageService();
     _apiService = ApiService(storageService: _storageService);
     _connectivityService = ConnectivityService();
     _offlineCatalogService = OfflineCatalogService(
       apiService: _apiService,
       connectivityService: _connectivityService,
     );
-    
-    // Initialize image sync service
-    _imageSyncService = ImageSyncService(apiService: _apiService);
     
     // Initialize router immediately for UI
     _router = AppRouter(
@@ -112,90 +109,61 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       offlineCatalogService: _offlineCatalogService,
       connectivityService: _connectivityService,
     );
-    
-    // Move heavy operations to background
-    _initializeInBackground();
-  }
-  
-  void _initializeInBackground() {
-    // Initialize services in background
-    _initializeServices();
-  }
-  
-  Future<void> _initializeServices() async {
-    try {
-      // Initialize storage first (fastest)
-      await _storageService.initialize().timeout(
-        const Duration(seconds: 10),
-        onTimeout: () => debugPrint('⚠️ Storage timeout'),
-      );
-      
-      // Initialize API service (needed for app functionality)
-      await _apiService.initialize().timeout(
-        const Duration(seconds: 10),
-        onTimeout: () => debugPrint('⚠️ API timeout'),
-      );
-      
-      // All other services in background (non-blocking)
-      unawaited(_initializeBackgroundServices());
-      
-      debugPrint('✅ Core services initialized');
-    } catch (e) {
-      debugPrint('❌ Error: $e');
-    }
-  }
-  
-  Future<void> _initializeBackgroundServices() async {
-    // Stagger initialization to prevent resource contention
-    
-    // Initialize inventory service
+
+    // Initialize heavy services in background to avoid UI jank
     unawaited(
-      _inventoryService.initialize().timeout(
-        const Duration(seconds: 2),
-        onTimeout: () => null,
-      )
+      Future<void>(() async {
+        try {
+          await _initializeHeavyServices();
+        } catch (e) {
+          debugPrint('Heavy service initialization error: \$e');
+        }
+      }),
     );
-    
-    // Small delay before next service
-    await Future<void>.delayed(const Duration(milliseconds: 100));
-    
-    // Initialize directory service
+
+    // Kick off non-critical background work after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startBackgroundWork();
+    });
+  }
+
+  Future<void> _initializeHeavyServices() async {
+    // Initialize heavy services in background to avoid UI jank
+    // Image sync service can be heavy - initialize it in background
+    _imageSyncService = ImageSyncService(apiService: _apiService);
+    debugPrint('Heavy services initialized in background');
+  }
+
+  void _startBackgroundWork() {
+    // Firebase messaging setup - skip if already initialized
+    // Firebase is already initialized in main(), just set up messaging
     unawaited(
-      _directoryService.initialize().timeout(
-        const Duration(seconds: 2),
-        onTimeout: () => null,
-      )
-    );
-    
-    // Initialize Firebase messaging (Firebase already initialized)
-    unawaited(
-      Future<void>.delayed(const Duration(milliseconds: 500), () async {
+      Future<void>.delayed(const Duration(seconds: 1), () async {
         try {
           await FirebaseMessagingHandler.setup();
         } catch (e) {
           debugPrint('Firebase messaging error: $e');
         }
-      })
+      }),
     );
-    
-    // Sync images on app launch (medium priority)
+
+    // Image sync — guarded by 24-h throttle inside syncAllImages()
     unawaited(
-      Future<void>.delayed(const Duration(milliseconds: 800), () async {
+      Future<void>.delayed(const Duration(seconds: 3), () async {
         try {
           await _imageSyncService.syncAllImages();
         } catch (e) {
           debugPrint('Image sync error: $e');
         }
-      })
+      }),
     );
-    
-    // Background sync (very low priority)
+
+    // Catalog background sync (very low priority)
     unawaited(
-      Future<void>.delayed(const Duration(seconds: 1), () {
+      Future<void>.delayed(const Duration(seconds: 4), () {
         _offlineCatalogService.syncCatalog();
-      })
+      }),
     );
-    
   }
   
 
@@ -314,4 +282,3 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     );
   }
 }
-

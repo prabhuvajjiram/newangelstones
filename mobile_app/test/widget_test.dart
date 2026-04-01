@@ -11,10 +11,18 @@ import 'package:angel_granites_app/main.dart';
 
 void main() {
   testWidgets('App smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
-
-    // Verify that the app loads without crashing
-    expect(find.byType(MyApp), findsOneWidget);
+    // Allow async operations and timers
+    await tester.runAsync(() async {
+      // Build our app
+      await tester.pumpWidget(const MyApp());
+      
+      // Verify the app widget exists
+      expect(find.byType(MyApp), findsOneWidget);
+      
+      // Pump a few frames to catch immediate build errors
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(const Duration(milliseconds: 100));
+    });
   });
 }
