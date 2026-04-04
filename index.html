@@ -298,30 +298,7 @@
         }
     </style>
     
-    <!-- Direct gold caption styling -->
-    <style>
-        .caption p, 
-        #variety-of-granites .caption p, 
-        .owl-carousel .caption p,
-        .owl-item .caption p,
-        .variety-of-granites .caption p,
-        [class*="caption"] p,
-        .owl-carousel .owl-item .caption p {
-            color: #d4af37 !important;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.9) !important;
-            font-weight: 600 !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
-        
-        /* Extra specificity to override any conflicting styles */
-        html body .caption p,
-        html body #variety-of-granites .caption p,
-        html body .owl-carousel .caption p,
-        body .owl-item .caption p {
-            color: #d4af37 !important;
-        }
-    </style>
+    <!-- direct gold caption styling is consolidated in #caption-color-fix above -->
     
     <!-- Async load full font families with font-display:swap to prevent layout shifts -->
     <style>
@@ -496,8 +473,7 @@
     <link rel="preload" href="css/carousel.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="css/carousel.min.css"></noscript>
 
-    <!-- Add these in the <head> section -->
-    <link rel="preload" as="image" href="images/video-poster-optimized.jpg">
+    <!-- Hero video preload -->
     <!--<link rel="preload" as="video" href="images/as.mp4" type="video/mp4">-->
     <link rel="preload" as="video" href="images/as.webm" type="video/webm">
 
@@ -649,29 +625,18 @@
             }
         }
     </style>
-
-</head>
-<!-- Add this in the head section, before any other scripts -->
-<script type="application/ld+json" id="colors-jsonld">
+    <!-- Color gallery JSON-LD (populated dynamically after load) -->
+    <script type="application/ld+json" id="colors-jsonld">
     {
       "@context": "https://schema.org",
       "@type": "ItemList",
       "itemListElement": []
     }
     </script>
-    
-    <!-- Add this right before the closing </body> tag -->
-    <script>
-    // Fetch and inject JSON-LD
-    fetch('/api/generate-jsonld.php')
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('colors-jsonld').textContent = JSON.stringify(data, null, 2);
-        })
-        .catch(console.error);
-    </script>
-    
+
     <!-- color-gallery.js is now included in features.bundle.js -->
+
+</head>
     
     <!-- Skip-link for accessibility -->
     <style>
@@ -691,7 +656,7 @@
         }
     </style>
 <body>
-<a href="#main-heading" class="skip-link">Skip to main content</a>
+<a href="#as-main" class="skip-link">Skip to main content</a>
 <!-- Promotion Banner -->
 <div class="promotion-banner" role="region" aria-label="Current promotions and events" aria-live="polite">
     <div class="promotion-content">
@@ -716,13 +681,13 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-56P7KZDV" height="0" width="0" class="gtm-noscript-iframe"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
 
-    <header id="as-header">
+    <header id="as-header" aria-label="Site header">
         <button class="as-nav-toggle" aria-label="Toggle navigation menu">
             <i></i>
         </button>
     </header>
 
-    <nav id="as-nav" role="navigation">
+    <nav id="as-nav" role="navigation" aria-label="Main navigation">
         <div class="nav-header">
             <a href="#home" class="as-logo">
                 <img src="images/ag_logo.svg" width="200" height="80" alt="Angel Stones">
@@ -732,7 +697,7 @@
             <li><a href="#home">Home</a></li>
             <li><a href="#featured-products">Featured Products</a></li>
             <li><a href="#specials">Special Flyers</a></li>
-            <li><a href="#variety-of-granites">Granite Varieties</a></li>
+            <li><a href="#variety-of-granites">Granite Colors</a></li>
             <li><a href="#inventory" id="sideInventoryLink">Current Inventory</a></li>
             <li><a href="#our-product">Our Products and Services</a></li>
             <li><a href="#why-choose-as">Why Choose Us</a></li>
@@ -746,17 +711,18 @@
     </nav>
 
     <div id="as-page">
-        <div id="as-main">
+        <div id="as-main" role="main">
             <!-- Hero Section Start Here-->
             <section class="outter hero-video" id="home">
-                <section class="video-container">
+                <div class="video-container">
                     <!-- Optimized hero image with preloaded assets for fast LCP -->
                     <img 
                         class="poster-image hero-poster-mobile" 
                         src="images/video-poster-mobile.webp" 
-                        alt="Angel Granites" 
-                        width="100%" 
-                        height="100%">
+                        alt="Angel Granites"
+                        width="1920"
+                        height="1080"
+                        fetchpriority="high">
 
                     <!-- Video with loading optimization for better LCP -->
                     <video
@@ -770,9 +736,9 @@
                             width="1920"
                         height="1080"
                         poster="images/video-poster-mobile.webp">
-                        <!-- Use MP4 first for better mobile compatibility -->
-                        <source src="images/as.mp4" type="video/mp4">
+                        <!-- WebM preferred (preloaded); MP4 as fallback -->
                         <source src="images/as.webm" type="video/webm">
+                        <source src="images/as.mp4" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
                     
@@ -783,7 +749,7 @@
                         <div class="desc">Exquisite Granite Monuments and others</div>
                         <a class="button" href="#our-product">VIEW ALL PRODUCTS</a>
                     </div>
-                </section>
+                </div>
             </section>
             <!-- Hero Section End Here-->
             <!-- Angel Stone Intro Start Here  -->
@@ -950,7 +916,7 @@
                                     Angel Granites
                                     <img src="images/title-star.svg" alt="Angel Stones">
                                 </div>
-                                <div class="title">Granite Varieties</div>
+                                <div class="title">Granite Colors</div>
                             </div>
                         </div>
                     </div>
@@ -1229,7 +1195,7 @@
                         <div class="col-md-6 mb-5">
                             <h2 class="section-contitle">Feel free to write</h2>
                             <p>We would like to hear from you</p>
-                            <form id="contactForm" class="contact__form" action="/contact-submit.php" method="post" autocomplete="false" role="form">
+                            <form id="contactForm" class="contact__form" action="/contact-submit.php" method="post" autocomplete="off" role="form">
                                 <input type="hidden" name="mauticform[formId]" value="1" />
                                 <input type="hidden" name="mauticform[return]" value="" />
                                 <input type="hidden" name="mauticform[formName]" value="contact_us" />
@@ -1527,10 +1493,10 @@
                         <div class="col-md-6">
                               <div><a href='https://www.convergepay.com/hosted-payments?ssl_txn_auth_token=t870VMwWR2OcHbk5VrX%2F1QAAAZi9ZdHB' class='converge-payment-link'>Pay Invoice</a></div>
                             <ul class="social-network">
-                                <li><a href="#" target="_blank" rel="nofollow" aria-label="Visit our Facebook page">Facebook</a></li>
-                                <li><a href="#" target="_blank" rel="nofollow" aria-label="Follow us on Twitter">Twitter</a></li>
-                                <li><a href="#" target="_blank" rel="nofollow" aria-label="Connect on LinkedIn">LinkedIn</a></li>
-                                <li><a href="#" target="_blank" rel="nofollow" aria-label="Follow us on Instagram">Instagram</a></li>
+                                <li><a href="https://www.facebook.com/angelgranites/" target="_blank" rel="noopener noreferrer nofollow" aria-label="Visit our Facebook page">Facebook</a></li>
+                                <li><a href="#" target="_blank" rel="noopener noreferrer nofollow" aria-label="Follow us on Twitter">Twitter</a></li>
+                                <li><a href="#" target="_blank" rel="noopener noreferrer nofollow" aria-label="Connect on LinkedIn">LinkedIn</a></li>
+                                <li><a href="https://www.instagram.com/angelgranites/" target="_blank" rel="noopener noreferrer nofollow" aria-label="Follow us on Instagram">Instagram</a></li>
                             </ul>
                         </div>
                     </div>
@@ -1556,7 +1522,7 @@
     <!-- Performance-optimized script loading strategy with CDN dependencies -->
     <!-- jQuery must load first as it's a dependency for other scripts -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" defer></script>
-    <script>window.jQuery||document.write('<script src="js/jquery-3.7.1.min.js" defer><\/script>')</script>
+    <script>window.addEventListener('DOMContentLoaded',function(){if(!window.jQuery){var s=document.createElement('script');s.src='js/jquery-3.7.1.min.js';document.head.appendChild(s);}});</script>
     
     <!-- Required jQuery plugins before custom.min.js (via CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/waypoints@4.0.1/lib/jquery.waypoints.min.js" defer></script>
@@ -1581,49 +1547,6 @@
     <!-- Bootstrap is loaded separately but deferred -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
     
-    <!-- Protection Script -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Disable right click
-            document.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-                return false;
-            });
-
-            // Disable image dragging
-            document.querySelectorAll('img').forEach(function(img) {
-                img.addEventListener('dragstart', function(e) {
-                    e.preventDefault();
-                    return false;
-                });
-            });
-
-            // Disable keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-                // Disable Ctrl+S
-                if (e.ctrlKey && e.key === 's') {
-                    e.preventDefault();
-                    return false;
-                }
-                // Disable Ctrl+U (view source)
-                if (e.ctrlKey && e.key === 'u') {
-                    e.preventDefault();
-                    return false;
-                }
-                // Disable Ctrl+Shift+I (developer tools)
-                if (e.ctrlKey && e.shiftKey && e.key === 'I') {
-                    e.preventDefault();
-                    return false;
-                }
-                // Disable F12
-                if (e.key === 'F12') {
-                    e.preventDefault();
-                    return false;
-                }
-            });
-        });
-    </script>
-
     <!-- Product Modal -->
     <div class="modal fade product-modal" id="productModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -1736,6 +1659,10 @@
     <script>
     // Prevent old PromotionBanner class from features.bundle.js from running
     window.PROMO_BANNER_LOADED = true;
+
+    // XSS helpers
+    function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+    function safeUrl(u){var s=String(u==null?'':u);return/^(https?:\/\/|\/)/.test(s)?s:'#';}
     
     (function(){
         sessionStorage.removeItem('promotionClosed');
@@ -1772,15 +1699,14 @@
             let dots='';
             if(promos.length>1){
                 dots='<div class="promo-dots">'+promos.map((_,j)=>
-                    '<span class="promo-dot'+(j===i?' active':'')+'" onclick="show('+j+')"></span>'
+                    '<span class="promo-dot'+(j===i?' active':'')+'" onclick="bannerShow('+j+')"></span>'
                 ).join('')+'</div>';
             }
             
             c.innerHTML='<button class="promo-close" onclick="closeBanner()" title="Close promotion banner" aria-label="Close promotion banner">×</button>'+
                 '<div class="promo-content-wrapper">'+
-                '<a href="'+(p.linkUrl||'#promotions')+'" class="promo-link" aria-label="View details for '+p.title+'">'+
-                '<div class="promo-img-box"><img src="'+p.imageUrl+'" alt="'+p.title+'" class="promo-img"></div>'+
-                '<div class="promo-text"><h3>'+p.title+'</h3><p>'+(p.subtitle||p.description||'')+'</p></div>'+
+                '<a href="'+safeUrl(p.linkUrl||'#promotions')+'" class="promo-link" aria-label="View details for '+esc(p.title)+'">'+
+                '<div class="promo-img-box"><img src="'+safeUrl(p.imageUrl)+'" alt="'+esc(p.title)+'" class="promo-img"></div>'+                '<div class="promo-text"><h3>'+esc(p.title)+'</h3><p>'+esc(p.subtitle||p.description||'')+'</p></div>'+
                 '</a>'+
                 '<a href="#promotions" class="promo-btn" aria-label="View all promotions">View All</a>'+
                 '</div>'+dots;
@@ -1794,7 +1720,7 @@
             if(timer)clearInterval(timer);
         }
         
-        window.show=show;
+        window.bannerShow=show;
         window.closeBanner=closeBanner;
     })();
     
@@ -1822,26 +1748,19 @@
         fetch('/api/promotions_api.php?t='+Date.now())
         .then(r=>r.json())
         .then(d=>{
-            console.log('Promotions API response:',d);
             if(d.success&&d.promotions){
                 allPromotions=d.promotions;
                 
                 // Auto-popup for events (subtle, once per session)
-                console.log('Checking for event popup...');
-                console.log('eventPopupShown in session:',sessionStorage.getItem('eventPopupShown'));
                 if(!sessionStorage.getItem('eventPopupShown')){
                     const activeEvent=allPromotions.find(p=>p.type==='event'&&p.enabled);
-                    console.log('Active event found:',activeEvent);
                     if(activeEvent){
-                        console.log('Will show popup in 2 seconds...');
                         setTimeout(()=>{
-                            console.log('Calling showSubtleEventPopup...');
                             showSubtleEventPopup(activeEvent);
                             sessionStorage.setItem('eventPopupShown','true');
                         },2000); // Show after 2 second delay
                     }
                 }else{
-                    console.log('Event popup already shown this session');
                 }
                 
                 // Store globally FIRST before rendering
@@ -1877,7 +1796,6 @@
                     return 0;
                 });
                 
-                console.log('Current promotions:',current.length,'Past promotions:',past.length);
                 renderPromotions('current-promotions',current,'No current promotions at this time.');
                 renderPromotions('past-promotions',past,'No past promotions.');
             }
@@ -1898,13 +1816,13 @@
                     const typeBadge=type==='event'?'badge-event':'badge-special';
                     return '<div class="col-md-6 col-lg-4 mb-4">'+
                         '<div class="promo-card">'+
-                            '<div class="promo-card-img"><img src="'+p.imageUrl+'" alt="'+p.title+'" loading="lazy"></div>'+
+                            '<div class="promo-card-img"><img src="'+safeUrl(p.imageUrl)+'" alt="'+esc(p.title)+'" loading="lazy"></div>'+
                             '<div class="promo-card-body">'+
-                                '<span class="promo-badge '+typeBadge+'">'+typeLabel+'</span>'+
-                                '<h3>'+p.title+'</h3>'+
-                                '<p class="promo-subtitle">'+p.subtitle+'</p>'+
-                                '<p class="promo-desc">'+p.description+'</p>'+
-                                '<button class="promo-card-btn" onclick="showPromoModal(\''+p.id+'\')">Learn More</button>'+
+                                '<span class="promo-badge '+typeBadge+'">'+esc(typeLabel)+'</span>'+
+                                '<h3>'+esc(p.title)+'</h3>'+
+                                '<p class="promo-subtitle">'+esc(p.subtitle)+'</p>'+
+                                '<p class="promo-desc">'+esc(p.description)+'</p>'+
+                                '<button class="promo-card-btn" onclick="showPromoModal(\''+esc(p.id)+'\')" >Learn More</button>'+
                             '</div>'+
                         '</div>'+
                     '</div>';
@@ -1917,8 +1835,6 @@
     
     // Show promotion modal
     function showPromoModal(promoId){
-        console.log('showPromoModal called with ID:',promoId);
-        console.log('Available promotions:',window.allPromotionsData);
         
         if(!window.allPromotionsData){
             console.error('No promotions data available');
@@ -1926,7 +1842,6 @@
         }
         
         const promo=window.allPromotionsData.find(p=>p.id===promoId);
-        console.log('Found promo:',promo);
         
         if(!promo){
             console.error('Promotion not found with ID:',promoId);
@@ -1946,8 +1861,8 @@
         const modalDetails=document.getElementById('promo-modal-details');
         const modalLink=document.getElementById('promo-modal-link');
         
-        modalImg.src=promo.imageUrl;
-        modalImg.alt=promo.title;
+        modalImg.src=safeUrl(promo.imageUrl);
+        modalImg.alt=esc(promo.title);
         
         const type=promo.type||'special';
         const typeLabel=type==='event'?'Event':'Special Offer';
@@ -1963,11 +1878,11 @@
         if(promo.productDetails){
             const pd=promo.productDetails;
             detailsHTML='<div class="promo-details-grid">';
-            if(pd.productCode)detailsHTML+='<div><strong>Product Code:</strong> '+pd.productCode+'</div>';
-            if(pd.color)detailsHTML+='<div><strong>Color:</strong> '+pd.color+'</div>';
-            if(pd.tablet)detailsHTML+='<div><strong>Tablet:</strong> '+pd.tablet+'</div>';
-            if(pd.base)detailsHTML+='<div><strong>Base:</strong> '+pd.base+'</div>';
-            if(pd.features)detailsHTML+='<div><strong>Features:</strong> '+pd.features+'</div>';
+            if(pd.productCode)detailsHTML+='<div><strong>Product Code:</strong> '+esc(pd.productCode)+'</div>';
+            if(pd.color)detailsHTML+='<div><strong>Color:</strong> '+esc(pd.color)+'</div>';
+            if(pd.tablet)detailsHTML+='<div><strong>Tablet:</strong> '+esc(pd.tablet)+'</div>';
+            if(pd.base)detailsHTML+='<div><strong>Base:</strong> '+esc(pd.base)+'</div>';
+            if(pd.features)detailsHTML+='<div><strong>Features:</strong> '+esc(pd.features)+'</div>';
             detailsHTML+='</div>';
         }
         
@@ -1975,9 +1890,9 @@
         if(promo.pricing&&(promo.pricing.listPrice||promo.pricing.specialPrice||promo.pricing.displayFormat)){
             const pr=promo.pricing;
             detailsHTML+='<div class="promo-pricing">';
-            if(pr.listPrice)detailsHTML+='<div class="list-price">List Price: <span>$'+pr.listPrice.toLocaleString()+'</span></div>';
-            if(pr.specialPrice)detailsHTML+='<div class="special-price">Special Price: <span>$'+pr.specialPrice.toLocaleString()+'</span></div>';
-            if(pr.displayFormat)detailsHTML+='<div class="display-price">'+pr.displayFormat+'</div>';
+            if(pr.listPrice)detailsHTML+='<div class="list-price">List Price: <span>$'+esc(String(pr.listPrice.toLocaleString()))+'</span></div>';
+            if(pr.specialPrice)detailsHTML+='<div class="special-price">Special Price: <span>$'+esc(String(pr.specialPrice.toLocaleString()))+'</span></div>';
+            if(pr.displayFormat)detailsHTML+='<div class="display-price">'+esc(pr.displayFormat)+'</div>';
             detailsHTML+='</div>';
         }
         
@@ -1985,7 +1900,7 @@
         
         // Show external link if event
         if(promo.linkUrl&&promo.type==='event'){
-            modalLink.href=promo.linkUrl;
+            modalLink.href=safeUrl(promo.linkUrl);
             modalLink.style.display='inline-block';
         }else{
             modalLink.style.display='none';
@@ -2030,9 +1945,7 @@
     
     // Subtle event popup function
     function showSubtleEventPopup(event){
-        console.log('showSubtleEventPopup called with:',event);
         const popup=document.getElementById('subtle-event-popup');
-        console.log('Popup element:',popup);
         if(!popup){
             console.error('Popup element not found!');
             return;
@@ -2043,14 +1956,13 @@
         const desc=popup.querySelector('.subtle-popup-desc');
         const link=popup.querySelector('.subtle-popup-link');
         
-        console.log('Setting popup content...');
-        img.src=event.imageUrl;
+        img.src=safeUrl(event.imageUrl);
         img.alt=event.title;
         title.textContent=event.title;
         desc.textContent=event.subtitle||event.description||'Special event - click to learn more';
         
         if(event.linkUrl){
-            link.href=event.linkUrl;
+            link.href=safeUrl(event.linkUrl);
             link.style.display='inline-block';
             // Ensure link click works (prevent event bubbling issues)
             link.onclick=function(e){
@@ -2062,10 +1974,8 @@
             link.style.display='none';
         }
         
-        console.log('Displaying popup...');
         popup.style.display='flex';
         setTimeout(()=>{
-            console.log('Adding show class...');
             popup.classList.add('show');
         },10);
     }
@@ -2270,30 +2180,6 @@
         </div>
     </div>
     <script>
-        // Force gold captions as soon as possible
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add inline styles to all captions
-            function forceGoldCaptions() {
-                const captions = document.querySelectorAll('.caption p, #variety-of-granites .caption p, .owl-item .caption p');
-                captions.forEach(function(caption) {
-                    caption.style.color = '#d4af37';
-                    caption.style.textShadow = '1px 1px 3px rgba(0,0,0,0.9)';
-                    caption.style.fontWeight = '600';
-                    caption.style.visibility = 'visible';
-                    caption.style.opacity = '1';
-                });
-            }
-            
-            // Run multiple times to catch dynamically loaded content
-            forceGoldCaptions();
-            setTimeout(forceGoldCaptions, 500);
-            setTimeout(forceGoldCaptions, 1500);
-            
-            // Run again when images load
-            window.addEventListener('load', forceGoldCaptions);
-        });
-    </script>
-    <script>
         // Only run on mobile
         if (window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
             // Fix mobile video playback
@@ -2371,9 +2257,8 @@
         }
     </script>
 
-    <!-- PDF.js and turn.js for Specials section -->
+    <!-- PDF.js for Specials section -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4/turn.min.js" defer></script>
     
     <!-- Direct Specials Integration Script -->
     <script>
@@ -2613,8 +2498,11 @@
                 }
             });
             
-            // Keyboard navigation
-            document.addEventListener('keydown', function(e) {
+            // Keyboard navigation — remove previous handler to prevent listener accumulation on each modal open
+            if (window._pdfKeyHandler) {
+                document.removeEventListener('keydown', window._pdfKeyHandler);
+            }
+            window._pdfKeyHandler = function(e) {
                 if (!document.getElementById('specialsModal').classList.contains('show')) {
                     return;
                 }
@@ -2648,30 +2536,11 @@
                         }
                         break;
                 }
-            });
+            };
+            document.addEventListener('keydown', window._pdfKeyHandler);
         }
     </script>
     
-    <!-- Load non-critical CSS after page load -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Load remaining CSS
-            const styles = [
-                'https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css',
-                'css/hamburger.css',
-                'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css',
-                'css/color-carousel.min.css'
-            ];
-            
-            styles.forEach(href => {
-                const link = document.createElement('link');
-                link.rel = 'stylesheet';
-                link.href = href;
-                document.head.appendChild(link);
-            });
-        });
-        </script>
-        
     <!-- deep-linking.js is now included in features.bundle.js -->
     
     <!-- App Store Badges -->
@@ -2684,6 +2553,14 @@
             <img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" class="app-badge-img" />
         </a>
     </div>
+
+    <!-- Fetch and inject color gallery JSON-LD -->
+    <script>
+    fetch('/api/generate-jsonld.php')
+        .then(function(r){return r.json();})
+        .then(function(data){var el=document.getElementById('colors-jsonld');if(el)el.textContent=JSON.stringify(data);})
+        .catch(function(){});
+    </script>
 
     <!-- Analytics scripts moved to end for better performance -->
     <!-- Google tag (gtag.js) -->
