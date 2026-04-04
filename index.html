@@ -475,7 +475,7 @@
 
     <!-- Hero video preload -->
     <!--<link rel="preload" as="video" href="images/as.mp4" type="video/mp4">-->
-    <link rel="preload" as="video" href="images/as.webm" type="video/webm">
+    <link rel="preload" as="video" href="images/as.webm" type="video/webm" media="(min-width: 769px)">
 
     <!-- Add these in the head section -->
     <link rel="preload" as="image" 
@@ -613,15 +613,16 @@
                 text-rendering: optimizeSpeed !important;
             }
             
-            /* Fade in the video after LCP completes */
-            @media (min-width: 769px) {
-                #hero-video {
-                    opacity: 0 !important;
-                    transition: opacity 0.5s ease-in !important;
-                }
-                #hero-video.loaded {
-                    opacity: 1 !important;
-                }
+        }
+        
+        /* Fade in the video after LCP completes (desktop only) */
+        @media (min-width: 769px) {
+            #hero-video {
+                opacity: 0;
+                transition: opacity 0.5s ease-in;
+            }
+            #hero-video.loaded {
+                opacity: 1;
             }
         }
     </style>
