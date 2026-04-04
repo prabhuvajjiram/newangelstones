@@ -204,3 +204,6 @@ chat_backup/
 logs/
 # Snyk Security Extension - AI Rules (auto-generated)
 .github/instructions/snyk_rules.instructions.md
+# Optimization backup files
+*.bak
+*.orig-bak
