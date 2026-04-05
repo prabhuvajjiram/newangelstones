@@ -11,27 +11,7 @@
     <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     
     <!-- Prevent Flash of Unstyled Content (FOUC) and provide content-visibility strategy -->
-    <style id="anti-fouc">
-        html { visibility: hidden; }
-        
-        /* Content-visibility optimization to prevent layout shifts */
-        .section-padding:not(.hero-video):not(#home) {
-            content-visibility: auto;
-            contain-intrinsic-size: 1px 500px;
-        }
-        
-        /* Add font-display: optional to reduce layout shifts */
-        @font-face {
-            font-family: 'Playfair Display';
-            font-display: optional;
-            src: local('Playfair Display');
-        }
-        @font-face {
-            font-family: 'Didact Gothic';
-            font-display: optional;
-            src: local('Didact Gothic');
-        }
-    </style>
+    <style id="anti-fouc">html{visibility:hidden;}.section-padding:not(.hero-video):not(#home){content-visibility:auto;contain-intrinsic-size:1px 500px;}@font-face{font-family:'Playfair Display';font-display:optional;src:local('Playfair Display');}@font-face{font-family:'Didact Gothic';font-display:optional;src:local('Didact Gothic');}</style>
     
     <!-- Preload critical CSS resources from CDN with proper onload handlers -->
     <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -39,117 +19,55 @@
     <link rel="preload" href="css/style.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <link rel="preload" href="css/critical.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     
-    <!-- Preload jQuery since it's a critical dependency -->
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" as="script">
     
     <!-- CRITICAL CAPTION COLOR FIX -->
-    <style id="caption-color-fix">
-	/* Hide Product Collection modal and related elements */
-	.collection-modal,
-	.main-carousel-container,
-	.thumbnails-container,
-	#featured-products-modal-title,
-	.collection-modal .modal-header {
-    		display: none !important;
-		visibility: hidden !important;
-    		opacity: 0 !important;
-	    	pointer-events: none !important;
-	    	position: absolute !important;
-	    	width: 0 !important;
-	    	height: 0 !important;
-	    	overflow: hidden !important;
-	    	clip: rect(0, 0, 0, 0) !important;
-	    	margin: -1px !important;
-	    	padding: 0 !important;
-	    	border: 0 !important;
-	}
-        /* Gold caption style with ultra-high specificity */
-        html body .caption p, 
-        html body #variety-of-granites .caption p,
-        html body .owl-carousel .caption p,
-        html body .owl-carousel .owl-item .caption p,
-        .variety-of-granites .caption p,
-        .color-item .caption p,
-        [id="variety-of-granites"] [class*="caption"] p,
-        #variety-of-granites .owl-carousel .owl-item .caption p,
-        .owl-carousel.color-row .caption p {
-            color: #d4af37 !important;
-            text-shadow: 1px 1px 3px rgba(0,0,0,1) !important;
-            font-weight: 700 !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            display: block !important;
-        }
-        
-        /* Mobile-specific fixes */
-        @media (max-width: 767px) {
-            /* Fix carousel scrolling on mobile */
-            #variety-of-granites .owl-carousel,
-            .owl-carousel.color-row {
-                display: flex !important;
-                overflow-x: auto !important;
-                scroll-snap-type: x mandatory !important;
-                scroll-behavior: smooth !important;
-            }
-            
-            /* Fix carousel items on mobile */
-            #variety-of-granites .owl-carousel .owl-item,
-            .owl-carousel.color-row .owl-item {
-                flex: 0 0 auto !important;
-                width: 160px !important;
-                margin: 0 5px !important;
-                scroll-snap-align: center !important;
-            }
-            
-            /* Hide owl controls on mobile */
-            #variety-of-granites .owl-nav,
-            #variety-of-granites .owl-dots {
-                display: none !important;
-            }
-            
-            /* Fix video display on mobile */
-            #hero-video {
-                opacity: 1 !important;
-                object-fit: cover !important;
-                width: 100% !important;
-                height: 100% !important;
-                display: block !important;
-            }
-        }
-    </style>
+    <style id="caption-color-fix">.collection-modal,.main-carousel-container,.thumbnails-container,#featured-products-modal-title,.collection-modal .modal-header{display:none !important;visibility:hidden !important;opacity:0 !important;pointer-events:none !important;position:absolute !important;width:0 !important;height:0 !important;overflow:hidden !important;clip:rect(0,0,0,0) !important;margin:-1px !important;padding:0 !important;border:0 !important;}html body .caption p,html body #variety-of-granites .caption p,html body .owl-carousel .caption p,html body .owl-carousel .owl-item .caption p,.variety-of-granites .caption p,.color-item .caption p,[id="variety-of-granites"] [class*="caption"] p,#variety-of-granites .owl-carousel .owl-item .caption p,.owl-carousel.color-row .caption p{color:#d4af37 !important;text-shadow:1px 1px 3px rgba(0,0,0,1) !important;font-weight:700 !important;visibility:visible !important;opacity:1 !important;display:block !important;}@media (max-width:767px){#variety-of-granites .owl-carousel,.owl-carousel.color-row{display:flex !important;overflow-x:auto !important;scroll-snap-type:x mandatory !important;scroll-behavior:smooth !important;}#variety-of-granites .owl-carousel .owl-item,.owl-carousel.color-row .owl-item{flex:0 0 auto !important;width:160px !important;margin:0 5px !important;scroll-snap-align:center !important;}#variety-of-granites .owl-nav,#variety-of-granites .owl-dots{display:none !important;}#hero-video{opacity:1 !important;object-fit:cover !important;width:100% !important;height:100% !important;display:block !important;}}</style>
     
     <!-- Essential Services -->
     <script>
-        window.addEventListener('DOMContentLoaded', function() {
-            // Reserve space for chat widget to prevent layout shift
-            var chatWidgetPlaceholder = document.createElement('div');
-            chatWidgetPlaceholder.id = 'tawk-placeholder';
-            chatWidgetPlaceholder.style.cssText = 'position:fixed;bottom:0;right:0;width:60px;height:60px;z-index:989;';
-            document.body.appendChild(chatWidgetPlaceholder);
-            
-            // Load widgets after initial layout is complete (defer to reduce CLS)
-            setTimeout(function() {
-                // Load Tawk.to as essential customer service
-                var Tawk_API = Tawk_API || {};
+        (function() {
+            var tawkLoaded = false;
+            function loadTawk() {
+                if (tawkLoaded) return;
+                tawkLoaded = true;
+                // Reserve chat widget space to prevent CLS when widget appears
+                var ph = document.createElement('div');
+                ph.id = 'tawk-placeholder';
+                ph.style.cssText = 'position:fixed;bottom:0;right:0;width:60px;height:60px;z-index:989;pointer-events:none;';
+                document.body.appendChild(ph);
+                var Tawk_API = window.Tawk_API || {};
                 var Tawk_LoadStart = new Date();
                 (function(){
-                    var s1 = document.createElement("script");
-                    var s0 = document.getElementsByTagName("script")[0];
-                    s1.defer = true; // Changed from async to defer
+                    var s1 = document.createElement('script');
+                    var s0 = document.getElementsByTagName('script')[0];
+                    s1.async = true;
                     s1.src = 'https://embed.tawk.to/665adcb29a809f19fb37a0d0/1hv9es6en';
                     s1.charset = 'UTF-8';
                     s1.setAttribute('crossorigin', 'anonymous');
                     s0.parentNode.insertBefore(s1, s0);
                 })();
-
-                // Load GTM as basic analytics
+            }
+            function loadGTM() {
                 (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
                 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
                 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.defer=true;j.src=
                 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
                 })(window,document,'script','dataLayer','GTM-56P7KZDV');
-            }, 1000); // Delay third-party scripts to prioritize core content
-        });
+            }
+            // Load on first user interaction (scroll, click, touch) — or after 5s idle
+            var interactionEvents = ['scroll','mousedown','mousemove','keydown','touchstart','touchmove','wheel'];
+            var fallbackTimer = setTimeout(function() {
+                loadTawk();
+                loadGTM();
+            }, 5000);
+            function onInteraction() {
+                clearTimeout(fallbackTimer);
+                interactionEvents.forEach(function(e) { document.removeEventListener(e, onInteraction, {passive:true}); });
+                loadTawk();
+                loadGTM();
+            }
+            interactionEvents.forEach(function(e) { document.addEventListener(e, onInteraction, {passive:true}); });
+        })();
     </script>
     <title>Wholesale Granite Monuments &amp; Headstones Supplier | Angel Stones – Dealer Pricing, Elberton GA</title>
     <meta name="description" content="Granite monument supplier for dealers, funeral homes, and wholesale buyers. 100+ colors, direct manufacturing, custom and in-stock designs, nationwide shipping. Contact Angel Stones in Elberton, GA for pricing and availability.">
@@ -175,10 +93,7 @@
       <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Didact+Gothic&display=swap" rel="stylesheet">
     </noscript>
     <!-- Critical CSS - Inlined for fastest possible rendering -->
-    <style>
-      /* Inline critical CSS for fast rendering on all devices */
-      html{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}body{margin:0;padding:0;overflow-x:hidden;color:#555;background:#fff}@font-face{font-family:'Playfair Display';font-style:normal;font-weight:400;font-display:swap;size-adjust:105%;src:url(https://fonts.gstatic.com/s/playfairdisplay/v36/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvXDXbtXK-F2qC0s.woff) format('woff')}@font-face{font-family:'Didact Gothic';font-style:normal;font-weight:400;font-display:swap;size-adjust:97%;src:url(https://fonts.gstatic.com/s/didactgothic/v20/ahcfv8qz1zt6hCC5G4F_P4ASlUuYpnLl.woff2) format('woff2')}h1,h2,h3,h4,h5{font-family:'Playfair Display',serif}.promotion-banner{background-color:#262626;color:#fff;text-align:center;padding:8px 15px;font-size:.9rem;position:relative;z-index:1000}.as-header{position:fixed;top:0;left:0;width:100%;padding:15px 0;background:rgba(0,0,0,.8);z-index:999;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}.as-navbar{display:flex;align-items:center;justify-content:space-between;padding:0 15px}.as-navbar-brand img{height:45px;width:auto}.hero-video{position:relative;width:100%;height:100vh;min-height:480px;max-height:780px;overflow:hidden;background-color:#111}.video-container{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}.video-container::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:1}.poster-image{position:absolute;top:0;left:0;width:100%;height:100%;z-index:0}.video-container .content{position:relative;z-index:2;text-align:center;padding:0 15px;color:#fff}.video-container .content h1{font-size:2.5rem;margin:0 0 10px;letter-spacing:2px}@media (max-width:768px){.video-container .content h1{font-size:1.7rem}.as-navbar-brand img{height:40px}}
-    </style>
+    <style>html{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}body{margin:0;padding:0;overflow-x:hidden;color:#555;background:#fff}@font-face{font-family:'Playfair Display';font-style:normal;font-weight:400;font-display:swap;size-adjust:105%;src:url(https://fonts.gstatic.com/s/playfairdisplay/v36/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvXDXbtXK-F2qC0s.woff) format('woff')}@font-face{font-family:'Didact Gothic';font-style:normal;font-weight:400;font-display:swap;size-adjust:97%;src:url(https://fonts.gstatic.com/s/didactgothic/v20/ahcfv8qz1zt6hCC5G4F_P4ASlUuYpnLl.woff2) format('woff2')}h1,h2,h3,h4,h5{font-family:'Playfair Display',serif}.promotion-banner{background-color:#262626;color:#fff;text-align:center;padding:8px 15px;font-size:.9rem;position:relative;z-index:1000}.as-header{position:fixed;top:0;left:0;width:100%;padding:15px 0;background:rgba(0,0,0,.8);z-index:999;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}.as-navbar{display:flex;align-items:center;justify-content:space-between;padding:0 15px}.as-navbar-brand img{height:45px;width:auto}.hero-video{position:relative;width:100%;height:100vh;min-height:480px;max-height:780px;overflow:hidden;background-color:#111}.video-container{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}.video-container::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:1}.poster-image{position:absolute;top:0;left:0;width:100%;height:100%;z-index:0}.video-container .content{position:relative;z-index:2;text-align:center;padding:0 15px;color:#fff}.video-container .content h1{font-size:2.5rem;margin:0 0 10px;letter-spacing:2px}@media (max-width:768px){.video-container .content h1{font-size:1.7rem}.as-navbar-brand img{height:40px}}#hero-video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}</style>
 
     <!-- 06/08/2025 Non-critical CSS loaded asynchronously with CDN where possible - With size hints to prevent layout shifts -
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" media="print" onload="this.media='all'">
@@ -203,111 +118,15 @@
   <link rel="stylesheet" href="css/inline-fixes.css">
 </noscript>
     <!-- Add size containment hints for layout stability -->
-    <style>
-        /* Size containment for image-heavy sections to prevent CLS */
-        .factory-image-container, .featured-products img, iframe {
-            aspect-ratio: 16/9;
-            height: auto;
-        }
-        
-        /* Special handling for color variety images */
-        .variety-of-granites img, .color-item img, .owl-carousel.color-row img {
-            aspect-ratio: 1/1; /* Square aspect ratio for granite colors */
-            height: auto;
-            margin-bottom: 0.5rem !important; /* Reduced space */
-        }
-        
-        /* Color carousel specific overrides - simple and performant */
-        #variety-of-granites .color-scroll-container {
-            background: transparent !important;
-        }
-        
-        #variety-of-granites .color-item {
-            background: transparent !important;
-        }
-        
-        #variety-of-granites .color-item img {
-            margin-bottom: 0.5rem !important;
-        }
-        
-        #variety-of-granites .color-name {
-            color: #fff !important;
-            background: transparent !important;
-            text-align: center;
-            font-size: 0.9rem;
-            margin: 0 !important;
-            padding: 0.25rem 0 !important;
-        }
-        
-        /* Fix for caption display */
-        .color-item .caption, .owl-carousel.color-row .caption {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: rgba(0,0,0,0.7);
-            padding: 8px 0;
-            z-index: 2;
-        }
-        /* Provide explicit dimensions for logo to prevent header shift */
-        .as-navbar-brand img {
-            height: 45px;
-            width: 180px; /* Set explicit width */
-        }
-        /* Add minimum height for sections to prevent layout shifts during lazy loading */
-        .section-padding {
-            min-height: 200px;
-        }
-        
-        /* Mobile play button styling */
-        .mobile-play-btn {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 10;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 4rem;
-            cursor: pointer;
-            padding: 0;
-            opacity: 0.8;
-            transition: opacity 0.3s ease;
-        }
-        
-        .mobile-play-btn:hover,
-        .mobile-play-btn:focus {
-            opacity: 1;
-        }
-        
-        .mobile-play-btn i {
-            filter: drop-shadow(0 0 8px rgba(0,0,0,0.7));
-        }
-        
-        /* Ensure video is always correct size */
-        #hero-video {
-            object-fit: cover !important;
-            width: 100% !important;
-            height: 100% !important;
-        }
-    </style>
+    <style>.factory-image-container,.featured-products img,iframe{aspect-ratio:16/9;height:auto;}.variety-of-granites img,.color-item img,.owl-carousel.color-row img{aspect-ratio:1/1;height:auto;margin-bottom:0.5rem !important;}#variety-of-granites .color-scroll-container{background:transparent !important;}#variety-of-granites .color-item{background:transparent !important;}#variety-of-granites .color-item img{margin-bottom:0.5rem !important;}#variety-of-granites .color-name{color:#fff !important;background:transparent !important;text-align:center;font-size:0.9rem;margin:0 !important;padding:0.25rem 0 !important;}.color-item .caption,.owl-carousel.color-row .caption{position:absolute;bottom:0;left:0;width:100%;background-color:rgba(0,0,0,0.7);padding:8px 0;z-index:2;}.as-navbar-brand img{height:45px;width:180px;}.section-padding{min-height:200px;}.mobile-play-btn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;background:none;border:none;color:white;font-size:4rem;cursor:pointer;padding:0;opacity:0.8;transition:opacity 0.3s ease;}.mobile-play-btn:hover,.mobile-play-btn:focus{opacity:1;}.mobile-play-btn i{filter:drop-shadow(0 0 8px rgba(0,0,0,0.7));}#hero-video{object-fit:cover !important;width:100% !important;height:100% !important;}</style>
     
+    <!-- For Your Customers section styles -->
+    <style>.for-customers-panel{border:1px solid rgba(214,183,114,0.18);border-left:3px solid rgba(214,183,114,0.45);background:rgba(255,255,255,0.02);border-radius:0 6px 6px 0;padding:28px 32px;margin:24px 0 8px;}.for-customers-label{font-size:0.72rem;letter-spacing:2.5px;text-transform:uppercase;color:rgba(214,183,114,0.9);margin-bottom:10px;font-family:'Didact Gothic',sans-serif;}.for-customers-heading{font-family:'Playfair Display',serif;color:#e5d19e;font-size:1.4rem;font-weight:500;margin:0 0 14px;letter-spacing:0.3px;}.for-customers-body p{color:#ada89e;font-size:0.93rem;line-height:1.78;margin-bottom:10px;}.for-customers-body p:last-child{margin-bottom:0;}@media (max-width:576px){.for-customers-panel{padding:20px 18px;}.for-customers-heading{font-size:1.2rem;}}</style>
+
     <!-- direct gold caption styling is consolidated in #caption-color-fix above -->
     
     <!-- Async load full font families with font-display:swap to prevent layout shifts -->
-    <style>
-        /* Font fallback system to prevent layout shifts */
-        body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-        }
-        h1, h2, h3, h4, h5 {
-            font-family: 'Playfair Display', Georgia, serif;
-        }
-        p, span, div {
-            font-family: 'Didact Gothic', Arial, sans-serif;
-        }
-    </style>
+    <style>body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;}h1,h2,h3,h4,h5{font-family:'Playfair Display',Georgia,serif;}p,span,div{font-family:'Didact Gothic',Arial,sans-serif;}</style>
     
     <!-- Canonical and robots handled in <head> above -->
     <!-- Favicon -->  
@@ -333,6 +152,44 @@
     <link rel="preload" href="css/color-gallery.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="css/color-gallery.min.css"></noscript>
     
+    <!-- Organization schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "@id": "https://www.theangelstones.com/#organization",
+      "name": "Angel Stones",
+      "alternateName": "Angel Granites",
+      "url": "https://www.theangelstones.com",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://www.theangelstones.com/images/ag_logo.svg",
+        "width": 200,
+        "height": 80
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+1-866-682-5837",
+        "contactType": "sales",
+        "areaServed": "US",
+        "availableLanguage": "English"
+      },
+      "sameAs": [
+        "https://www.facebook.com/angelgranites/",
+        "https://www.instagram.com/angelgranites/"
+      ]
+    }
+    </script>
+    <!-- WebSite schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Angel Stones",
+      "url": "https://www.theangelstones.com"
+    }
+    </script>
+    <!-- LocalBusiness schema -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -381,7 +238,9 @@
     <!--  Facebook Opengrapph -->
     <meta property="og:title" content="Wholesale Granite Monuments &amp; Headstones | Angel Stones">
     <meta property="og:type" content="website">                                                                                    
-    <meta property="og:image" content="https://www.theangelstones.com/angel-granite-stones.jpg"> 
+    <meta property="og:image" content="https://www.theangelstones.com/angel-granite-stones.jpg">
+    <meta property="og:image:secure_url" content="https://www.theangelstones.com/angel-granite-stones.jpg">
+    <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="675">
     <meta property="og:locale" content="en_US">
@@ -406,71 +265,14 @@
     
     <!-- Swiper CSS for mobile gallery support -->
     
-    <style>
-	   /* Update View All Colors button to match category buttons */
-        .view-all-colors {
-            background-color: #2a2a2a !important;
-            color: #fff !important;
-            border: 1px solid #444 !important;
-            transition: all 0.3s ease !important;
-        }
-        .view-all-colors:hover {
-            background-color: #3a3a3a !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
-        }
-        .hero-image {
-            background: #f5f5f5 url('images/hero-placeholder.jpg') no-repeat center center;
-            background-size: cover;
-            min-height: 405px;
-        }
-        .hero-image img {
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-        }
-        .hero-image.loaded img {
-            opacity: 1;
-        }
-        
-        /* Loading placeholder styles */
-        .loading-placeholder {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 200px;
-            width: 100%;
-            color: #fff;
-            text-align: center;
-        }
-
-        .loading-placeholder .spinner {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-
-        .loading-placeholder .spin {
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .established-by {
-            font-size: 18px;
-            color: #e0c072;
-            margin: -5px 0 15px 0;
-        }
-    </style>
+    <style>.view-all-colors{background-color:#2a2a2a !important;color:#fff !important;border:1px solid #444 !important;transition:all 0.3s ease !important;}.view-all-colors:hover{background-color:#3a3a3a !important;transform:translateY(-2px) !important;box-shadow:0 4px 8px rgba(0,0,0,0.2) !important;}.hero-image{background:#f5f5f5 url('images/hero-placeholder.jpg') no-repeat center center;background-size:cover;min-height:405px;}.hero-image img{opacity:0;transition:opacity 0.5s ease-in-out;}.hero-image.loaded img{opacity:1;}.loading-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;width:100%;color:#fff;text-align:center;}.loading-placeholder .spinner{font-size:2rem;margin-bottom:1rem;}.loading-placeholder .spin{animation:spin 1s linear infinite;}@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}.established-by{font-size:18px;color:#e0c072;margin:-5px 0 15px 0;}</style>
 
     <link rel="preload" href="css/carousel.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="css/carousel.min.css"></noscript>
 
     <!-- Hero video preload -->
     <!--<link rel="preload" as="video" href="images/as.mp4" type="video/mp4">-->
-    <link rel="preload" as="video" href="images/as.webm" type="video/webm" media="(min-width: 769px)">
+    <!--<link rel="preload" as="video" href="images/as.webm" type="video/webm" media="(min-width: 769px)">-->
 
     <!-- quarry image preload — serve WebP to modern browsers, JPEG as fallback -->
     <link rel="preload" as="image" 
@@ -524,52 +326,48 @@
             // Execute after a short delay to prioritize LCP
             setTimeout(loadThumbsFirst, 200);
             
-            // Simple video autoplay for all devices
+            // Load video only on desktop — prevents 853KB download on mobile
             function optimizeVideoLoading() {
                 var heroVideo = document.getElementById('hero-video');
                 if (!heroVideo) return;
                 
-                // Set basic properties for all devices
+                // Skip video entirely on mobile (saves 853KB+ bandwidth)
+                if (window.innerWidth < 769) return;
+                
+                // Desktop: inject sources and play
+                heroVideo.innerHTML = '<source src="images/as.webm" type="video/webm"><source src="images/as.mp4" type="video/mp4">';
                 heroVideo.muted = true;
                 heroVideo.playsInline = true;
                 heroVideo.autoplay = true;
                 heroVideo.preload = 'auto';
                 
-                // Simple error handling for WebM -> MP4 fallback
+                // WebM -> MP4 fallback
                 heroVideo.addEventListener('error', function(e) {
-                    if (e.target.tagName.toLowerCase() === 'source' && 
+                    if (e.target.tagName && e.target.tagName.toLowerCase() === 'source' && 
                         e.target.type === 'video/webm') {
-                        // Just use MP4 if WebM fails
                         heroVideo.innerHTML = '<source src="images/as.mp4" type="video/mp4">';
                         heroVideo.load();
                         heroVideo.play();
                     }
                 }, true);
                 
-                // Reveal video once it can play (prevents invisible-video flash)
+                // Reveal video once it can play
                 heroVideo.addEventListener('canplay', function() {
                     heroVideo.classList.add('loaded');
                 }, { once: true });
 
-                // Basic play attempt with single retry
                 function attemptPlay() {
-                    // Force play with Promise handling
                     var playPromise = heroVideo.play();
                     if (playPromise !== undefined) {
-                        playPromise.catch(function(error) {
-                            // Single retry after a moment
-                            setTimeout(function() {
-                                heroVideo.play();
-                            }, 300);
+                        playPromise.catch(function() {
+                            setTimeout(function() { heroVideo.play(); }, 300);
                         });
                     }
                 }
-                
-                // Wait a moment for everything to load, then play
                 setTimeout(attemptPlay, 500);
             }
             
-            // Run video optimization after page content is stable
+            // Run video optimization after page load
             if (document.readyState === 'complete') {
                 optimizeVideoLoading();
             } else {
@@ -586,46 +384,7 @@
     </script>
     
     <!-- Initial content visibility for mobile optimization -->
-    <style>
-        @media (max-width: 768px) {
-            .defer-visibility {
-                content-visibility: auto;
-                contain-intrinsic-size: 0 500px;
-            }
-            
-            .category-thumbnail {
-                opacity: 0;
-                transition: opacity 0.3s ease;
-            }
-            
-            /* Mobile video optimization - force display and autoplay */
-            .mobile-device .video-container video {
-                opacity: 1 !important;
-                display: block !important;
-                z-index: 1;
-            }
-            
-            /* Text content optimization for LCP */
-            .callout h1 {
-                font-size: 2rem !important;
-                font-weight: 700 !important;
-                margin-bottom: 5px !important;
-                text-rendering: optimizeSpeed !important;
-            }
-            
-        }
-
-        /* Desktop video fade-in: starts hidden, revealed by .loaded class added via canplay event */
-        @media (min-width: 769px) {
-            #hero-video {
-                opacity: 0;
-                transition: opacity 0.5s ease-in;
-            }
-            #hero-video.loaded {
-                opacity: 1;
-            }
-        }
-    </style>
+    <style>@media (max-width:768px){.defer-visibility{content-visibility:auto;contain-intrinsic-size:0 500px;}.category-thumbnail{opacity:0;transition:opacity 0.3s ease;}.mobile-device .video-container video{opacity:1 !important;display:block !important;z-index:1;}.callout h1{font-size:2rem !important;font-weight:700 !important;margin-bottom:5px !important;text-rendering:optimizeSpeed !important;}}@media (min-width:769px){#hero-video{opacity:0;transition:opacity 0.5s ease-in;}#hero-video.loaded{opacity:1;}}</style>
     <!-- Color gallery JSON-LD (populated dynamically after load) -->
     <script type="application/ld+json" id="colors-jsonld">
     {
@@ -640,22 +399,7 @@
 </head>
     
     <!-- Skip-link for accessibility -->
-    <style>
-        .skip-link {
-            position: absolute;
-            top: -40px;
-            left: 0;
-            background: #000;
-            color: #fff;
-            padding: 8px 16px;
-            text-decoration: none;
-            z-index: 10000;
-            font-weight: bold;
-        }
-        .skip-link:focus {
-            top: 0;
-        }
-    </style>
+    <style>.skip-link{position:absolute;top:-40px;left:0;background:#000;color:#fff;padding:8px 16px;text-decoration:none;z-index:10000;font-weight:bold;}.skip-link:focus{top:0;}</style>
 <body>
 <a href="#as-main" class="skip-link">Skip to main content</a>
 <!-- Promotion Banner (starts hidden, shown only when active promotions exist) -->
@@ -719,10 +463,9 @@
                         muted
                         loop
                         autoplay
-                            width="1920"
+                        width="1920"
                         height="1080"
                         poster="images/video-poster-mobile.webp">
-                        <!-- WebM preferred (preloaded); MP4 as fallback -->
                         <source src="images/as.webm" type="video/webm">
                         <source src="images/as.mp4" type="video/mp4">
                         Your browser does not support the video tag.
@@ -735,7 +478,7 @@
                         <div class="tagline" style="font-size:0.92em;margin-top:4px;opacity:0.85;">US inventory ready to ship — no 6–8 week import wait &nbsp;·&nbsp; Bulk container pricing available</div>
                         <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:12px;">
                             <a class="button" href="#featured-products">View Available Inventory</a>
-                            <a class="button" href="#get-in-touch" style="background:transparent;border-color:rgba(255,255,255,0.55);">Get a Quote immediately</a>
+                            <a class="button" href="#get-in-touch" style="background:transparent;border-color:rgba(255,255,255,0.55);">Get an Immediate Quote</a>
                         </div>
                     </div>
                 </div>
@@ -772,9 +515,9 @@
                         <div class="col-md-6">
                             <div class="section-header welcome">
                                 <div class="subtitle">
-                                    <img src="images/title-star.svg" alt="">
+                                    <img src="images/title-star.svg" alt="" width="11" height="11" aria-hidden="true">
                                         About Us
-                                    <img src="images/title-star.svg" alt="">
+                                    <img src="images/title-star.svg" alt="" width="11" height="11" aria-hidden="true">
                                 </div>
                                 <div class="title">Angel Granites</div>
                                 <div class="subtitle">A Venture of Angel Stones</div>
@@ -782,7 +525,7 @@
                             <p><strong class="color-text">Who We Serve</strong><br>Angel Granites, a venture of Angel Stones, supplies granite monuments, headstones, and memorial stones to dealers, funeral homes, and monument retailers across the United States. Manufactured at our facilities in Elberton, GA — the granite capital of the world — every piece ships direct from the source. Contact us for current inventory, dealer pricing, and availability.</p>
                             <div class="as-intro animate-box" data-animate-effect="fadeInRight">
                                 <div class="item">
-                                    <h3>Contact Info</h3>
+                                    <h2>Contact Info</h2>
                                     <div class="divider-line"></div>
                                     <p><i class="fa-regular fa-phone-volume"></i> <a href="tel:+19195357574">+1 866-682-5837</a></p>
                                     <p><i class="fa-regular fa-envelope"></i> <a href="mailto:&#105;&#110;&#102;&#111;&#64;&#116;&#104;&#101;&#97;&#110;&#103;&#101;&#108;&#115;&#116;&#111;&#110;&#101;&#115;&#46;&#99;&#111;&#109;">&#105;&#110;&#102;&#111;&#64;&#116;&#104;&#101;&#97;&#110;&#103;&#101;&#108;&#115;&#116;&#111;&#110;&#101;&#115;&#46;&#99;&#111;&#109;</a></p>
@@ -807,9 +550,9 @@
                             <div class="col-md-12">
                                 <div class="section-header">
                                   <div class="subtitle">
-                                      <img src="images/title-star.svg" alt="">
+                                      <img src="images/title-star.svg" alt="" width="11" height="11" aria-hidden="true">
                                           Angel Granites
-                                      <img src="images/title-star.svg" alt="">
+                                      <img src="images/title-star.svg" alt="" width="11" height="11" aria-hidden="true">
                                     </div>
                                  <h2 class="title">Special Flyers</h2>
                                  </div>
@@ -831,9 +574,9 @@
                         <div class="col-md-12"> 
                             <div class="section-header browse-category">
                                 <div class="subtitle">
-                                    <img src="images/title-star.svg" alt="">
+                                    <img src="images/title-star.svg" alt="" width="11" height="11" aria-hidden="true">
                                     Featured Products
-                                    <img src="images/title-star.svg" alt="">
+                                    <img src="images/title-star.svg" alt="" width="11" height="11" aria-hidden="true">
                                 </div>
                                 <h2>Browse By Category</h2>
                                 <div class="search-wrapper">
@@ -854,45 +597,60 @@
                             <div class="category-item">
                                 <a href="?category=mbna_2025" class="category-link" data-collection="mbna_2025-collection">
                                     <div class="category-image">
-                                        <img src="images/products/MBNA_2025/AG-116.jpg" alt="MBNA 2025 granite monument collection" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                        <picture>
+                                            <source srcset="images/products/MBNA_2025/AG-116.webp" type="image/webp">
+                                            <img src="images/products/MBNA_2025/AG-116.jpg" alt="MBNA 2025 granite monument collection" loading="lazy" width="1000" height="1000" onerror="this.src='images/default-thumbnail.jpg'">
+                                        </picture>
                                     </div>
-                                    <h4>MBNA 2025</h4>
+                                    <h3>MBNA 2025</h3>
                                     <span class="category-count">26 Designs</span>
                                 </a>
                             </div>
                             <div class="category-item">
                                 <a href="?category=monuments" class="category-link" data-collection="monuments-collection">
                                     <div class="category-image">
-                                        <img src="images/products/Monuments/granite-monuments-project02.jpg" alt="In-stock granite monuments ready to ship" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                        <picture>
+                                            <source srcset="images/products/Monuments/granite-monuments-project02.webp" type="image/webp">
+                                            <img src="images/products/Monuments/granite-monuments-project02.jpg" alt="In-stock granite monuments ready to ship" loading="lazy" width="1080" height="1080" onerror="this.src='images/default-thumbnail.jpg'">
+                                        </picture>
                                     </div>
-                                    <h4>In-stock, ready to ship special designs</h4>
+                                    <h3>In-stock, ready to ship special designs</h3>
                                     <span class="category-count">28 Designs</span>
                                 </a>
                             </div>
                             <div class="category-item">
                                 <a href="?category=columbarium" class="category-link" data-collection="columbarium-collection">
                                     <div class="category-image">
-                                        <img src="images/products/columbarium/customized-designs-project03.jpg" alt="Custom granite columbarium designs" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                        <picture>
+                                            <source srcset="images/products/columbarium/customized-designs-project03.webp" type="image/webp">
+                                            <img src="images/products/columbarium/customized-designs-project03.jpg" alt="Custom granite columbarium designs" loading="lazy" width="600" height="430" onerror="this.src='images/default-thumbnail.jpg'">
+                                        </picture>
                                     </div>
-                                    <h4>Columbarium</h4>
+                                    <h3>Columbarium</h3>
                                     <span class="category-count">1 Design</span>
                                 </a>
                             </div>
                             <div class="category-item">
                                 <a href="?category=designs" class="category-link" data-collection="Designs-collection">
                                     <div class="category-image">
-                                        <img src="images/products/Designs/chess.jpg" alt="Custom granite engraved designs" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                        <picture>
+                                            <source srcset="images/products/Designs/chess.webp" type="image/webp">
+                                            <img src="images/products/Designs/chess.jpg" alt="Custom granite engraved designs" loading="lazy" width="905" height="644" onerror="this.src='images/default-thumbnail.jpg'">
+                                        </picture>
                                     </div>
-                                    <h4>Designs</h4>
+                                    <h3>Designs</h3>
                                     <span class="category-count">1 Designs</span>
                                 </a>
                             </div>
                             <div class="category-item">
                                 <a href="?category=benches" class="category-link" data-collection="benches-collection">
                                     <div class="category-image">
-                                        <img src="images/products/Benches/Fountain2.jpg" alt="Granite memorial benches" loading="lazy" onerror="this.src='images/default-thumbnail.jpg'">
+                                        <picture>
+                                            <source srcset="images/products/Benches/Fountain2.webp" type="image/webp">
+                                            <img src="images/products/Benches/Fountain2.jpg" alt="Granite memorial benches" loading="lazy" width="600" height="430" onerror="this.src='images/default-thumbnail.jpg'">
+                                        </picture>
                                     </div>
-                                    <h4>Benches</h4>
+                                    <h3>Benches</h3>
                                     <span class="category-count">3 Designs</span>
                                 </a>
                             </div>
@@ -909,9 +667,9 @@
                         <div class="col-md-12">
                             <div class="section-header">
                                 <div class="subtitle">
-                                    <img src="images/title-star.svg" alt="">
+                                    <img src="images/title-star.svg" alt="" width="11" height="11" aria-hidden="true">
                                     Angel Granites
-                                    <img src="images/title-star.svg" alt="">
+                                    <img src="images/title-star.svg" alt="" width="11" height="11" aria-hidden="true">
                                 </div>
                                 <h2 class="title">Granite Colors</h2>
                             </div>
@@ -1015,7 +773,7 @@
                                 <div class="content">
                                     <h3 class="title">Cut Out the Middleman. Keep the Margin.</h3>
                                     <p class="description">
-                                        Our own production facilities in Elberton, GA — you buy direct. No distributor markup, no third-party markups. More margin in every order you place.
+                                        Our own production facilities in Elberton, GA and Barre, VT — you buy direct. No third-party markups. More margin in every order you place.
                                     </p>
                                 </div>
                             </div>
@@ -1071,33 +829,18 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row justify-content-center">
-                        <div class="col-xl-4 col-md-6">
-                            <div class="as-box">
-                                <div class="icon"><img src="images/memorial.svg" width="64" height="64" alt="Memorial monument"></div>
-                                <div class="content">
-                                    <h4>The Significance of Memorials</h4>
-                                    <p>A memorial transcends time, preserving the legacy of those who touched our lives. At Angel Granites, we understand the weight of this responsibility. Our granite monuments stand as enduring symbols of love, remembrance, and respect.</p>
+                    <!-- For Your Customers — lighter tone, dealer tool for showing customers -->
+                    <div class="row justify-content-center mt-3">
+                        <div class="col-lg-8 col-md-10">
+                            <section class="for-customers-panel" aria-label="For Your Customers">
+                                <div class="for-customers-label">For Your Customers</div>
+                                <h2 class="for-customers-heading">Designs Your Customers Will Value</h2>
+                                <div class="for-customers-body">
+                                    <p>Our monuments are crafted to help families honor their loved ones with dignity and lasting quality.</p>
+                                    <p>As a dealer, you can confidently present designs that combine strong craftsmanship, durable materials, and refined finishes — meeting both emotional expectations and practical needs.</p>
+                                    <p>From standard styles to custom work, each piece is built to support your business while delivering meaningful results to your customers.</p>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="col-xl-4 col-md-6">
-                            <div class="as-box">
-                                <div class="icon"><img src="images/granite.svg" width="64" height="64" alt="Granite stone"></div>
-                                <div class="content">
-                                    <h4>Granite: Earth's Timeless Wonder</h4>
-                                    <p>Granite, a geological marvel, has fascinated humanity for centuries. As civilization evolved, we harnessed its beauty and strength. Angel Granites proudly contributes to this legacy, creating monuments that resonate with the aesthetic sensibilities of Americans.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-xl-4 col-md-6">
-                            <div class="as-box">
-                                <div class="icon"><img src="images/legacy.svg" width="70" height="70" alt="Legacy and heritage"></div>
-                                <div class="content">
-                                    <h4>Join Our Legacy</h4>
-                                    <p>We invite you to be part of our journey. As you explore our granite products, remember that each piece carries a story-a tribute to cherished memories. May Angel Granites be your trusted partner in commemorating life's significant moments.</p>
-                                </div>
-                            </div>
+                            </section>
                         </div>
                     </div>
                 </div>
@@ -1112,9 +855,9 @@
                         <div class="col-md-12">
                             <div class="section-header">
                                 <div class="subtitle">
-                                    <img src="images/title-star.svg" alt="">
+                                    <img src="images/title-star.svg" alt="" width="11" height="11" aria-hidden="true">
                                         Special Offers
-                                    <img src="images/title-star.svg" alt="">
+                                    <img src="images/title-star.svg" alt="" width="11" height="11" aria-hidden="true">
                                 </div>
                                 <h2 class="title">Promotions</h2>
                             </div>
@@ -1131,14 +874,14 @@
                     </div>
                     <!-- Tab Content -->
                     <div class="row promo-tab-content active" id="current-promotions">
-                        <div class="col-12 text-center">
-                            <p style="color:#999;font-size:1.1rem;">Loading current promotions...</p>
-                        </div>
+                        <!-- Skeleton placeholders replaced by JS; no visible loading text -->
+                        <div class="col-md-6 col-lg-4 mb-4"><div class="promo-skeleton"></div></div>
+                        <div class="col-md-6 col-lg-4 mb-4"><div class="promo-skeleton"></div></div>
+                        <div class="col-md-6 col-lg-4 mb-4 d-none d-lg-block"><div class="promo-skeleton"></div></div>
                     </div>
                     <div class="row promo-tab-content" id="past-promotions" style="display:none;">
-                        <div class="col-12 text-center">
-                            <p style="color:#999;font-size:1.1rem;">Loading past promotions...</p>
-                        </div>
+                        <div class="col-md-6 col-lg-4 mb-4"><div class="promo-skeleton"></div></div>
+                        <div class="col-md-6 col-lg-4 mb-4"><div class="promo-skeleton"></div></div>
                     </div>
                 </div>
             </section>
@@ -1151,9 +894,9 @@
                         <div class="col-md-12">
                             <div class="section-header">
                                 <div class="subtitle">
-                                    <img src="images/title-star.svg" alt="">
+                                    <img src="images/title-star.svg" alt="" width="11" height="11" aria-hidden="true">
                                         Location
-                                    <img src="images/title-star.svg" alt="">
+                                    <img src="images/title-star.svg" alt="" width="11" height="11" aria-hidden="true">
                                 </div>
                                 <h2 class="title">Get in Touch</h2>
                             </div>
@@ -1163,7 +906,7 @@
                     <div class="row">
                         <!-- Contact Info -->
                         <div class="col-md-6 mb-4">
-                            <h2 class="section-contitle">Contact &amp; Ordering</h2>
+                            <h3 class="section-contitle">Contact &amp; Ordering</h3>
                             <p>Ready to place an order or check current stock? Reach us directly.</p>
                             <p><b>Phone:</b> +1 866-682-5837</p>
                             <p><b>Email:</b> <a href="mailto:&#105;&#110;&#102;&#111;&#64;&#116;&#104;&#101;&#97;&#110;&#103;&#101;&#108;&#115;&#116;&#111;&#110;&#101;&#115;&#46;&#99;&#111;&#109;">&#105;&#110;&#102;&#111;&#64;&#116;&#104;&#101;&#97;&#110;&#103;&#101;&#108;&#115;&#116;&#111;&#110;&#101;&#115;&#46;&#99;&#111;&#109;</a></p>
@@ -1176,7 +919,7 @@
                         </div>
                         <!-- Contact Form -->
                         <div class="col-md-6 mb-5">
-                            <h2 class="section-contitle">Request a Quote or Check Availability</h2>
+                            <h3 class="section-contitle">Request a Quote or Check Availability</h3>
                             <p>Monument dealers and wholesale buyers — send us your specifications for a prompt response.</p>
                             <form id="contactForm" class="contact__form" action="/contact-submit.php" method="post" autocomplete="off" role="form">
                                 <input type="hidden" name="mauticform[formId]" value="1" />
@@ -1388,69 +1131,7 @@
                             });
                             </script>
                             
-                            <style>
-                            .contact__form .form-group {
-                                margin-bottom: 20px;
-                            }
-                            .contact__form .form-control {
-                                background-color: rgba(255, 255, 255, 0.08);
-                                border: 1px solid rgba(255, 255, 255, 0.25);
-                                border-radius: 10px;
-                                padding: 12px 16px;
-                                color: #ffffff;
-                                height: auto;
-                                transition: border-color 0.2s ease, box-shadow 0.2s ease;
-                            }
-                            .contact__form .form-control::placeholder {
-                                color: rgba(255, 255, 255, 0.6);
-                            }
-                            .contact__form .form-control:focus {
-                                border-color: #d4af37;
-                                box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25);
-                                background-color: rgba(255, 255, 255, 0.12);
-                                color: #ffffff;
-                            }
-                            .contact__form textarea.form-control {
-                                min-height: 140px;
-                                resize: vertical;
-                            }
-                            .contact-submit-btn {
-                                display: inline-flex;
-                                align-items: center;
-                                gap: 10px;
-                                background-color: transparent;
-                                border: 1px solid #d4af37;
-                                color: #d4af37;
-                                padding: 12px 28px;
-                                border-radius: 6px;
-                                font-family: var(--as-font);
-                                text-transform: uppercase;
-                                letter-spacing: 1px;
-                                transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-                            }
-                            .contact-submit-btn:hover,
-                            .contact-submit-btn:focus {
-                                background-color: #d4af37;
-                                color: #1b1b1b;
-                                border-color: #d4af37;
-                            }
-                            .contact-submit-btn:disabled {
-                                opacity: 0.7;
-                                cursor: not-allowed;
-                            }
-                            .is-invalid {
-                                border-color: #dc3545 !important;
-                                padding-right: calc(1.5em + 0.75rem);
-                                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
-                                background-repeat: no-repeat;
-                                background-position: right calc(0.375em + 0.1875rem) center;
-                                background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
-                            }
-                            .is-invalid:focus {
-                                border-color: #dc3545;
-                                box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
-                            }
-                            </style>
+                            <style>.contact__form .form-group{margin-bottom:20px;}.contact__form .form-control{background-color:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.25);border-radius:10px;padding:12px 16px;color:#ffffff;height:auto;transition:border-color 0.2s ease,box-shadow 0.2s ease;}.contact__form .form-control::placeholder{color:rgba(255,255,255,0.6);}.contact__form .form-control:focus{border-color:#d4af37;box-shadow:0 0 0 0.2rem rgba(212,175,55,0.25);background-color:rgba(255,255,255,0.12);color:#ffffff;}.contact__form textarea.form-control{min-height:140px;resize:vertical;}.contact-submit-btn{display:inline-flex;align-items:center;gap:10px;background-color:transparent;border:1px solid #d4af37;color:#d4af37;padding:12px 28px;border-radius:6px;font-family:var(--as-font);text-transform:uppercase;letter-spacing:1px;transition:background-color 0.2s ease,color 0.2s ease,border-color 0.2s ease;}.contact-submit-btn:hover,.contact-submit-btn:focus{background-color:#d4af37;color:#1b1b1b;border-color:#d4af37;}.contact-submit-btn:disabled{opacity:0.7;cursor:not-allowed;}.is-invalid{border-color:#dc3545 !important;padding-right:calc(1.5em + 0.75rem);background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");background-repeat:no-repeat;background-position:right calc(0.375em + 0.1875rem) center;background-size:calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);}.is-invalid:focus{border-color:#dc3545;box-shadow:0 0 0 0.25rem rgba(220,53,69,0.25);}</style>
                         </div>
                     </div>
                 </div>
@@ -1460,7 +1141,7 @@
             <!-- B2B CTA Strip -->
             <section style="position:relative;background:linear-gradient(135deg,#1a1a1a 0%,#262626 100%);border-top:1px solid rgba(214,183,114,0.25);border-bottom:1px solid rgba(214,183,114,0.25);padding:70px 30px;text-align:center;overflow:hidden;">
                 <!-- Subtle quarry texture overlay -->
-                <div style="position:absolute;inset:0;background-image:url('images/quarry-cropped.jpg');background-size:cover;background-position:center;opacity:0.08;pointer-events:none;"></div>
+                <div style="position:absolute;inset:0;background-image:url('images/quarry-cropped-768.webp');background-size:cover;background-position:center;opacity:0.08;pointer-events:none;"></div>
                 <!-- Gold accent lines -->
                 <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:60px;height:3px;background:linear-gradient(90deg,transparent,#d4af37,transparent);"></div>
                 <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:60px;height:3px;background:linear-gradient(90deg,transparent,#d4af37,transparent);"></div>
@@ -1494,15 +1175,14 @@
                               <div><a href='https://www.convergepay.com/hosted-payments?ssl_txn_auth_token=t870VMwWR2OcHbk5VrX%2F1QAAAZi9ZdHB' class='converge-payment-link'>Pay Invoice</a></div>
                             <ul class="social-network">
                                 <li><a href="https://www.facebook.com/angelgranites/" target="_blank" rel="noopener noreferrer nofollow" aria-label="Visit our Facebook page">Facebook</a></li>
-                                <li><a href="#" target="_blank" rel="noopener noreferrer nofollow" aria-label="Follow us on Twitter">Twitter</a></li>
-                                <li><a href="#" target="_blank" rel="noopener noreferrer nofollow" aria-label="Connect on LinkedIn">LinkedIn</a></li>
+
                                 <li><a href="https://www.instagram.com/angelgranites/" target="_blank" rel="noopener noreferrer nofollow" aria-label="Follow us on Instagram">Instagram</a></li>
                             </ul>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-12">
-                            <div class="text-center pt-2">
+                            <div class="text-center pt-2 text-light">
                                 <a href="/privacy-policy.html" class="text-light mx-2">Privacy Policy</a> |
                                 <a href="/terms-of-service.html" class="text-light mx-2">Terms of Service</a> |
                                 <a href="/sms-terms.html" class="text-light mx-2">SMS Terms</a>
@@ -1542,7 +1222,7 @@
     <script src="js/critical.bundle.js?v=1.0.0" defer></script>
     
     <!-- Features Bundle: Products, modals, carousels, all features (288KB) -->
-    <script src="js/features.bundle.js?v=2.8.0" defer></script>
+    <script src="js/features.bundle.js?v=2.8.10" defer></script>
     
     <!-- Bootstrap is loaded separately but deferred -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
@@ -1584,78 +1264,8 @@
         </div>
     </div>
 
-    <script>
-        // Preload larger images after page load
-        window.addEventListener('load', function() {
-            // Delay loading of larger images to prioritize LCP
-            setTimeout(function() {
-                const images = ['images/quarry-cropped-300.jpg', 'images/quarry-cropped-540.jpg', 'images/quarry-cropped-768.jpg', 'images/quarry-cropped.jpg'];
-                images.forEach(src => {
-                    const img = new Image();
-                    img.src = src;
-                });
-            }, 1000); // 1 second delay
-        });
-    </script>
-    <style>
-        /* Floating banner - sophisticated design */
-        .promotion-banner{
-            position:fixed;
-            top:0;
-            left:280px;
-            right:0;
-            background:linear-gradient(135deg,rgba(26,26,26,0.98) 0%,rgba(45,45,45,0.98) 100%);
-            backdrop-filter:blur(10px);
-            color:#fff;
-            border-bottom:1px solid rgba(212,175,55,0.3);
-            padding:10px 24px 8px;
-            z-index:998;
-            box-shadow:0 4px 20px rgba(0,0,0,0.2);
-            transition:all 0.4s cubic-bezier(0.4,0,0.2,1);
-        }
-        .promotion-banner.hidden{transform:translateY(-100%);opacity:0}
-        .promotion-content{max-width:100%;margin:0;position:relative;padding-right:35px}
-        .promo-content-wrapper{display:flex;align-items:center;gap:16px}
-        .promo-close{position:absolute;top:8px;right:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all 0.3s;z-index:10}
-        .promo-close:hover{background:rgba(212,175,55,0.2);border-color:rgba(212,175,55,0.5);transform:rotate(90deg)}
-        .promo-link{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff;flex:1;min-width:0}
-        .promo-img-box{width:100px;height:60px;border-radius:8px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.3);flex-shrink:0;border:1px solid rgba(212,175,55,0.2)}
-        .promo-img{width:100%;height:100%;object-fit:cover}
-        .promo-text{flex:1;min-width:0}
-        .promo-text h3{margin:0 0 3px;font-size:0.95rem;color:#d4af37;font-family:'Playfair Display',serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;letter-spacing:0.3px}
-        .promo-text p{margin:0;font-size:0.8rem;color:#e0e0e0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .promo-btn{background:linear-gradient(135deg,#d4af37 0%,#c49d2f 100%);color:#000;padding:7px 16px;border-radius:6px;text-decoration:none;font-weight:600;font-size:0.8rem;flex-shrink:0;white-space:nowrap;box-shadow:0 2px 8px rgba(212,175,55,0.3);transition:all 0.3s}
-        .promo-btn:hover{background:linear-gradient(135deg,#c49d2f 0%,#b38c28 100%);transform:translateY(-1px);box-shadow:0 4px 12px rgba(212,175,55,0.4)}
-        .promo-dots{display:flex;gap:8px;justify-content:center;margin-top:6px}
-        .promo-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.25);cursor:pointer;transition:all 0.3s;border:1px solid rgba(255,255,255,0.2)}
-        .promo-dot.active{background:#d4af37;width:24px;border-radius:4px;border-color:#d4af37;box-shadow:0 0 8px rgba(212,175,55,0.5)}
-        /* Push content down when banner is visible */
-        body{padding-top:85px;transition:padding-top 0.3s ease}
-        body.no-banner{padding-top:0}
-        @media (max-width:991px){
-            .promotion-banner{left:0;width:100%}
-            body{padding-top:0}
-        }
-        @media (max-width:768px){
-            .promotion-banner{padding:8px 12px;left:0;width:100%;position:relative;top:auto}
-            .promotion-content{flex-direction:column;padding:8px 30px 8px 8px;gap:8px;align-items:flex-start}
-            .promo-link{width:100%;flex-direction:row;gap:10px}
-            .promo-img-box{width:80px;height:60px}
-            .promo-text{text-align:left}
-            .promo-text h3{font-size:0.95rem;white-space:normal}
-            .promo-text p{font-size:0.8rem;white-space:normal}
-            .promo-btn{align-self:center;font-size:0.8rem;padding:6px 12px}
-            .promo-dots{width:100%;justify-content:center;margin:5px 0 0 0}
-            .promo-close{top:8px;right:8px;transform:none;width:24px;height:24px;font-size:16px}
-            body{padding-top:0}
-        }
-        @media (max-width:480px){
-            .promo-img-box{width:70px;height:55px}
-            .promo-text h3{font-size:0.9rem}
-            .promo-text p{font-size:0.75rem}
-            .promo-btn{font-size:0.75rem;padding:5px 10px}
-        }
-    </style>
+
+    <style>.promotion-banner{position:fixed;top:0;left:280px;right:0;background:linear-gradient(135deg,rgba(26,26,26,0.98) 0%,rgba(45,45,45,0.98) 100%);backdrop-filter:blur(10px);color:#fff;border-bottom:1px solid rgba(212,175,55,0.3);padding:10px 24px 8px;z-index:998;box-shadow:0 4px 20px rgba(0,0,0,0.2);transition:all 0.4s cubic-bezier(0.4,0,0.2,1);}.promotion-banner.hidden{transform:translateY(-100%);opacity:0}.promotion-content{max-width:100%;margin:0;position:relative;padding-right:35px}.promo-content-wrapper{display:flex;align-items:center;gap:16px}.promo-close{position:absolute;top:8px;right:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all 0.3s;z-index:10}.promo-close:hover{background:rgba(212,175,55,0.2);border-color:rgba(212,175,55,0.5);transform:rotate(90deg)}.promo-link{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff;flex:1;min-width:0}.promo-img-box{width:100px;height:60px;border-radius:8px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.3);flex-shrink:0;border:1px solid rgba(212,175,55,0.2)}.promo-img{width:100%;height:100%;object-fit:cover}.promo-text{flex:1;min-width:0}.promo-text h3{margin:0 0 3px;font-size:0.95rem;color:#d4af37;font-family:'Playfair Display',serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;letter-spacing:0.3px}.promo-text p{margin:0;font-size:0.8rem;color:#e0e0e0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.promo-btn{background:linear-gradient(135deg,#d4af37 0%,#c49d2f 100%);color:#000;padding:7px 16px;border-radius:6px;text-decoration:none;font-weight:600;font-size:0.8rem;flex-shrink:0;white-space:nowrap;box-shadow:0 2px 8px rgba(212,175,55,0.3);transition:all 0.3s}.promo-btn:hover{background:linear-gradient(135deg,#c49d2f 0%,#b38c28 100%);transform:translateY(-1px);box-shadow:0 4px 12px rgba(212,175,55,0.4)}.promo-dots{display:flex;gap:8px;justify-content:center;margin-top:6px}.promo-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.25);cursor:pointer;transition:all 0.3s;border:1px solid rgba(255,255,255,0.2)}.promo-dot.active{background:#d4af37;width:24px;border-radius:4px;border-color:#d4af37;box-shadow:0 0 8px rgba(212,175,55,0.5)}body{padding-top:85px;transition:padding-top 0.3s ease}body.no-banner{padding-top:0}@media (max-width:991px){.promotion-banner{left:0;width:100%}body{padding-top:0}}@media (max-width:768px){.promotion-banner{padding:8px 12px;left:0;width:100%;position:relative;top:auto}.promotion-content{flex-direction:column;padding:8px 30px 8px 8px;gap:8px;align-items:flex-start}.promo-link{width:100%;flex-direction:row;gap:10px}.promo-img-box{width:80px;height:60px}.promo-text{text-align:left}.promo-text h3{font-size:0.95rem;white-space:normal}.promo-text p{font-size:0.8rem;white-space:normal}.promo-btn{align-self:center;font-size:0.8rem;padding:6px 12px}.promo-dots{width:100%;justify-content:center;margin:5px 0 0 0}.promo-close{top:8px;right:8px;transform:none;width:24px;height:24px;font-size:16px}body{padding-top:0}}@media (max-width:480px){.promo-img-box{width:70px;height:55px}.promo-text h3{font-size:0.9rem}.promo-text p{font-size:0.75rem}.promo-btn{font-size:0.75rem;padding:5px 10px}}</style>
     <script>
     // Prevent old PromotionBanner class from features.bundle.js from running
     window.PROMO_BANNER_LOADED = true;
@@ -1752,10 +1362,16 @@
             });
         });
         
-        // Load all promotions
+        // Load all promotions — clear skeletons after 8s if API hangs
+        const promoTimeout=setTimeout(()=>{
+            renderPromotions('current-promotions',[],'No current promotions available. Contact us for latest inventory and pricing.');
+            renderPromotions('past-promotions',[],'No past promotions.');
+        },8000);
+        
         fetch('/api/promotions_api.php?t='+Date.now())
         .then(r=>r.json())
         .then(d=>{
+            clearTimeout(promoTimeout);
             if(d.success&&d.promotions){
                 allPromotions=d.promotions;
                 
@@ -1804,13 +1420,15 @@
                     return 0;
                 });
                 
-                renderPromotions('current-promotions',current,'No current promotions at this time.');
+                renderPromotions('current-promotions',current,'No current promotions available. Contact us for latest inventory and pricing.');
                 renderPromotions('past-promotions',past,'No past promotions.');
             }
         })
         .catch(e=>{
+            clearTimeout(promoTimeout);
             console.error('Promotions load error:',e);
-            renderPromotions('current-promotions',[],'Unable to load promotions.');
+            renderPromotions('current-promotions',[],'No current promotions available. Contact us for latest inventory and pricing.');
+            renderPromotions('past-promotions',[],'No past promotions.');
         });
         
         function renderPromotions(containerId,promos,emptyMsg){
@@ -1994,81 +1612,7 @@
         setTimeout(()=>popup.style.display='none',300);
     }
     </script>
-    <style>
-    /* Promotion Tabs */
-    .promo-tabs{display:flex;justify-content:center;gap:15px;margin:30px 0;flex-wrap:wrap}
-    .promo-tab{background:transparent;border:2px solid #444;color:#ccc;padding:12px 30px;border-radius:8px;cursor:pointer;font-size:1rem;font-weight:600;transition:all 0.3s;font-family:'Didact Gothic',sans-serif}
-    .promo-tab:hover{border-color:#d4af37;color:#d4af37;transform:translateY(-2px)}
-    .promo-tab.active{background:#d4af37;border-color:#d4af37;color:#000;box-shadow:0 4px 15px rgba(212,175,55,0.4)}
-    .promo-tab-content{margin-top:30px}
-    
-    /* Promotion Cards */
-    .promo-card{background:#2a2a2a;border-radius:8px;overflow:hidden;transition:transform 0.3s,box-shadow 0.3s;border:1px solid #444;height:100%}
-    .promo-card:hover{transform:translateY(-5px);box-shadow:0 8px 30px rgba(212,175,55,0.3);border-color:#d4af37}
-    .promo-card-img{width:100%;height:200px;overflow:hidden}
-    .promo-card-img img{width:100%;height:100%;object-fit:cover}
-    .promo-card-body{padding:20px}
-    .promo-badge{display:inline-block;padding:4px 12px;border-radius:4px;font-size:0.75rem;font-weight:600;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px}
-    .badge-special{background:#d4af37;color:#000}
-    .badge-event{background:#4a90e2;color:#fff}
-    .promo-card h3{font-family:'Playfair Display',serif;font-size:1.3rem;color:#d4af37;margin:0 0 8px}
-    .promo-subtitle{font-size:0.95rem;color:#e0c072;margin:0 0 10px;font-weight:500}
-    .promo-desc{font-size:0.9rem;color:#ccc;line-height:1.5;margin-bottom:15px}
-    .promo-card-btn{display:inline-block;background:#d4af37;color:#000;padding:8px 20px;border-radius:5px;border:none;font-weight:600;font-size:0.85rem;transition:background 0.3s;cursor:pointer}
-    .promo-card-btn:hover{background:#c49d2f;color:#000}
-    .admin-icon-btn:hover{opacity:1!important}
-    
-    /* Promotion Modal - Subtle and Elegant */
-    .promo-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;padding:20px;animation:fadeIn 0.3s ease}
-    .promo-modal-content{background:linear-gradient(135deg,#1a1a1a 0%,#2a2a2a 100%);border-radius:16px;max-width:800px;width:100%;max-height:85vh;overflow-y:auto;position:relative;border:1px solid rgba(212,175,55,0.3);box-shadow:0 20px 60px rgba(0,0,0,0.5);animation:slideUp 0.4s ease}
-    .promo-modal-header{padding:15px 20px;border-bottom:1px solid #444;display:flex;justify-content:flex-end}
-    .promo-modal-close{background:transparent;border:none;color:#fff;font-size:2rem;cursor:pointer;line-height:1;padding:0;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background 0.3s}
-    .promo-modal-close:hover{background:rgba(212,175,55,0.2);transform:rotate(90deg)}
-    .promo-modal-body{display:flex;gap:30px;padding:30px}
-    .promo-modal-image{flex:1;min-width:300px}
-    .promo-modal-image img{width:100%;height:auto;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.5)}
-    .promo-modal-info{flex:1;min-width:300px}
-    .promo-modal-info h2{font-family:'Playfair Display',serif;font-size:1.75rem;color:#d4af37;margin:10px 0 15px;font-weight:600}
-    .promo-modal-subtitle{font-size:1.1rem;color:#e0c072;margin:0 0 15px;font-weight:500}
-    .promo-modal-desc{font-size:1rem;color:#ccc;line-height:1.6;margin-bottom:20px}
-    .promo-details-grid{background:#2a2a2a;padding:20px;border-radius:8px;margin:20px 0}
-    .promo-details-grid div{padding:8px 0;border-bottom:1px solid #444;color:#ccc;font-size:0.95rem}
-    .promo-details-grid div:last-child{border-bottom:none}
-    .promo-details-grid strong{color:#d4af37;margin-right:10px}
-    .promo-pricing{background:#2a2a2a;padding:20px;border-radius:8px;margin:20px 0}
-    .promo-pricing div{padding:8px 0;font-size:1rem}
-    .list-price{color:#999;text-decoration:line-through}
-    .special-price{color:#4caf50;font-size:1.2rem;font-weight:600}
-    .display-price{color:#d4af37;font-size:1.3rem;font-weight:700;margin-top:10px}
-    .promo-modal-btn{display:inline-block;background:#d4af37;color:#000;padding:12px 30px;border-radius:5px;text-decoration:none;font-weight:600;margin-top:20px;transition:background 0.3s}
-    .promo-modal-btn:hover{background:#c49d2f}
-    
-    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-    @keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
-    
-    /* Subtle Event Popup */
-    .subtle-event-popup{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.08);backdrop-filter:blur(1px);z-index:9998;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity 0.3s ease;cursor:pointer}
-    .subtle-event-popup.show{opacity:1}
-    .subtle-popup-card{background:linear-gradient(135deg,rgba(26,26,26,0.85) 0%,rgba(42,42,42,0.85) 100%);border-radius:12px;max-width:600px;width:100%;padding:0;position:relative;border:1px solid rgba(212,175,55,0.4);box-shadow:0 20px 60px rgba(0,0,0,0.6);transform:scale(0.95);transition:transform 0.3s ease;cursor:default;backdrop-filter:blur(10px)}
-    .subtle-event-popup.show .subtle-popup-card{transform:scale(1)}
-    .subtle-popup-img{width:100%;height:320px;object-fit:cover;border-radius:12px 12px 0 0}
-    .subtle-popup-content{padding:16px 20px 12px}
-    .subtle-popup-badge{display:inline-block;background:#4a90e2;color:#fff;padding:3px 10px;border-radius:4px;font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
-    .subtle-popup-title{font-family:'Playfair Display',serif;font-size:1.3rem;color:#d4af37;margin:0 0 8px;font-weight:600}
-    .subtle-popup-desc{font-size:0.85rem;color:#ccc;line-height:1.4;margin-bottom:12px}
-    .subtle-popup-link{display:inline-block;background:linear-gradient(135deg,#d4af37 0%,#c49d2f 100%);color:#000;padding:8px 20px;border-radius:5px;text-decoration:none;font-weight:600;font-size:0.8rem;transition:all 0.3s;box-shadow:0 2px 8px rgba(212,175,55,0.3)}
-    .subtle-popup-link:hover{background:linear-gradient(135deg,#c49d2f 0%,#b38c28 100%);transform:translateY(-2px);box-shadow:0 4px 12px rgba(212,175,55,0.5)}
-    .subtle-popup-hint{font-size:0.7rem;color:#999;text-align:center;margin-top:8px;margin-bottom:0;font-style:italic}
-    
-    @media (max-width:768px){
-        .promo-tab{padding:10px 20px;font-size:0.9rem}
-        .promo-modal-body{flex-direction:column;padding:20px}
-        .promo-modal-image{min-width:auto}
-        .promo-modal-info{min-width:auto}
-        .promo-modal-info h2{font-size:1.5rem}
-        .promo-modal-content{max-width:95%;border-radius:12px}
-    }
-    </style>
+    <style>.promo-skeleton{height:280px;border-radius:8px;background:linear-gradient(90deg,#2a2a2a 25%,#333 50%,#2a2a2a 75%);background-size:200% 100%;animation:promo-shimmer 1.4s infinite;border:1px solid #3a3a3a}@keyframes promo-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}.promo-tabs{display:flex;justify-content:center;gap:15px;margin:30px 0;flex-wrap:wrap}.promo-tab{background:transparent;border:2px solid #444;color:#ccc;padding:12px 30px;border-radius:8px;cursor:pointer;font-size:1rem;font-weight:600;transition:all 0.3s;font-family:'Didact Gothic',sans-serif}.promo-tab:hover{border-color:#d4af37;color:#d4af37;transform:translateY(-2px)}.promo-tab.active{background:#d4af37;border-color:#d4af37;color:#000;box-shadow:0 4px 15px rgba(212,175,55,0.4)}.promo-tab-content{margin-top:30px}.promo-card{background:#2a2a2a;border-radius:8px;overflow:hidden;transition:transform 0.3s,box-shadow 0.3s;border:1px solid #444;height:100%}.promo-card:hover{transform:translateY(-5px);box-shadow:0 8px 30px rgba(212,175,55,0.3);border-color:#d4af37}.promo-card-img{width:100%;height:200px;overflow:hidden}.promo-card-img img{width:100%;height:100%;object-fit:cover}.promo-card-body{padding:20px}.promo-badge{display:inline-block;padding:4px 12px;border-radius:4px;font-size:0.75rem;font-weight:600;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px}.badge-special{background:#d4af37;color:#000}.badge-event{background:#4a90e2;color:#fff}.promo-card h3{font-family:'Playfair Display',serif;font-size:1.3rem;color:#d4af37;margin:0 0 8px}.promo-subtitle{font-size:0.95rem;color:#e0c072;margin:0 0 10px;font-weight:500}.promo-desc{font-size:0.9rem;color:#ccc;line-height:1.5;margin-bottom:15px}.promo-card-btn{display:inline-block;background:#d4af37;color:#000;padding:8px 20px;border-radius:5px;border:none;font-weight:600;font-size:0.85rem;transition:background 0.3s;cursor:pointer}.promo-card-btn:hover{background:#c49d2f;color:#000}.admin-icon-btn:hover{opacity:1!important}.promo-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;padding:20px;animation:fadeIn 0.3s ease}.promo-modal-content{background:linear-gradient(135deg,#1a1a1a 0%,#2a2a2a 100%);border-radius:16px;max-width:800px;width:100%;max-height:85vh;overflow-y:auto;position:relative;border:1px solid rgba(212,175,55,0.3);box-shadow:0 20px 60px rgba(0,0,0,0.5);animation:slideUp 0.4s ease}.promo-modal-header{padding:15px 20px;border-bottom:1px solid #444;display:flex;justify-content:flex-end}.promo-modal-close{background:transparent;border:none;color:#fff;font-size:2rem;cursor:pointer;line-height:1;padding:0;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background 0.3s}.promo-modal-close:hover{background:rgba(212,175,55,0.2);transform:rotate(90deg)}.promo-modal-body{display:flex;gap:30px;padding:30px}.promo-modal-image{flex:1;min-width:300px}.promo-modal-image img{width:100%;height:auto;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.5)}.promo-modal-info{flex:1;min-width:300px}.promo-modal-info h2{font-family:'Playfair Display',serif;font-size:1.75rem;color:#d4af37;margin:10px 0 15px;font-weight:600}.promo-modal-subtitle{font-size:1.1rem;color:#e0c072;margin:0 0 15px;font-weight:500}.promo-modal-desc{font-size:1rem;color:#ccc;line-height:1.6;margin-bottom:20px}.promo-details-grid{background:#2a2a2a;padding:20px;border-radius:8px;margin:20px 0}.promo-details-grid div{padding:8px 0;border-bottom:1px solid #444;color:#ccc;font-size:0.95rem}.promo-details-grid div:last-child{border-bottom:none}.promo-details-grid strong{color:#d4af37;margin-right:10px}.promo-pricing{background:#2a2a2a;padding:20px;border-radius:8px;margin:20px 0}.promo-pricing div{padding:8px 0;font-size:1rem}.list-price{color:#999;text-decoration:line-through}.special-price{color:#4caf50;font-size:1.2rem;font-weight:600}.display-price{color:#d4af37;font-size:1.3rem;font-weight:700;margin-top:10px}.promo-modal-btn{display:inline-block;background:#d4af37;color:#000;padding:12px 30px;border-radius:5px;text-decoration:none;font-weight:600;margin-top:20px;transition:background 0.3s}.promo-modal-btn:hover{background:#c49d2f}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}.subtle-event-popup{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.08);backdrop-filter:blur(1px);z-index:9998;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity 0.3s ease;cursor:pointer}.subtle-event-popup.show{opacity:1}.subtle-popup-card{background:linear-gradient(135deg,rgba(26,26,26,0.85) 0%,rgba(42,42,42,0.85) 100%);border-radius:12px;max-width:600px;width:100%;padding:0;position:relative;border:1px solid rgba(212,175,55,0.4);box-shadow:0 20px 60px rgba(0,0,0,0.6);transform:scale(0.95);transition:transform 0.3s ease;cursor:default;backdrop-filter:blur(10px)}.subtle-event-popup.show .subtle-popup-card{transform:scale(1)}.subtle-popup-img{width:100%;height:320px;object-fit:cover;border-radius:12px 12px 0 0}.subtle-popup-content{padding:16px 20px 12px}.subtle-popup-badge{display:inline-block;background:#4a90e2;color:#fff;padding:3px 10px;border-radius:4px;font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}.subtle-popup-title{font-family:'Playfair Display',serif;font-size:1.3rem;color:#d4af37;margin:0 0 8px;font-weight:600}.subtle-popup-desc{font-size:0.85rem;color:#ccc;line-height:1.4;margin-bottom:12px}.subtle-popup-link{display:inline-block;background:linear-gradient(135deg,#d4af37 0%,#c49d2f 100%);color:#000;padding:8px 20px;border-radius:5px;text-decoration:none;font-weight:600;font-size:0.8rem;transition:all 0.3s;box-shadow:0 2px 8px rgba(212,175,55,0.3)}.subtle-popup-link:hover{background:linear-gradient(135deg,#c49d2f 0%,#b38c28 100%);transform:translateY(-2px);box-shadow:0 4px 12px rgba(212,175,55,0.5)}.subtle-popup-hint{font-size:0.7rem;color:#999;text-align:center;margin-top:8px;margin-bottom:0;font-style:italic}@media (max-width:768px){.promo-tab{padding:10px 20px;font-size:0.9rem}.promo-modal-body{flex-direction:column;padding:20px}.promo-modal-image{min-width:auto}.promo-modal-info{min-width:auto}.promo-modal-info h2{font-size:1.5rem}.promo-modal-content{max-width:95%;border-radius:12px}}</style>
     
     <!-- Subtle Event Popup -->
     <div id="subtle-event-popup" class="subtle-event-popup" onclick="closeSubtlePopup()" role="dialog" aria-modal="true" aria-label="Event notification">
@@ -2124,7 +1668,7 @@
     </div>
     <!-- category-carousel.js and legal-modals.js are now included in features.bundle.js -->
     <div class="hidden-thumbnail">
-        <img id="default-thumbnail" src="images/default-thumbnail.jpg" alt="Default Thumbnail">
+        <img id="default-thumbnail" src="images/default-thumbnail.jpg" alt="Default Thumbnail" width="800" height="800" loading="lazy">
     </div>
 
     <!-- Legal Document Modals -->
@@ -2137,12 +1681,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="privacyPolicyContent">
-                    <div class="text-center">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p>Loading Privacy Policy...</p>
-                    </div>
+                    <!-- Content loaded on modal open by legal-modals.js -->
                 </div>
             </div>
         </div>
@@ -2157,12 +1696,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="termsOfServiceContent">
-                    <div class="text-center">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p>Loading Terms of Service...</p>
-                    </div>
+                    <!-- Content loaded on modal open by legal-modals.js -->
                 </div>
             </div>
         </div>
@@ -2177,12 +1711,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="smsTermsContent">
-                    <div class="text-center">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p>Loading SMS Terms...</p>
-                    </div>
+                    <!-- Content loaded on modal open by legal-modals.js -->
                 </div>
             </div>
         </div>
@@ -2266,7 +1795,7 @@
     </script>
 
     <!-- PDF.js for Specials section -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
+    <!-- pdf.js loaded on demand when PDF viewer is first opened (saves 73KB on initial load) -->
     
     <!-- Direct Specials Integration Script -->
     <script>
@@ -2286,13 +1815,13 @@
                             specialCard.innerHTML = `
                                 <div class="special-card" data-special-id="${special.id}">
                                     <div class="special-image">
-                                        <img src="${special.thumbnail}" alt="${special.title}" class="img-fluid">
+                                        <img src="${special.thumbnail}" alt="${special.title}" class="img-fluid" width="1000" height="1000" loading="lazy">
                                         <div class="special-overlay">
                                             <button class="btn btn-light view-special">View Special</button>
                                         </div>
                                     </div>
                                     <div class="special-info">
-                                        <h4 class="special-card-title">${special.title}</h4>
+                                        <h3 class="special-card-title">${special.title}</h3>
                                     </div>
                                 </div>
                             `;
@@ -2412,12 +1941,15 @@
             const maxScale = 3.0;
             const minScale = 0.5;
             
-            // Load PDF using PDF.js
-            const pdfUrl = special.url;
-            const pdfjsLib = window['pdfjs-dist/build/pdf'];
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-            
-            let loadingTask = pdfjsLib.getDocument(pdfUrl);
+            // Load pdf.js on demand (only when PDF viewer is first used)
+            const PDF_JS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+            const PDF_WORKER_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            function initPdfViewer() {
+                const pdfjsLib = window['pdfjs-dist/build/pdf'];
+                pdfjsLib.GlobalWorkerOptions.workerSrc = PDF_WORKER_URL;
+                
+                const pdfUrl = special.url;
+                let loadingTask = pdfjsLib.getDocument(pdfUrl);
             
             loadingTask.promise.then(function(pdf) {
                 pdfDoc = pdf;
@@ -2546,6 +2078,17 @@
                 }
             };
             document.addEventListener('keydown', window._pdfKeyHandler);
+            } // end initPdfViewer
+
+            // Load pdf.js on demand, then init viewer
+            if (window['pdfjs-dist/build/pdf']) {
+                initPdfViewer();
+            } else {
+                var script = document.createElement('script');
+                script.src = PDF_JS_URL;
+                script.onload = initPdfViewer;
+                document.head.appendChild(script);
+            }
         }
     </script>
     
@@ -2554,11 +2097,11 @@
     <!-- App Store Badges -->
     <div class="app-badges-container">
        <a href="https://apps.apple.com/us/app/angel-granties/id6748974666" target="_blank" rel="noopener noreferrer" class="app-badge-link">
-            <img alt="Download on the App Store" src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" class="app-badge-img" />
+            <img alt="Download on the App Store" src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" class="app-badge-img" width="110" height="40" loading="lazy" />
         </a>
         <div class="app-badge-spacer"></div>
         <a href="https://play.google.com/store/apps/details?id=com.angelgranites.app" target="_blank" rel="noopener noreferrer" class="app-badge-link">
-            <img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" class="app-badge-img" />
+            <img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" class="app-badge-img" width="110" height="40" loading="lazy" />
         </a>
     </div>
 

@@ -80,13 +80,12 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Set loading state
+        // Set loading state — spinner only, no visible text
         contentElement.innerHTML = `
-            <div class="text-center">
+            <div class="text-center py-4">
                 <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
+                    <span class="visually-hidden">Loading</span>
                 </div>
-                <p>Loading content...</p>
             </div>
         `;
         
