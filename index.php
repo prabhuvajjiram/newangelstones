@@ -115,6 +115,38 @@ $routes = [
         'keywords'    => 'custom granite designs, granite etchings, laser etched granite, portrait granite',
     ],
 
+    'columbarium' => [
+        'title'       => 'Granite Columbarium Niches &amp; Vaults | Angel Granites',
+        'description' => 'Custom granite columbarium niches and community mausoleums. Factory-direct pricing from Elberton, GA. Request a quote for single, double or family columbarium units.',
+        'canonical'   => 'https://www.theangelstones.com/columbarium/',
+        'og_title'    => 'Granite Columbarium Niches & Vaults | Angel Granites',
+        'og_desc'     => 'Custom granite columbarium niches — single, double and family units. Factory-direct from Elberton, GA.',
+        'og_image'    => 'https://www.theangelstones.com/images/products/columbarium/customized-designs-project03.jpg',
+        'tw_title'    => 'Granite Columbarium Niches & Vaults | Angel Granites',
+        'tw_desc'     => 'Custom granite columbarium niches and mausoleums. Factory-direct pricing.',
+        'h1'          => 'Granite Columbarium Niches',
+        'category'    => 'columbarium',
+        'section'     => 'featured-products',
+        'schema_type' => 'CollectionPage',
+        'keywords'    => 'granite columbarium, columbarium niches, granite mausoleum, cremation vaults, Elberton GA',
+    ],
+
+    'mbna-2025' => [
+        'title'       => 'MBNA 2025 Granite Monument Collection | Angel Granites',
+        'description' => 'Browse the exclusive MBNA 2025 ready-to-ship granite monument collection. Premium in-stock designs at factory-direct wholesale pricing from Elberton, GA.',
+        'canonical'   => 'https://www.theangelstones.com/mbna-2025/',
+        'og_title'    => 'MBNA 2025 Monument Collection | Angel Granites',
+        'og_desc'     => 'Exclusive MBNA 2025 in-stock granite monuments at wholesale pricing. Ready to ship from Elberton, GA.',
+        'og_image'    => 'https://www.theangelstones.com/images/products/MBNA_2025/AG-116.jpg',
+        'tw_title'    => 'MBNA 2025 Monument Collection | Angel Granites',
+        'tw_desc'     => 'Exclusive MBNA 2025 granite monument collection. In-stock, factory-direct pricing.',
+        'h1'          => 'MBNA 2025 Monument Collection',
+        'category'    => 'mbna_2025',
+        'section'     => 'featured-products',
+        'schema_type' => 'CollectionPage',
+        'keywords'    => 'MBNA 2025 monuments, granite monuments wholesale, in-stock monuments, Angel Granites MBNA',
+    ],
+
 ];
 
 // ── Route resolution ─────────────────────────────────────────────────────────
@@ -153,10 +185,12 @@ $html = preg_replace(
     $html, 1
 );
 
-// 3. canonical
+// 3. canonical + 3b. inject meta keywords immediately after
+$canonicalTag = '<link rel="canonical" href="' . $page['canonical'] . '" />';
+$keywordsTag  = '<meta name="keywords" content="' . htmlspecialchars($page['keywords'], ENT_QUOTES | ENT_HTML5) . '">';
 $html = preg_replace(
     '/<link\s+rel=["\']canonical["\']\s+href=["\'][^"\']*["\']\s*\/?>/i',
-    '<link rel="canonical" href="' . $page['canonical'] . '" />',
+    $canonicalTag . "\n    " . $keywordsTag,
     $html, 1
 );
 

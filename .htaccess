@@ -19,11 +19,11 @@ RewriteCond %{HTTP_USER_AGENT} !Prerender [NC]
 RewriteRule ^(.*)$ https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 # Enforce trailing slash on section URLs so canonical URLs are consistent
-RewriteRule ^(monuments|inventory|granite-colors|contact|benches|designs)$ /$1/ [R=301,L]
+RewriteRule ^(monuments|inventory|granite-colors|contact|benches|designs|columbarium|mbna-2025)$ /$1/ [R=301,L]
 
 # Explicitly route known section pages through index.php regardless of whether
 # a directory with that name exists on disk (avoids 401 from Directory Privacy)
-RewriteRule ^(monuments|inventory|granite-colors|contact|benches|designs)/?$ index.php [L]
+RewriteRule ^(monuments|inventory|granite-colors|contact|benches|designs|columbarium|mbna-2025)/?$ index.php [L]
 
 # Fallback to index.php if file/folder not found (SPA routing support)
 RewriteCond %{REQUEST_FILENAME} !-f
