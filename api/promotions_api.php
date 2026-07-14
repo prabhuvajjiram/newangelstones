@@ -1,10 +1,11 @@
 <?php
+require_once __DIR__ . '/admin_guard.php';
 require_once '../crm/includes/config.php';
 
 // CORS headers
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-CSRF-Token');
 header('Content-Type: application/json; charset=utf-8');
 
 // Handle preflight
@@ -17,6 +18,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $method = $_SERVER['REQUEST_METHOD'];
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $pathParts = explode('/', trim($path, '/'));
+
+if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+    requireAdminSession(true);
+}
 
 // Get database connection - use global $pdo from config.php
 global $pdo;
@@ -34,10 +39,76 @@ function generateId() {
     return 'promo_' . uniqid() . '_' . time();
 }
 
+function cleanText($value, $maxLength = 500) {
+    if ($value === null) {
+        return null;
+    }
+    $cleaned = trim(strip_tags((string)$value));
+    return substr($cleaned, 0, $maxLength);
+}
+
+function cleanPromotionUrl($value, $default = null) {
+    if ($value === null || $value === '') {
+        return $default;
+    }
+
+    $url = trim((string)$value);
+    if (preg_match('#^https://(www\.)?theangelstones\.com/#i', $url) || preg_match('#^/(?!/)#', $url)) {
+        return $url;
+    }
+
+    return $default;
+}
+
+function cleanPromotionPayload(array $data) {
+    if (isset($data['type']) && !in_array($data['type'], ['product', 'event'], true)) {
+        sendResponse(['success' => false, 'error' => 'Invalid promotion type'], 400);
+    }
+
+    foreach (['title', 'subtitle', 'description'] as $field) {
+        if (array_key_exists($field, $data)) {
+            $data[$field] = cleanText($data[$field], $field === 'description' ? 1000 : 200);
+        }
+    }
+
+    if (isset($data['imageUrl'])) {
+        $data['imageUrl'] = cleanPromotionUrl($data['imageUrl']);
+        if (!$data['imageUrl']) {
+            sendResponse(['success' => false, 'error' => 'Invalid image URL'], 400);
+        }
+    }
+
+    if (array_key_exists('linkUrl', $data)) {
+        $data['linkUrl'] = cleanPromotionUrl($data['linkUrl'], '/promotions.html');
+    }
+
+    foreach (['productCode', 'color', 'tablet', 'base', 'features'] as $field) {
+        if (isset($data['productDetails'][$field])) {
+            $data['productDetails'][$field] = cleanText($data['productDetails'][$field], $field === 'features' ? 1000 : 250);
+        }
+    }
+
+    if (isset($data['pricing'])) {
+        foreach (['specialPrice', 'listPrice'] as $field) {
+            if (isset($data['pricing'][$field]) && (!is_numeric($data['pricing'][$field]) || $data['pricing'][$field] < 0)) {
+                sendResponse(['success' => false, 'error' => 'Invalid pricing value'], 400);
+            }
+        }
+    }
+
+    return $data;
+}
+
 // GET - Fetch all promotions or single promotion
 if ($method === 'GET') {
     // Check if requesting single promotion
     $promotionId = $_GET['id'] ?? null;
+    $activeOnly = isset($_GET['active_only']) && $_GET['active_only'] === 'true';
+    $archivedOnly = isset($_GET['archived']) && $_GET['archived'] === 'true';
+
+    if (!$activeOnly) {
+        requireAdminSession(false);
+    }
     
     if ($promotionId) {
         // Fetch single promotion
@@ -55,8 +126,6 @@ if ($method === 'GET') {
     } else {
         // Fetch all promotions
         $platform = $_GET['platform'] ?? 'web';
-        $activeOnly = isset($_GET['active_only']) && $_GET['active_only'] === 'true';
-        $archivedOnly = isset($_GET['archived']) && $_GET['archived'] === 'true';
         
         $sql = "SELECT * FROM promotions";
         $conditions = [];
@@ -109,6 +178,7 @@ if ($method === 'POST') {
     if (!$data) {
         sendResponse(['success' => false, 'error' => 'Invalid JSON data'], 400);
     }
+    $data = cleanPromotionPayload($data);
     
     // Validate required fields
     $required = ['type', 'title', 'imageUrl', 'startDate', 'endDate'];
@@ -174,7 +244,8 @@ if ($method === 'POST') {
             'promotion' => formatPromotion($promotion)
         ], 201);
     } catch (PDOException $e) {
-        sendResponse(['success' => false, 'error' => 'Failed to create promotion', 'message' => $e->getMessage()], 500);
+        error_log('Failed to create promotion: ' . $e->getMessage());
+        sendResponse(['success' => false, 'error' => 'Failed to create promotion'], 500);
     }
 }
 
@@ -191,6 +262,7 @@ if ($method === 'PUT') {
     if (!$data) {
         sendResponse(['success' => false, 'error' => 'Invalid JSON data'], 400);
     }
+    $data = cleanPromotionPayload($data);
     
     // Build update query dynamically
     $updates = [];
@@ -281,7 +353,8 @@ if ($method === 'PUT') {
             'promotion' => formatPromotion($promotion)
         ]);
     } catch (PDOException $e) {
-        sendResponse(['success' => false, 'error' => 'Failed to update promotion', 'message' => $e->getMessage()], 500);
+        error_log('Failed to update promotion: ' . $e->getMessage());
+        sendResponse(['success' => false, 'error' => 'Failed to update promotion'], 500);
     }
 }
 
@@ -321,9 +394,11 @@ if ($method === 'DELETE') {
         
         sendResponse(['success' => true, 'message' => 'Promotion and image deleted successfully']);
     } catch (PDOException $e) {
-        sendResponse(['success' => false, 'error' => 'Failed to delete promotion', 'message' => $e->getMessage()], 500);
+        error_log('Failed to delete promotion: ' . $e->getMessage());
+        sendResponse(['success' => false, 'error' => 'Failed to delete promotion'], 500);
     } catch (Exception $e) {
-        sendResponse(['success' => false, 'error' => 'Failed to delete image file', 'message' => $e->getMessage()], 500);
+        error_log('Failed to delete promotion image: ' . $e->getMessage());
+        sendResponse(['success' => false, 'error' => 'Failed to delete image file'], 500);
     }
 }
 
@@ -385,7 +460,8 @@ if ($method === 'PATCH') {
             ]);
         }
     } catch (PDOException $e) {
-        sendResponse(['success' => false, 'error' => 'Failed to update promotion', 'message' => $e->getMessage()], 500);
+        error_log('Failed to update promotion status: ' . $e->getMessage());
+        sendResponse(['success' => false, 'error' => 'Failed to update promotion'], 500);
     }
 }
 

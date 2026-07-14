@@ -861,6 +861,7 @@ if ($status === 'validation_error' && isset($_GET['errors'])) {
         </div>
 
         <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
+        <input type="text" name="website_url" value="" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
 
         <div class="text-center" style="padding: 1rem 1rem 2rem 1rem;">
             <button type="submit" class="btn btn-primary">Submit Application</button>

@@ -1,4 +1,6 @@
 <?php
+http_response_code(404);
+exit;
 require_once '../includes/config.php';
 
 try {

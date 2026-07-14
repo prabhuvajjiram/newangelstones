@@ -10,9 +10,8 @@
  * - GET /api/getShippingDetails/:id - Get detailed information about a specific shipment
  */
 
-// Enable error reporting for development (remove in production)
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
 
 // Set content type to JSON
@@ -70,8 +69,7 @@ function authorizeRequest() {
     
     $token = $matches[1];
     
-    // Define your API token - in production, use a more secure method
-    $validToken = "AngelStones2025ApiToken"; // Replace with your secure token
+    $validToken = getenv('SHIPPING_API_TOKEN') ?: '';
     
     // In production, implement proper token validation
     // For development, accept any token of sufficient length
@@ -79,8 +77,7 @@ function authorizeRequest() {
         return strlen($token) >= 10; 
     }
     
-    // For production, do exact token matching
-    return $token === $validToken;
+    return $validToken !== '' && hash_equals($validToken, $token);
 }
 
 // Create PDO connection to database
@@ -90,7 +87,8 @@ function getDbConnection() {
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         return $conn;
     } catch(PDOException $e) {
-        throw new Exception("Database connection failed: " . $e->getMessage());
+        error_log("Shipping API database connection failed: " . $e->getMessage());
+        throw new Exception("Database connection failed");
     }
 }
 
@@ -185,5 +183,6 @@ try {
     }
 } catch (Exception $e) {
     // Handle any errors
-    $responseHandler->sendResponse(500, ['error' => 'Server error', 'message' => $e->getMessage()]);
+    error_log('Shipping API error: ' . $e->getMessage());
+    $responseHandler->sendResponse(500, ['error' => 'Server error']);
 }

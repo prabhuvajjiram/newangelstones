@@ -20,14 +20,34 @@ if (
 // Invalidate token after successful validation to prevent reuse
 unset($_SESSION['csrf_token']);
 
-// reCAPTCHA v3 validation (disabled for local testing)
+if (!empty($_POST['website_url'] ?? '')) {
+    header('Location: index.php?status=error');
+    exit;
+}
 
-// Check if reCAPTCHA is enabled (set to false for local testing)
-$recaptchaEnabled = defined('RECAPTCHA_ENABLED') ? RECAPTCHA_ENABLED : false;
+$clientIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+$rateKey = 'credit_submit_' . hash('sha256', $clientIp);
+$now = time();
+$_SESSION[$rateKey] = array_values(array_filter($_SESSION[$rateKey] ?? [], function ($timestamp) use ($now) {
+    return is_int($timestamp) && ($now - $timestamp) < 3600;
+}));
+
+if (count($_SESSION[$rateKey]) >= 3) {
+    header('Location: index.php?status=error');
+    exit;
+}
+
+$_SESSION[$rateKey][] = $now;
+
+// reCAPTCHA v3 validation is enforced when a production secret is configured.
+$configuredSecret = defined('RECAPTCHA_SECRET_KEY') ? RECAPTCHA_SECRET_KEY : (getenv('RECAPTCHA_SECRET_KEY') ?: '');
+$recaptchaEnabled = defined('RECAPTCHA_ENABLED')
+    ? RECAPTCHA_ENABLED
+    : ($configuredSecret !== '' && $configuredSecret !== 'YOUR_SECRET_KEY');
 
 if ($recaptchaEnabled) {
     // Load reCAPTCHA secret from config or environment
-    $recaptchaSecret = defined('RECAPTCHA_SECRET_KEY') ? RECAPTCHA_SECRET_KEY : (getenv('RECAPTCHA_SECRET_KEY') ?: 'YOUR_SECRET_KEY');
+    $recaptchaSecret = $configuredSecret;
     $recaptchaResponse = $_POST['g-recaptcha-response'] ?? '';
     $recaptchaVerified = false;
     

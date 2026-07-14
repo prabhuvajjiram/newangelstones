@@ -1,4 +1,6 @@
 <?php
+http_response_code(404);
+exit;
 session_start();
 require_once 'includes/config.php';
 
@@ -13,4 +15,4 @@ $user = $stmt->fetch();
 echo "<pre>";
 echo "Tokens for user {$_SESSION['email']}:\n";
 print_r($user);
-echo "</pre>"; 
+echo "</pre>";

@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/admin_guard.php';
+requireAdminSession(true);
+
 // Set server name for environment detection
 $_SERVER['SERVER_NAME'] = $_SERVER['SERVER_NAME'] ?? 'localhost';
 

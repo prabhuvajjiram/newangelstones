@@ -207,3 +207,14 @@ logs/
 # Optimization backup files
 *.bak
 *.orig-bak
+*.backup*
+*.old
+*.map
+*.xlsx
+*.xls
+*.sql
+api/cookies.txt
+chat/users.txt
+chat/.ringcentral_token.json
+chat/secure_storage/
+payment_email_log.txt

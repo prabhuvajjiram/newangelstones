@@ -1,22 +1,52 @@
 <?php
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo 'Payment confirmations must be posted by the payment processor.';
+    exit;
+}
+
+function paymentField(string $key, string $fallback = ''): string {
+    return trim((string)($_POST[$key] ?? $fallback));
+}
+
+function verifyConvergeResponse(array $payload): bool {
+    $secret = getenv('CONVERGE_RESPONSE_SECRET') ?: '';
+    $signature = $_SERVER['HTTP_X_CONVERGE_SIGNATURE'] ?? ($payload['signature'] ?? '');
+
+    if ($secret === '' || $signature === '') {
+        return false;
+    }
+
+    $signedFields = [
+        $payload['ssl_txn_id'] ?? '',
+        $payload['ssl_amount'] ?? '',
+        $payload['ssl_invoice_number'] ?? '',
+        $payload['ssl_result'] ?? '',
+    ];
+    $expected = hash_hmac('sha256', implode('|', $signedFields), $secret);
+    return hash_equals($expected, $signature);
+}
+
+$verifiedPayment = verifyConvergeResponse($_POST);
+
 // Capture data from Converge response
-$amount = isset($_POST['ssl_amount']) ? $_POST['ssl_amount'] : (isset($_POST['Total']) ? $_POST['Total'] : (isset($_GET['amount']) ? $_GET['amount'] : ''));
-$invoice = isset($_POST['Invoice Number']) ? $_POST['Invoice Number'] : (isset($_GET['invoice']) ? $_GET['invoice'] : '');
+$amount = paymentField('ssl_amount', paymentField('Total'));
+$invoice = paymentField('ssl_invoice_number', paymentField('Invoice Number'));
 
 // Extract customer information from SSL fields
-$firstName = isset($_POST['ssl_first_name']) ? $_POST['ssl_first_name'] : '';
-$lastName = isset($_POST['ssl_last_name']) ? $_POST['ssl_last_name'] : '';
-$name = !empty($firstName) || !empty($lastName) ? trim($firstName . ' ' . $lastName) : (isset($_POST['Sample Name']) ? $_POST['Sample Name'] : (isset($_GET['name']) ? $_GET['name'] : ''));
-$company = isset($_POST['ssl_company']) ? $_POST['ssl_company'] : '';
-$email = isset($_POST['ssl_email']) ? $_POST['ssl_email'] : (isset($_POST['sample@email.com']) ? $_POST['sample@email.com'] : (isset($_GET['email']) ? $_GET['email'] : ''));
-$phone = isset($_POST['ssl_phone']) ? $_POST['ssl_phone'] : (isset($_POST['Phone']) ? $_POST['Phone'] : (isset($_GET['phone']) ? $_GET['phone'] : ''));
+$firstName = paymentField('ssl_first_name');
+$lastName = paymentField('ssl_last_name');
+$name = !empty($firstName) || !empty($lastName) ? trim($firstName . ' ' . $lastName) : paymentField('Sample Name');
+$company = paymentField('ssl_company');
+$email = paymentField('ssl_email', paymentField('sample@email.com'));
+$phone = paymentField('ssl_phone', paymentField('Phone'));
 
 // Extract address information from SSL fields
-$addressLine = isset($_POST['ssl_avs_address']) ? $_POST['ssl_avs_address'] : '';
-$city = isset($_POST['ssl_city']) ? $_POST['ssl_city'] : '';
-$state = isset($_POST['ssl_state']) ? $_POST['ssl_state'] : '';
-$zip = isset($_POST['ssl_avs_zip']) ? $_POST['ssl_avs_zip'] : '';
-$country = isset($_POST['ssl_country']) ? $_POST['ssl_country'] : '';
+$addressLine = paymentField('ssl_avs_address');
+$city = paymentField('ssl_city');
+$state = paymentField('ssl_state');
+$zip = paymentField('ssl_avs_zip');
+$country = paymentField('ssl_country');
 
 // Combine address components if available
 $fullAddress = '';
@@ -46,16 +76,16 @@ if (!empty($country) && $country != 'USA' && $country != 'US') {
 }
 
 // Use the constructed address or fall back to previous methods
-$address = !empty($fullAddress) ? $fullAddress : (isset($_POST['105 Sample Street']) ? $_POST['105 Sample Street'] : (isset($_GET['address']) ? $_GET['address'] : ''));
+$address = !empty($fullAddress) ? $fullAddress : paymentField('105 Sample Street');
 
 // Extract transaction details
-$txnId = isset($_POST['Merchant Transaction ID']) ? $_POST['Merchant Transaction ID'] : (isset($_GET['txnid']) ? $_GET['txnid'] : '');
-$approvalCode = isset($_POST['Approval Number']) ? $_POST['Approval Number'] : (isset($_GET['approval']) ? $_GET['approval'] : '');
+$txnId = paymentField('ssl_txn_id', paymentField('Merchant Transaction ID'));
+$approvalCode = paymentField('ssl_approval_code', paymentField('Approval Number'));
 
 // Check for error codes in the response
-$errorCode = isset($_POST['errorCode']) ? $_POST['errorCode'] : '';
-$errorName = isset($_POST['errorName']) ? $_POST['errorName'] : '';
-$errorMessage = isset($_POST['errorMessage']) ? $_POST['errorMessage'] : '';
+$errorCode = paymentField('errorCode');
+$errorName = paymentField('errorName');
+$errorMessage = paymentField('errorMessage');
 
 // Determine payment status based on error codes
 if (!empty($errorCode) || !empty($errorName) || !empty($errorMessage)) {
@@ -66,14 +96,11 @@ if (!empty($errorCode) || !empty($errorName) || !empty($errorMessage)) {
     }
 } else {
     // If no explicit error, check for status in POST or GET
-    $paymentStatus = isset($_POST['Status']) ? $_POST['Status'] : (isset($_GET['status']) ? $_GET['status'] : 'approved');
-    $declineReason = isset($_POST['Decline Reason']) ? $_POST['Decline Reason'] : (isset($_GET['decline_reason']) ? $_GET['decline_reason'] : '');
+    $paymentStatus = paymentField('ssl_result_message', paymentField('Status'));
+    $declineReason = paymentField('Decline Reason');
 }
 
-// Extract card information if available
-$cardNumber = isset($_POST['ssl_card_number']) ? $_POST['ssl_card_number'] : '';
-$expDate = isset($_POST['ssl_exp_date']) ? $_POST['ssl_exp_date'] : '';
-$transactionType = isset($_POST['ssl_transaction_type']) ? $_POST['ssl_transaction_type'] : '';
+$transactionType = paymentField('ssl_transaction_type');
 
 // If we don't have specific fields, try to get them from the general POST data
 if (empty($invoice) || empty($amount) || empty($name) || empty($email) || empty($phone) || empty($address) || empty($txnId) || empty($approvalCode)) {
@@ -102,18 +129,6 @@ if (empty($invoice) || empty($amount) || empty($name) || empty($email) || empty(
     }
 }
 
-// Fallback to GET parameters if still empty
-if (empty($invoice) && isset($_GET['invoice'])) $invoice = $_GET['invoice'];
-if (empty($amount) && isset($_GET['amount'])) $amount = $_GET['amount'];
-if (empty($name) && isset($_GET['name'])) $name = $_GET['name'];
-if (empty($email) && isset($_GET['email'])) $email = $_GET['email'];
-if (empty($phone) && isset($_GET['phone'])) $phone = $_GET['phone'];
-if (empty($address) && isset($_GET['address'])) $address = $_GET['address'];
-if (empty($txnId) && isset($_GET['txnid'])) $txnId = $_GET['txnid'];
-if (empty($approvalCode) && isset($_GET['approval'])) $approvalCode = $_GET['approval'];
-if (empty($paymentStatus) && isset($_GET['status'])) $paymentStatus = $_GET['status'];
-if (empty($declineReason) && isset($_GET['decline_reason'])) $declineReason = $_GET['decline_reason'];
-
 // Normalize payment status to either 'approved' or 'declined'
 $paymentStatus = strtolower(trim($paymentStatus));
 if ($paymentStatus != 'declined' && $paymentStatus != 'decline' && $paymentStatus != 'failed' && $paymentStatus != 'failure' && $paymentStatus != 'error' && $paymentStatus != 'rejected') {
@@ -125,6 +140,11 @@ if ($paymentStatus != 'declined' && $paymentStatus != 'decline' && $paymentStatu
     }
 } else {
     $paymentStatus = 'declined';
+}
+
+if (!$verifiedPayment) {
+    $paymentStatus = 'pending';
+    $declineReason = 'Payment response is pending server verification.';
 }
 
 // If still no invoice, use a default
@@ -157,34 +177,34 @@ $logData = [
     'errorName' => $errorName,
     'errorMessage' => $errorMessage,
     'declineReason' => $declineReason,
-    'cardNumber' => $cardNumber,
-    'expDate' => $expDate,
     'transactionType' => $transactionType,
-    'post_data' => $_POST,
-    'get_data' => $_GET
+    'verified' => $verifiedPayment
 ];
 error_log('Payment transaction data: ' . json_encode($logData, JSON_PRETTY_PRINT));
 
 // Include the payment email helper
 require_once __DIR__ . '/send_payment_email.php';
 
-// Send payment confirmation email
-$emailResult = sendPaymentConfirmationEmail(
-    $invoice, 
-    $amount, 
-    $date, 
-    $name, 
-    $email, 
-    $phone, 
-    $address, 
-    $txnId, 
-    $approvalCode,
-    $paymentStatus,
-    $declineReason
-);
+// Send payment confirmation email only after the response is verified.
+$emailResult = ['success' => false, 'message' => 'Payment response pending verification'];
+if ($verifiedPayment) {
+    $emailResult = sendPaymentConfirmationEmail(
+        $invoice,
+        $amount,
+        $date,
+        $name,
+        $email,
+        $phone,
+        $address,
+        $txnId,
+        $approvalCode,
+        $paymentStatus,
+        $declineReason
+    );
+}
 
 // Set page title based on payment status
-$pageTitle = ($paymentStatus == 'declined') ? "Payment Declined" : "Payment Confirmation";
+$pageTitle = ($paymentStatus == 'declined') ? "Payment Declined" : (($paymentStatus == 'pending') ? "Payment Received" : "Payment Confirmation");
 ?>
 
 <!DOCTYPE html>
@@ -387,7 +407,11 @@ $pageTitle = ($paymentStatus == 'declined') ? "Payment Declined" : "Payment Conf
         
         <div class="confirmation-card">
             <div class="confirmation-message">
-                <?php if (strtolower($paymentStatus) == 'declined'): ?>
+                <?php if (strtolower($paymentStatus) == 'pending'): ?>
+                <i class="fas fa-clock success"></i>
+                <h2>Payment Received</h2>
+                <p>Your payment response was received and is pending server verification.</p>
+                <?php elseif (strtolower($paymentStatus) == 'declined'): ?>
                 <i class="fas fa-times-circle declined"></i>
                 <h2>Payment Declined</h2>
                 <p>Unfortunately, your payment was declined. Please try again or contact us for assistance.</p>

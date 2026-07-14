@@ -4,6 +4,10 @@
 ini_set('display_errors', 0);
 error_reporting(0);
 
+http_response_code(404);
+echo "Not found";
+exit;
+
 // Define secure access for email config
 if (!defined('SECURE_ACCESS')) {
     define('SECURE_ACCESS', true);

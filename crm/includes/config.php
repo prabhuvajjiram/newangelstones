@@ -10,10 +10,11 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQU
     register_shutdown_function(function() {
         $error = error_get_last();
         if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+            error_log('Fatal AJAX error: ' . $error['message']);
             header('Content-Type: application/json');
             echo json_encode([
                 'success' => false,
-                'message' => 'A server error occurred: ' . $error['message']
+                'message' => 'A server error occurred. Please try again later.'
             ]);
             exit;
         }
@@ -80,10 +81,11 @@ try {
     $pdo = $GLOBALS['pdo'];
 } catch (PDOException $e) {
     if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+        error_log("Database connection failed: " . $e->getMessage());
         header('Content-Type: application/json');
         echo json_encode([
             'success' => false,
-            'message' => 'Database connection failed: ' . $e->getMessage()
+            'message' => 'Database connection failed. Please try again later.'
         ]);
         exit;
     } else {
@@ -105,7 +107,7 @@ if (!file_exists(PDF_DIR)) {
 
 // Error reporting configuration
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/error.log');
 

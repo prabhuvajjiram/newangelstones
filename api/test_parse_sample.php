@@ -1,4 +1,6 @@
 <?php
+http_response_code(404);
+exit;
 /**
  * Test script to directly parse the sample HTML row
  */
@@ -7,7 +9,7 @@
 require_once __DIR__ . '/shipment_db_config.php';
 
 // Enable error reporting for development
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
 // Sample table row data from WebTracker

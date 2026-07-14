@@ -11,7 +11,12 @@
 
 // Set headers to allow cross-origin requests and specify JSON response
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
+$allowedOrigins = ['https://theangelstones.com', 'https://www.theangelstones.com'];
+$requestOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if (in_array($requestOrigin, $allowedOrigins, true)) {
+    header('Access-Control-Allow-Origin: ' . $requestOrigin);
+}
+header('Vary: Origin');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
 
@@ -35,12 +40,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // API endpoint URL and credentials
 $api_url = 'https://monument.business/Api/Inventory/GetAllStock';
-$api_key = 'e8l3DUB3i8gUT3ubYiEu73aOh80t6b5hW8mqhAOJOOvROxS5k3lASFHVxRY6Ky5U';
+$api_key = getenv('MONUMENT_BUSINESS_API_KEY') ?: '';
+$api_key_file = getenv('MONUMENT_BUSINESS_API_KEY_FILE') ?: dirname(__DIR__) . '/private/monument_business_api_key';
+if ($api_key === '' && is_readable($api_key_file)) {
+    $api_key = trim((string) file_get_contents($api_key_file));
+}
 $org_id = 2;
 
-// Enable error reporting for debugging (should be disabled in production)
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
+
+if ($api_key === '') {
+    http_response_code(503);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Inventory service is not configured'
+    ]);
+    exit;
+}
 
 // Start measuring execution time for performance monitoring
 $start_time = microtime(true);

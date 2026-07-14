@@ -1,4 +1,6 @@
 <?php
+http_response_code(404);
+exit;
 /**
  * Quick Debugging Tool for RingCentral Production Issues
  * This minimal script provides just the essential diagnostics
@@ -9,7 +11,7 @@ define('LOCAL_ENTRY_POINT', true);
 require_once __DIR__ . '/config.php';
 
 // Set error reporting for maximum visibility
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
 // Output as plain text for ease of reading

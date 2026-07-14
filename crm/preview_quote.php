@@ -5,7 +5,7 @@ require_once 'includes/config.php';
 
 // Enable error reporting for debugging
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 
 // Get quote ID from URL
 $quote_id = isset($_GET['id']) ? intval($_GET['id']) : 0;

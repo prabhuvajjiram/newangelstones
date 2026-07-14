@@ -123,6 +123,10 @@ function sendPaymentConfirmationEmail($invoice, $amount, $date, $name, $email, $
 
 // If this file is called directly, handle the request
 if (basename($_SERVER['SCRIPT_FILENAME']) == basename(__FILE__)) {
+    http_response_code(404);
+    echo 'Not found';
+    exit;
+
     // Check if this is a POST request with payment data
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Get payment details from POST data

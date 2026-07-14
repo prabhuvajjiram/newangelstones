@@ -17,15 +17,15 @@ Options -Indexes
         Deny from all
     </FilesMatch>
     
-    <FilesMatch "\.(ini|log|sh|sql|conf)$">
+    <FilesMatch "\.(ini|log|sh|sql|conf|bak|backup|old|orig-bak|map|xlsx|xls|ya?ml|lock)$">
         Order allow,deny
         Deny from all
     </FilesMatch>
 </IfModule>
 
 # PHP Error settings
-php_flag display_errors On
-php_value error_reporting E_ALL
+php_flag display_errors Off
+php_value log_errors On
 
 # Security Headers
 <IfModule mod_headers.c>
@@ -41,7 +41,7 @@ php_value error_reporting E_ALL
 Options All -Indexes
 
 # Deny access to sensitive files
-<FilesMatch "^(\.htaccess|\.htpasswd|\.git|\.env|composer\.json|composer\.lock)$">
+<FilesMatch "^(\.htaccess|\.htpasswd|\.git|\.env|composer\.json|composer\.lock|Angestonescrm\.json|.*token.*\.json|check_all_tables\.php|test_tokens\.php)$">
     Order allow,deny
     Deny from all
 </FilesMatch>

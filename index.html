@@ -607,7 +607,7 @@
                                 </a>
                             </div>
                             <div class="category-item">
-                                <a href="?category=monuments" class="category-link" data-collection="monuments-collection">
+                                <a href="/monuments/" class="category-link" data-collection="monuments-collection">
                                     <div class="category-image">
                                         <picture>
                                             <source srcset="images/products/Monuments/granite-monuments-project02.webp" type="image/webp">
@@ -1172,7 +1172,7 @@
                             </a>
                         </div>
                         <div class="col-md-6">
-                              <div><a href='https://www.convergepay.com/hosted-payments?ssl_txn_auth_token=t870VMwWR2OcHbk5VrX%2F1QAAAZi9ZdHB' class='converge-payment-link'>Pay Invoice</a></div>
+                              <div><a href='mailto:info@theangelstones.com?subject=Payment%20link%20request' class='converge-payment-link'>Request Payment Link</a></div>
                             <ul class="social-network">
                                 <li><a href="https://www.facebook.com/angelgranites/" target="_blank" rel="noopener noreferrer nofollow" aria-label="Visit our Facebook page">Facebook</a></li>
 
@@ -1272,7 +1272,10 @@
 
     // XSS helpers
     function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
-    function safeUrl(u){var s=String(u==null?'':u);return/^(https?:\/\/|\/)/.test(s)?s:'#';}
+    function safeUrl(u){
+        var s=String(u==null?'':u).trim();
+        return /^(https:\/\/www\.theangelstones\.com\/|https:\/\/theangelstones\.com\/|\/(?!\/)|mailto:)/i.test(s) ? s.replace(/"/g,'%22') : '#';
+    }
     
     (function(){
         // Don't reset session state — if user closed it this session, keep it closed
@@ -1368,7 +1371,7 @@
             renderPromotions('past-promotions',[],'No past promotions.');
         },8000);
         
-        fetch('/api/promotions_api.php?t='+Date.now())
+        fetch('/api/promotions_api.php?active_only=true&t='+Date.now())
         .then(r=>r.json())
         .then(d=>{
             clearTimeout(promoTimeout);

@@ -668,7 +668,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                     page: currentPage,
                                     pageSize: this.pageSize,
                                     locid: locid,
-                                    token: '097EE598BBACB8A8182BC9D4D7D5CFE609E4DB2AF4A3F1950738C927ECF05B6A',
                                     timestamp: Date.now() // Prevent caching
                                 };
                                 

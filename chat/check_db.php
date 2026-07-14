@@ -1,4 +1,6 @@
 <?php
+http_response_code(404);
+exit;
 // Simple script to check database structure
 require_once 'config.php';
 require_once 'db.php';

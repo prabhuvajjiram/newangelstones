@@ -33,6 +33,63 @@ $routes = [
         'section'     => 'featured-products',
         'schema_type' => 'CollectionPage',
         'keywords'    => 'granite monuments, headstones, memorial stones, cemetery monuments, Elberton GA',
+        'content'     => <<<'HTML'
+            <section class="section-padding seo-landing-content" aria-labelledby="monuments-page-heading">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-10">
+                            <div class="section-header text-center">
+                                <div class="subtitle">Wholesale Monument Supply</div>
+                                <h2 id="monuments-page-heading">Granite Headstones and Monuments from Elberton, GA</h2>
+                            </div>
+                            <p>Angel Granites supplies monument dealers, funeral homes, and memorial retailers with in-stock and custom granite headstones, cemetery monuments, and memorial stones. Our Elberton, Georgia inventory includes upright monuments, slants, bevels, markers, bases, benches, and specialty designs in a wide selection of granite colors.</p>
+                            <p>Choose a ready-to-ship design or work with our team on dimensions, granite color, finish, carving, sandblast, and etching requirements. We provide dealer pricing, bulk ordering options, and nationwide shipping for qualified wholesale customers.</p>
+                            <div class="row mt-4">
+                                <div class="col-md-4">
+                                    <h3>Ready-to-ship inventory</h3>
+                                    <p>Browse available granite monuments and headstones already stocked in the United States for faster fulfillment.</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <h3>Custom monument production</h3>
+                                    <p>Specify the design, size, granite color, finish, and artwork needed for your customer or cemetery project.</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <h3>Dealer and wholesale support</h3>
+                                    <p>Request current availability, volume pricing, lead times, and shipping assistance from our monument supply team.</p>
+                                </div>
+                            </div>
+                            <div class="text-center mt-4">
+                                <a class="button" href="#featured-products">Browse Monument Inventory</a>
+                                <a class="button" href="#get-in-touch">Request Dealer Pricing</a>
+                            </div>
+                            <div class="mt-5" aria-labelledby="monument-faq-heading">
+                                <h2 id="monument-faq-heading">Granite Monument Questions</h2>
+                                <h3>Do you sell directly to monument dealers and funeral homes?</h3>
+                                <p>Yes. Angel Granites serves monument dealers, funeral homes, memorial retailers, and other qualified wholesale buyers throughout the United States.</p>
+                                <h3>Are granite headstones available for immediate shipment?</h3>
+                                <p>Selected monuments and memorial stones are stocked in Elberton, GA and ready to ship. Availability changes, so contact our team to confirm the current design, size, and granite color.</p>
+                                <h3>Can you manufacture custom cemetery monuments?</h3>
+                                <p>Yes. We can produce custom granite monuments based on the required design, dimensions, color, finish, carving, sandblast, and etching specifications.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+HTML,
+        'faqs'        => [
+            [
+                'question' => 'Do you sell directly to monument dealers and funeral homes?',
+                'answer'   => 'Yes. Angel Granites serves monument dealers, funeral homes, memorial retailers, and other qualified wholesale buyers throughout the United States.',
+            ],
+            [
+                'question' => 'Are granite headstones available for immediate shipment?',
+                'answer'   => 'Selected monuments and memorial stones are stocked in Elberton, GA and ready to ship. Availability changes, so contact our team to confirm the current design, size, and granite color.',
+            ],
+            [
+                'question' => 'Can you manufacture custom cemetery monuments?',
+                'answer'   => 'Yes. We can produce custom granite monuments based on the required design, dimensions, color, finish, carving, sandblast, and etching specifications.',
+            ],
+        ],
     ],
 
     'inventory' => [
@@ -178,6 +235,15 @@ $html = preg_replace(
     $html, 1
 );
 
+// Give each routed page a visible, route-specific H1 instead of leaving the
+// homepage heading in place. This keeps the rendered content aligned with the
+// title, canonical URL, and structured data.
+$html = preg_replace(
+    '/<h1\s+id="main-heading">.*?<\/h1>/is',
+    '<h1 id="main-heading">' . $page['h1'] . '</h1>',
+    $html, 1
+);
+
 // 2. meta description
 $html = preg_replace(
     '/<meta\s+name=["\']description["\']\s+content=["\'][^"\']*["\']\s*\/?>/i',
@@ -271,7 +337,37 @@ $schemaTag = '<script type="application/ld+json" id="page-schema">'
     . json_encode($schemaData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
     . '</script>';
 
+if (!empty($page['faqs'])) {
+    $faqSchema = [
+        '@context'   => 'https://schema.org',
+        '@type'      => 'FAQPage',
+        'mainEntity' => array_map(static function (array $faq): array {
+            return [
+                '@type'          => 'Question',
+                'name'           => $faq['question'],
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text'  => $faq['answer'],
+                ],
+            ];
+        }, $page['faqs']),
+    ];
+    $schemaTag .= "\n" . '<script type="application/ld+json" id="faq-schema">'
+        . json_encode($faqSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+        . '</script>';
+}
+
 $html = str_replace('</head>', $schemaTag . "\n</head>", $html);
+
+// Add substantive, visible route content before the shared catalog. Metadata
+// alone is not enough to make a section URL a useful landing page.
+if (!empty($page['content'])) {
+    $html = str_replace(
+        '<!--Featured Products Section Start Here-->',
+        $page['content'] . "\n            <!--Featured Products Section Start Here-->",
+        $html
+    );
+}
 
 // 11. Inject auto-navigation script before </body>
 //

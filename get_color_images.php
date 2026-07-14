@@ -11,7 +11,7 @@ $start_memory = memory_get_usage();
 
 // Enable error reporting for debugging
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 
 // Set content type to JSON with caching headers for performance
 header('Content-Type: application/json');
@@ -171,7 +171,7 @@ error_log("Scanning directory: " . $colorsDir);
 
 // Get all image files
 $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
-$colors = [];
+$colorsByName = [];
 
 // Read directory
 $files = scandir($colorsDir);
@@ -199,7 +199,7 @@ foreach ($files as $file) {
         $displayName = ucwords($displayName);
         
         // Create relative path for web access
-        $relativePath = 'images/colors/' . $file;
+        $relativePath = 'images/colors/' . rawurlencode($file);
         $webPath = $relativePath;
         
         // Get file modification time
@@ -282,9 +282,11 @@ foreach ($files as $file) {
         ];
         
         // Add to colors array with additional metadata
-        $colors[] = [
+        $color = [
             'name' => $displayName,
             'path' => $webPath,
+            'image' => $webPath,
+            'thumbnail' => $webPath,
             'filename' => $file,
             'size' => filesize($filePath),
             'modified' => $fileTime,
@@ -292,8 +294,16 @@ foreach ($files as $file) {
             'description' => $description,
             'schema' => $schemaItem
         ];
+
+        // A color may have both JPG and WebP files. Return one card per color,
+        // preferring WebP while keeping the original file available as a fallback.
+        if (!isset($colorsByName[$normalizedName]) || $ext === 'webp') {
+            $colorsByName[$normalizedName] = $color;
+        }
     }
 }
+
+$colors = array_values($colorsByName);
 
 // Sort colors alphabetically by name
 usort($colors, function($a, $b) {

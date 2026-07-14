@@ -1,7 +1,7 @@
 <?php
 // Enable error reporting for debugging
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 
 // Set time limit for long-running scripts
 set_time_limit(300); // 5 minutes
@@ -96,6 +96,8 @@ function generateSitemap() {
         '/granite-colors/'    => ['changefreq' => 'monthly', 'priority' => '0.8'],
         '/benches/'           => ['changefreq' => 'weekly',  'priority' => '0.8'],
         '/designs/'           => ['changefreq' => 'weekly',  'priority' => '0.8'],
+        '/columbarium/'       => ['changefreq' => 'weekly',  'priority' => '0.8'],
+        '/mbna-2025/'         => ['changefreq' => 'weekly',  'priority' => '0.8'],
         '/contact/'           => ['changefreq' => 'monthly', 'priority' => '0.8'],
         '/discovered.html'    => ['changefreq' => 'weekly',  'priority' => '0.7'],
         '/privacy-policy.html'    => ['changefreq' => 'monthly', 'priority' => '0.5'],
@@ -107,20 +109,6 @@ function generateSitemap() {
         // Ensure the path starts with a slash
         $path = '/' . ltrim($path, '/');
         addUrl($urls, $baseUrl . $path, $today, $data['changefreq'], $data['priority']);
-    }
-    
-    // 2.5 Product Category Pages
-    $productCategories = [
-        'mbna_2025' => ['name' => 'MBNA 2025', 'count' => 26],
-        'monuments' => ['name' => 'Monuments', 'count' => 28],
-        'columbarium' => ['name' => 'Columbarium', 'count' => 1],
-        'designs' => ['name' => 'Designs', 'count' => 1],
-        'benches' => ['name' => 'Benches', 'count' => 3]
-    ];
-    
-    foreach ($productCategories as $categorySlug => $categoryData) {
-        $categoryUrl = $baseUrl . '/?category=' . $categorySlug;
-        addUrl($urls, $categoryUrl, $today, 'weekly', '0.8');
     }
     
     // 3. Color pages from color.json
@@ -158,18 +146,18 @@ function generateSitemap() {
 
     // 4. Product images for category pages
     // Load each category's product cache file and attach all product images
-    // to the corresponding ?category=<slug> sitemap entry using the image: extension.
+    // to the corresponding canonical category page using the image: extension.
     // This is the correct way to expose product images — not as separate <loc> entries.
     $categoryImageConfig = [
-        'mbna_2025'   => ['cache' => 'products_MBNA_2025.json',  'label' => 'MBNA 2025 Granite Monument'],
-        'monuments'   => ['cache' => 'products_Monuments.json',  'label' => 'Custom Granite Monument'],
-        'columbarium' => ['cache' => 'products_columbarium.json','label' => 'Granite Columbarium Unit'],
-        'designs'     => ['cache' => 'products_Designs.json',    'label' => 'Custom Granite Design'],
-        'benches'     => ['cache' => 'products_Benches.json',    'label' => 'Granite Memorial Bench'],
+        'mbna_2025'   => ['path' => '/mbna-2025/',   'cache' => 'products_MBNA_2025.json',  'label' => 'MBNA 2025 Granite Monument'],
+        'monuments'   => ['path' => '/monuments/',   'cache' => 'products_Monuments.json',  'label' => 'Custom Granite Monument'],
+        'columbarium' => ['path' => '/columbarium/', 'cache' => 'products_columbarium.json','label' => 'Granite Columbarium Unit'],
+        'designs'     => ['path' => '/designs/',     'cache' => 'products_Designs.json',    'label' => 'Custom Granite Design'],
+        'benches'     => ['path' => '/benches/',     'cache' => 'products_Benches.json',    'label' => 'Granite Memorial Bench'],
     ];
 
     foreach ($categoryImageConfig as $slug => $config) {
-        $categoryPageUrl = $baseUrl . '/?category=' . $slug;
+        $categoryPageUrl = $baseUrl . $config['path'];
         $cacheFile = __DIR__ . '/cache/' . $config['cache'];
         if (!file_exists($cacheFile)) continue;
 

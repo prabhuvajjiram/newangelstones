@@ -665,6 +665,42 @@
     <script>
         const API_BASE = '/api';
         let currentView = 'active';
+        let adminCsrfToken = '';
+
+        function escapeHtml(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function safeUrl(value) {
+            const url = String(value == null ? '' : value).trim();
+            if (/^(https:\/\/www\.theangelstones\.com\/|https:\/\/theangelstones\.com\/|\/(?!\/)|mailto:)/i.test(url)) {
+                return url.replace(/"/g, '%22');
+            }
+            return '/promotions.html';
+        }
+
+        function escapeJsString(value) {
+            return String(value == null ? '' : value)
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")
+                .replace(/"/g, '\\"')
+                .replace(/\r/g, '\\r')
+                .replace(/\n/g, '\\n')
+                .replace(/</g, '\\x3c')
+                .replace(/>/g, '\\x3e');
+        }
+
+        function csrfHeaders(extra = {}) {
+            return {
+                ...extra,
+                ...(adminCsrfToken ? {'X-CSRF-Token': adminCsrfToken} : {})
+            };
+        }
         
         // Load promotions on page load
         $(document).ready(function() {
@@ -732,29 +768,29 @@
                 : 0;
             
             let ctaButton = '';
-            if (!isArchived) {
-                if (promo.type === 'event' && promo.linkUrl) {
-                    ctaButton = `<a href="${promo.linkUrl}" target="_blank" class="cta-button">Learn More <i class="bi bi-arrow-right"></i></a>`;
-                } else if (promo.type === 'product') {
-                    ctaButton = `<a href="mailto:sales@theangelstones.com?subject=Inquiry about ${encodeURIComponent(promo.title)}" class="cta-button">Inquire Now <i class="bi bi-envelope"></i></a>`;
+                if (!isArchived) {
+                    if (promo.type === 'event' && promo.linkUrl) {
+                        ctaButton = `<a href="${safeUrl(promo.linkUrl)}" target="_blank" rel="noopener noreferrer" class="cta-button">Learn More <i class="bi bi-arrow-right"></i></a>`;
+                    } else if (promo.type === 'product') {
+                        ctaButton = `<a href="mailto:sales@theangelstones.com?subject=Inquiry about ${encodeURIComponent(promo.title || '')}" class="cta-button">Inquire Now <i class="bi bi-envelope"></i></a>`;
+                    }
                 }
-            }
             
-            return `
-                <div class="promotion-card" style="${isArchived ? 'opacity: 0.85;' : ''}">
-                    <img src="${promo.imageUrl}" alt="${promo.title}" class="promotion-image">
-                    <div class="promotion-content">
-                        ${isArchived ? '<span class="archived-badge"><i class="bi bi-archive"></i> Past Promotion</span>' : ''}
-                        <span class="promotion-type ${promo.type}">${promo.type === 'product' ? 'Special Offer' : 'Event'}</span>
-                        <h2 class="promotion-title">${promo.title}</h2>
-                        ${promo.subtitle ? `<p class="promotion-subtitle">${promo.subtitle}</p>` : ''}
-                        ${promo.description ? `<p class="promotion-description">${promo.description}</p>` : ''}
+                return `
+                    <div class="promotion-card" style="${isArchived ? 'opacity: 0.85;' : ''}">
+                        <img src="${safeUrl(promo.imageUrl)}" alt="${escapeHtml(promo.title)}" class="promotion-image">
+                        <div class="promotion-content">
+                            ${isArchived ? '<span class="archived-badge"><i class="bi bi-archive"></i> Past Promotion</span>' : ''}
+                            <span class="promotion-type ${escapeHtml(promo.type)}">${promo.type === 'product' ? 'Special Offer' : 'Event'}</span>
+                            <h2 class="promotion-title">${escapeHtml(promo.title)}</h2>
+                            ${promo.subtitle ? `<p class="promotion-subtitle">${escapeHtml(promo.subtitle)}</p>` : ''}
+                            ${promo.description ? `<p class="promotion-description">${escapeHtml(promo.description)}</p>` : ''}
                         
                         ${promo.pricing && promo.pricing.specialPrice ? `
                             <div class="pricing-box">
                                 <div class="price-special">$${promo.pricing.specialPrice.toLocaleString()}</div>
                                 ${promo.pricing.listPrice ? `
-                                    <div class="price-list">Regular: $${promo.pricing.listPrice.toLocaleString()}</div>
+                                    <div class="price-list">Regular: $${Number(promo.pricing.listPrice).toLocaleString()}</div>
                                     ${savingsPercent > 0 ? `<span class="savings">Save ${savingsPercent}% ($${savings.toLocaleString()})</span>` : ''}
                                 ` : ''}
                             </div>
@@ -765,31 +801,31 @@
                                 ${promo.productDetails.productCode ? `
                                     <div class="detail-row">
                                         <span class="detail-label">Product Code:</span>
-                                        <span class="detail-value">${promo.productDetails.productCode}</span>
+                                        <span class="detail-value">${escapeHtml(promo.productDetails.productCode)}</span>
                                     </div>
                                 ` : ''}
                                 ${promo.productDetails.color ? `
                                     <div class="detail-row">
                                         <span class="detail-label">Color:</span>
-                                        <span class="detail-value">${promo.productDetails.color}</span>
+                                        <span class="detail-value">${escapeHtml(promo.productDetails.color)}</span>
                                     </div>
                                 ` : ''}
                                 ${promo.productDetails.tablet ? `
                                     <div class="detail-row">
                                         <span class="detail-label">Tablet:</span>
-                                        <span class="detail-value">${promo.productDetails.tablet}</span>
+                                        <span class="detail-value">${escapeHtml(promo.productDetails.tablet)}</span>
                                     </div>
                                 ` : ''}
                                 ${promo.productDetails.base ? `
                                     <div class="detail-row">
                                         <span class="detail-label">Base:</span>
-                                        <span class="detail-value">${promo.productDetails.base}</span>
+                                        <span class="detail-value">${escapeHtml(promo.productDetails.base)}</span>
                                     </div>
                                 ` : ''}
                                 ${promo.productDetails.features ? `
                                     <div class="detail-row">
                                         <span class="detail-label">Features:</span>
-                                        <span class="detail-value">${promo.productDetails.features}</span>
+                                        <span class="detail-value">${escapeHtml(promo.productDetails.features)}</span>
                                     </div>
                                 ` : ''}
                             </div>
@@ -809,6 +845,7 @@
                 const response = await fetch(`${API_BASE}/admin_auth.php`);
                 const data = await response.json();
                 isLoggedIn = data.logged_in || false;
+                adminCsrfToken = data.csrf_token || '';
                 
                 if (isLoggedIn) {
                     // Already logged in, show admin panel
@@ -881,6 +918,7 @@
                 
                 if (data.success) {
                     isLoggedIn = true;
+                    adminCsrfToken = data.csrf_token || '';
                     messageDiv.html('<div class="alert alert-success">Login successful! Redirecting...</div>');
                     
                     // Reload page to show full admin panel
@@ -902,7 +940,8 @@
         async function logout() {
             try {
                 await fetch(`${API_BASE}/admin_auth.php`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: csrfHeaders()
                 });
                 isLoggedIn = false;
                 location.reload(); // Reload to show login form
@@ -920,26 +959,27 @@
                 if (data.success && data.promotions.length > 0) {
                     $('#admin-promos-container').html(data.promotions.map(promo => {
                         const isExpired = new Date(promo.endDate) < new Date();
+                        const promoId = escapeJsString(promo.id);
                         return `
                         <div class="admin-promo-item">
                             <div>
-                                <strong>${promo.title}</strong>
-                                <br><small>${new Date(promo.startDate).toLocaleDateString()} - ${new Date(promo.endDate).toLocaleDateString()}</small>
+                            <strong>${escapeHtml(promo.title)}</strong>
+                            <br><small>${new Date(promo.startDate).toLocaleDateString()} - ${new Date(promo.endDate).toLocaleDateString()}</small>
                                 ${isExpired ? '<br><span style="color: #ef4444; font-size: 12px;"><i class="bi bi-clock-history"></i> Expired</span>' : ''}
                             </div>
                             <div class="admin-promo-actions">
-                                <button class="btn ${promo.enabled ? 'btn-danger' : 'btn-success'}" onclick="togglePromotion('${promo.id}', ${promo.enabled})">
+                                <button class="btn ${promo.enabled ? 'btn-danger' : 'btn-success'}" onclick="togglePromotion('${promoId}', ${promo.enabled})">
                                     ${promo.enabled ? 'Disable' : 'Enable'}
                                 </button>
-                                <button class="btn btn-primary" onclick="editPromotion('${promo.id}')">
+                                <button class="btn btn-primary" onclick="editPromotion('${promoId}')">
                                     <i class="bi bi-pencil"></i> Edit
                                 </button>
                                 ${isExpired ? `
-                                    <button class="btn btn-secondary" onclick="archivePromotion('${promo.id}')">
+                                    <button class="btn btn-secondary" onclick="archivePromotion('${promoId}')">
                                         <i class="bi bi-archive"></i> Archive
                                     </button>
                                 ` : ''}
-                                <button class="btn btn-danger" onclick="deletePromotion('${promo.id}')">Delete</button>
+                                <button class="btn btn-danger" onclick="deletePromotion('${promoId}')">Delete</button>
                             </div>
                         </div>
                     `}).join(''));
@@ -954,20 +994,23 @@
                     $('#admin-promos-container').append(`
                         <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e5e7eb;">
                             <h4 style="margin-bottom: 15px;">Archived Promotions (${archivedData.promotions.length})</h4>
-                            ${archivedData.promotions.map(promo => `
+                            ${archivedData.promotions.map(promo => {
+                                const promoId = escapeJsString(promo.id);
+                                return `
                                 <div class="admin-promo-item" style="opacity: 0.7;">
                                     <div>
-                                        <strong>${promo.title}</strong>
+                                        <strong>${escapeHtml(promo.title)}</strong>
                                         <br><small>${new Date(promo.startDate).toLocaleDateString()} - ${new Date(promo.endDate).toLocaleDateString()}</small>
                                     </div>
                                     <div class="admin-promo-actions">
-                                        <button class="btn btn-success" onclick="unarchivePromotion('${promo.id}')">
+                                        <button class="btn btn-success" onclick="unarchivePromotion('${promoId}')">
                                             <i class="bi bi-arrow-counterclockwise"></i> Restore
                                         </button>
-                                        <button class="btn btn-danger" onclick="deletePromotion('${promo.id}')">Delete</button>
+                                        <button class="btn btn-danger" onclick="deletePromotion('${promoId}')">Delete</button>
                                     </div>
                                 </div>
-                            `).join('')}
+                            `;
+                            }).join('')}
                         </div>
                     `);
                 }
@@ -980,8 +1023,10 @@
             if (!confirm('Archive this promotion? It will be moved to past promotions.')) return;
             
             try {
-                const response = await fetch(`${API_BASE}/promotions_api.php?id=${id}&action=archive`, {
-                    method: 'PATCH'
+                const encodedId = encodeURIComponent(id);
+                const response = await fetch(`${API_BASE}/promotions_api.php?id=${encodedId}&action=archive`, {
+                    method: 'PATCH',
+                    headers: csrfHeaders()
                 });
                 
                 const data = await response.json();
@@ -1001,8 +1046,10 @@
             if (!confirm('Restore this promotion from archive?')) return;
             
             try {
-                const response = await fetch(`${API_BASE}/promotions_api.php?id=${id}&action=unarchive`, {
-                    method: 'PATCH'
+                const encodedId = encodeURIComponent(id);
+                const response = await fetch(`${API_BASE}/promotions_api.php?id=${encodedId}&action=unarchive`, {
+                    method: 'PATCH',
+                    headers: csrfHeaders()
                 });
                 
                 const data = await response.json();
@@ -1052,6 +1099,7 @@
                 console.log('Sending upload request...');
                 const uploadResponse = await fetch(`${API_BASE}/upload_image.php`, {
                     method: 'POST',
+                    headers: csrfHeaders(),
                     body: formData
                 });
                 
@@ -1094,7 +1142,7 @@
                 
                 const response = await fetch(`${API_BASE}/promotions_api.php`, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: csrfHeaders({'Content-Type': 'application/json'}),
                     body: JSON.stringify(promotionData)
                 });
                 
@@ -1110,7 +1158,7 @@
                     throw new Error(data.error);
                 }
             } catch (error) {
-                messageDiv.html(`<div class="alert alert-error">Error: ${error.message}</div>`);
+                messageDiv.html(`<div class="alert alert-error">Error: ${escapeHtml(error.message)}</div>`);
             }
         }
         
@@ -1118,8 +1166,10 @@
             if (!confirm(`${currentStatus ? 'Disable' : 'Enable'} this promotion?`)) return;
             
             try {
-                const response = await fetch(`${API_BASE}/promotions_api.php?id=${id}&action=toggle`, {
-                    method: 'PATCH'
+                const encodedId = encodeURIComponent(id);
+                const response = await fetch(`${API_BASE}/promotions_api.php?id=${encodedId}&action=toggle`, {
+                    method: 'PATCH',
+                    headers: csrfHeaders()
                 });
                 
                 const data = await response.json();
@@ -1139,8 +1189,10 @@
             if (!confirm('Delete this promotion? This cannot be undone.')) return;
             
             try {
-                const response = await fetch(`${API_BASE}/promotions_api.php?id=${id}`, {
-                    method: 'DELETE'
+                const encodedId = encodeURIComponent(id);
+                const response = await fetch(`${API_BASE}/promotions_api.php?id=${encodedId}`, {
+                    method: 'DELETE',
+                    headers: csrfHeaders()
                 });
                 
                 const data = await response.json();
@@ -1159,7 +1211,8 @@
         async function editPromotion(id) {
             try {
                 // Fetch promotion details
-                const response = await fetch(`${API_BASE}/promotions_api.php?id=${id}`);
+                const encodedId = encodeURIComponent(id);
+                const response = await fetch(`${API_BASE}/promotions_api.php?id=${encodedId}`);
                 const data = await response.json();
                 
                 if (!data.success || !data.promotion) {
@@ -1231,6 +1284,7 @@
                     
                     const uploadResponse = await fetch(`${API_BASE}/upload_image.php`, {
                         method: 'POST',
+                        headers: csrfHeaders(),
                         body: formData
                     });
                     
@@ -1286,9 +1340,10 @@
                     };
                 }
                 
-                const response = await fetch(`${API_BASE}/promotions_api.php?id=${id}`, {
+                const encodedId = encodeURIComponent(id);
+                const response = await fetch(`${API_BASE}/promotions_api.php?id=${encodedId}`, {
                     method: 'PUT',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: csrfHeaders({'Content-Type': 'application/json'}),
                     body: JSON.stringify(promotionData)
                 });
                 
@@ -1311,7 +1366,7 @@
                     throw new Error(data.error);
                 }
             } catch (error) {
-                messageDiv.html(`<div class="alert alert-error">Error: ${error.message}</div>`);
+                messageDiv.html(`<div class="alert alert-error">Error: ${escapeHtml(error.message)}</div>`);
             }
         }
     </script>

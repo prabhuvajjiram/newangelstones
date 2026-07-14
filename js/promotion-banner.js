@@ -89,6 +89,23 @@ class PromotionBanner {
         }
     }
 
+    escapeHtml(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    safeUrl(value) {
+        const url = String(value == null ? '' : value).trim();
+        if (/^(https:\/\/www\.theangelstones\.com\/|https:\/\/theangelstones\.com\/|\/(?!\/)|mailto:)/i.test(url)) {
+            return url.replace(/"/g, '%22');
+        }
+        return '/promotions.html';
+    }
+
     showPromotion(index) {
         const promotion = this.promotions[index];
         if (!promotion) {
@@ -103,9 +120,9 @@ class PromotionBanner {
         }
         
         // Use linkUrl (camelCase from API) or default to promotions page
-        const promoLink = promotion.linkUrl || '/promotions.html';
-        const imageUrl = promotion.imageUrl || '';
-        const isExternal = promotion.type === 'event' && promotion.linkUrl && promotion.linkUrl.startsWith('http');
+        const promoLink = this.safeUrl(promotion.linkUrl || '/promotions.html');
+        const imageUrl = this.safeUrl(promotion.imageUrl || '');
+        const isExternal = /^https:\/\/(www\.)?theangelstones\.com\//i.test(promoLink);
         const target = isExternal ? '_blank' : '_self';
         
         // Debug logging
@@ -117,13 +134,13 @@ class PromotionBanner {
         });
         
         content.innerHTML = `
-            <a href="${promoLink}" target="${target}" class="promotion-text-link">
+            <a href="${promoLink}" target="${target}" rel="noopener noreferrer" class="promotion-text-link">
                 <div class="promotion-image-link">
-                    <img src="${imageUrl}" alt="${promotion.title}" class="promotion-image" onerror="console.error('Image failed to load:', this.src)">
+                    <img src="${imageUrl}" alt="${this.escapeHtml(promotion.title)}" class="promotion-image" onerror="console.error('Image failed to load:', this.src)">
                 </div>
                 <div class="promotion-text">
-                    <h3>${promotion.title}</h3>
-                    <p>${promotion.subtitle || promotion.description || ''}</p>
+                    <h3>${this.escapeHtml(promotion.title)}</h3>
+                    <p>${this.escapeHtml(promotion.subtitle || promotion.description || '')}</p>
                 </div>
             </a>
             <div class="promotion-expanded">
