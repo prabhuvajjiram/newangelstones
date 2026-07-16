@@ -16,20 +16,23 @@ import 'state/saved_items_state.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'services/firebase_service.dart';
+import 'services/siri_inventory_service.dart';
+import 'services/notification_service.dart';
+import 'widgets/notification_permission_prompt.dart';
 import 'firebase/firebase_messaging_handler.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 void main() async {
   // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Configure system UI for Android 15+ edge-to-edge compatibility
   SystemUIService.instance.configureNormalMode();
 
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
   };
-  
+
   runApp(
     MultiProvider(
       providers: [
@@ -81,10 +84,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late final AppRouter _router;
   late final ImageSyncService _imageSyncService;
 
-  // Analytics observer is created but not currently used with GoRouter
-  // Uncomment if needed for MaterialApp navigation
-  // final _analyticsObserver = AnalyticsNavigatorObserver();
-  
   @override
   void initState() {
     super.initState();
@@ -99,7 +98,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       apiService: _apiService,
       connectivityService: _connectivityService,
     );
-    
+
     // Initialize router immediately for UI
     _router = AppRouter(
       storageService: _storageService,
@@ -116,7 +115,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         try {
           await _initializeHeavyServices();
         } catch (e) {
-          debugPrint('Heavy service initialization error: \$e');
+          debugPrint('Heavy service initialization error: $e');
         }
       }),
     );
@@ -124,6 +123,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     // Kick off non-critical background work after the first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startBackgroundWork();
+      // This is a no-op while IOS27_SIRI_ENABLED is absent from the iOS build.
+      unawaited(_openPendingSiriInventorySearch());
+      unawaited(_showNotificationPermissionPromptIfNeeded());
     });
   }
 
@@ -165,7 +167,34 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       }),
     );
   }
-  
+
+  Future<void> _openPendingSiriInventorySearch() async {
+    final query = await SiriInventoryService.takePendingSearch();
+    if (!mounted || query == null) return;
+
+    _router.router.go(
+      Uri(path: '/inventory', queryParameters: {'query': query}).toString(),
+    );
+  }
+
+  Future<void> _showNotificationPermissionPromptIfNeeded() async {
+    await Future<void>.delayed(const Duration(seconds: 8));
+    if (!mounted ||
+        !await NotificationService.instance.shouldShowPermissionPrompt()) {
+      return;
+    }
+
+    if (!mounted) return;
+    final dialogContext = _router.navigatorKey.currentContext;
+    if (dialogContext == null || !dialogContext.mounted) return;
+
+    await showDialog<void>(
+      context: dialogContext,
+      useRootNavigator: true,
+      barrierDismissible: false,
+      builder: (_) => const NotificationPermissionPrompt(),
+    );
+  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -173,6 +202,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       _apiService.clearExpiredCache();
       _inventoryService.clearExpiredCache();
       _storageService.clearExpiredCache();
+      unawaited(_openPendingSiriInventorySearch());
     }
   }
 
@@ -186,7 +216,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     // Check if router is initialized, use a placeholder if not
     final routerConfig = _router.router;
-    
+
     return MaterialApp.router(
       title: 'Angel Granites',
       debugShowCheckedModeBanner: false,
@@ -216,9 +246,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             foreground: Paint()
               ..shader = const LinearGradient(
                 colors: [
-                  Color(0xFFD4AF37),  // Rich gold
-                  Color(0xFFFFD700),  // Bright gold
-                  Color(0xFFD4AF37),  // Back to rich gold
+                  Color(0xFFD4AF37), // Rich gold
+                  Color(0xFFFFD700), // Bright gold
+                  Color(0xFFD4AF37), // Back to rich gold
                 ],
               ).createShader(const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
             shadows: [
@@ -252,13 +282,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           ),
         ),
         cardTheme: ThemeData.dark().cardTheme.copyWith(
-          color: AppTheme.cardColor,
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        ),
+              color: AppTheme.cardColor,
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            ),
         bottomNavigationBarTheme: const BottomNavigationBarThemeData(
           backgroundColor: AppTheme.cardColor,
           selectedItemColor: AppTheme.accentColor,

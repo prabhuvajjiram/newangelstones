@@ -1,0 +1,9 @@
+{
+  "id" : "4286bb2c-0351-48e8-ae60-9a1e90925d2d",
+  "targets" : [
+    {
+      "id" : "DB63F874-B3D6-4C00-946D-C2B8F1FAC911",
+      "name" : "angelgranites_app"
+    }
+  ]
+}

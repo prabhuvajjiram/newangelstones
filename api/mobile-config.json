@@ -1,6 +1,6 @@
 {
     "version": "1.0.0",
-    "last_updated": "2025-08-22T10:40:04-04:00",
+    "last_updated": "2026-07-14T12:20:30-04:00",
     "cache_duration": 86400,
     "api_endpoints": {
       "angel_stones_base": "https://theangelstones.com",
@@ -11,14 +11,15 @@
       "mautic_quote_form_id": 2
     },
     "payment": {
-      "enabled": false
+      "url": "https://link.clover.com/urlshortener/SjQ2Lm",
+      "enabled": true
     },
     "contact": {
       "phone": "+1 866-682-5837",
       "email": "info@theangelstones.com"
     },
     "features": {
-      "payment_enabled": false,
+      "payment_enabled": true,
       "contact_form_enabled": true,
       "inventory_enabled": true
     }

@@ -1,10 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:async';
 import 'dart:io' show Platform;
+
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../config/security_config.dart';
 import '../theme/app_theme.dart';
 
 class WebViewScreen extends StatefulWidget {
@@ -50,12 +53,10 @@ class _WebViewScreenState extends State<WebViewScreen> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.white)
       ..enableZoom(true)
-      // Use Chrome user agent to avoid platform-specific issues
-      ..setUserAgent('Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36')
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (String url) {
-            debugPrint('📄 Page started loading: $url');
+            _debugLogUrl('Page started loading', url);
             if (mounted) {
               setState(() {
                 _isLoading = true;
@@ -71,8 +72,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
               });
             }
             
-            // Log successful page load
-            debugPrint('✅ Page loaded successfully: $url');
+            _debugLogUrl('Page loaded successfully', url);
             
             // Update navigation state
             final canGoBack = await _controller.canGoBack();
@@ -85,7 +85,12 @@ class _WebViewScreenState extends State<WebViewScreen> {
             }
           },
           onWebResourceError: (WebResourceError error) {
-            debugPrint('❌ WebView error: ${error.description} (code: ${error.errorCode}, type: ${error.errorType})');
+            if (kDebugMode) {
+              debugPrint(
+                'WebView error: ${error.description} '
+                '(code: ${error.errorCode}, type: ${error.errorType})',
+              );
+            }
             
             // Ignore ORB errors - they're security restrictions that don't prevent page rendering
             if (error.description.contains('ERR_BLOCKED_BY_ORB') ||
@@ -122,13 +127,28 @@ class _WebViewScreenState extends State<WebViewScreen> {
             }
           },
           onHttpError: (HttpResponseError error) {
-            debugPrint('❌ HTTP error: ${error.response?.statusCode}');
+            if (kDebugMode) {
+              debugPrint('WebView HTTP error: ${error.response?.statusCode}');
+            }
             // Don't show snackbar for HTTP errors - let page handle it
           },
           onNavigationRequest: (NavigationRequest request) {
-            // Allow all navigation within the webview
-            debugPrint('🔗 Navigation to: ${request.url}');
-            return NavigationDecision.navigate;
+            _debugLogUrl('Navigation', request.url);
+            if (!request.isMainFrame ||
+                SecurityConfig.isAllowedWebViewUrl(request.url)) {
+              return NavigationDecision.navigate;
+            }
+
+            final uri = Uri.tryParse(request.url);
+            if (uri != null &&
+                (uri.scheme == 'https' ||
+                    uri.scheme == 'mailto' ||
+                    uri.scheme == 'tel')) {
+              unawaited(_openExternalNavigation(uri));
+            } else {
+              _showErrorSnackBar('Blocked an unsupported link.');
+            }
+            return NavigationDecision.prevent;
           },
         ),
       );
@@ -146,17 +166,37 @@ class _WebViewScreenState extends State<WebViewScreen> {
     
     // Platform-specific configuration for Android
     if (_controller.platform is AndroidWebViewController) {
-      AndroidWebViewController.enableDebugging(true);
+      AndroidWebViewController.enableDebugging(kDebugMode);
       (_controller.platform as AndroidWebViewController)
         ..setMediaPlaybackRequiresUserGesture(false)
         ..setGeolocationPermissionsPromptCallbacks(
           onShowPrompt: (request) async {
             return const GeolocationPermissionsResponse(
-              allow: true,
-              retain: true,
+              allow: false,
+              retain: false,
             );
           },
         );
+    }
+  }
+
+  void _debugLogUrl(String event, String url) {
+    if (!kDebugMode) return;
+    debugPrint('$event: ${SecurityConfig.redactUrlForLogging(url)}');
+  }
+
+  Future<void> _openExternalNavigation(Uri uri) async {
+    try {
+      _debugLogUrl('Opening externally', uri.toString());
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        _showErrorSnackBar('Unable to open this link in your browser.');
+      }
+    } catch (_) {
+      _showErrorSnackBar('Unable to open this link in your browser.');
     }
   }
 
@@ -165,7 +205,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
       final urlToOpen = _currentUrl.isNotEmpty ? _currentUrl : widget.url;
       final Uri url = Uri.parse(urlToOpen);
       
-      debugPrint('🌐 Attempting to open URL in browser: $urlToOpen');
+      _debugLogUrl('Opening in browser', urlToOpen);
       
       bool launched = false;
       
@@ -188,9 +228,11 @@ class _WebViewScreenState extends State<WebViewScreen> {
             url,
             mode: LaunchMode.externalApplication,
           );
-          debugPrint('✅ Launched with externalApplication mode');
+          if (kDebugMode) {
+            debugPrint('Launched with externalApplication mode');
+          }
         } catch (e) {
-          debugPrint('⚠️ externalApplication failed: $e');
+          if (kDebugMode) debugPrint('externalApplication failed: $e');
         }
         
         // Method 2: Try platformDefault if method 1 failed
@@ -200,9 +242,9 @@ class _WebViewScreenState extends State<WebViewScreen> {
               url,
               mode: LaunchMode.platformDefault,
             );
-            debugPrint('✅ Launched with platformDefault mode');
+            if (kDebugMode) debugPrint('Launched with platformDefault mode');
           } catch (e) {
-            debugPrint('⚠️ platformDefault failed: $e');
+            if (kDebugMode) debugPrint('platformDefault failed: $e');
           }
         }
         
@@ -217,9 +259,9 @@ class _WebViewScreenState extends State<WebViewScreen> {
                 enableDomStorage: true,
               ),
             );
-            debugPrint('✅ Launched with inAppBrowserView mode');
+            if (kDebugMode) debugPrint('Launched with inAppBrowserView mode');
           } catch (e) {
-            debugPrint('⚠️ inAppBrowserView failed: $e');
+            if (kDebugMode) debugPrint('inAppBrowserView failed: $e');
           }
         }
         
@@ -227,9 +269,9 @@ class _WebViewScreenState extends State<WebViewScreen> {
         if (!launched) {
           try {
             launched = await launchUrl(url);
-            debugPrint('✅ Launched with basic launchUrl');
+            if (kDebugMode) debugPrint('Launched with basic launchUrl');
           } catch (e) {
-            debugPrint('⚠️ basic launchUrl failed: $e');
+            if (kDebugMode) debugPrint('basic launchUrl failed: $e');
           }
         }
       } else {
@@ -238,7 +280,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
       }
       
       if (launched) {
-        debugPrint('✅ Successfully opened URL in external browser');
+        if (kDebugMode) debugPrint('Successfully opened URL in external browser');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -250,13 +292,13 @@ class _WebViewScreenState extends State<WebViewScreen> {
           );
         }
       } else {
-        debugPrint('❌ All launch methods failed');
+        if (kDebugMode) debugPrint('All browser launch methods failed');
         _showErrorSnackBar(
           'Unable to open external browser. You can continue browsing here.',
         );
       }
     } catch (e) {
-      debugPrint('❌ Error opening browser: $e');
+      if (kDebugMode) debugPrint('Error opening browser: $e');
       _showErrorSnackBar('Could not open browser. You can continue browsing in-app.');
     }
   }

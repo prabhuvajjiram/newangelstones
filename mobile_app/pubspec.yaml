@@ -1,6 +1,6 @@
 name: angel_granites_app
 description: Mobile app for Angel Granites.
-version: 4.1.0+32 # versionName + versionCode
+version: 4.2.0+33 # versionName + versionCode
 
 
 environment:
@@ -20,36 +20,32 @@ dependencies:
   intl: ^0.20.2
   provider: ^6.1.1
   flutter_native_splash: ^2.4.6
-  pdfx: ^2.9.2  # Modern PDF viewer with better maintenance and features
+  pdfrx: ^2.4.4  # PDF viewer using modern native-assets integration
   path_provider: ^2.1.5
   
   # Explicitly allow newer transitive dependencies for future-proofing
   path: ^1.9.1
   sqflite: ^2.4.2
   connectivity_plus: ^7.0.0
-  in_app_review: ^2.0.10  # Native app store review prompt
 
-  # Firebase packages - using stable versions
-  firebase_storage: ^13.0.2
-  # keep the rest of your FlutterFire packages aligned
-  firebase_core: ^4.1.1
-  firebase_auth: ^6.1.0
-  cloud_firestore: ^6.0.2
-  firebase_analytics: ^12.0.2
-  firebase_messaging: ^16.0.2
-  firebase_crashlytics: ^5.0.2
-  flutter_local_notifications: ^21.0.0
+  # Keep FlutterFire on one coordinated release. Do not use caret constraints
+  # here because independently upgraded plugins can break shared core APIs.
+  firebase_core: 4.12.1
+  firebase_auth: 6.5.6
+  cloud_firestore: 6.7.1
+  firebase_messaging: 16.4.3
+  firebase_crashlytics: 5.2.6
+  flutter_local_notifications: ^22.0.1
   timezone: ^0.11.0
 
   collection: any
-  map_launcher: ^4.0.0
   cached_network_image: ^3.4.1  # High-performance image caching
-  share_plus: ^12.0.0  # Share functionality
+  share_plus: ^13.2.0  # Share functionality
   webview_flutter: ^4.10.0  # In-app browser for payment pages
   webview_flutter_android: ^4.0.0  # Android-specific WebView implementation
   webview_flutter_wkwebview: ^3.13.0  # iOS-specific WebView implementation
-  flutter_typeahead: ^5.2.0  # Search autocomplete
-  package_info_plus: ^9.0.0  # App version info
+  flutter_typeahead: ^6.0.0  # Search autocomplete
+  package_info_plus: ^10.2.0  # App version info
 
 dev_dependencies:
   flutter_test:
@@ -57,18 +53,21 @@ dev_dependencies:
   flutter_lints: ^6.0.0  # Latest stable version
   flutter_launcher_icons: ^0.14.4
 
-dependency_overrides:
-  # path_provider_foundation 2.6.0 switched to an Objective-C FFI framework
-  # that is being archived without a matching dSYM in this project/Xcode setup.
-  # Pinning to 2.5.1 restores the plugin-based iOS implementation.
-  path_provider_foundation: 2.5.1
-
 flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/icon/icon.png"
+  image_path_android: "design/app-icons/angel-granites-fallback.png"
+  image_path_ios: "design/app-icons/angel-granites-fallback.png"
+  image_path_ios_dark_transparent: "design/app-icons/angel-granites-foreground.png"
+  image_path_ios_tinted_grayscale: "design/app-icons/angel-granites-monochrome.png"
+  adaptive_icon_background: "#0B0B09"
+  adaptive_icon_foreground: "design/app-icons/angel-granites-foreground.png"
+  adaptive_icon_foreground_inset: 0
+  adaptive_icon_monochrome: "design/app-icons/angel-granites-monochrome.png"
   min_sdk_android: 21
   remove_alpha_ios: true
+  background_color_ios: "#0B0B09"
   web:
     generate: true
     image_path: "assets/icon/icon.png"
@@ -98,6 +97,10 @@ flutter_native_splash:
     image_dark: assets/splash_logo.png
 
 flutter:
+  # Keep CocoaPods as the dependency manager until the complete native plugin
+  # set has been verified with Flutter's Swift Package Manager integration.
+  config:
+    enable-swift-package-manager: false
   uses-material-design: true
   assets:
     - assets/colors/

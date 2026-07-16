@@ -6,7 +6,8 @@ import '../config/app_config.dart';
 class AppStoreUtils {
   /// Launch the app in Apple App Store
   static Future<void> openAppStore() async {
-    final Uri appStoreUri = Uri.parse('https://apps.apple.com/us/app/angel-granites/id${AppConfig.appStoreId}');
+    final Uri appStoreUri = Uri.parse(
+        'https://apps.apple.com/us/app/angel-granites/id${AppConfig.appStoreId}');
     if (await canLaunchUrl(appStoreUri)) {
       await launchUrl(appStoreUri, mode: LaunchMode.externalApplication);
     }
@@ -14,7 +15,8 @@ class AppStoreUtils {
 
   /// Launch the app in Google Play Store
   static Future<void> openPlayStore() async {
-    final Uri playStoreUri = Uri.parse('https://play.google.com/store/apps/details?id=${AppConfig.playStoreId}');
+    final Uri playStoreUri = Uri.parse(
+        'https://play.google.com/store/apps/details?id=${AppConfig.playStoreId}');
     if (await canLaunchUrl(playStoreUri)) {
       await launchUrl(playStoreUri, mode: LaunchMode.externalApplication);
     }
@@ -46,7 +48,8 @@ class AppStoreUtils {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Rate Our App'),
-          content: const Text('If you enjoy using Angel Granites, please take a moment to rate us on the app store. Your feedback helps us improve!'),
+          content: const Text(
+              'If you enjoy using Angel Granites, please take a moment to rate us on the app store. Your feedback helps us improve!'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -72,7 +75,7 @@ class AppStoreUtils {
     //     ? 'Check out Angel Granites app: https://apps.apple.com/us/app/angel-granites/id${AppConfig.appStoreId}'
     //     : 'Check out Angel Granites app: https://play.google.com/store/apps/details?id=${AppConfig.playStoreId}';
     // Share.share(shareText);
-    
+
     // For now, open the store directly
     await openAppInStore();
   }

@@ -12,6 +12,8 @@ class SecurityConfig {
   /// API endpoints configuration
   static const String angelStonesBaseUrl = 'https://theangelstones.com';
   static const String monumentBusinessBaseUrl = 'https://monument.business';
+  static const String cloverPaymentUrl =
+      'https://link.clover.com/urlshortener/SjQ2Lm';
 
   /// Request timeout configuration
   static const Duration defaultTimeout = Duration(seconds: 30);
@@ -25,7 +27,7 @@ class SecurityConfig {
   /// Fallback defaults
   static const Map<String, dynamic> _defaultConfig = {
     'api_endpoints': {'mautic_contact_form_id': 1, 'mautic_quote_form_id': 2},
-    'payment': {'url': ''}
+    'payment': {'url': cloverPaymentUrl}
   };
 
   /// Security headers for HTTP requests
@@ -53,9 +55,11 @@ class SecurityConfig {
         'theangelstones.com',
         'monument.business',
         'www.google.com', // For maps
-        'www.convergepay.com', // For payments
+        'clover.com', // For payments and Clover-hosted redirects
       ];
-      return allowedDomains.any((domain) => uri.host.endsWith(domain));
+      return allowedDomains.any(
+        (domain) => uri.host == domain || uri.host.endsWith('.$domain'),
+      );
     } catch (e) {
       return false;
     }
@@ -74,19 +78,65 @@ class SecurityConfig {
   /// Dynamic configuration methods
   static Future<String> getPaymentUrl() async {
     final config = await _getConfig();
-    return (config['payment']?['url'] ?? _defaultConfig['payment']!['url'])
-        as String;
+    final configuredUrl = (config['payment']?['url'] ??
+        _defaultConfig['payment']!['url']) as String;
+
+    // Reject stale Converge configuration (including cached configuration)
+    // and only allow Clover-hosted HTTPS payment destinations.
+    return isValidPaymentUrl(configuredUrl) ? configuredUrl : cloverPaymentUrl;
   }
 
-  static Future<String> getMonumentBusinessApiKey() async {
-    final config = await _getConfig();
-    return (config['api_endpoints']?['monument_business_api_key'] ?? '')
-        as String;
+  static bool isValidPaymentUrl(String url) {
+    try {
+      final uri = Uri.parse(url);
+      return uri.scheme == 'https' &&
+          (uri.host == 'clover.com' || uri.host.endsWith('.clover.com'));
+    } catch (_) {
+      return false;
+    }
   }
 
-  static Future<int> getMonumentBusinessOrgId() async {
-    final config = await _getConfig();
-    return (config['api_endpoints']?['monument_business_org_id'] ?? 2) as int;
+  /// Only trusted HTTPS destinations may remain inside the embedded browser.
+  /// Other main-frame destinations are handed off to the system browser.
+  static bool isAllowedWebViewUrl(String url) {
+    try {
+      final uri = Uri.parse(url);
+      if (uri.scheme == 'about' && uri.path == 'blank') return true;
+      if (uri.scheme != 'https') return false;
+
+      const allowedDomains = <String>{
+        'theangelstones.com',
+        'monument.business',
+        'clover.com',
+      };
+      return allowedDomains.any(
+        (domain) => uri.host == domain || uri.host.endsWith('.$domain'),
+      );
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Removes query parameters, fragments, and user information before a URL
+  /// reaches logs. Payment and authentication providers commonly place
+  /// identifiers and short-lived tokens in those portions of a URL.
+  static String redactUrlForLogging(String url) {
+    try {
+      final uri = Uri.parse(url);
+      if (!uri.hasScheme) return '<invalid-url>';
+      if (uri.scheme != 'http' && uri.scheme != 'https') {
+        return '${uri.scheme}:';
+      }
+
+      return Uri(
+        scheme: uri.scheme,
+        host: uri.host,
+        port: uri.hasPort ? uri.port : null,
+        path: uri.path,
+      ).toString();
+    } catch (_) {
+      return '<invalid-url>';
+    }
   }
 
   static Future<int> getMauticContactFormId() async {

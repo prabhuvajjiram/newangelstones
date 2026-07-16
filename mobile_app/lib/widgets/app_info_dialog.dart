@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import '../config/app_config.dart';
-import '../services/review_prompt_service.dart';
 import '../utils/app_store_utils.dart';
 
 class AppInfoDialog extends StatefulWidget {
@@ -14,13 +13,13 @@ class AppInfoDialog extends StatefulWidget {
 
 class _AppInfoDialogState extends State<AppInfoDialog> {
   String _version = 'Loading...';
-  
+
   @override
   void initState() {
     super.initState();
     _loadVersion();
   }
-  
+
   Future<void> _loadVersion() async {
     final version = await AppConfig.version;
     if (mounted) {
@@ -69,9 +68,9 @@ class _AppInfoDialogState extends State<AppInfoDialog> {
                 fit: BoxFit.contain,
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // App Name
             ShaderMask(
               blendMode: BlendMode.srcIn,
@@ -90,9 +89,9 @@ class _AppInfoDialogState extends State<AppInfoDialog> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 8),
-            
+
             // Tagline
             const Text(
               AppConfig.tagline,
@@ -102,9 +101,9 @@ class _AppInfoDialogState extends State<AppInfoDialog> {
                 fontFamily: 'OpenSans',
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Version
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -125,9 +124,9 @@ class _AppInfoDialogState extends State<AppInfoDialog> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Description
             const Text(
               AppConfig.appDescription,
@@ -139,9 +138,9 @@ class _AppInfoDialogState extends State<AppInfoDialog> {
                 height: 1.5,
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Action Buttons
             Row(
               children: [
@@ -169,7 +168,7 @@ class _AppInfoDialogState extends State<AppInfoDialog> {
                   child: OutlinedButton(
                     onPressed: () {
                       Navigator.of(context).pop();
-                      ReviewPromptService.openAppStore();
+                      AppStoreUtils.openAppInStore();
                     },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: AppTheme.accentColor),
@@ -209,9 +208,9 @@ class _AppInfoDialogState extends State<AppInfoDialog> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Footer Links
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,

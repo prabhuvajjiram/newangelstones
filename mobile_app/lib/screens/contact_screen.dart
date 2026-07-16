@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 import 'package:url_launcher/url_launcher.dart';
-import 'package:map_launcher/map_launcher.dart';
 import '../theme/app_theme.dart';
 import '../services/mautic_service.dart';
 import '../config/security_config.dart';
@@ -127,7 +126,7 @@ class _ContactScreenState extends State<ContactScreen> {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Could not open $urlString'),
+                content: const Text('Could not open this link.'),
                 behavior: SnackBarBehavior.floating,
                 backgroundColor: Colors.red.shade800,
                 duration: const Duration(seconds: 3),
@@ -141,13 +140,13 @@ class _ContactScreenState extends State<ContactScreen> {
           }
         }
       }
-    } catch (e) {
+    } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
+          const SnackBar(
+            content: Text('Could not open this link.'),
             behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.red.shade800,
+            backgroundColor: Colors.red,
           ),
         );
       }
@@ -156,95 +155,18 @@ class _ContactScreenState extends State<ContactScreen> {
 
   Future<void> _openMap(String address, BuildContext context) async {
     try {
-      // Capture context before async gap
-      final currentContext = context;
+      final mapUri = !kIsWeb && Platform.isIOS
+          ? Uri.https('maps.apple.com', '/', {
+              'q': address,
+              'address': address,
+            })
+          : Uri.https('www.google.com', '/maps/search/', {
+              'api': '1',
+              'query': address,
+            });
 
-      // For web or non-iOS platforms, use Google Maps directly
-      if (kIsWeb || !(Platform.isIOS)) {
-        final googleMapsUrl =
-            'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(address)}';
-        if (currentContext.mounted) {
-          await _launchUrl(googleMapsUrl, currentContext);
-        }
-        return;
-      }
-
-      // For iOS, check available map apps and show options
-      final availableMaps = await MapLauncher.installedMaps;
-
-      if (availableMaps.isEmpty) {
-        // Fallback to Google Maps URL if no map apps are available
-        final googleMapsUrl =
-            'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(address)}';
-        if (currentContext.mounted) {
-          await _launchUrl(googleMapsUrl, currentContext);
-        }
-        return;
-      }
-
-      if (currentContext.mounted) {
-        showModalBottomSheet<void>(
-          context: context,
-          backgroundColor: AppTheme.primaryColor,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-          ),
-          builder: (BuildContext context) {
-            return SafeArea(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Text(
-                      'Open with Maps',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const Divider(color: Colors.grey),
-                  ...availableMaps.map((map) => ListTile(
-                        leading: CircleAvatar(
-                          radius: 15,
-                          backgroundColor: Colors.grey.shade800,
-                          child: Text(
-                            map.mapName.substring(0, 1).toUpperCase(),
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 14),
-                          ),
-                        ),
-                        title: Text(
-                          map.mapName,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        onTap: () {
-                          Navigator.pop(context);
-                          if (map.mapType == MapType.apple) {
-                            // For Apple Maps, use the launchUrl approach to avoid coordinate issues
-                            final appleMapsUrl =
-                                'https://maps.apple.com/?q=${Uri.encodeComponent(address)}&address=${Uri.encodeComponent(address)}';
-                            launchUrl(Uri.parse(appleMapsUrl),
-                                mode: LaunchMode.externalApplication);
-                          } else {
-                            // For other map types, use the standard approach
-                            map.showMarker(
-                              coords: Coords(34.1083,
-                                  -82.8665), // Default to Elberton, GA if geocoding fails
-                              title: 'Angel Stones',
-                              description: address,
-                              extraParams: {'q': address},
-                            );
-                          }
-                        },
-                      )),
-                ],
-              ),
-            );
-          },
-        );
+      if (context.mounted) {
+        await _launchUrl(mapUri.toString(), context);
       }
     } catch (e) {
       if (context.mounted) {
@@ -502,19 +424,9 @@ class _ContactScreenState extends State<ContactScreen> {
                         context: context,
                         icon: Icons.credit_card,
                         title: 'Pay Invoice',
-                        subtitle: 'Make a secure payment online',
+                        subtitle: 'Make a secure payment with Clover',
                         onTap: _paymentUrl != null
-                            ? () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute<void>(
-                                    builder: (context) => WebViewScreen(
-                                      url: _paymentUrl!,
-                                      title: 'Payment',
-                                    ),
-                                  ),
-                                );
-                              }
+                            ? () => _launchUrl(_paymentUrl!, context)
                             : null,
                       ),
                       _buildContactCard(

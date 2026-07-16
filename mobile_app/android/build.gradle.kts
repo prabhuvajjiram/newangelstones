@@ -10,8 +10,8 @@ subprojects {
     afterEvaluate {
         if (plugins.hasPlugin("com.android.application") || plugins.hasPlugin("com.android.library")) {
             configure<com.android.build.gradle.BaseExtension> {
-                // Force compileSdk to 36 for all subprojects including plugins
-                compileSdkVersion(36)
+                // Keep Flutter plugins aligned with the Android 17 SDK.
+                compileSdkVersion(37)
                 
                 compileOptions {
                     sourceCompatibility = JavaVersion.VERSION_21
@@ -20,7 +20,8 @@ subprojects {
             }
         }
 
-        // Configure Kotlin JVM target to match Java
+        // Configure Kotlin JVM target to match Java while Flutter's temporary
+        // AGP 9 compatibility bridge is enabled.
         tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
             compilerOptions {
                 jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)

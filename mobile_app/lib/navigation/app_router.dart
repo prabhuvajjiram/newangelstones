@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-// Analytics wrapper import removed - not directly used in router
-// import '../services/analytics_wrapper.dart';
 import '../services/navigation_service.dart';
 
 import '../models/product.dart';
@@ -67,142 +65,167 @@ class AppRouter {
 
   /// Directory helper for fetching design counts.
   final DirectoryService directoryService;
-  
+
   /// Connectivity service for monitoring network status
   final ConnectivityService connectivityService;
 
+  /// Root navigator used by app-level prompts that are triggered outside a
+  /// route widget's BuildContext.
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
   /// Returns the configured router.
   late final GoRouter router = _initializeRouter();
-  
+
   /// Initialize the router and set up the NavigationService
   GoRouter _initializeRouter() {
     final GoRouter router = GoRouter(
-    initialLocation: '/',
-    routes: <GoRoute>[
-      GoRoute(
-        path: '/',
-        name: home,
-        builder: (context, state) {
-          final tab = int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0;
-          return MainNavigation(
+      navigatorKey: navigatorKey,
+      initialLocation: '/',
+      redirect: (context, state) => normalizeExternalLocation(state.uri),
+      routes: <GoRoute>[
+        GoRoute(
+          path: '/',
+          name: home,
+          builder: (context, state) {
+            final tab =
+                int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0;
+            return MainNavigation(
+              apiService: apiService,
+              storageService: storageService,
+              inventoryService: inventoryService,
+              directoryService: directoryService,
+              connectivityService: connectivityService,
+              initialTabIndex: tab,
+            );
+          },
+        ),
+        GoRoute(
+          path: '/colors',
+          builder: (context, state) => ColorsScreen(apiService: apiService),
+        ),
+        GoRoute(
+          path: '/inventory',
+          name: inventory,
+          builder: (context, state) {
+            // Extract color filter from extra if provided
+            final Map<String, dynamic>? extraParams =
+                state.extra as Map<String, dynamic>?;
+            final String? colorFilter = extraParams?['color'] as String? ??
+                state.uri.queryParameters['color'];
+            final String? searchQuery = state.uri.queryParameters['query'];
+
+            return Scaffold(
+              appBar: AppBar(title: const Text('Inventory')),
+              body: InventoryScreen(
+                inventoryService: inventoryService,
+                initialColorFilter: colorFilter,
+                initialSearchQuery: searchQuery,
+              ),
+            );
+          },
+        ),
+        GoRoute(
+          path: '/contact',
+          builder: (context, state) => const ContactScreen(),
+        ),
+        GoRoute(
+          path: '/gallery/:categoryId',
+          builder: (context, state) {
+            final categoryId = state.pathParameters['categoryId']!;
+            final title = state.uri.queryParameters['title'] ?? 'Gallery';
+            return DesignGalleryScreen(
+              categoryId: categoryId,
+              title: title,
+              apiService: apiService,
+            );
+          },
+        ),
+        GoRoute(
+          path: '/product',
+          builder: (context, state) {
+            final product = state.extra as Product;
+            return ProductDetailScreen(product: product);
+          },
+        ),
+        GoRoute(
+          path: '/flyer',
+          builder: (context, state) {
+            final product = state.extra as Product;
+            return FlyerViewerScreen(flyer: product);
+          },
+        ),
+        GoRoute(
+          path: '/cart',
+          name: cart,
+          builder: (context, state) => const EnhancedCartScreen(),
+        ),
+        GoRoute(
+          path: '/saved-items',
+          name: savedItems,
+          builder: (context, state) => const SavedItemsScreen(),
+        ),
+        GoRoute(
+          path: '/quote-request',
+          name: quoteRequest,
+          builder: (context, state) {
+            final cartItems = state.extra as List<Map<String, dynamic>>? ?? [];
+            final totalQuantity = cartItems.fold<int>(
+              0,
+              (sum, item) => sum + (item['quantity'] as int? ?? 1),
+            );
+            return QuoteRequestScreen(
+              cartItems: cartItems,
+              totalQuantity: totalQuantity,
+            );
+          },
+        ),
+        GoRoute(
+          path: '/inventory-item-details',
+          name: inventoryItemDetails,
+          builder: (context, state) {
+            final item = state.extra as InventoryItem;
+            return InventoryItemDetailsScreen(item: item);
+          },
+        ),
+        GoRoute(
+          path: '/search',
+          name: search,
+          builder: (context, state) => SearchScreenV2(
+            inventoryService: inventoryService,
             apiService: apiService,
             storageService: storageService,
-            inventoryService: inventoryService,
-            directoryService: directoryService,
-            connectivityService: connectivityService,
-            initialTabIndex: tab,
-          );
-        },
-      ),
-      GoRoute(
-        path: '/colors',
-        builder: (context, state) => ColorsScreen(apiService: apiService),
-      ),
-      GoRoute(
-        path: '/inventory',
-        name: inventory,
-        builder: (context, state) {
-          // Extract color filter from extra if provided
-          final Map<String, dynamic>? extraParams = state.extra as Map<String, dynamic>?;
-          final String? colorFilter = extraParams?['color'] as String?;
-          
-          return Scaffold(
-            appBar: AppBar(title: const Text('Inventory')),
-            body: InventoryScreen(
-              inventoryService: inventoryService,
-              initialColorFilter: colorFilter,
-            ),
-          );
-        },
-      ),
-      GoRoute(
-        path: '/contact',
-        builder: (context, state) => const ContactScreen(),
-      ),
-      GoRoute(
-        path: '/gallery/:categoryId',
-        builder: (context, state) {
-          final categoryId = state.pathParameters['categoryId']!;
-          final title = state.uri.queryParameters['title'] ?? 'Gallery';
-          return DesignGalleryScreen(
-            categoryId: categoryId,
-            title: title,
-            apiService: apiService,
-          );
-        },
-      ),
-      GoRoute(
-        path: '/product',
-        builder: (context, state) {
-          final product = state.extra as Product;
-          return ProductDetailScreen(product: product);
-        },
-      ),
-      GoRoute(
-        path: '/flyer',
-        builder: (context, state) {
-          final product = state.extra as Product;
-          return FlyerViewerScreen(flyer: product);
-        },
-      ),
-      GoRoute(
-        path: '/cart',
-        name: cart,
-        builder: (context, state) => const EnhancedCartScreen(),
-      ),
-      GoRoute(
-        path: '/saved-items',
-        name: savedItems,
-        builder: (context, state) => const SavedItemsScreen(),
-      ),
-      GoRoute(
-        path: '/quote-request',
-        name: quoteRequest,
-        builder: (context, state) {
-          final cartItems = state.extra as List<Map<String, dynamic>>? ?? [];
-          final totalQuantity = cartItems.fold<int>(
-              0, (sum, item) => sum + (item['quantity'] as int? ?? 1));
-          return QuoteRequestScreen(
-            cartItems: cartItems,
-            totalQuantity: totalQuantity,
-          );
-        },
-      ),
-      GoRoute(
-        path: '/inventory-item-details',
-        name: inventoryItemDetails,
-        builder: (context, state) {
-          final item = state.extra as InventoryItem;
-          return InventoryItemDetailsScreen(item: item);
-        },
-      ),
-      GoRoute(
-        path: '/search',
-        name: search,
-        builder: (context, state) => SearchScreenV2(
-          inventoryService: inventoryService,
-          apiService: apiService,
-          storageService: storageService,
+          ),
         ),
-      ),
-      GoRoute(
-        path: '/offline-catalog',
-        name: offlineCatalog,
-        builder: (context, state) => OfflineCatalogScreen(
-          catalogService: offlineCatalogService,
+        GoRoute(
+          path: '/offline-catalog',
+          name: offlineCatalog,
+          builder: (context, state) =>
+              OfflineCatalogScreen(catalogService: offlineCatalogService),
         ),
-      ),
-      GoRoute(
-        path: '/sync-settings',
-        name: syncSettings,
-        builder: (context, state) => const SyncSettingsScreen(),
-      ),
-    ],
-  );
-  
-  // Initialize the NavigationService with this router instance
-  NavigationService().initialize(router);
-  
-  return router;
+        GoRoute(
+          path: '/sync-settings',
+          name: syncSettings,
+          builder: (context, state) => const SyncSettingsScreen(),
+        ),
+      ],
+    );
+
+    // Initialize the NavigationService with this router instance
+    NavigationService().initialize(router);
+
+    return router;
+  }
+
+  /// Website Universal Links and Android App Links use an `/app` prefix,
+  /// while Flutter routes stay concise (`/inventory`, `/colors`, and so on).
+  /// Normalize that public prefix before go_router attempts route matching.
+  static String? normalizeExternalLocation(Uri uri) {
+    final path = uri.path;
+    if (path != '/app' && !path.startsWith('/app/')) return null;
+
+    final normalizedPath = path == '/app' ? '/' : path.substring(4);
+    final query = uri.hasQuery ? '?${uri.query}' : '';
+    final fragment = uri.hasFragment ? '#${uri.fragment}' : '';
+    return '$normalizedPath$query$fragment';
   }
 }

@@ -28,20 +28,7 @@
 	<array>
 		<string>http</string>
 		<string>https</string>
-		<string>comgooglemaps</string>
 		<string>googlechromes</string>
-		<string>waze</string>
-		<string>baidumap</string>
-		<string>iosamap</string>
-		<string>yandexmaps</string>
-		<string>yandexnavi</string>
-		<string>citymapper</string>
-		<string>mapsme</string>
-		<string>osmandmaps</string>
-		<string>dgis</string>
-		<string>qqmap</string>
-		<string>here-location</string>
-		<string>tomtomgo</string>
 		<string>tel</string>
 		<string>mailto</string>
 	</array>
@@ -51,20 +38,12 @@
 	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>This app requires camera access to take photos of products and projects.</string>
+	<key>NSKeychainUsageDescription</key>
+	<string>This app uses secure storage to save your account information and preferences.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>This app requires permission to save photos to your library.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app requires photo library access to upload images of products and projects.</string>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>remote-notification</string>
-	</array>
-	<key>UILaunchStoryboardDuration</key>
-	<real>1</real>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -76,16 +55,26 @@
 				<dict>
 					<key>UISceneClassName</key>
 					<string>UIWindowScene</string>
-					<key>UISceneDelegateClassName</key>
-					<string>FlutterSceneDelegate</string>
 					<key>UISceneConfigurationName</key>
 					<string>flutter</string>
+					<key>UISceneDelegateClassName</key>
+					<string>FlutterSceneDelegate</string>
 					<key>UISceneStoryboardFile</key>
 					<string>Main</string>
 				</dict>
 			</array>
 		</dict>
 	</dict>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
+	<key>UILaunchStoryboardDuration</key>
+	<real>1</real>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
 	<key>UIStatusBarHidden</key>
 	<true/>
 	<key>UIStatusBarStyle</key>
@@ -99,7 +88,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>NSKeychainUsageDescription</key>
-	<string>This app uses secure storage to save your account information and preferences.</string>
 </dict>
 </plist>

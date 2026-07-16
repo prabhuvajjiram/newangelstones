@@ -2,6 +2,7 @@ package com.angelgranites.app
 
 import android.os.Build
 import android.os.Bundle
+import android.content.pm.ApplicationInfo
 import android.webkit.WebView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -11,9 +12,10 @@ class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Enable WebView debugging for development (helps diagnose issues)
+        // Never expose WebView inspection in production builds.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            WebView.setWebContentsDebuggingEnabled(true)
+            val isDebuggable = applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
+            WebView.setWebContentsDebuggingEnabled(isDebuggable)
         }
         
         // Enable edge-to-edge display for all Android versions

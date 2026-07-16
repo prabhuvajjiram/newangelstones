@@ -14,8 +14,6 @@ if (file_exists($configFile)) {
     }
 
     unset($config['api_endpoints']['monument_business_api_key']);
-    unset($config['payment']['url']);
-    $config['features']['payment_enabled'] = false;
 
     echo json_encode($config, JSON_UNESCAPED_SLASHES);
 } else {

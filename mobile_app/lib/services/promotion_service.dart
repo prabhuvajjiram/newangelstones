@@ -26,7 +26,8 @@ class PromotionService {
       // Try to load from local cache file
       if (!forceRefresh) {
         final cachedPromotions = await _loadFromLocalCache();
-        if (cachedPromotions != null && cachedPromotions.isNotEmpty) {
+        // An empty list is still a valid cached response.
+        if (cachedPromotions != null) {
           _cachedPromotions = cachedPromotions;
           _lastFetchTime = DateTime.now();
           debugPrint('📂 Loaded ${cachedPromotions.length} promotions from local cache');

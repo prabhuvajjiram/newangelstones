@@ -22,6 +22,48 @@ class ApiService {
   Map<String, String> _colorAssetMapping = {};
   // category (lowercase) → list of bundled ProductImages from product_manifest.json
   final Map<String, List<ProductImage>> _bundledProductImages = {};
+
+  /// Converts the top-level category response returned by the directory API.
+  @visibleForTesting
+  static List<Map<String, dynamic>> parseFeaturedCategoryFiles(List<dynamic> files) {
+    final categories = <Map<String, dynamic>>[];
+
+    for (final entry in files.whereType<Map<String, dynamic>>()) {
+      final rawPath = entry['path']?.toString().trim() ?? '';
+      final segments = rawPath
+          .split('/')
+          .where((segment) => segment.trim().isNotEmpty)
+          .toList();
+      final productsIndex = segments.indexWhere(
+        (segment) => segment.toLowerCase() == 'products',
+      );
+      if (productsIndex < 0 || productsIndex != segments.length - 2) continue;
+
+      final categoryId = segments.last;
+      if (categoryId.contains('.')) continue;
+
+      final name = entry['name']?.toString().trim().isNotEmpty == true
+          ? entry['name'].toString().trim()
+          : categoryId.replaceAll('_', ' ');
+      final thumbnail = entry['thumbnail']?.toString().trim() ?? '';
+      final imageUrl = thumbnail.isEmpty
+          ? ''
+          : Uri.tryParse(thumbnail)?.hasScheme == true
+              ? thumbnail
+              : '${SecurityConfig.angelStonesBaseUrl}/${thumbnail.replaceFirst(RegExp(r'^/+'), '')}';
+
+      categories.add({
+        'id': categoryId,
+        'name': name,
+        'description': 'Premium $name collection',
+        'image': imageUrl,
+        'price': 0.0,
+        'featured': true,
+      });
+    }
+
+    return categories;
+  }
   
   /// Initialize the API service with error handling and timeout
   Future<void> initialize() async {
@@ -540,7 +582,7 @@ class ApiService {
       final localProducts = await loadLocalProducts('assets/featured_products.json');
       final Map<String, Product> localProductMap = {};
       for (final product in localProducts) {
-        localProductMap[product.id] = product;
+        localProductMap[product.id.toLowerCase()] = product;
       }
       
       // Instead of using a separate featured_products endpoint,
@@ -565,36 +607,7 @@ class ApiService {
           final filesList = data['files'] as List;
           debugPrint('📁 Found ${filesList.length} files in directory response');
           
-          // Convert directory files to product format
-          // For top-level categories, we only want directories, not individual files
-          items = filesList.where((file) {
-            // Only include directories, not individual image files
-            if (file is Map<String, dynamic>) {
-              final String path = (file['path'] ?? '') as String;
-              final bool isDirectory = file['isDirectory'] == true;
-              final bool isProductCategory = path.startsWith('products/') && 
-                  !path.contains('.jpg') && !path.contains('.png') && 
-                  path.split('/').length == 2;
-              
-              return isDirectory || isProductCategory;
-            }
-            return false;
-          }).map((file) {
-            if (file is Map<String, dynamic>) {
-              final String path = (file['path'] ?? '') as String;
-              final String name = (file['name'] ?? path.split('/').last.replaceAll('.jpg', '').replaceAll('_', ' ')) as String;
-              
-              return {
-                'id': path.split('/').last,
-                'name': name,
-                'description': 'Premium $name collection',
-                'image': '${SecurityConfig.angelStonesBaseUrl}/$path',
-                'price': 0.0, // Price not available in directory listing
-                'featured': true
-              };
-            }
-            return file;
-          }).toList();
+          items = parseFeaturedCategoryFiles(filesList);
           
           debugPrint('🏷️ Filtered to ${items.length} product categories');
           
@@ -605,6 +618,13 @@ class ApiService {
           for (final item in items) {
             if (item is Map<String, dynamic>) {
               final categoryId = item['id'] as String;
+              final existingImage = item['image']?.toString() ?? '';
+              productsWithImages.add(item);
+
+              // Current responses include a thumbnail. Only call the category
+              // endpoint as a fallback for older response formats.
+              if (existingImage.isNotEmpty) continue;
+
               imageFutures.add(
                 Future<void>(() async {
                   try {
@@ -622,7 +642,6 @@ class ApiService {
                   }
                 })
               );
-              productsWithImages.add(item);
             }
           }
           
@@ -679,20 +698,29 @@ class ApiService {
         
         // Create a map of server products by ID
         for (final product in serverProducts) {
-          serverProductMap[product.id] = product;
+          final normalizedId = product.id.toLowerCase();
+          final localProduct = localProductMap[normalizedId];
+          final mergedProduct = localProduct == null
+              ? product
+              : localProduct.copyWith(
+                  imageUrl: product.imageUrl.isNotEmpty
+                      ? product.imageUrl
+                      : localProduct.imageUrl,
+                );
+          serverProductMap[normalizedId] = mergedProduct;
           // Only add if we haven't seen this category name before
-          if (!categoryNames.contains(product.name.toLowerCase())) {
-            categoryNames.add(product.name.toLowerCase());
-            mergedProducts.add(product);
+          if (!categoryNames.contains(mergedProduct.name.toLowerCase())) {
+            categoryNames.add(mergedProduct.name.toLowerCase());
+            mergedProducts.add(mergedProduct);
           } else {
-            debugPrint('🔍 Skipping duplicate category: ${product.name}');
+            debugPrint('🔍 Skipping duplicate category: ${mergedProduct.name}');
           }
         }
         
         // Then add any local products that weren't in the server response
         // and aren't duplicates of categories we already have
         for (final localProduct in localProducts) {
-          if (!serverProductMap.containsKey(localProduct.id) && 
+          if (!serverProductMap.containsKey(localProduct.id.toLowerCase()) &&
               !categoryNames.contains(localProduct.name.toLowerCase())) {
             categoryNames.add(localProduct.name.toLowerCase());
             mergedProducts.add(localProduct);

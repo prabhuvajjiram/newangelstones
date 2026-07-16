@@ -2,14 +2,20 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
-    id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    // Flutter 3.44 still needs its temporary KGP bridge for plugin modules.
+    id("com.android.built-in-kotlin")
+    id("com.google.devtools.ksp")
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin plugins.
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
 }
 
 val keystoreProperties = Properties()
+ksp {
+    arg("appfunctions:aggregateAppFunctions", "true")
+}
+
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
     keystorePropertiesFile.inputStream().use { input ->
@@ -19,8 +25,12 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.angelgranites.app"
-    compileSdk = 36
+    compileSdk = 37
     ndkVersion = "29.0.14206865"
+
+    sourceSets.named("main") {
+        kotlin.directories += "src/appfunctions/kotlin"
+    }
 
     signingConfigs {
         create("release") {
@@ -66,7 +76,7 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
-        targetSdk = 35
+        targetSdk = 37
 
         // Read version from pubspec.yaml
         val pubspecFile = File(project.projectDir.parentFile.parentFile, "pubspec.yaml")
@@ -92,9 +102,13 @@ android {
 flutter {
     source = "../.."
 }
+
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     implementation(platform("com.google.firebase:firebase-bom:34.9.0"))
     implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-crashlytics")
+    implementation("androidx.appfunctions:appfunctions:1.0.0-alpha10")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    add("ksp", "androidx.appfunctions:appfunctions-compiler:1.0.0-alpha10")
 }

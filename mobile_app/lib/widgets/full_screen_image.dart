@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../models/product_image.dart';
-import '../services/firebase_service.dart';
 import '../services/inventory_service.dart';
 import '../services/image_share_service.dart';
 
@@ -34,13 +33,6 @@ class _FullScreenImageState extends State<FullScreenImage> {
     super.initState();
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: _currentIndex);
-    
-    // Track image gallery view
-    _trackAnalyticsEvent('image_gallery_opened', {
-      'product_code': widget.galleryImages[_currentIndex].productCode,
-      'total_images': widget.galleryImages.length,
-      'initial_index': _currentIndex,
-    });
   }
 
   @override
@@ -58,24 +50,19 @@ class _FullScreenImageState extends State<FullScreenImage> {
   Future<void> _shareImage() async {
     final currentProduct = widget.galleryImages[_currentIndex];
     HapticFeedback.lightImpact();
-    
-    // Track share event
-    _trackAnalyticsEvent('image_shared', {
-      'product_code': currentProduct.productCode,
-      'image_url': currentProduct.imageUrl,
-      'gallery_position': _currentIndex,
-    });
 
     final displayPath = currentProduct.getDisplayPath();
     final fileName = displayPath.split('/').last.split('?').first;
-    
+
     final success = await ImageShareService.shareImage(
       imageUrl: currentProduct.getDisplayPath(),
       fileName: fileName,
-      productName: currentProduct.productCode.isNotEmpty ? currentProduct.productCode : 'Design',
+      productName: currentProduct.productCode.isNotEmpty
+          ? currentProduct.productCode
+          : 'Design',
       productCode: currentProduct.productCode,
     );
-    
+
     if (!success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to share image')),
@@ -83,20 +70,10 @@ class _FullScreenImageState extends State<FullScreenImage> {
     }
   }
 
-  void _trackAnalyticsEvent(String eventName, Map<String, Object> parameters) {
-    try {
-      FirebaseService.instance.logEvent(
-        name: eventName,
-        parameters: parameters,
-      );
-    } catch (e) {
-      // Silently handle analytics errors
-    }
-  }
-
   Widget _buildNetworkImage(String url) {
     if (url.isEmpty) {
-      return const Center(child: Icon(Icons.broken_image, size: 64, color: Colors.white));
+      return const Center(
+          child: Icon(Icons.broken_image, size: 64, color: Colors.white));
     }
     return Image.network(
       url,
@@ -123,7 +100,9 @@ class _FullScreenImageState extends State<FullScreenImage> {
     String productCode = currentProduct.productCode;
     // Normalize: uppercase and ensure dash is present (e.g., AG-356, AS-513)
     productCode = productCode.trim().toUpperCase();
-    if (productCode.isNotEmpty && !productCode.contains('-') && productCode.length > 2) {
+    if (productCode.isNotEmpty &&
+        !productCode.contains('-') &&
+        productCode.length > 2) {
       // Insert dash after prefix if missing (e.g., AG356 -> AG-356)
       final prefix = productCode.substring(0, 2);
       final rest = productCode.substring(2);
@@ -141,11 +120,6 @@ class _FullScreenImageState extends State<FullScreenImage> {
       return;
     }
     HapticFeedback.lightImpact();
-    // Track navigation event
-    _trackAnalyticsEvent('navigate_to_inventory_from_gallery', {
-      'product_code': productCode,
-      'gallery_position': _currentIndex,
-    });
     // Show loading indicator
     if (!mounted) return;
     showDialog<void>(
@@ -196,13 +170,14 @@ class _FullScreenImageState extends State<FullScreenImage> {
   @override
   Widget build(BuildContext context) {
     final currentProduct = widget.galleryImages[_currentIndex];
-    
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: _showControls
           ? AppBar(
               backgroundColor: Colors.black.withValues(alpha: 0.7),
-              title: Text('${currentProduct.productCode.isNotEmpty ? currentProduct.productCode : 'No Code'} (${_currentIndex + 1}/${widget.galleryImages.length})'),
+              title: Text(
+                  '${currentProduct.productCode.isNotEmpty ? currentProduct.productCode : 'No Code'} (${_currentIndex + 1}/${widget.galleryImages.length})'),
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () => Navigator.pop(context),
@@ -225,7 +200,8 @@ class _FullScreenImageState extends State<FullScreenImage> {
         onTap: _toggleControls,
         onVerticalDragEnd: (details) {
           // Close image on swipe down
-          if (details.primaryVelocity != null && details.primaryVelocity! > 300) {
+          if (details.primaryVelocity != null &&
+              details.primaryVelocity! > 300) {
             HapticFeedback.lightImpact();
             Navigator.pop(context);
           }
@@ -238,14 +214,7 @@ class _FullScreenImageState extends State<FullScreenImage> {
               itemCount: widget.galleryImages.length,
               onPageChanged: (index) {
                 HapticFeedback.selectionClick();
-                
-                // Track page change
-                _trackAnalyticsEvent('image_gallery_swipe', {
-                  'from_index': _currentIndex,
-                  'to_index': index,
-                  'product_code': widget.galleryImages[index].productCode,
-                });
-                
+
                 setState(() {
                   _currentIndex = index;
                 });
@@ -253,7 +222,9 @@ class _FullScreenImageState extends State<FullScreenImage> {
               itemBuilder: (context, index) {
                 final product = widget.galleryImages[index];
                 return Hero(
-                  tag: index == widget.initialIndex ? widget.tag : 'image_gallery_$index',
+                  tag: index == widget.initialIndex
+                      ? widget.tag
+                      : 'image_gallery_$index',
                   child: InteractiveViewer(
                     minScale: 0.5,
                     maxScale: 4.0,
@@ -262,7 +233,8 @@ class _FullScreenImageState extends State<FullScreenImage> {
                           ? Image.asset(
                               product.assetPath!,
                               fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => _buildNetworkImage(product.imageUrl),
+                              errorBuilder: (_, __, ___) =>
+                                  _buildNetworkImage(product.imageUrl),
                             )
                           : _buildNetworkImage(product.imageUrl),
                     ),
@@ -278,7 +250,8 @@ class _FullScreenImageState extends State<FullScreenImage> {
                 bottom: 16,
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16),
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(8),
@@ -314,7 +287,8 @@ class _FullScreenImageState extends State<FullScreenImage> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: IconButton(
-                            icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                            icon: const Icon(Icons.arrow_back_ios,
+                                color: Colors.white),
                             onPressed: () {
                               HapticFeedback.lightImpact();
                               _pageController.previousPage(
@@ -337,7 +311,8 @@ class _FullScreenImageState extends State<FullScreenImage> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: IconButton(
-                            icon: const Icon(Icons.arrow_forward_ios, color: Colors.white),
+                            icon: const Icon(Icons.arrow_forward_ios,
+                                color: Colors.white),
                             onPressed: () {
                               HapticFeedback.lightImpact();
                               _pageController.nextPage(

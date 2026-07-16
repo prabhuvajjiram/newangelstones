@@ -41,7 +41,8 @@ class MainNavigation extends StatefulWidget {
   State<MainNavigation> createState() => _MainNavigationState();
 }
 
-class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObserver {
+class _MainNavigationState extends State<MainNavigation>
+    with WidgetsBindingObserver {
   late int _currentIndex;
   late final List<Widget> _pages;
   bool _isInitialized = false;
@@ -115,17 +116,18 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
       debugPrint('❌ Service initialization error: $e');
     }
   }
-  
+
   void _initializeBackgroundServices() {
     // Initialize remaining services in background
-    widget.inventoryService.initialize();
+    unawaited(widget.inventoryService.initialize());
     widget.directoryService.initialize();
     _preloadApiData();
   }
 
   Future<void> _preloadApiData() async {
     try {
-      await widget.apiService.loadLocalProducts('assets/featured_products.json')
+      await widget.apiService
+          .loadLocalProducts('assets/featured_products.json')
           .timeout(const Duration(seconds: 2), onTimeout: () => []);
     } catch (e) {
       // Continue without preloaded data
@@ -153,180 +155,181 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
           centerTitle: false,
           backgroundColor: Colors.black,
           elevation: 0,
-        title: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(width: 32),
-            SizedBox(
-              width: 36,
-              height: 36,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Shimmer.fromColors(
-                    baseColor: const Color(0xFFD4AF37),
-                    highlightColor: const Color(0xFFFFF8DC),
-                    period: const Duration(seconds: 3),
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFFD4AF37).withValues(alpha: 0.3),
+          title: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(width: 32),
+              SizedBox(
+                width: 36,
+                height: 36,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Shimmer.fromColors(
+                      baseColor: const Color(0xFFD4AF37),
+                      highlightColor: const Color(0xFFFFF8DC),
+                      period: const Duration(seconds: 3),
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFFD4AF37).withValues(alpha: 0.3),
+                        ),
+                      ),
+                    ),
+                    Image.asset(
+                      'assets/logo.png',
+                      fit: BoxFit.contain,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Constrained width to leave room for actions (3 icons ~144px needed)
+              Container(
+                constraints: BoxConstraints(
+                  maxWidth: screenWidth * 0.30, // 30% of screen width
+                ),
+                child: ShaderMask(
+                  blendMode: BlendMode.srcIn,
+                  shaderCallback: (Rect bounds) {
+                    return const LinearGradient(
+                      colors: [
+                        Color(0xFFD4AF37),
+                        Color(0xFFFFD700),
+                        Color(0xFFE6BE8A),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ).createShader(bounds);
+                  },
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'ANGEL GRANITES',
+                      style: TextStyle(
+                        fontSize: dynamicFontSize.clamp(14.0, 22.0),
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'OpenSans',
+                        letterSpacing: 0.5,
+                        color: Colors.white,
                       ),
                     ),
                   ),
-                  Image.asset(
-                    'assets/logo.png',
-                    fit: BoxFit.contain,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.search, color: Color(0xFFFFD700)),
+              tooltip: 'Search',
+              onPressed: () {
+                GoRouter.of(context).pushNamed(AppRouter.search);
+              },
+            ),
+            CartIcon(
+              onPressed: () {
+                GoRouter.of(context).pushNamed(AppRouter.cart);
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.person_outline, color: Color(0xFFFFD700)),
+              tooltip: 'Customer Portal',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (context) => const WebViewScreen(
+                      url:
+                          '${SecurityConfig.monumentBusinessBaseUrl}/GV/Account/Login',
+                      title: 'Customer Portal',
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        body: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
+          child: _pages[_currentIndex],
+        ),
+        bottomNavigationBar: SafeArea(
+          child: Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, -1),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+              child: BottomNavigationBar(
+                currentIndex: _currentIndex,
+                onTap: (index) {
+                  setState(() {
+                    _currentIndex = index;
+                  });
+                },
+                elevation: 0,
+                type: BottomNavigationBarType.fixed,
+                backgroundColor: AppTheme.cardColor,
+                selectedItemColor: AppTheme.accentColor,
+                unselectedItemColor: AppTheme.textSecondary,
+                // Compact font sizes for portrait mode
+                selectedLabelStyle: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11,
+                  letterSpacing: 0.3,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 10,
+                  letterSpacing: 0.2,
+                ),
+                // Reduced icon size for better proportion
+                iconSize: 22,
+                // Compact spacing
+                selectedFontSize: 11,
+                unselectedFontSize: 10,
+                items: const [
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.home_rounded),
+                    label: 'Home',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.palette_rounded),
+                    label: 'Colors',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.inventory_2_rounded),
+                    label: 'Stock',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.contact_page_rounded),
+                    label: 'Contact',
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 12),
-            // Constrained width to leave room for actions (3 icons ~144px needed)
-            Container(
-              constraints: BoxConstraints(
-                maxWidth: screenWidth * 0.30, // 30% of screen width
-              ),
-              child: ShaderMask(
-                blendMode: BlendMode.srcIn,
-                shaderCallback: (Rect bounds) {
-                  return const LinearGradient(
-                    colors: [
-                      Color(0xFFD4AF37),
-                      Color(0xFFFFD700),
-                      Color(0xFFE6BE8A),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ).createShader(bounds);
-                },
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'ANGEL GRANITES',
-                    style: TextStyle(
-                      fontSize: dynamicFontSize.clamp(14.0, 22.0),
-                      fontWeight: FontWeight.w700,
-                      fontFamily: 'OpenSans',
-                      letterSpacing: 0.5,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Color(0xFFFFD700)),
-            tooltip: 'Search',
-            onPressed: () {
-              GoRouter.of(context).pushNamed(AppRouter.search);
-            },
-          ),
-          CartIcon(
-            onPressed: () {
-              GoRouter.of(context).pushNamed(AppRouter.cart);
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.person_outline, color: Color(0xFFFFD700)),
-            tooltip: 'Customer Portal',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute<void>(
-                  builder: (context) => const WebViewScreen(
-                    url: '${SecurityConfig.monumentBusinessBaseUrl}/GV/Account/Login',
-                    title: 'Customer Portal',
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        transitionBuilder: (Widget child, Animation<double> animation) {
-          return FadeTransition(
-            opacity: animation,
-            child: child,
-          );
-        },
-        child: _pages[_currentIndex],
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 8,
-                offset: const Offset(0, -1),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-            child: BottomNavigationBar(
-              currentIndex: _currentIndex,
-              onTap: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-              elevation: 0,
-              type: BottomNavigationBarType.fixed,
-              backgroundColor: AppTheme.cardColor,
-              selectedItemColor: AppTheme.accentColor,
-              unselectedItemColor: AppTheme.textSecondary,
-              // Compact font sizes for portrait mode
-              selectedLabelStyle: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 11,
-                letterSpacing: 0.3,
-              ),
-              unselectedLabelStyle: const TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 10,
-                letterSpacing: 0.2,
-              ),
-              // Reduced icon size for better proportion
-              iconSize: 22,
-              // Compact spacing
-              selectedFontSize: 11,
-              unselectedFontSize: 10,
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home_rounded),
-                  label: 'Home',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.palette_rounded),
-                  label: 'Colors',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.inventory_2_rounded),
-                  label: 'Stock',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.contact_page_rounded),
-                  label: 'Contact',
-                ),
-              ],
-            ),
           ),
         ),
       ),
-    ),
     );
     // Skip splash screen - show main content immediately
     if (!_isInitialized) {
@@ -390,7 +393,8 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
 
   void _setupConnectivityMonitoring() {
     _checkConnectivityStatus();
-    _connectivitySubscription = _connectivityService!.onConnectivityChanged.listen((isOnline) {
+    _connectivitySubscription =
+        _connectivityService!.onConnectivityChanged.listen((isOnline) {
       if (!isOnline && !_offlineHandled) {
         _navigateToOfflineCatalog();
       } else if (isOnline && _wasOffline) {
