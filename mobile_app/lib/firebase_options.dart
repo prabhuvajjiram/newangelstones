@@ -18,10 +18,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macOS - '
-          'you can create these using the Firebase console.',
-        );
+        return macos;
       case TargetPlatform.windows:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for Windows - '
@@ -48,6 +45,17 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyCX_IrY9De3D_QzBlp0LqBeaO3ymk7CNFk',
+    appId: '1:539498050706:ios:ad7565c92d3bbb5b12624b',
+    messagingSenderId: '539498050706',
+    projectId: 'angel-granites',
+    storageBucket: 'angel-granites.firebasestorage.app',
+    iosBundleId: 'com.angelgranites.app',
+  );
+
+  // The native macOS target is part of the same universal-purchase app and
+  // intentionally shares the registered Apple bundle ID with iOS.
+  static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyCX_IrY9De3D_QzBlp0LqBeaO3ymk7CNFk',
     appId: '1:539498050706:ios:ad7565c92d3bbb5b12624b',
     messagingSenderId: '539498050706',

@@ -51,6 +51,7 @@ void main() async {
 Future<void> _initializeFirebaseInBackground() async {
   try {
     await FirebaseService.instance.initialize();
+    if (!FirebaseService.isSupportedPlatform) return;
 
     FlutterError.onError = (FlutterErrorDetails details) {
       FlutterError.presentError(details);
@@ -123,7 +124,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     // Kick off non-critical background work after the first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startBackgroundWork();
-      // This is a no-op while IOS27_SIRI_ENABLED is absent from the iOS build.
+      // This is a no-op on platforms without the native Apple intent bridge.
       unawaited(_openPendingSiriInventorySearch());
       unawaited(_showNotificationPermissionPromptIfNeeded());
     });
@@ -178,6 +179,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   Future<void> _showNotificationPermissionPromptIfNeeded() async {
+    if (!NotificationService.isSupportedPlatform) return;
     await Future<void>.delayed(const Duration(seconds: 8));
     if (!mounted ||
         !await NotificationService.instance.shouldShowPermissionPrompt()) {

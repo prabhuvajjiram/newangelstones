@@ -11,6 +11,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 class FirebaseMessagingHandler {
   static Future<void> setup() async {
+    if (!app_firebase.FirebaseService.isSupportedPlatform) return;
+
     // Startup is intentionally non-blocking, so messaging may be scheduled
     // while Firebase Core is still initializing. Await the shared guarded
     // initialization future before touching any Firebase-backed services.

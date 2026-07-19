@@ -1,13 +1,10 @@
 import Foundation
-
-// Production release switch:
-// Keep this source in the Runner target, but compile the iOS 27 Siri/App Intents
-// integration only after Apple accepts Xcode 27 builds for App Store release.
-// To re-enable it, add IOS27_SIRI_ENABLED to Runner > Build Settings >
-// Active Compilation Conditions, then build with an App Store-supported Xcode 27.
-#if IOS27_SIRI_ENABLED
 import AppIntents
-#endif
+
+// Shared Apple-platform source: this file belongs to both the iOS and macOS
+// Runner targets. The stable App Shortcut works on current operating systems.
+// The preliminary 27-only system search schema remains separately gated until
+// the project is built with Xcode 27; see docs/apple-27-siri-inventory.md.
 
 enum PendingInventorySearch {
   static let userDefaultsKey = "pendingSiriInventorySearch"
@@ -27,13 +24,68 @@ enum PendingInventorySearch {
   }
 }
 
-#if IOS27_SIRI_ENABLED
+/// Represents the live answer to a natural-language stock question. Modeling
+/// the answer as an App Entity lets Siri resolve arbitrary server-backed terms
+/// in an App Shortcut phrase instead of requiring a second prompt.
+@available(iOS 16.0, macOS 13.0, *)
+struct InventoryAvailabilityEntity: AppEntity {
+  static let typeDisplayRepresentation = TypeDisplayRepresentation(
+    name: "Inventory Availability"
+  )
+  static let defaultQuery = InventoryAvailabilityQuery()
 
-/// iOS 27's system in-app search schema lets Siri and Apple Intelligence pass
-/// the user's natural-language inventory request into Angel Granites.
-@available(iOS 27.0, *)
+  var id: String
+
+  @Property(title: "Inventory search")
+  var searchText: String
+
+  @Property(title: "Live inventory result")
+  var resultSummary: String
+
+  var displayRepresentation: DisplayRepresentation {
+    DisplayRepresentation(
+      title: "\(searchText)",
+      subtitle: "\(resultSummary)",
+      image: .init(systemName: "shippingbox")
+    )
+  }
+
+  init(searchText: String, resultSummary: String) {
+    let trimmedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+    id = trimmedSearch.lowercased()
+    self.searchText = trimmedSearch
+    self.resultSummary = resultSummary
+  }
+}
+
+@available(iOS 16.0, macOS 13.0, *)
+struct InventoryAvailabilityQuery: EntityStringQuery {
+  func entities(for identifiers: [String]) async throws -> [InventoryAvailabilityEntity] {
+    var entities: [InventoryAvailabilityEntity] = []
+    for identifier in identifiers {
+      entities.append(await InventoryAvailabilityClient.shared.entity(for: identifier))
+    }
+    return entities
+  }
+
+  func entities(matching string: String) async throws -> [InventoryAvailabilityEntity] {
+    let trimmedSearch = string.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmedSearch.isEmpty else { return [] }
+    return [await InventoryAvailabilityClient.shared.entity(for: trimmedSearch)]
+  }
+}
+
+#if APPLE27_SIRI_ENABLED
+
+/// The 27 releases' system in-app search schema lets Siri and Apple
+/// Intelligence pass a natural-language inventory request into the existing
+/// Angel Granites search screen on iPhone or Mac.
+@available(iOS 27.0, macOS 27.0, *)
 @AppIntent(schema: .system.searchInApp)
-struct SearchAngelGranitesInventoryIntent {
+struct SearchAngelGranitesInventoryIntent: ShowInAppSearchResultsIntent {
+  static var searchScopes: [StringSearchScope] = [.general]
+  static var allowedExecutionTargets: IntentExecutionTargets = .main
+
   var criteria: StringSearchCriteria
 
   @MainActor
@@ -42,32 +94,35 @@ struct SearchAngelGranitesInventoryIntent {
     return .result()
   }
 }
+#endif
 
-@available(iOS 27.0, *)
+/// A stable App Shortcut that answers a stock question without opening the
+/// Flutter interface. This remains useful on pre-27 systems and provides the
+/// direct spoken response while the 27 schema handles "show me" searches.
+@available(iOS 16.0, macOS 13.0, *)
 struct CheckInventoryAvailabilityIntent: AppIntent {
   static var title: LocalizedStringResource = "Check Inventory Availability"
   static var description = IntentDescription(
     "Checks live Angel Granites stock by design, color, product type, or dimensions."
   )
-  static var openAppWhenRun = false
 
   @Parameter(
     title: "Stone or monument",
     description: "For example AG-298, heart headstone, 0-8 thickness, or 4-0 x 0-8 x 2-4."
   )
-  var query: String
+  var availability: InventoryAvailabilityEntity
 
   static var parameterSummary: some ParameterSummary {
-    Summary("Check live inventory for \(\.$query)")
+    Summary("Check live inventory for \(\.$availability)")
   }
 
-  func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
-    let summary = try await InventoryAvailabilityClient.shared.summary(for: query)
+  func perform() async -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
+    let summary = availability.resultSummary
     return .result(value: summary, dialog: "\(summary)")
   }
 }
 
-@available(iOS 27.0, *)
+@available(iOS 16.0, macOS 13.0, *)
 struct AngelGranitesShortcuts: AppShortcutsProvider {
   static var shortcutTileColor: ShortcutTileColor = .yellow
 
@@ -75,9 +130,11 @@ struct AngelGranitesShortcuts: AppShortcutsProvider {
     AppShortcut(
       intent: CheckInventoryAvailabilityIntent(),
       phrases: [
+        "Check \(\.$availability) in \(.applicationName)",
+        "Is \(\.$availability) available in \(.applicationName)",
+        "Search \(.applicationName) for \(\.$availability)",
         "Check live inventory in \(.applicationName)",
         "Ask \(.applicationName) about inventory",
-        "Search \(.applicationName) inventory",
       ],
       shortTitle: "Check Live Inventory",
       systemImageName: "shippingbox"
@@ -128,6 +185,21 @@ private actor InventoryAvailabilityClient {
 
   private var cachedRecords: [Record] = []
   private var cacheDate: Date?
+
+  @available(iOS 16.0, macOS 13.0, *)
+  func entity(for rawQuery: String) async -> InventoryAvailabilityEntity {
+    let trimmedQuery = rawQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+    let summary: String
+    do {
+      summary = try await self.summary(for: trimmedQuery)
+    } catch {
+      summary = "I couldn't reach live Angel Granites inventory right now. Please try again shortly."
+    }
+    return InventoryAvailabilityEntity(
+      searchText: trimmedQuery,
+      resultSummary: summary
+    )
+  }
 
   func summary(for rawQuery: String) async throws -> String {
     let query = Self.searchTerms(rawQuery)
@@ -306,4 +378,3 @@ private actor InventoryAvailabilityClient {
     return nil
   }
 }
-#endif

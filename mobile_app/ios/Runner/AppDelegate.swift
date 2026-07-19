@@ -4,11 +4,9 @@ import Firebase
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
-#if IOS27_SIRI_ENABLED
-  // Enable together with InventorySearchIntent.swift after Xcode 27 is
-  // accepted for production App Store submissions.
+  // Retain the channel for the lifetime of the implicit Flutter engine. The
+  // stable App Shortcut and the gated Apple 27 search schema share this bridge.
   private var siriInventoryChannel: FlutterMethodChannel?
-#endif
 
   override func application(
     _ application: UIApplication,
@@ -21,7 +19,6 @@ import Firebase
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
 
-#if IOS27_SIRI_ENABLED
     let channel = FlutterMethodChannel(
       name: "com.angelgranites.app/siri_inventory",
       binaryMessenger: engineBridge.applicationRegistrar.messenger()
@@ -34,6 +31,5 @@ import Firebase
       result(PendingInventorySearch.take())
     }
     siriInventoryChannel = channel
-#endif
   }
 }

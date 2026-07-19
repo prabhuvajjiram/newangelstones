@@ -12,7 +12,14 @@ class NotificationService {
   NotificationService._();
   static final NotificationService instance = NotificationService._();
 
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  static bool get isSupportedPlatform {
+    if (kIsWeb) return false;
+    return defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS;
+  }
+
+  FirebaseMessaging get _messaging => FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
@@ -25,6 +32,7 @@ class NotificationService {
   bool _permissionPromptSeenInMemory = false;
 
   Future<void> initialize() async {
+    if (!isSupportedPlatform) return;
     if (_initialized) return;
 
     // Initialize local notifications
@@ -98,6 +106,7 @@ class NotificationService {
   }
 
   Future<bool> shouldShowPermissionPrompt() async {
+    if (!isSupportedPlatform) return false;
     final settings = await _messaging.getNotificationSettings();
     if (settings.authorizationStatus != AuthorizationStatus.notDetermined) {
       return false;
@@ -124,6 +133,7 @@ class NotificationService {
   }
 
   Future<bool> requestPermission() async {
+    if (!isSupportedPlatform) return false;
     await initialize();
     await markPermissionPromptSeen();
 
@@ -218,10 +228,12 @@ class NotificationService {
   }
 
   Future<String?> getToken() async {
+    if (!isSupportedPlatform) return null;
     return _messaging.getToken();
   }
 
   Future<void> displayNotification(NotificationPayload payload) async {
+    if (!isSupportedPlatform) return;
     final now = DateTime.now();
     final last = _lastSent[payload.title];
     if (last != null &&

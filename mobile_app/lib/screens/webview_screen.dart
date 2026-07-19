@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kDebugMode, kIsWeb;
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
@@ -25,7 +26,7 @@ class WebViewScreen extends StatefulWidget {
 }
 
 class _WebViewScreenState extends State<WebViewScreen> {
-  late final WebViewController _controller;
+  WebViewController? _controller;
   bool _isLoading = true;
   String _currentUrl = '';
   bool _canGoBack = false;
@@ -35,7 +36,17 @@ class _WebViewScreenState extends State<WebViewScreen> {
   void initState() {
     super.initState();
     _currentUrl = widget.url;
-    
+
+    // webview_flutter has native implementations for Android and Apple
+    // platforms in this project, but not Windows/Linux. Keep those desktop
+    // targets usable by offering the trusted URL in the system browser.
+    if (kIsWeb ||
+        defaultTargetPlatform == TargetPlatform.windows ||
+        defaultTargetPlatform == TargetPlatform.linux) {
+      _isLoading = false;
+      return;
+    }
+
     // Platform-specific initialization to disable ORB
     late final PlatformWebViewControllerCreationParams params;
     if (WebViewPlatform.instance is WebKitWebViewPlatform) {
@@ -48,8 +59,10 @@ class _WebViewScreenState extends State<WebViewScreen> {
     } else {
       params = const PlatformWebViewControllerCreationParams();
     }
-    
-    _controller = WebViewController.fromPlatformCreationParams(params)
+
+    final controller = WebViewController.fromPlatformCreationParams(params);
+    _controller = controller;
+    controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.white)
       ..enableZoom(true)
@@ -71,12 +84,12 @@ class _WebViewScreenState extends State<WebViewScreen> {
                 _currentUrl = url;
               });
             }
-            
+
             _debugLogUrl('Page loaded successfully', url);
-            
+
             // Update navigation state
-            final canGoBack = await _controller.canGoBack();
-            final canGoForward = await _controller.canGoForward();
+            final canGoBack = await controller.canGoBack();
+            final canGoForward = await controller.canGoForward();
             if (mounted) {
               setState(() {
                 _canGoBack = canGoBack;
@@ -91,20 +104,21 @@ class _WebViewScreenState extends State<WebViewScreen> {
                 '(code: ${error.errorCode}, type: ${error.errorType})',
               );
             }
-            
+
             // Ignore ORB errors - they're security restrictions that don't prevent page rendering
             if (error.description.contains('ERR_BLOCKED_BY_ORB') ||
                 error.description.contains('BLOCKED_BY_ORB')) {
-              debugPrint('🔒 ORB error detected - ignoring (security restriction)');
+              debugPrint(
+                  '🔒 ORB error detected - ignoring (security restriction)');
               return;
             }
-            
+
             if (mounted) {
               setState(() {
                 _isLoading = false;
               });
             }
-            
+
             // Only show error for critical failures (not for images, scripts, etc.)
             if (error.errorType == WebResourceErrorType.unknown ||
                 error.errorType == WebResourceErrorType.hostLookup ||
@@ -152,22 +166,23 @@ class _WebViewScreenState extends State<WebViewScreen> {
           },
         ),
       );
-    
+
     // Load the URL - errors will be caught in error handler
-    _controller.loadRequest(
+    controller.loadRequest(
       Uri.parse(widget.url),
       headers: {
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept':
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
         'Cache-Control': 'no-cache',
         'Pragma': 'no-cache',
       },
     );
-    
+
     // Platform-specific configuration for Android
-    if (_controller.platform is AndroidWebViewController) {
+    if (controller.platform is AndroidWebViewController) {
       AndroidWebViewController.enableDebugging(kDebugMode);
-      (_controller.platform as AndroidWebViewController)
+      (controller.platform as AndroidWebViewController)
         ..setMediaPlaybackRequiresUserGesture(false)
         ..setGeolocationPermissionsPromptCallbacks(
           onShowPrompt: (request) async {
@@ -204,24 +219,24 @@ class _WebViewScreenState extends State<WebViewScreen> {
     try {
       final urlToOpen = _currentUrl.isNotEmpty ? _currentUrl : widget.url;
       final Uri url = Uri.parse(urlToOpen);
-      
+
       _debugLogUrl('Opening in browser', urlToOpen);
-      
+
       bool launched = false;
-      
+
       if (kIsWeb) {
         // For web platform
         launched = await launchUrl(url, mode: LaunchMode.platformDefault);
       } else if (Platform.isIOS) {
         // For iOS - try multiple methods
         launched = await launchUrl(url, mode: LaunchMode.externalApplication);
-        
+
         if (!launched) {
           launched = await launchUrl(url, mode: LaunchMode.platformDefault);
         }
       } else if (Platform.isAndroid) {
         // For Android - try multiple approaches to handle emulator and real devices
-        
+
         // Method 1: Try externalApplication mode
         try {
           launched = await launchUrl(
@@ -234,7 +249,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
         } catch (e) {
           if (kDebugMode) debugPrint('externalApplication failed: $e');
         }
-        
+
         // Method 2: Try platformDefault if method 1 failed
         if (!launched) {
           try {
@@ -247,7 +262,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
             if (kDebugMode) debugPrint('platformDefault failed: $e');
           }
         }
-        
+
         // Method 3: Try with webViewConfiguration for Android
         if (!launched) {
           try {
@@ -264,7 +279,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
             if (kDebugMode) debugPrint('inAppBrowserView failed: $e');
           }
         }
-        
+
         // Method 4: Last resort - try basic launch
         if (!launched) {
           try {
@@ -278,9 +293,11 @@ class _WebViewScreenState extends State<WebViewScreen> {
         // For other platforms (desktop, etc.)
         launched = await launchUrl(url, mode: LaunchMode.platformDefault);
       }
-      
+
       if (launched) {
-        if (kDebugMode) debugPrint('Successfully opened URL in external browser');
+        if (kDebugMode) {
+          debugPrint('Successfully opened URL in external browser');
+        }
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -299,10 +316,11 @@ class _WebViewScreenState extends State<WebViewScreen> {
       }
     } catch (e) {
       if (kDebugMode) debugPrint('Error opening browser: $e');
-      _showErrorSnackBar('Could not open browser. You can continue browsing in-app.');
+      _showErrorSnackBar(
+          'Could not open browser. You can continue browsing in-app.');
     }
   }
-  
+
   void _showErrorSnackBar(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -322,18 +340,25 @@ class _WebViewScreenState extends State<WebViewScreen> {
   }
 
   Future<void> _refresh() async {
-    await _controller.reload();
+    final controller = _controller;
+    if (controller == null) {
+      await _openInBrowser();
+      return;
+    }
+    await controller.reload();
   }
 
   Future<void> _goBack() async {
-    if (await _controller.canGoBack()) {
-      await _controller.goBack();
+    final controller = _controller;
+    if (controller != null && await controller.canGoBack()) {
+      await controller.goBack();
     }
   }
 
   Future<void> _goForward() async {
-    if (await _controller.canGoForward()) {
-      await _controller.goForward();
+    final controller = _controller;
+    if (controller != null && await controller.canGoForward()) {
+      await controller.goForward();
     }
   }
 
@@ -364,33 +389,61 @@ class _WebViewScreenState extends State<WebViewScreen> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          WebViewWidget(controller: _controller),
-          if (_isLoading)
-            Container(
-              color: Colors.white,
-              child: const Center(
+      body: _controller == null
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    CircularProgressIndicator(
+                    const Icon(
+                      Icons.open_in_browser_rounded,
                       color: AppTheme.accentColor,
+                      size: 64,
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     Text(
-                      'Loading...',
-                      style: TextStyle(
-                        color: AppTheme.textSecondary,
-                        fontSize: 14,
-                      ),
+                      '${widget.title} opens securely in your default browser on this device.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 20),
+                    FilledButton.icon(
+                      onPressed: _openInBrowser,
+                      icon: const Icon(Icons.open_in_new_rounded),
+                      label: const Text('Open in Browser'),
                     ),
                   ],
                 ),
               ),
+            )
+          : Stack(
+              children: [
+                WebViewWidget(controller: _controller!),
+                if (_isLoading)
+                  Container(
+                    color: Colors.white,
+                    child: const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            color: AppTheme.accentColor,
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'Loading...',
+                            style: TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
             ),
-        ],
-      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: AppTheme.primaryColor,
@@ -411,7 +464,9 @@ class _WebViewScreenState extends State<WebViewScreen> {
                 IconButton(
                   icon: Icon(
                     Icons.arrow_back_rounded,
-                    color: _canGoBack ? AppTheme.accentColor : Colors.grey.shade600,
+                    color: _canGoBack
+                        ? AppTheme.accentColor
+                        : Colors.grey.shade600,
                     size: 24,
                   ),
                   onPressed: _canGoBack ? _goBack : null,
@@ -420,7 +475,9 @@ class _WebViewScreenState extends State<WebViewScreen> {
                 IconButton(
                   icon: Icon(
                     Icons.arrow_forward_rounded,
-                    color: _canGoForward ? AppTheme.accentColor : Colors.grey.shade600,
+                    color: _canGoForward
+                        ? AppTheme.accentColor
+                        : Colors.grey.shade600,
                     size: 24,
                   ),
                   onPressed: _canGoForward ? _goForward : null,
@@ -432,9 +489,11 @@ class _WebViewScreenState extends State<WebViewScreen> {
                     color: AppTheme.accentColor,
                     size: 24,
                   ),
-                  onPressed: () {
-                    _controller.loadRequest(Uri.parse(widget.url));
-                  },
+                  onPressed: _controller == null
+                      ? _openInBrowser
+                      : () {
+                          _controller!.loadRequest(Uri.parse(widget.url));
+                        },
                   tooltip: 'Home',
                 ),
                 IconButton(

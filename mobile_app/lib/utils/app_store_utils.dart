@@ -22,13 +22,38 @@ class AppStoreUtils {
     }
   }
 
+  /// Launch the app's Microsoft Store product page on Windows.
+  static Future<void> openMicrosoftStore() async {
+    final Uri storeUri = Uri.parse(
+      'ms-windows-store://pdp/?ProductId=${AppConfig.microsoftStoreId}',
+    );
+    final Uri webFallback = Uri.parse(
+      'https://apps.microsoft.com/detail/${AppConfig.microsoftStoreId}',
+    );
+    if (!await launchUrl(storeUri, mode: LaunchMode.externalApplication)) {
+      await launchUrl(webFallback, mode: LaunchMode.externalApplication);
+    }
+  }
+
   /// Open appropriate store based on platform
   static Future<void> openAppInStore() async {
     try {
-      if (defaultTargetPlatform == TargetPlatform.iOS) {
-        await openAppStore();
-      } else {
-        await openPlayStore();
+      switch (defaultTargetPlatform) {
+        case TargetPlatform.iOS:
+        case TargetPlatform.macOS:
+          await openAppStore();
+          break;
+        case TargetPlatform.windows:
+          await openMicrosoftStore();
+          break;
+        case TargetPlatform.android:
+          await openPlayStore();
+          break;
+        default:
+          await launchUrl(
+            Uri.parse(AppConfig.websiteUrl),
+            mode: LaunchMode.externalApplication,
+          );
       }
     } catch (e) {
       debugPrint('Error opening app store: $e');

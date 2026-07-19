@@ -52,6 +52,8 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0  # Latest stable version
   flutter_launcher_icons: ^0.14.4
+  # Flutter's documented Microsoft Store packaging path.
+  msix: ^3.18.0
 
 flutter_launcher_icons:
   android: true
@@ -73,10 +75,26 @@ flutter_launcher_icons:
     image_path: "assets/icon/icon.png"
   windows:
     generate: true
-    image_path: "assets/icon/icon.png"
+    # The wing mark remains legible in Windows taskbar and Start menu sizes.
+    image_path: "design/app-icons/angel-granites-fallback.png"
   macos:
     generate: true
     image_path: "assets/icon/icon.png"
+
+# Values must match Partner Center > Product identity exactly. The Store signs
+# this unsigned package after certification.
+msix_config:
+  display_name: Angel Granites
+  publisher_display_name: Angel Stones
+  identity_name: AngelStones.AngelGranites
+  publisher: CN=A2F5AA89-FCBF-4A75-9905-C57DA605A1BD
+  logo_path: design/app-icons/angel-granites-fallback.png
+  capabilities: internetClient
+  languages: en-us
+  architecture: x64
+  os_min_version: 10.0.17763.0
+  output_name: AngelGranites-windows-x64-store
+  store: true
 
 flutter_native_splash:
   color: "#121212"

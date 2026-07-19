@@ -1,0 +1,60 @@
+name: Build Microsoft Store MSIX
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-msix:
+    name: Windows x64 Store package
+    runs-on: windows-2022
+    timeout-minutes: 45
+
+    defaults:
+      run:
+        working-directory: mobile_app
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.6
+          cache: true
+
+      - name: Verify Windows toolchain
+        run: flutter doctor -v
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Build unsigned Microsoft Store MSIX
+        run: dart run msix:create
+
+      - name: Verify package artifact
+        shell: pwsh
+        run: |
+          $packages = Get-ChildItem -Path build/windows -Recurse -Filter *.msix
+          if (-not $packages) {
+            throw "MSIX package was not generated."
+          }
+          $packages | Select-Object FullName, Length | Format-Table -AutoSize
+
+      - name: Upload Microsoft Store package
+        uses: actions/upload-artifact@v4
+        with:
+          name: AngelGranites-MicrosoftStore-MSIX
+          path: mobile_app/build/windows/**/*.msix
+          if-no-files-found: error
+          retention-days: 14

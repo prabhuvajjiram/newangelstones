@@ -36,6 +36,8 @@ class AppConfig {
   static const String appStoreId = '6748974666'; // Apple App Store ID
   static const String playStoreId =
       'com.angelgranites.app'; // Google Play Store ID
+  static const String microsoftStoreId =
+      '9NPQBXKDHPML'; // Microsoft Store product ID
 
   // Feature Flags
   static const bool enableCrashlytics = true;

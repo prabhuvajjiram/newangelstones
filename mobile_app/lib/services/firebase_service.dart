@@ -18,8 +18,19 @@ class FirebaseService {
     return _instance!;
   }
 
+  /// FlutterFire Crashlytics and Messaging are configured only for the mobile
+  /// and Apple desktop targets. Windows keeps the catalog fully functional but
+  /// deliberately skips these services instead of invoking missing plugins.
+  static bool get isSupportedPlatform {
+    if (kIsWeb) return false;
+    return defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS;
+  }
+
   /// Initialize Firebase services
   Future<void> initialize() {
+    if (!isSupportedPlatform) return Future<void>.value();
     if (_isInitialized) return Future<void>.value();
     return _initializationFuture ??= _initialize();
   }
