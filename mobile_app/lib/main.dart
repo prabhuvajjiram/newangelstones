@@ -222,93 +222,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     return MaterialApp.router(
       title: 'Angel Granites',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: AppTheme.primaryColor,
-        colorScheme: const ColorScheme.dark(
-          primary: AppTheme.accentColor,
-          secondary: AppTheme.accentColor,
-          surface: AppTheme.cardColor,
-        ),
-        textTheme: Theme.of(context).textTheme.apply(
-              fontFamily: 'OpenSans',
-              bodyColor: AppTheme.textPrimary,
-              displayColor: AppTheme.textPrimary,
-            ),
-        appBarTheme: AppBarTheme(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          centerTitle: true,
-          titleTextStyle: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Poppins',
-            letterSpacing: 1.2,
-            foreground: Paint()
-              ..shader = const LinearGradient(
-                colors: [
-                  Color(0xFFD4AF37), // Rich gold
-                  Color(0xFFFFD700), // Bright gold
-                  Color(0xFFD4AF37), // Back to rich gold
-                ],
-              ).createShader(const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
-            shadows: [
-              Shadow(
-                color: AppTheme.accentColor.withValues(alpha: 0.7),
-                blurRadius: 10.0,
-                offset: const Offset(0, 0),
-              ),
-              Shadow(
-                color: AppTheme.accentColor.withValues(alpha: 0.3),
-                blurRadius: 5.0,
-                offset: const Offset(0, 0),
-              ),
-            ],
-          ),
-          iconTheme: const IconThemeData(color: AppTheme.accentColor),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.accentColor,
-            foregroundColor: AppTheme.primaryColor,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            textStyle: const TextStyle(
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-            ),
-          ),
-        ),
-        cardTheme: ThemeData.dark().cardTheme.copyWith(
-              color: AppTheme.cardColor,
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-            ),
-        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-          backgroundColor: AppTheme.cardColor,
-          selectedItemColor: AppTheme.accentColor,
-          unselectedItemColor: AppTheme.textSecondary,
-          showSelectedLabels: true,
-          showUnselectedLabels: true,
-          type: BottomNavigationBarType.fixed,
-          elevation: 0,
-          // Compact sizing
-          selectedLabelStyle: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-          ),
-          unselectedLabelStyle: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+      theme: AppTheme.darkTheme,
+      darkTheme: AppTheme.darkTheme,
+      highContrastTheme: AppTheme.highContrastDarkTheme,
+      highContrastDarkTheme: AppTheme.highContrastDarkTheme,
+      themeMode: ThemeMode.dark,
+      builder: (context, child) => FocusTraversalGroup(
+        policy: ReadingOrderTraversalPolicy(),
+        child: child ?? const SizedBox.shrink(),
       ),
       routerConfig: routerConfig,
     );

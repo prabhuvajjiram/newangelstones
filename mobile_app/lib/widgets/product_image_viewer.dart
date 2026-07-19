@@ -29,7 +29,8 @@ class _ProductImageViewerState extends State<ProductImageViewer> {
     super.initState();
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
-    debugPrint('🖼️ ProductImageViewer initialized with ${widget.images.length} images');
+    debugPrint(
+        '🖼️ ProductImageViewer initialized with ${widget.images.length} images');
     debugPrint('🖼️ _showDetails: $_showDetails');
     debugPrint('🖼️ Item: ${widget.item.description}');
   }
@@ -76,146 +77,150 @@ class _ProductImageViewerState extends State<ProductImageViewer> {
             GestureDetector(
               onTap: _toggleDetails,
               child: PageView.builder(
-              controller: _pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-              itemCount: widget.images.length,
-              itemBuilder: (context, index) {
-                return Center(
-                  child: InteractiveViewer(
-                    minScale: 0.5,
-                    maxScale: 4.0,
-                    child: Image.network(
-                      widget.images[index],
-                      fit: BoxFit.contain,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                                : null,
-                            color: Colors.white,
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.broken_image,
-                                size: 64,
-                                color: Colors.white54,
-                              ),
-                              SizedBox(height: 16),
-                              Text(
-                                'Failed to load image',
-                                style: TextStyle(color: Colors.white54),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentIndex = index;
+                  });
+                },
+                itemCount: widget.images.length,
+                itemBuilder: (context, index) {
+                  return Center(
+                    child: InteractiveViewer(
+                      minScale: 0.5,
+                      maxScale: 4.0,
+                      child: Image.network(
+                        widget.images[index],
+                        fit: BoxFit.contain,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                  : null,
+                              color: Colors.white,
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.broken_image,
+                                  size: 64,
+                                  color: Colors.white54,
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  'Failed to load image',
+                                  style: TextStyle(color: Colors.white54),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            // Top bar with close button and counter
+            AnimatedOpacity(
+              opacity: _showDetails ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 200),
+              child: SafeArea(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.7),
+                        Colors.transparent,
+                      ],
                     ),
                   ),
-                );
-              },
-            ),
-          ),
-
-          // Top bar with close button and counter
-          AnimatedOpacity(
-            opacity: _showDetails ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 200),
-            child: SafeArea(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.7),
-                      Colors.transparent,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.close,
+                            color: Colors.white, size: 28),
+                        onPressed: () => Navigator.of(context).pop(),
+                        tooltip: 'Close image viewer',
+                      ),
+                      if (widget.images.length > 1)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.6),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Text(
+                            '${_currentIndex + 1} / ${widget.images.length}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      const SizedBox(width: 48), // Balance the close button
                     ],
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white, size: 28),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                    if (widget.images.length > 1)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.6),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Text(
-                          '${_currentIndex + 1} / ${widget.images.length}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    const SizedBox(width: 48), // Balance the close button
-                  ],
-                ),
               ),
             ),
-          ),
 
-          // Bottom details panel (collapsible)
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Builder(
-              builder: (context) {
-                debugPrint('🖼️ Building details panel, _showDetails: $_showDetails');
-                debugPrint('🖼️ Transform Y: ${_showDetails ? 0 : 400}');
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                  transform: Matrix4.translationValues(
-                    0,
-                    _showDetails ? 0 : 400,
-                    0,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1a1a1a),
-                    border: Border(
-                      top: BorderSide(
-                        color: const Color(0xFFd4af37).withValues(alpha: 0.3),
-                        width: 1,
+            // Bottom details panel (collapsible)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Builder(
+                builder: (context) {
+                  debugPrint(
+                      '🖼️ Building details panel, _showDetails: $_showDetails');
+                  debugPrint('🖼️ Transform Y: ${_showDetails ? 0 : 400}');
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    transform: Matrix4.translationValues(
+                      0,
+                      _showDetails ? 0 : 400,
+                      0,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1a1a1a),
+                      border: Border(
+                        top: BorderSide(
+                          color: const Color(0xFFd4af37).withValues(alpha: 0.3),
+                          width: 1,
+                        ),
                       ),
                     ),
-                  ),
-                  child: _buildDetailsContent(),
-                );
-              },
+                    child: _buildDetailsContent(),
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
         ),
       ),
     );
   }
-  
+
   Widget _buildDetailsContent() {
     debugPrint('🖼️ Building details content');
     return SafeArea(
@@ -245,7 +250,7 @@ class _ProductImageViewerState extends State<ProductImageViewer> {
                 ),
               ),
             ),
-            
+
             // Stock details header
             const Row(
               children: [
@@ -267,7 +272,7 @@ class _ProductImageViewerState extends State<ProductImageViewer> {
               ],
             ),
             const SizedBox(height: 12),
-            
+
             // Product description
             Text(
               widget.item.description,
@@ -280,7 +285,7 @@ class _ProductImageViewerState extends State<ProductImageViewer> {
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 16),
-            
+
             // Details grid
             Container(
               padding: const EdgeInsets.all(12),
@@ -290,11 +295,11 @@ class _ProductImageViewerState extends State<ProductImageViewer> {
               ),
               child: Column(
                 children: [
-            
                   _buildDetailRow('Code', widget.item.code),
                   if (widget.item.designCode != null)
                     _buildDetailRow('Design', widget.item.designCode!),
-                  _buildDetailRow('Quantity', '${widget.item.quantity} available'),
+                  _buildDetailRow(
+                      'Quantity', '${widget.item.quantity} available'),
                   if (widget.item.location.isNotEmpty)
                     _buildDetailRow('Location', widget.item.location),
                   if (widget.item.color.isNotEmpty)
@@ -304,9 +309,9 @@ class _ProductImageViewerState extends State<ProductImageViewer> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // Hint text
             Center(
               child: Text(
@@ -323,7 +328,7 @@ class _ProductImageViewerState extends State<ProductImageViewer> {
       ),
     );
   }
-  
+
   Widget _buildDetailRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),

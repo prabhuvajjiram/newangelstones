@@ -64,42 +64,70 @@ class AppTheme {
   );
 
   static ThemeData get darkTheme {
+    return _buildDarkTheme(highContrast: false);
+  }
+
+  /// A deliberately simple, maximum-contrast variant used when Windows or
+  /// another host platform enables its high-contrast accessibility setting.
+  static ThemeData get highContrastDarkTheme {
+    return _buildDarkTheme(highContrast: true);
+  }
+
+  static ThemeData _buildDarkTheme({required bool highContrast}) {
+    final background = highContrast ? Colors.black : primaryColor;
+    final surface = highContrast ? Colors.black : cardColor;
+    final secondaryText = highContrast ? Colors.white : textSecondary;
+    final outline = highContrast ? Colors.white : const Color(0xFF757575);
+
     return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
       primaryColor: primaryColor,
-      scaffoldBackgroundColor: primaryColor,
-      colorScheme: const ColorScheme.dark(
+      scaffoldBackgroundColor: background,
+      focusColor: accentColor.withValues(alpha: highContrast ? 0.45 : 0.25),
+      hoverColor: accentColor.withValues(alpha: highContrast ? 0.30 : 0.12),
+      highlightColor: accentColor.withValues(alpha: 0.20),
+      materialTapTargetSize: MaterialTapTargetSize.padded,
+      visualDensity: VisualDensity.standard,
+      colorScheme: ColorScheme.dark(
         primary: accentColor,
         secondary: accentColor,
-        surface: cardColor,
+        surface: surface,
+        onSurface: Colors.white,
+        outline: outline,
+        error: const Color(0xFFFF6B6B),
       ),
       fontFamily: 'OpenSans', // Default font for the app
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
+      appBarTheme: AppBarTheme(
+        backgroundColor: highContrast ? Colors.black : Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: TextStyle(
+        titleTextStyle: const TextStyle(
           fontFamily: 'Poppins',
           fontSize: 24,
           fontWeight: FontWeight.bold,
           color: textPrimary,
         ),
-        iconTheme: IconThemeData(color: accentColor),
+        iconTheme: const IconThemeData(color: accentColor),
       ),
-      textTheme: const TextTheme(
+      textTheme: TextTheme(
         displayLarge: displayLarge,
         displayMedium: displayMedium,
         headlineMedium: headlineMedium,
         bodyLarge: bodyLarge,
-        bodyMedium: bodyMedium,
+        bodyMedium: bodyMedium.copyWith(color: secondaryText),
       ),
       cardTheme: ThemeData.dark().cardTheme.copyWith(
-        color: cardColor,
-        elevation: 4,
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
+            color: surface,
+            elevation: 4,
+            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: highContrast
+                  ? const BorderSide(color: Colors.white, width: 1.5)
+                  : BorderSide.none,
+            ),
+          ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: accentColor,
@@ -117,10 +145,18 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: cardColor.withValues(alpha: 0.5),
+        fillColor: highContrast ? Colors.black : cardColor,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: outline),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: outline),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: accentColor, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -128,9 +164,46 @@ class AppTheme {
         ),
         labelStyle: bodyMedium,
         hintStyle: bodyMedium.copyWith(
-          color: textSecondary.withValues(alpha: 0.7),
+          color: secondaryText,
         ),
       ),
+      iconButtonTheme: IconButtonThemeData(
+        style: ButtonStyle(
+          minimumSize: WidgetStateProperty.all(const Size(48, 48)),
+          foregroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return secondaryText;
+            }
+            return null;
+          }),
+        ),
+      ),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: surface,
+        selectedItemColor: accentColor,
+        unselectedItemColor: secondaryText,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        type: BottomNavigationBarType.fixed,
+        elevation: 0,
+        selectedLabelStyle: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      tooltipTheme: TooltipThemeData(
+        waitDuration: const Duration(milliseconds: 400),
+        textStyle: const TextStyle(color: Colors.black, fontSize: 14),
+        decoration: BoxDecoration(
+          color: accentColor,
+          borderRadius: BorderRadius.circular(4),
+        ),
+      ),
+      dividerColor: highContrast ? Colors.white : const Color(0xFF424242),
     );
   }
 

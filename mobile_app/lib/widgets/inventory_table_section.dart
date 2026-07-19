@@ -12,14 +12,14 @@ class InventoryTableSection extends StatefulWidget {
   final String title;
   final Future<List<InventoryItem>> future;
   final VoidCallback onRetry;
-  
+
   const InventoryTableSection({
     super.key,
     required this.title,
     required this.future,
     required this.onRetry,
   });
-  
+
   @override
   State<InventoryTableSection> createState() => _InventoryTableSectionState();
 }
@@ -28,17 +28,17 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
   // Controller for the scroll position
   final ScrollController _scrollController = ScrollController();
   bool _showBackToTop = false;
-  
+
   // Map to track saved status of items
   final Map<String, bool> _savedItems = {};
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     // Load saved items
     _loadSavedItems();
-    
+
     // Add listener to show/hide back to top button
     _scrollController.addListener(() {
       if (_scrollController.offset > 300 && !_showBackToTop) {
@@ -48,13 +48,13 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
       }
     });
   }
-  
+
   @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
   }
-  
+
   // Load saved items status
   Future<void> _loadSavedItems() async {
     final items = await SavedItemsService.getSavedItems();
@@ -66,12 +66,12 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
       });
     }
   }
-  
+
   // Toggle save status for an item
   Future<void> _toggleSaveItem(InventoryItem item) async {
     final itemId = item.code;
     final isSaved = _savedItems[itemId] ?? false;
-    
+
     // Convert InventoryItem to Map<String, dynamic>
     final itemMap = {
       'id': item.code,
@@ -87,7 +87,7 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
       'weight': item.weight,
       'productId': item.productId,
     };
-    
+
     // Use the unified service for consistent behavior
     if (isSaved) {
       await UnifiedSavedItemsService.removeItem(context, itemId);
@@ -104,19 +104,20 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
         });
       }
     }
-    
+
     // Show feedback
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(isSaved ? 'Item removed from saved items' : 'Item saved!'),
+          content:
+              Text(isSaved ? 'Item removed from saved items' : 'Item saved!'),
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 2),
         ),
       );
     }
   }
-  
+
   // Add item to cart with quantity
   void _addToCart(BuildContext context, InventoryItem item, int quantity) {
     // Create a cart item with the selected quantity
@@ -128,27 +129,29 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
       'color': item.color,
       'size': item.size,
       'type': item.type,
-      'price': 0.0,  // Add default price (can be updated later)
+      'price': 0.0, // Add default price (can be updated later)
       'location': item.location,
       'design': item.design,
       'finish': item.finish,
     };
-    
+
     // Add to cart using the CartState provider
     final cartState = Provider.of<CartState>(context, listen: false);
-    
+
     // If item exists, update quantity, otherwise add new item
-    final existingIndex = cartState.items.indexWhere((i) => i['id'] == cartItem['id']);
-    
+    final existingIndex =
+        cartState.items.indexWhere((i) => i['id'] == cartItem['id']);
+
     if (existingIndex >= 0) {
       // Update existing item quantity
       final currentQuantity = cartState.items[existingIndex]['quantity'] as int;
-      cartState.updateQuantity(cartState.items[existingIndex], currentQuantity + quantity);
+      cartState.updateQuantity(
+          cartState.items[existingIndex], currentQuantity + quantity);
     } else {
       // Add as new item with specified quantity
       cartState.addItemWithQuantity(cartItem, quantity);
     }
-    
+
     // Show success message with modern map-style design
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -181,11 +184,12 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
       ),
     );
   }
-  
+
   // Show quantity selector dialog
-  Future<void> _showQuantityDialog(BuildContext context, InventoryItem item) async {
+  Future<void> _showQuantityDialog(
+      BuildContext context, InventoryItem item) async {
     int quantity = 1;
-    
+
     await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -202,14 +206,18 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.remove),
-                      onPressed: quantity > 1 ? () {
-                        setState(() {
-                          quantity--;
-                        });
-                      } : null,
+                      tooltip: 'Decrease quantity',
+                      onPressed: quantity > 1
+                          ? () {
+                              setState(() {
+                                quantity--;
+                              });
+                            }
+                          : null,
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey.shade300),
                         borderRadius: BorderRadius.circular(4),
@@ -221,6 +229,7 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.add),
+                      tooltip: 'Increase quantity',
                       onPressed: () {
                         setState(() {
                           quantity++;
@@ -262,7 +271,7 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        
+
         // Error state
         if (snapshot.hasError) {
           debugPrint('Inventory load error: ${snapshot.error}');
@@ -275,7 +284,9 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
                 const SizedBox(height: 16),
                 Text(
                   'Unable to load inventory',
-                  style: theme.textTheme.titleMedium?.copyWith(color: Colors.red),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 const Text('Please check your connection and try again.'),
@@ -289,7 +300,7 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
             ),
           );
         }
-        
+
         // Empty state
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return SingleChildScrollView(
@@ -318,260 +329,282 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
         }
 
         final items = snapshot.data!;
-        
+
         // For small screens, show a list view with compact rows
         if (isSmallScreen) {
           return Stack(
-          children: [
-            ListView.builder(
-              controller: _scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(8),
-            itemCount: items.length,
-              itemBuilder: (context, index) {
-              final item = items[index];
-              
-              final isSaved = _savedItems[item.code] ?? false;
-              
-              return Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: InkWell(
-                  onTap: () {
-                    // Show detailed dialog when item is tapped
-                    _showItemDetailsDialog(context, item);
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+            children: [
+              ListView.builder(
+                controller: _scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(8),
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final item = items[index];
+
+                  final isSaved = _savedItems[item.code] ?? false;
+
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: InkWell(
+                      onTap: () {
+                        // Show detailed dialog when item is tapped
+                        _showItemDetailsDialog(context, item);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Text(
-                                item.description.isNotEmpty ? item.description : 'No description',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    item.description.isNotEmpty
+                                        ? item.description
+                                        : 'No description',
+                                    style:
+                                        theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                                // Save button (top right)
+                                IconButton(
+                                  icon: Icon(
+                                    isSaved
+                                        ? Icons.bookmark
+                                        : Icons.bookmark_border,
+                                    color: isSaved ? Colors.amber : null,
+                                  ),
+                                  onPressed: () => _toggleSaveItem(item),
+                                  tooltip: isSaved
+                                      ? 'Remove from saved items'
+                                      : 'Save item',
+                                ),
+                              ],
                             ),
-                            // Save button (top right)
-                            IconButton(
-                              icon: Icon(
-                                isSaved ? Icons.bookmark : Icons.bookmark_border,
-                                color: isSaved ? Colors.amber : null,
+                            const SizedBox(height: 8),
+                            _buildInfoRow('Code', item.code),
+                            _buildInfoRow('Color', item.color),
+
+                            // Size and Location in parallel with Add to Cart button
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 2.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Size and Location column
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        // Size row
+                                        Row(
+                                          children: [
+                                            const Text(
+                                              'Size: ',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Text(
+                                                item.size,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 2),
+                                        // Location row
+                                        Row(
+                                          children: [
+                                            const Text(
+                                              'Location: ',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Text(
+                                                item.location,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  // Add to cart button
+                                  IconButton(
+                                    icon: const Icon(Icons.add_shopping_cart),
+                                    onPressed: () =>
+                                        _showQuantityDialog(context, item),
+                                    tooltip: 'Add to cart',
+                                  ),
+                                ],
                               ),
-                              onPressed: () => _toggleSaveItem(item),
-                              tooltip: isSaved ? 'Remove from saved items' : 'Save item',
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        _buildInfoRow('Code', item.code),
-                        _buildInfoRow('Color', item.color),
-                        
-                        // Size and Location in parallel with Add to Cart button
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 2.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Size and Location column
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Size row
-                                    Row(
-                                      children: [
-                                        const Text(
-                                          'Size: ',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: Text(
-                                            item.size,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 2),
-                                    // Location row
-                                    Row(
-                                      children: [
-                                        const Text(
-                                          'Location: ',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: Text(
-                                            item.location,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              // Add to cart button
-                              IconButton(
-                                icon: const Icon(Icons.add_shopping_cart),
-                                onPressed: () => _showQuantityDialog(context, item),
-                                tooltip: 'Add to cart',
-                                padding: EdgeInsets.zero,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
+                  );
+                },
+              ),
+              // Back to top button
+              if (_showBackToTop)
+                Positioned(
+                  bottom: 20,
+                  right: 20,
+                  child: FloatingActionButton(
+                    onPressed: () {
+                      _scrollController.animateTo(
+                        0,
+                        duration: const Duration(milliseconds: 500),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    backgroundColor: Theme.of(context).primaryColor,
+                    mini: true,
+                    heroTag: 'backToTop',
+                    tooltip: 'Back to top',
+                    child: const Icon(Icons.arrow_upward,
+                        color: Colors.white), // Unique hero tag
                   ),
                 ),
-              );
-            },
-          ),
-            // Back to top button
-            if (_showBackToTop)
-              Positioned(
-                bottom: 20,
-                right: 20,
-                child: FloatingActionButton(
-                  onPressed: () {
-                    _scrollController.animateTo(
-                      0,
-                      duration: const Duration(milliseconds: 500),
-                      curve: Curves.easeInOut,
-                    );
-                  },
-                  backgroundColor: Theme.of(context).primaryColor,
-                  mini: true,
-                  heroTag: 'backToTop',
-                  child: const Icon(Icons.arrow_upward, color: Colors.white), // Unique hero tag
-                ),
-              ),
-          ],
-        );}
-        
+            ],
+          );
+        }
+
         // For larger screens, show a responsive data table
         return LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                  child: DataTable(
-                  columnSpacing: 16,
-                  horizontalMargin: 12,
-                  headingRowHeight: 56,
-                  dataRowMinHeight: 48,
-                  dataRowMaxHeight: 72,
-                  columns: const [
-                    DataColumn(
-                      label: Text('Description', 
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                      numeric: false,
-                    ),
-                    DataColumn(
-                      label: Text('Color', 
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                      numeric: false,
-                    ),
-                    DataColumn(
-                      label: Text('Size', 
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                      numeric: true,
-                    ),
-                    DataColumn(
-                      label: Text('Location', 
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                      numeric: false,
-                    ),
-                    DataColumn(
-                      label: Text('Save', 
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                      numeric: false,
-                    ),
-                    DataColumn(
-                      label: Text('Cart', 
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                      numeric: false,
-                    ),
-                  ],
-                  rows: items.map((item) {
-                    final isSaved = _savedItems[item.code] ?? false;
-                    
-                    return DataRow(
-                      onSelectChanged: (_) {
-                        // Show detailed dialog when row is tapped
-                        _showItemDetailsDialog(context, item);
-                      },
-                      cells: [
-                        DataCell(
-                          SizedBox(
-                            width: constraints.maxWidth * 0.4,
-                            child: Text(
-                              item.description.isNotEmpty ? item.description : 'No description',
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 2,
-                            ),
-                          ),
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                    child: DataTable(
+                      showCheckboxColumn: false,
+                      columnSpacing: 16,
+                      horizontalMargin: 12,
+                      headingRowHeight: 56,
+                      dataRowMinHeight: 48,
+                      dataRowMaxHeight: 72,
+                      columns: const [
+                        DataColumn(
+                          label: Text('Description',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          numeric: false,
                         ),
-                        DataCell(Text(item.color)),
-                        DataCell(Text(item.size)),
-                        DataCell(Text(item.location)),
-                        // Save button cell
-                        DataCell(
-                          IconButton(
-                            icon: Icon(
-                              isSaved ? Icons.bookmark : Icons.bookmark_border,
-                              color: isSaved ? Colors.amber : null,
-                            ),
-                            onPressed: () => _toggleSaveItem(item),
-                            tooltip: isSaved ? 'Remove from saved items' : 'Save item',
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                          ),
+                        DataColumn(
+                          label: Text('Color',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          numeric: false,
                         ),
-                        // Add to cart button cell
-                        DataCell(
-                          IconButton(
-                            icon: const Icon(Icons.add_shopping_cart),
-                            onPressed: () => _showQuantityDialog(context, item),
-                            tooltip: 'Add to cart',
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                          ),
+                        DataColumn(
+                          label: Text('Size',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          numeric: true,
+                        ),
+                        DataColumn(
+                          label: Text('Location',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          numeric: false,
+                        ),
+                        DataColumn(
+                          label: Text('Save',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          numeric: false,
+                        ),
+                        DataColumn(
+                          label: Text('Cart',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          numeric: false,
+                        ),
+                        DataColumn(
+                          label: Text('Details',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          numeric: false,
                         ),
                       ],
-                    );
-                  }).toList(),
-                ),
-              ),
-            ));
+                      rows: items.map((item) {
+                        final isSaved = _savedItems[item.code] ?? false;
+
+                        return DataRow(
+                          cells: [
+                            DataCell(
+                              SizedBox(
+                                width: constraints.maxWidth * 0.4,
+                                child: Text(
+                                  item.description.isNotEmpty
+                                      ? item.description
+                                      : 'No description',
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
+                                ),
+                              ),
+                            ),
+                            DataCell(Text(item.color)),
+                            DataCell(Text(item.size)),
+                            DataCell(Text(item.location)),
+                            // Save button cell
+                            DataCell(
+                              IconButton(
+                                icon: Icon(
+                                  isSaved
+                                      ? Icons.bookmark
+                                      : Icons.bookmark_border,
+                                  color: isSaved ? Colors.amber : null,
+                                ),
+                                onPressed: () => _toggleSaveItem(item),
+                                tooltip: isSaved
+                                    ? 'Remove from saved items'
+                                    : 'Save item',
+                              ),
+                            ),
+                            // Add to cart button cell
+                            DataCell(
+                              IconButton(
+                                icon: const Icon(Icons.add_shopping_cart),
+                                onPressed: () =>
+                                    _showQuantityDialog(context, item),
+                                tooltip: 'Add to cart',
+                              ),
+                            ),
+                            DataCell(
+                              TextButton(
+                                onPressed: () =>
+                                    _showItemDetailsDialog(context, item),
+                                child: const Text('View'),
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ));
           },
         );
       },
     );
   }
-  
+
   // Helper method to build info row for mobile view
   Widget _buildInfoRow(String label, String value) {
     return Padding(
@@ -597,7 +630,7 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
       ),
     );
   }
-  
+
   // Navigate to detailed item page instead of showing dialog
   void _showItemDetailsDialog(BuildContext context, InventoryItem item) {
     // Use GoRouter to navigate to the details page
@@ -607,4 +640,3 @@ class _InventoryTableSectionState extends State<InventoryTableSection> {
     );
   }
 }
-

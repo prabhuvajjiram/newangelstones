@@ -14,7 +14,15 @@ class ProductSection extends StatelessWidget {
     // Get screen width for responsive sizing
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 375;
-    
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
+    final crossAxisCount = screenWidth >= 900
+        ? 4
+        : textScale > 1.4
+            ? 2
+            : MediaQuery.of(context).orientation == Orientation.portrait
+                ? 3
+                : 4;
+
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: isSmallScreen ? 8.0 : 12.0,
@@ -25,12 +33,15 @@ class ProductSection extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: isSmallScreen ? 16 : 18,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.3,
+            child: Semantics(
+              header: true,
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 16 : 18,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.3,
+                ),
               ),
             ),
           ),
@@ -54,9 +65,9 @@ class ProductSection extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   // 3 columns for portrait, more for landscape
-                  crossAxisCount: MediaQuery.of(context).orientation == Orientation.portrait ? 3 : 4,
+                  crossAxisCount: crossAxisCount,
                   // Adjusted for better proportions
-                  childAspectRatio: 0.68,
+                  childAspectRatio: 0.68 / textScale.clamp(1.0, 1.4),
                   // Tighter spacing
                   crossAxisSpacing: 8,
                   mainAxisSpacing: 8,
@@ -64,11 +75,11 @@ class ProductSection extends StatelessWidget {
                 itemCount: products.length,
                 itemBuilder: (context, index) {
                   final product = products[index];
-                  return GestureDetector(
+                  return ProductCard(
+                    product: product,
                     onTap: () {
                       context.push('/product', extra: product);
                     },
-                    child: ProductCard(product: product),
                   );
                 },
               );

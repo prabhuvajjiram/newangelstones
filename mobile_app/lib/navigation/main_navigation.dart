@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'app_router.dart';
@@ -14,6 +15,7 @@ import '../services/inventory_service.dart';
 import '../services/directory_service.dart';
 import '../services/connectivity_service.dart';
 import '../services/system_ui_service.dart';
+import '../services/accessibility_service.dart';
 import '../widgets/cart_icon.dart';
 import '../widgets/edge_to_edge_wrapper.dart';
 import '../theme/app_theme.dart';
@@ -43,6 +45,8 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation>
     with WidgetsBindingObserver {
+  static const _pageNames = ['Home', 'Colors', 'Stock', 'Contact'];
+
   late int _currentIndex;
   late final List<Widget> _pages;
   bool _isInitialized = false;
@@ -77,7 +81,7 @@ class _MainNavigationState extends State<MainNavigation>
         storageService: widget.storageService,
         inventoryService: widget.inventoryService,
         directoryService: widget.directoryService,
-        onViewFullInventory: () => setState(() => _currentIndex = 2),
+        onViewFullInventory: () => _selectTab(2),
       ),
       ColorsScreen(
         key: const PageStorageKey('colors'),
@@ -89,6 +93,20 @@ class _MainNavigationState extends State<MainNavigation>
       ),
       const ContactScreen(key: PageStorageKey('contact')),
     ];
+  }
+
+  void _selectTab(int index) {
+    final nextIndex = index.clamp(0, _pageNames.length - 1);
+    if (_currentIndex == nextIndex) return;
+    setState(() => _currentIndex = nextIndex);
+    AccessibilityService.announce(
+      context,
+      '${_pageNames[nextIndex]} tab selected',
+    );
+  }
+
+  void _openSearch() {
+    GoRouter.of(context).pushNamed(AppRouter.search);
   }
 
   Future<void> _initializeServices() async {
@@ -148,6 +166,8 @@ class _MainNavigationState extends State<MainNavigation>
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final double dynamicFontSize = screenWidth / 20;
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
 
     final Widget mainContent = EdgeToEdgeWrapper.withBottomNav(
       child: Scaffold(
@@ -155,80 +175,92 @@ class _MainNavigationState extends State<MainNavigation>
           centerTitle: false,
           backgroundColor: Colors.black,
           elevation: 0,
-          title: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(width: 32),
-              SizedBox(
-                width: 36,
-                height: 36,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Shimmer.fromColors(
-                      baseColor: const Color(0xFFD4AF37),
-                      highlightColor: const Color(0xFFFFF8DC),
-                      period: const Duration(seconds: 3),
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFFD4AF37).withValues(alpha: 0.3),
+          title: Semantics(
+            container: true,
+            header: true,
+            label: 'Angel Granites',
+            excludeSemantics: true,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(width: 32),
+                SizedBox(
+                  width: 36,
+                  height: 36,
+                  child: reduceMotion
+                      ? Image.asset(
+                          'assets/logo.png',
+                          fit: BoxFit.contain,
+                          excludeFromSemantics: true,
+                        )
+                      : Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Shimmer.fromColors(
+                              baseColor: const Color(0xFFD4AF37),
+                              highlightColor: const Color(0xFFFFF8DC),
+                              period: const Duration(seconds: 3),
+                              child: Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: const Color(0xFFD4AF37)
+                                      .withValues(alpha: 0.3),
+                                ),
+                              ),
+                            ),
+                            Image.asset(
+                              'assets/logo.png',
+                              fit: BoxFit.contain,
+                              excludeFromSemantics: true,
+                            ),
+                          ],
                         ),
-                      ),
-                    ),
-                    Image.asset(
-                      'assets/logo.png',
-                      fit: BoxFit.contain,
-                    ),
-                  ],
                 ),
-              ),
-              const SizedBox(width: 12),
-              // Constrained width to leave room for actions (3 icons ~144px needed)
-              Container(
-                constraints: BoxConstraints(
-                  maxWidth: screenWidth * 0.30, // 30% of screen width
-                ),
-                child: ShaderMask(
-                  blendMode: BlendMode.srcIn,
-                  shaderCallback: (Rect bounds) {
-                    return const LinearGradient(
-                      colors: [
-                        Color(0xFFD4AF37),
-                        Color(0xFFFFD700),
-                        Color(0xFFE6BE8A),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ).createShader(bounds);
-                  },
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'ANGEL GRANITES',
-                      style: TextStyle(
-                        fontSize: dynamicFontSize.clamp(14.0, 22.0),
-                        fontWeight: FontWeight.w700,
-                        fontFamily: 'OpenSans',
-                        letterSpacing: 0.5,
-                        color: Colors.white,
+                const SizedBox(width: 12),
+                // Constrained width to leave room for actions (3 icons ~144px needed)
+                Container(
+                  constraints: BoxConstraints(
+                    maxWidth: screenWidth * 0.30, // 30% of screen width
+                  ),
+                  child: ShaderMask(
+                    blendMode: BlendMode.srcIn,
+                    shaderCallback: (Rect bounds) {
+                      return const LinearGradient(
+                        colors: [
+                          Color(0xFFD4AF37),
+                          Color(0xFFFFD700),
+                          Color(0xFFE6BE8A),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ).createShader(bounds);
+                    },
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'ANGEL GRANITES',
+                        style: TextStyle(
+                          fontSize: dynamicFontSize.clamp(14.0, 22.0),
+                          fontWeight: FontWeight.w700,
+                          fontFamily: 'OpenSans',
+                          letterSpacing: 0.5,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           actions: [
             IconButton(
               icon: const Icon(Icons.search, color: Color(0xFFFFD700)),
-              tooltip: 'Search',
-              onPressed: () {
-                GoRouter.of(context).pushNamed(AppRouter.search);
-              },
+              tooltip: 'Search inventory (Ctrl+F)',
+              onPressed: _openSearch,
             ),
             CartIcon(
               onPressed: () {
@@ -254,7 +286,8 @@ class _MainNavigationState extends State<MainNavigation>
           ],
         ),
         body: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
+          duration:
+              reduceMotion ? Duration.zero : const Duration(milliseconds: 300),
           transitionBuilder: (Widget child, Animation<double> animation) {
             return FadeTransition(
               opacity: animation,
@@ -281,11 +314,7 @@ class _MainNavigationState extends State<MainNavigation>
               ),
               child: BottomNavigationBar(
                 currentIndex: _currentIndex,
-                onTap: (index) {
-                  setState(() {
-                    _currentIndex = index;
-                  });
-                },
+                onTap: _selectTab,
                 elevation: 0,
                 type: BottomNavigationBarType.fixed,
                 backgroundColor: AppTheme.cardColor,
@@ -381,7 +410,24 @@ class _MainNavigationState extends State<MainNavigation>
       );
     }
 
-    return mainContent;
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.keyF, control: true):
+            _openSearch,
+        const SingleActivator(LogicalKeyboardKey.digit1, alt: true): () =>
+            _selectTab(0),
+        const SingleActivator(LogicalKeyboardKey.digit2, alt: true): () =>
+            _selectTab(1),
+        const SingleActivator(LogicalKeyboardKey.digit3, alt: true): () =>
+            _selectTab(2),
+        const SingleActivator(LogicalKeyboardKey.digit4, alt: true): () =>
+            _selectTab(3),
+      },
+      child: FocusTraversalGroup(
+        policy: ReadingOrderTraversalPolicy(),
+        child: mainContent,
+      ),
+    );
   }
 
   @override

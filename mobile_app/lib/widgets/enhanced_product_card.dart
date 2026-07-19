@@ -34,10 +34,11 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
 
   Future<void> _checkIfSaved() async {
     if (!widget.showSaveForLater) return;
-    
+
     setState(() => _isLoading = true);
     try {
-      final isSaved = await SavedItemsService.isItemSaved(widget.product['id']?.toString() ?? '');
+      final isSaved = await SavedItemsService.isItemSaved(
+          widget.product['id']?.toString() ?? '');
       if (mounted) {
         setState(() => _isSaved = isSaved);
       }
@@ -50,18 +51,19 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
 
   Future<void> _toggleSave() async {
     if (_isLoading) return;
-    
+
     setState(() => _isLoading = true);
     try {
       if (_isSaved) {
-        await SavedItemsService.removeItem(widget.product['id']?.toString() ?? '');
+        await SavedItemsService.removeItem(
+            widget.product['id']?.toString() ?? '');
       } else {
         await SavedItemsService.saveItem(widget.product);
       }
-      
+
       if (mounted) {
         setState(() => _isSaved = !_isSaved);
-        
+
         // Show feedback
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -88,24 +90,24 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
       final imageUrl = widget.product['imageUrl']?.toString() ?? '';
       final productName = widget.product['name']?.toString() ?? '';
       final productCode = widget.product['code']?.toString();
-      
+
       if (imageUrl.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No image to share')),
         );
         return;
       }
-      
+
       // Extract filename from URL
       final fileName = imageUrl.split('/').last.split('?').first;
-      
+
       final success = await ImageShareService.shareImage(
         imageUrl: imageUrl,
         fileName: fileName,
         productName: productName,
         productCode: productCode,
       );
-      
+
       if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to share image')),
@@ -162,13 +164,14 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
                           image: DecorationImage(
-                            image: NetworkImage(widget.product['imageUrl']?.toString() ?? ''),
+                            image: NetworkImage(
+                                widget.product['imageUrl']?.toString() ?? ''),
                             fit: BoxFit.cover,
                           ),
                         ),
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Product Name
                       Text(
                         widget.product['name']?.toString() ?? 'Product Name',
@@ -177,7 +180,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      
+
                       // Product Code
                       if (widget.product['code'] != null)
                         Padding(
@@ -190,7 +193,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                             ),
                           ),
                         ),
-                      
+
                       // Description
                       if (widget.product['description'] != null)
                         Padding(
@@ -200,18 +203,20 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                             style: const TextStyle(fontSize: 15, height: 1.5),
                           ),
                         ),
-                      
+
                       // Specifications
-                      if (widget.product['specs'] != null && 
+                      if (widget.product['specs'] != null &&
                           widget.product['specs'] is Map)
-                        ..._buildSpecs(widget.product['specs'] as Map<String, dynamic>? ?? {}),
-                      
+                        ..._buildSpecs(
+                            widget.product['specs'] as Map<String, dynamic>? ??
+                                {}),
+
                       const SizedBox(height: 24),
                     ],
                   ),
                 ),
               ),
-              
+
               // Action Buttons
               Padding(
                 padding: const EdgeInsets.only(top: 16.0),
@@ -222,19 +227,20 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                       IconButton(
                         icon: Icon(
                           _isSaved ? Icons.bookmark : Icons.bookmark_border,
-                          color: _isSaved ? Theme.of(context).primaryColor : null,
+                          color:
+                              _isSaved ? Theme.of(context).primaryColor : null,
                         ),
                         onPressed: _toggleSave,
                         tooltip: 'Save for later',
                       ),
-                    
+
                     // Share Button
                     IconButton(
                       icon: const Icon(Icons.share_outlined),
                       onPressed: () => _shareProduct(),
                       tooltip: 'Share image',
                     ),
-                    
+
                     // View Full Details Button
                     Expanded(
                       child: ElevatedButton(
@@ -316,22 +322,26 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                   ),
                   child: AspectRatio(
                     aspectRatio: 1,
-                    child: widget.product['imageUrl']?.toString().isNotEmpty == true
+                    child: widget.product['imageUrl']?.toString().isNotEmpty ==
+                            true
                         ? CachedNetworkImage(
-                            imageUrl: widget.product['imageUrl']?.toString() ?? '',
+                            imageUrl:
+                                widget.product['imageUrl']?.toString() ?? '',
                             fit: BoxFit.cover,
                             memCacheWidth: 300,
                             memCacheHeight: 300,
-                            placeholder: (context, url) => SkeletonLoaders.productCard(height: double.infinity),
-                            errorWidget: (context, url, error) => 
-                                const Center(child: Icon(Icons.image_not_supported)),
+                            placeholder: (context, url) =>
+                                SkeletonLoaders.productCard(
+                                    height: double.infinity),
+                            errorWidget: (context, url, error) => const Center(
+                                child: Icon(Icons.image_not_supported)),
                             fadeInDuration: const Duration(milliseconds: 200),
                             fadeOutDuration: const Duration(milliseconds: 100),
                           )
                         : const Center(child: Icon(Icons.photo_library)),
                   ),
                 ),
-                
+
                 // Quick View Button
                 if (widget.showQuickView)
                   Positioned(
@@ -343,13 +353,11 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                       child: IconButton(
                         icon: const Icon(Icons.visibility_outlined, size: 20),
                         onPressed: _showQuickView,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
                         tooltip: 'Quick View',
                       ),
                     ),
                   ),
-                
+
                 // Save for Later Button
                 if (widget.showSaveForLater)
                   Positioned(
@@ -362,18 +370,17 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                         icon: Icon(
                           _isSaved ? Icons.bookmark : Icons.bookmark_border,
                           size: 20,
-                          color: _isSaved ? Theme.of(context).primaryColor : null,
+                          color:
+                              _isSaved ? Theme.of(context).primaryColor : null,
                         ),
                         onPressed: _isLoading ? null : _toggleSave,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
                         tooltip: _isSaved ? 'Saved' : 'Save for later',
                       ),
                     ),
                   ),
               ],
             ),
-            
+
             // Product Info
             Padding(
               padding: const EdgeInsets.all(12),
@@ -390,7 +397,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                       fontSize: 15,
                     ),
                   ),
-                  
+
                   // Product Code
                   if (widget.product['code'] != null)
                     Padding(
@@ -403,7 +410,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard> {
                         ),
                       ),
                     ),
-                  
+
                   // Price if available
                   if (widget.product['price'] != null)
                     Padding(

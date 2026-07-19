@@ -21,6 +21,9 @@ Windows is required to compile a Flutter Windows application. Run the
 2. Runs analysis and all Flutter tests.
 3. Builds the x64 release application and unsigned Store MSIX.
 4. Uploads `AngelGranites-MicrosoftStore-MSIX` as a workflow artifact.
+5. Uploads `AngelGranites-Windows-Accessibility-Test`, a portable ZIP that can
+   be run on Windows without Visual Studio for keyboard, Narrator, contrast,
+   and DPI verification.
 
 Download the workflow artifact, extract the `.msix`, and upload it under the
 Partner Center submission's **Packages** section. The Microsoft Store signs the
@@ -44,3 +47,6 @@ Increment the semantic version in `pubspec.yaml` before every later Store
 submission. The MSIX tool maps `major.minor.patch+build` to
 `major.minor.patch.0`, and Partner Center requires each replacement package to
 have a higher package version.
+
+Do not select the Store accessibility declaration until the manual checks in
+`windows-accessibility-audit.md` have passed on the portable Windows build.

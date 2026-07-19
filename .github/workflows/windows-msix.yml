@@ -51,10 +51,31 @@ jobs:
           }
           $packages | Select-Object FullName, Length | Format-Table -AutoSize
 
+      - name: Create portable accessibility test build
+        shell: pwsh
+        run: |
+          $app = Get-ChildItem -Path build/windows -Recurse -Filter AngelGranites.exe |
+            Where-Object { $_.FullName -match '[\\/]Release[\\/]' } |
+            Select-Object -First 1
+          if (-not $app) {
+            throw "Windows release executable was not generated."
+          }
+          $zip = Join-Path $PWD 'build/AngelGranites-windows-x64-accessibility-test.zip'
+          Compress-Archive -Path (Join-Path $app.Directory.FullName '*') -DestinationPath $zip -Force
+          Get-Item $zip | Select-Object FullName, Length | Format-Table -AutoSize
+
       - name: Upload Microsoft Store package
         uses: actions/upload-artifact@v4
         with:
           name: AngelGranites-MicrosoftStore-MSIX
           path: mobile_app/build/windows/**/*.msix
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload portable accessibility test build
+        uses: actions/upload-artifact@v4
+        with:
+          name: AngelGranites-Windows-Accessibility-Test
+          path: mobile_app/build/AngelGranites-windows-x64-accessibility-test.zip
           if-no-files-found: error
           retention-days: 14

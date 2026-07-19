@@ -14,7 +14,11 @@ class DesignGalleryScreen extends StatefulWidget {
   final String title;
   final ApiService apiService;
 
-  const DesignGalleryScreen({super.key, required this.categoryId, required this.title, required this.apiService});
+  const DesignGalleryScreen(
+      {super.key,
+      required this.categoryId,
+      required this.title,
+      required this.apiService});
 
   @override
   State<DesignGalleryScreen> createState() => _DesignGalleryScreenState();
@@ -40,20 +44,34 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
 
   Future<void> _loadImages() async {
     // Step 1: show bundled assets instantly (no network needed)
-    final bundled = widget.apiService.getBundledProductImages(widget.categoryId);
+    final bundled =
+        widget.apiService.getBundledProductImages(widget.categoryId);
     if (bundled != null && bundled.isNotEmpty) {
-      if (mounted) setState(() { _images = bundled; _isLoading = false; });
+      if (mounted) {
+        setState(() {
+          _images = bundled;
+          _isLoading = false;
+        });
+      }
     }
 
     // Step 2: fetch from network / memory cache in background
     try {
-      final networkImages = await widget.apiService.fetchProductImagesWithCodes(widget.categoryId);
+      final networkImages = await widget.apiService
+          .fetchProductImagesWithCodes(widget.categoryId);
       if (mounted && networkImages.isNotEmpty) {
-        setState(() { _images = networkImages; _isLoading = false; _hasError = false; });
+        setState(() {
+          _images = networkImages;
+          _isLoading = false;
+          _hasError = false;
+        });
       }
     } catch (_) {
       if (mounted && _images.isEmpty) {
-        setState(() { _isLoading = false; _hasError = true; });
+        setState(() {
+          _isLoading = false;
+          _hasError = true;
+        });
       }
     }
   }
@@ -71,13 +89,17 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
   }
 
   Widget _buildNetworkImage(String url) {
-    if (url.isEmpty) return const Center(child: Icon(Icons.broken_image, size: 40, color: Colors.grey));
+    if (url.isEmpty) {
+      return const Center(
+          child: Icon(Icons.broken_image, size: 40, color: Colors.grey));
+    }
     return CachedNetworkImage(
       imageUrl: url,
       fit: BoxFit.cover,
       memCacheHeight: 300,
       memCacheWidth: 300,
-      placeholder: (context, url) => SkeletonLoaders.productCard(height: double.infinity),
+      placeholder: (context, url) =>
+          SkeletonLoaders.productCard(height: double.infinity),
       errorWidget: (context, error, stack) => const Center(
         child: Icon(Icons.broken_image, size: 40, color: Colors.grey),
       ),
@@ -88,7 +110,6 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -166,7 +187,8 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
           children: [
             CircularProgressIndicator(),
             SizedBox(height: 16),
-            Text('Loading designs...', style: TextStyle(fontWeight: FontWeight.w500)),
+            Text('Loading designs...',
+                style: TextStyle(fontWeight: FontWeight.w500)),
           ],
         ),
       );
@@ -178,7 +200,8 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
           children: [
             Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
             const SizedBox(height: 16),
-            const Text('Unable to load designs', style: TextStyle(fontSize: 16)),
+            const Text('Unable to load designs',
+                style: TextStyle(fontSize: 16)),
             const SizedBox(height: 8),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -195,7 +218,8 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
           children: [
             Icon(Icons.image_not_supported, size: 48, color: Colors.grey[400]),
             const SizedBox(height: 16),
-            const Text('No designs found in this category', style: TextStyle(fontSize: 16)),
+            const Text('No designs found in this category',
+                style: TextStyle(fontSize: 16)),
             const SizedBox(height: 8),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -209,7 +233,8 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
       padding: const EdgeInsets.all(12),
       physics: const BouncingScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: MediaQuery.of(context).orientation == Orientation.portrait ? 2 : 3,
+        crossAxisCount:
+            MediaQuery.of(context).orientation == Orientation.portrait ? 2 : 3,
         childAspectRatio: 0.75,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
@@ -220,28 +245,38 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
         return Card(
           clipBehavior: Clip.antiAlias,
           elevation: 2.0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute<void>(
-                        builder: (_) => FullScreenImage(
-                          imageUrl: productImage.getDisplayPath(),
-                          tag: 'image_$index',
-                          galleryImages: _images,
-                          initialIndex: index,
-                        ),
+                child: Semantics(
+                  button: true,
+                  label:
+                      'Open ${productImage.productCode.isEmpty ? 'design image' : productImage.productCode}',
+                  excludeSemantics: true,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (_) => FullScreenImage(
+                              imageUrl: productImage.getDisplayPath(),
+                              tag: 'image_$index',
+                              galleryImages: _images,
+                              initialIndex: index,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Hero(
+                        tag: 'image_$index',
+                        child: _buildImage(productImage),
                       ),
-                    );
-                  },
-                  child: Hero(
-                    tag: 'image_$index',
-                    child: _buildImage(productImage),
+                    ),
                   ),
                 ),
               ),
@@ -252,9 +287,12 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
                     top: BorderSide(color: Colors.grey.shade200, width: 1),
                   ),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
                 child: Text(
-                  productImage.productCode.isEmpty ? 'No Code' : productImage.productCode,
+                  productImage.productCode.isEmpty
+                      ? 'No Code'
+                      : productImage.productCode,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -273,4 +311,3 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
     );
   }
 }
-

@@ -24,19 +24,19 @@ class ProductFolderSection extends StatelessWidget {
   /// Build product image with priority: bundled assets → cached local → network
   Widget _buildProductImage(Product product) {
     final fileName = _extractFileName(product.imageUrl);
-    
+
     // Priority 1: Try bundled asset first (fastest, always available)
     // Try assets/products/[category]/ structure
     // Extract category from URL path (e.g., products/benches/image.jpg)
     final urlParts = product.imageUrl.split('/');
     String assetPath = 'assets/products/$fileName'; // fallback
-    
+
     if (urlParts.length >= 2) {
       final possibleCategory = urlParts[urlParts.length - 2].toLowerCase();
       // Try category-based path first
       assetPath = 'assets/products/$possibleCategory/$fileName';
     }
-    
+
     return Image.asset(
       assetPath,
       fit: BoxFit.cover,
@@ -47,7 +47,8 @@ class ProductFolderSection extends StatelessWidget {
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
             // Priority 2: Try cached local file
-            if (product.localImagePath != null && product.localImagePath!.isNotEmpty) {
+            if (product.localImagePath != null &&
+                product.localImagePath!.isNotEmpty) {
               return Image.file(
                 File(product.localImagePath!),
                 fit: BoxFit.cover,
@@ -64,7 +65,7 @@ class ProductFolderSection extends StatelessWidget {
       },
     );
   }
-  
+
   /// Build network image with caching
   Widget _buildNetworkImage(String imageUrl) {
     return CachedNetworkImage(
@@ -72,7 +73,8 @@ class ProductFolderSection extends StatelessWidget {
       fit: BoxFit.cover,
       memCacheWidth: 300,
       memCacheHeight: 300,
-      placeholder: (context, url) => SkeletonLoaders.productCard(height: double.infinity),
+      placeholder: (context, url) =>
+          SkeletonLoaders.productCard(height: double.infinity),
       errorWidget: (context, url, error) => Container(
         color: Colors.grey.shade200,
         child: const Icon(Icons.broken_image, size: 32, color: Colors.grey),
@@ -81,7 +83,7 @@ class ProductFolderSection extends StatelessWidget {
       fadeOutDuration: const Duration(milliseconds: 100),
     );
   }
-  
+
   /// Extract filename from URL
   String _extractFileName(String url) {
     try {
@@ -95,7 +97,15 @@ class ProductFolderSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 375;
-    
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
+    final crossAxisCount = screenWidth >= 900
+        ? 4
+        : textScale > 1.4
+            ? 2
+            : MediaQuery.of(context).orientation == Orientation.portrait
+                ? 3
+                : 4;
+
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: isSmallScreen ? 6.0 : 8.0,
@@ -106,12 +116,15 @@ class ProductFolderSection extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: isSmallScreen ? 16 : 17,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.3,
+            child: Semantics(
+              header: title.isNotEmpty,
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 16 : 17,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.3,
+                ),
               ),
             ),
           ),
@@ -135,20 +148,18 @@ class ProductFolderSection extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   // 3 columns for portrait, 4 for landscape
-                  crossAxisCount: MediaQuery.of(context).orientation == Orientation.portrait ? 3 : 4,
-                  childAspectRatio: 0.68,
+                  crossAxisCount: crossAxisCount,
+                  childAspectRatio: 0.68 / textScale.clamp(1.0, 1.4),
                   crossAxisSpacing: 8,
                   mainAxisSpacing: 8,
                 ),
                 itemCount: categories.length,
                 itemBuilder: (context, index) {
                   final product = categories[index];
-                  return GestureDetector(
-                    onTap: () {
-                      context.push(
-                        '/gallery/${product.id}?title=${Uri.encodeComponent(product.name)}',
-                      );
-                    },
+                  return Semantics(
+                    button: true,
+                    label: 'Open ${product.name} gallery',
+                    excludeSemantics: true,
                     child: Card(
                       margin: EdgeInsets.zero,
                       elevation: 2,
@@ -156,30 +167,37 @@ class ProductFolderSection extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       clipBehavior: Clip.antiAlias,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Expanded(
-                            child: _buildProductImage(product),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6.0,
-                              vertical: 6.0,
+                      child: InkWell(
+                        onTap: () {
+                          context.push(
+                            '/gallery/${product.id}?title=${Uri.encodeComponent(product.name)}',
+                          );
+                        },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              child: _buildProductImage(product),
                             ),
-                            child: Text(
-                              product.name,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.2,
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6.0,
+                                vertical: 6.0,
                               ),
-                              textAlign: TextAlign.center,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                              child: Text(
+                                product.name,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.2,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -192,4 +210,3 @@ class ProductFolderSection extends StatelessWidget {
     );
   }
 }
-

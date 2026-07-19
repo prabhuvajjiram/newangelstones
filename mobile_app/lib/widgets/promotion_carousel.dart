@@ -23,14 +23,25 @@ class _PromotionCarouselState extends State<PromotionCarousel> {
   late PageController _pageController;
   int _currentPage = 0;
   Timer? _autoRotateTimer;
+  bool _reduceMotion = false;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
-    
-    // Start auto-rotation if multiple promotions
-    if (widget.promotions.length > 1) {
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (_reduceMotion == reduceMotion && _autoRotateTimer != null) return;
+
+    _reduceMotion = reduceMotion;
+    _autoRotateTimer?.cancel();
+    _autoRotateTimer = null;
+    if (!_reduceMotion && widget.promotions.length > 1) {
       _startAutoRotate();
     }
   }
@@ -43,6 +54,7 @@ class _PromotionCarouselState extends State<PromotionCarousel> {
   }
 
   void _startAutoRotate() {
+    _autoRotateTimer?.cancel();
     _autoRotateTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (_pageController.hasClients) {
         final nextPage = (_currentPage + 1) % widget.promotions.length;
@@ -76,7 +88,8 @@ class _PromotionCarouselState extends State<PromotionCarousel> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Please email sales@theangelstones.com for inquiries'),
+              content:
+                  Text('Please email sales@theangelstones.com for inquiries'),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -120,51 +133,68 @@ class _PromotionCarouselState extends State<PromotionCarousel> {
                 itemCount: widget.promotions.length,
                 itemBuilder: (context, index) {
                   final promotion = widget.promotions[index];
-                  return GestureDetector(
-                    onTap: () => _handlePromotionTap(promotion),
-                    child: CachedNetworkImage(
-                      imageUrl: promotion.imageUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: AppTheme.cardColor,
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            color: AppTheme.accentColor,
+                  final isInteractive = promotion.type == 'product' ||
+                      (promotion.type == 'event' && promotion.linkUrl != null);
+                  final subtitle = promotion.subtitle?.trim();
+                  return Semantics(
+                    button: isInteractive,
+                    label: [
+                      'Promotion: ${promotion.title}',
+                      if (subtitle != null && subtitle.isNotEmpty) subtitle,
+                      if (isInteractive) 'Open promotion',
+                    ].join('. '),
+                    excludeSemantics: true,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: isInteractive
+                            ? () => _handlePromotionTap(promotion)
+                            : null,
+                        child: CachedNetworkImage(
+                          imageUrl: promotion.imageUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: AppTheme.cardColor,
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                color: AppTheme.accentColor,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: AppTheme.cardColor,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.image_not_supported,
-                              color: AppTheme.textSecondary,
-                              size: 48,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              promotion.title,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            if (promotion.subtitle != null) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                promotion.subtitle!,
-                                style: const TextStyle(
+                          errorWidget: (context, url, error) => Container(
+                            color: AppTheme.cardColor,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.image_not_supported,
                                   color: AppTheme.textSecondary,
-                                  fontSize: 14,
+                                  size: 48,
                                 ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ],
+                                const SizedBox(height: 8),
+                                Text(
+                                  promotion.title,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                if (promotion.subtitle != null) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    promotion.subtitle!,
+                                    style: const TextStyle(
+                                      color: AppTheme.textSecondary,
+                                      fontSize: 14,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -179,19 +209,21 @@ class _PromotionCarouselState extends State<PromotionCarousel> {
                 bottom: 12,
                 left: 0,
                 right: 0,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    widget.promotions.length,
-                    (index) => Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _currentPage == index
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.4),
+                child: ExcludeSemantics(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      widget.promotions.length,
+                      (index) => Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _currentPage == index
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.4),
+                        ),
                       ),
                     ),
                   ),
@@ -205,17 +237,10 @@ class _PromotionCarouselState extends State<PromotionCarousel> {
               child: Material(
                 color: Colors.black.withValues(alpha: 0.5),
                 shape: const CircleBorder(),
-                child: InkWell(
-                  onTap: widget.onClose,
-                  customBorder: const CircleBorder(),
-                  child: const Padding(
-                    padding: EdgeInsets.all(8),
-                    child: Icon(
-                      Icons.close,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
+                child: IconButton(
+                  onPressed: widget.onClose,
+                  tooltip: 'Dismiss promotion',
+                  icon: const Icon(Icons.close, color: Colors.white, size: 20),
                 ),
               ),
             ),

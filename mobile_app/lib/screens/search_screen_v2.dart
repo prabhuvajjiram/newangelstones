@@ -38,21 +38,21 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
   String _searchQuery = '';
   bool _hasResults = false;
   bool _isLoading = false;
-  
+
   // Search results
   List<Product> _productResults = [];
   List<String> _colorResults = [];
   Map<String, List<InventoryItem>> _typeGroupedResults = {};
-  
+
   Timer? _searchDebounce;
-  
+
   // Advanced search filters
   SearchFilters _searchFilters = SearchFilters();
   List<String> _availableTypes = [];
   List<String> _availableColors = [];
   List<String> _availableLocations = [];
   List<String> _availableFinishes = [];
-  
+
   @override
   void initState() {
     super.initState();
@@ -62,15 +62,15 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       _loadAllProductDirectories();
     });
   }
-  
+
   // Load products from all available directories
   Future<void> _loadAllProductDirectories() async {
     final apiService = _getApiService();
-    
+
     try {
       // Get all available product directories
       final directories = await apiService.getProductDirectories();
-      
+
       // Load products from each directory
       for (final directory in directories) {
         // Extract the directory name from the path (e.g., 'products/mbna_2025' -> 'mbna_2025')
@@ -108,7 +108,8 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
         builder: (context, scrollController) => AdvancedSearchFilters(
           filters: _searchFilters,
           onFiltersChanged: (filters) {
-            debugPrint('🔧 Filters changed: hasActiveFilters=${filters.hasActiveFilters}, activeCount=${filters.activeFilterCount}');
+            debugPrint(
+                '🔧 Filters changed: hasActiveFilters=${filters.hasActiveFilters}, activeCount=${filters.activeFilterCount}');
             setState(() {
               _searchFilters = filters;
             });
@@ -127,30 +128,33 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
     try {
       if (widget.inventoryService != null) {
         final inventory = await widget.inventoryService!.fetchInventory();
-        
+
         final types = <String>{};
         final colors = <String>{};
         final locations = <String>{};
         final finishes = <String>{};
-        
+
         for (final item in inventory) {
           if (item.type.isNotEmpty) types.add(item.type);
           if (item.color.isNotEmpty) colors.add(item.color);
           if (item.location.isNotEmpty) locations.add(item.location);
           if (item.finish.isNotEmpty) finishes.add(item.finish);
         }
-        
+
         setState(() {
           _availableTypes = types.toList()..sort();
           _availableColors = colors.toList()..sort();
           _availableLocations = locations.toList()..sort();
           _availableFinishes = finishes.toList()..sort();
         });
-        
+
         debugPrint('📋 Loaded filter options:');
-        debugPrint('  Types: ${_availableTypes.length} - ${_availableTypes.take(5).join(", ")}...');
-        debugPrint('  Colors: ${_availableColors.length} - ${_availableColors.take(5).join(", ")}...');
-        debugPrint('  Locations: ${_availableLocations.length} - ${_availableLocations.join(", ")}');
+        debugPrint(
+            '  Types: ${_availableTypes.length} - ${_availableTypes.take(5).join(", ")}...');
+        debugPrint(
+            '  Colors: ${_availableColors.length} - ${_availableColors.take(5).join(", ")}...');
+        debugPrint(
+            '  Locations: ${_availableLocations.length} - ${_availableLocations.join(", ")}');
       }
     } catch (e) {
       debugPrint('❌ Error loading filter options: $e');
@@ -162,7 +166,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
     if (_searchDebounce?.isActive ?? false) {
       _searchDebounce!.cancel();
     }
-    
+
     // Clear results if query is empty
     if (query.isEmpty) {
       setState(() {
@@ -175,7 +179,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       });
       return;
     }
-    
+
     // Start a new debounce timer
     _searchDebounce = Timer(const Duration(milliseconds: 300), () {
       final trimmedQuery = query.trim();
@@ -187,7 +191,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
         _colorResults = [];
         _typeGroupedResults = {};
       });
-      
+
       // For any search, ensure all product directories are loaded first
       _loadAllProductDirectories().then((_) {
         // Reload all products to ensure we have the latest from storage
@@ -197,24 +201,25 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       });
     });
   }
-  
+
   // Get the API service instance
   ApiService _getApiService() {
     return widget.apiService ?? Provider.of<ApiService>(context, listen: false);
   }
-  
+
   // Get the inventory service instance
   InventoryService _getInventoryService() {
-    return widget.inventoryService ?? Provider.of<InventoryService>(context, listen: false);
+    return widget.inventoryService ??
+        Provider.of<InventoryService>(context, listen: false);
   }
-  
+
   // Get the storage service instance
   StorageService? _getStorageService() {
     // First try to use the service passed directly to the widget
     if (widget.storageService != null) {
       return widget.storageService!;
     }
-    
+
     // If not available, try to get from provider, but don't throw if not found
     try {
       return Provider.of<StorageService>(context, listen: false);
@@ -223,47 +228,51 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       return null;
     }
   }
-  
+
   // Load all products from local storage
   Future<List<Product>> _loadAllLocalProducts() async {
     List<Product> allProducts = [];
     final apiService = _getApiService();
     final storageService = _getStorageService();
-    
+
     try {
       // Load featured products from local JSON
-      final featuredProducts = await apiService.loadLocalProducts('assets/featured_products.json');
+      final featuredProducts =
+          await apiService.loadLocalProducts('assets/featured_products.json');
       allProducts.addAll(featuredProducts);
-      
+
       // Load color products from local JSON
-      final colorProducts = await apiService.loadLocalProducts('assets/colors.json');
+      final colorProducts =
+          await apiService.loadLocalProducts('assets/colors.json');
       allProducts.addAll(colorProducts);
-      
+
       // Load products from secure storage (if available)
       if (storageService != null) {
         try {
           final secureStorageProducts = await storageService.loadProducts();
-          if (secureStorageProducts != null && secureStorageProducts.isNotEmpty) {
+          if (secureStorageProducts != null &&
+              secureStorageProducts.isNotEmpty) {
             allProducts.addAll(secureStorageProducts);
           }
         } catch (storageError) {
           debugPrint('Error accessing secure storage: $storageError');
         }
       }
-      
+
       // All products loaded successfully
     } catch (e) {
       debugPrint('❌ Error loading local products: $e');
     }
-    
+
     return allProducts;
   }
-  
+
   // No special product handling - we only use what's in local storage
-  
+
   Future<void> _performSearch(String query) async {
-    debugPrint('🔍 _performSearch called with query: "$query", hasActiveFilters: ${_searchFilters.hasActiveFilters}');
-    
+    debugPrint(
+        '🔍 _performSearch called with query: "$query", hasActiveFilters: ${_searchFilters.hasActiveFilters}');
+
     if (query.isEmpty && !_searchFilters.hasActiveFilters) {
       debugPrint('🔍 No query and no filters - clearing results');
       setState(() {
@@ -274,29 +283,27 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       });
       return;
     }
-    
+
     setState(() {
       _hasResults = false;
     });
-    
+
     bool hasAnyResults = false;
     final normalizedQuery = query.toLowerCase().trim();
-    
 
-    
     // STEP 1: Search for products in local storage (only if no filters are applied)
     if (!_searchFilters.hasActiveFilters) {
       try {
         // Load all products from local storage
         final allProducts = await _loadAllLocalProducts();
-        
+
         // Filter products by search query
         final List<Product> matchingProducts = allProducts.where((product) {
           final name = product.name.toLowerCase();
           final description = product.description.toLowerCase();
           final id = product.id.toLowerCase();
           String numericId = '';
-          
+
           // Extract numeric part from ID if possible
           if (id.isNotEmpty) {
             final RegExp numericRegex = RegExp(r'\d+');
@@ -305,46 +312,50 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
               numericId = numericMatch.group(0) ?? '';
             }
           }
-          
+
           // Match by name, description, or ID (full or numeric part)
-          bool matches = name.contains(normalizedQuery) || 
-                        description.contains(normalizedQuery) || 
-                        id.contains(normalizedQuery);
-          
+          bool matches = name.contains(normalizedQuery) ||
+              description.contains(normalizedQuery) ||
+              id.contains(normalizedQuery);
+
           // No debug logs needed here
-          
+
           // Direct match for product codes (case insensitive)
           if (!matches) {
             // Check if product ID equals the search query (ignoring case and with/without prefix)
-            String normalizedId = id.toLowerCase().replaceAll(RegExp(r'[\s-]'), '');
-            
+            String normalizedId =
+                id.toLowerCase().replaceAll(RegExp(r'[\s-]'), '');
+
             // No debug logs needed
-            
+
             // Handle AG prefix in query or product ID
-            if (normalizedId.startsWith('ag') && !normalizedQuery.startsWith('ag')) {
+            if (normalizedId.startsWith('ag') &&
+                !normalizedQuery.startsWith('ag')) {
               // Query doesn't have prefix but product does - compare without prefix
               if (normalizedId.substring(2) == normalizedQuery) {
                 matches = true;
                 // Match found without AG prefix
               }
-            } else if (!normalizedId.startsWith('ag') && normalizedQuery.startsWith('ag')) {
+            } else if (!normalizedId.startsWith('ag') &&
+                normalizedQuery.startsWith('ag')) {
               // Query has prefix but product doesn't - compare without prefix
               if (normalizedId == normalizedQuery.substring(2)) {
                 matches = true;
               }
             }
           }
-          
+
           // Also check for numeric part matches (e.g., "950" matches "AG-950")
           if (!matches && numericId.isNotEmpty && normalizedQuery.isNotEmpty) {
-            if (numericId.contains(normalizedQuery) || normalizedQuery.contains(numericId)) {
+            if (numericId.contains(normalizedQuery) ||
+                normalizedQuery.contains(numericId)) {
               matches = true;
             }
           }
-          
+
           return matches;
         }).toList();
-        
+
         if (matchingProducts.isNotEmpty) {
           setState(() {
             _productResults = matchingProducts;
@@ -360,55 +371,63 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
         _productResults = [];
       });
     }
-    
+
     // STEP 2: Search inventory items using InventoryService
     try {
       final inventoryService = _getInventoryService();
 
       // Fetch all inventory and apply filters
-      List<InventoryItem> inventoryResults = await inventoryService.fetchInventory(
+      List<InventoryItem> inventoryResults =
+          await inventoryService.fetchInventory(
         pageSize: 10000,
       );
-      
+
       // Apply text search and filters
       inventoryResults = inventoryResults.where((item) {
         // Text search
         bool matchesText = true;
         if (query.isNotEmpty) {
           final normalizedQuery = query.toLowerCase();
-          matchesText = item.description.toLowerCase().contains(normalizedQuery) ||
-                       item.code.toLowerCase().contains(normalizedQuery) ||
-                       item.type.toLowerCase().contains(normalizedQuery) ||
-                       item.color.toLowerCase().contains(normalizedQuery) ||
-                       item.design.toLowerCase().contains(normalizedQuery) ||
-                       item.finish.toLowerCase().contains(normalizedQuery) ||
-                       item.size.toLowerCase().contains(normalizedQuery) ||
-                       item.location.toLowerCase().contains(normalizedQuery);
+          matchesText =
+              item.description.toLowerCase().contains(normalizedQuery) ||
+                  item.code.toLowerCase().contains(normalizedQuery) ||
+                  item.type.toLowerCase().contains(normalizedQuery) ||
+                  item.color.toLowerCase().contains(normalizedQuery) ||
+                  item.design.toLowerCase().contains(normalizedQuery) ||
+                  item.finish.toLowerCase().contains(normalizedQuery) ||
+                  item.size.toLowerCase().contains(normalizedQuery) ||
+                  item.location.toLowerCase().contains(normalizedQuery);
         }
-        
+
         // Apply advanced filters
         bool matchesFilters = true;
         if (_searchFilters.selectedType != null) {
-          matchesFilters = matchesFilters && item.type == _searchFilters.selectedType;
+          matchesFilters =
+              matchesFilters && item.type == _searchFilters.selectedType;
         }
         if (_searchFilters.selectedColor != null) {
-          matchesFilters = matchesFilters && item.color == _searchFilters.selectedColor;
+          matchesFilters =
+              matchesFilters && item.color == _searchFilters.selectedColor;
         }
         if (_searchFilters.selectedLocation != null) {
-          matchesFilters = matchesFilters && item.location == _searchFilters.selectedLocation;
+          matchesFilters = matchesFilters &&
+              item.location == _searchFilters.selectedLocation;
         }
         if (_searchFilters.selectedFinish != null) {
-          matchesFilters = matchesFilters && item.finish == _searchFilters.selectedFinish;
+          matchesFilters =
+              matchesFilters && item.finish == _searchFilters.selectedFinish;
         }
         if (_searchFilters.inStockOnly) {
           matchesFilters = matchesFilters && item.quantity > 0;
         }
-        
+
         return matchesText && matchesFilters;
       }).toList();
-      
-      debugPrint('🔍 Found ${inventoryResults.length} inventory items matching "$query" with filters');
-      debugPrint('🔍 Active filters: type=${_searchFilters.selectedType}, color=${_searchFilters.selectedColor}, location=${_searchFilters.selectedLocation}, finish=${_searchFilters.selectedFinish}, inStock=${_searchFilters.inStockOnly}');
+
+      debugPrint(
+          '🔍 Found ${inventoryResults.length} inventory items matching "$query" with filters');
+      debugPrint(
+          '🔍 Active filters: type=${_searchFilters.selectedType}, color=${_searchFilters.selectedColor}, location=${_searchFilters.selectedLocation}, finish=${_searchFilters.selectedFinish}, inStock=${_searchFilters.inStockOnly}');
 
       final Set<String> colors = {};
       final Map<String, List<InventoryItem>> typeGroups = {};
@@ -418,7 +437,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
         if (item.color.isNotEmpty) {
           colors.add(item.color);
         }
-        
+
         if (item.type.isNotEmpty) {
           if (!typeGroups.containsKey(item.type)) {
             typeGroups[item.type] = [];
@@ -426,23 +445,24 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
           typeGroups[item.type]!.add(item);
         }
       }
-      
+
       // Update state with filtered results
       setState(() {
         _typeGroupedResults = typeGroups;
         _colorResults = colors.toList();
         _hasResults = inventoryResults.isNotEmpty || _productResults.isNotEmpty;
       });
-      
-      debugPrint('🔍 Updated UI state: _hasResults=$_hasResults, typeGroups=${typeGroups.length}, colors=${colors.length}, products=${_productResults.length}');
-      
+
+      debugPrint(
+          '🔍 Updated UI state: _hasResults=$_hasResults, typeGroups=${typeGroups.length}, colors=${colors.length}, products=${_productResults.length}');
+
       if (inventoryResults.isNotEmpty) {
         hasAnyResults = true;
       }
     } catch (e) {
       debugPrint('Error searching inventory: $e');
     }
-    
+
     // Update UI state based on search results
     setState(() {
       _hasResults = hasAnyResults;
@@ -450,7 +470,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       _isLoading = false;
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -504,8 +524,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
           // Accessible search bar copied from the original search screen
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child:
-            Semantics(
+            child: Semantics(
               label: 'Search field for products, colors, and inventory items',
               child: TextField(
                 controller: _searchController,
@@ -547,7 +566,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
               ),
             ),
           ),
-          
+
           // Search results
           Expanded(
             child: (_searchQuery.isEmpty && !_searchFilters.hasActiveFilters)
@@ -560,13 +579,13 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       ),
     );
   }
-  
+
   Widget _buildEmptyState() {
     return Center(
       child: Text(
-        _searchFilters.hasActiveFilters 
-          ? 'Apply filters to see results'
-          : 'Enter a search term to find products, colors, or inventory items',
+        _searchFilters.hasActiveFilters
+            ? 'Apply filters to see results'
+            : 'Enter a search term to find products, colors, or inventory items',
         style: const TextStyle(
           fontSize: 18,
           color: Colors.white,
@@ -576,7 +595,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       ),
     );
   }
-  
+
   Widget _buildSearchResults() {
     if (!_hasResults) {
       String message;
@@ -589,7 +608,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       } else {
         message = 'No results found';
       }
-      
+
       return Center(
         child: Text(
           message,
@@ -598,24 +617,20 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
         ),
       );
     }
-    
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (_productResults.isNotEmpty)
             _buildProductSection('Products', _productResults),
-
-          if (_colorResults.isNotEmpty)
-            _buildColorsSection(),
-
-          if (_typeGroupedResults.isNotEmpty)
-            _buildInventoryTypeSection(),
+          if (_colorResults.isNotEmpty) _buildColorsSection(),
+          if (_typeGroupedResults.isNotEmpty) _buildInventoryTypeSection(),
         ],
       ),
     );
   }
-  
+
   Widget _buildProductSection(String title, List<Product> products) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -644,7 +659,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       ],
     );
   }
-  
+
   Widget _buildColorsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -671,7 +686,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       ],
     );
   }
-  
+
   Widget _buildInventoryTypeSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -717,8 +732,6 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
     );
   }
 
-
-
   Widget _buildProductTile(Product product) {
     return ListTile(
       leading: product.getImagePath().isNotEmpty
@@ -744,28 +757,39 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
   }
 
   Widget _buildColorChip(String color) {
-    return GestureDetector(
-      onTap: () => _navigateToInventoryWithColorFilter(color),
-      child: Container(
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
+    return Semantics(
+      button: true,
+      label: 'Show $color inventory',
+      excludeSemantics: true,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: Material(
           color: Colors.white.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey[300]!),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 2,
-              offset: const Offset(0, 1),
+          child: InkWell(
+            onTap: () => _navigateToInventoryWithColorFilter(color),
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.grey[300]!),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 2,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: Text(
+                color,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-          ],
-        ),
-        child: Text(
-          color,
-          style: const TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
           ),
         ),
       ),
@@ -781,6 +805,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
         children: [
           IconButton(
             icon: const Icon(Icons.bookmark_border),
+            tooltip: 'Save ${item.description}',
             onPressed: () {
               final itemMap = {
                 'id': item.code,
@@ -804,6 +829,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
           ),
           IconButton(
             icon: const Icon(Icons.shopping_cart_outlined),
+            tooltip: 'Add ${item.description} to cart',
             onPressed: () => _showQuantityDialog(context, item),
           ),
         ],
@@ -872,6 +898,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.remove),
+                        tooltip: 'Decrease quantity',
                         onPressed: quantity > 1
                             ? () {
                                 setState(() {
@@ -881,7 +908,8 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
                             : null,
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey),
                           borderRadius: BorderRadius.circular(4),
@@ -893,6 +921,7 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
                       ),
                       IconButton(
                         icon: const Icon(Icons.add),
+                        tooltip: 'Increase quantity',
                         onPressed: () {
                           setState(() {
                             quantity++;
@@ -924,17 +953,17 @@ class _SearchScreenV2State extends State<SearchScreenV2> {
       },
     );
   }
-  
+
   void _navigateToProductDetail(Product product) {
     // Use go_router's push method instead of pushNamed to avoid route name issues
     context.push('/product', extra: product);
   }
-  
+
   void _navigateToInventoryWithColorFilter(String color) {
     // Navigate to inventory screen with color filter
     context.push('/inventory', extra: {'color': color});
   }
-  
+
   void _navigateToInventoryItemDetail(InventoryItem item) {
     // Navigate to inventory item detail screen
     context.push('/inventory-item-details', extra: item);

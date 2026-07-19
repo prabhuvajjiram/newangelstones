@@ -35,7 +35,6 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,7 +88,7 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
   Widget _buildSavedItemsList() {
     final theme = Theme.of(context);
     final isSmallScreen = MediaQuery.of(context).size.width < 600;
-    
+
     return RefreshIndicator(
       onRefresh: _loadSavedItems,
       child: ListView.builder(
@@ -98,7 +97,7 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
         itemCount: _savedItems.length,
         itemBuilder: (context, index) {
           final item = _savedItems[index];
-          
+
           // Helper function to safely get string values
           String getStringValue(String key) {
             try {
@@ -108,7 +107,7 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
               return '';
             }
           }
-          
+
           return Card(
             margin: const EdgeInsets.only(bottom: 8),
             child: InkWell(
@@ -117,11 +116,12 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
                 try {
                   // Convert saved item to InventoryItem
                   final inventoryItem = InventoryItem.fromJson(item);
-                  
+
                   // Use Navigator.push with MaterialPageRoute for better context preservation
                   Navigator.of(context).push(
                     MaterialPageRoute<void>(
-                      builder: (context) => InventoryItemDetailsScreen(item: inventoryItem),
+                      builder: (context) =>
+                          InventoryItemDetailsScreen(item: inventoryItem),
                     ),
                   );
                 } catch (e) {
@@ -129,13 +129,15 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
                   // Fallback to GoRouter if Navigator fails
                   try {
                     final inventoryItemForRouter = InventoryItem.fromJson(item);
-                    GoRouter.of(context).pushNamed('inventory-item-details', extra: inventoryItemForRouter);
+                    GoRouter.of(context).pushNamed('inventory-item-details',
+                        extra: inventoryItemForRouter);
                   } catch (routerError) {
                     debugPrint('Error with GoRouter navigation: $routerError');
                     // Try to show error message
                     try {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Could not open item details')),
+                        const SnackBar(
+                            content: Text('Could not open item details')),
                       );
                     } catch (scaffoldError) {
                       debugPrint('Error showing snackbar: $scaffoldError');
@@ -152,8 +154,8 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            getStringValue('description').isNotEmpty 
-                                ? getStringValue('description') 
+                            getStringValue('description').isNotEmpty
+                                ? getStringValue('description')
                                 : 'No description',
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
@@ -170,8 +172,6 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
                           ),
                           onPressed: () => _removeItem(item),
                           tooltip: 'Remove from saved items',
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
                         ),
                       ],
                     ),
@@ -197,8 +197,10 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildInfoRow('Size', getStringValue('size')),
-                                _buildInfoRow('Design', getStringValue('design')),
-                                _buildInfoRow('Finish', getStringValue('finish')),
+                                _buildInfoRow(
+                                    'Design', getStringValue('design')),
+                                _buildInfoRow(
+                                    'Finish', getStringValue('finish')),
                               ],
                             ),
                           ),
@@ -244,7 +246,7 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
     try {
       // Use the new clearAllItems method from SavedItemsService
       final success = await SavedItemsService.clearAllItems();
-      
+
       if (mounted) {
         if (success) {
           setState(() => _savedItems = []);
@@ -260,12 +262,13 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error clearing saved items: ${e.toString()}')),
+          SnackBar(
+              content: Text('Error clearing saved items: ${e.toString()}')),
         );
       }
     }
   }
-  
+
   // Remove a single saved item
   Future<void> _removeItem(Map<String, dynamic> item) async {
     String? itemId;
@@ -274,20 +277,20 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
     } catch (e) {
       debugPrint('Error getting item ID: $e');
     }
-    
+
     if (itemId == null || itemId.isEmpty) {
       debugPrint('Cannot remove item: ID is null or empty');
       return;
     }
-    
+
     try {
       debugPrint('Removing item with ID: $itemId');
       final success = await SavedItemsService.removeItem(itemId);
       if (mounted) {
         if (success) {
           setState(() {
-            _savedItems.removeWhere((savedItem) => 
-                savedItem['id']?.toString() == itemId);
+            _savedItems.removeWhere(
+                (savedItem) => savedItem['id']?.toString() == itemId);
           });
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Item removed from saved items')),
@@ -307,7 +310,7 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
       }
     }
   }
-  
+
   Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4.0),

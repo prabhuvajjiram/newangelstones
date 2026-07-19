@@ -181,6 +181,7 @@ class _FullScreenImageState extends State<FullScreenImage> {
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () => Navigator.pop(context),
+                tooltip: 'Back',
               ),
               actions: [
                 IconButton(
@@ -296,6 +297,7 @@ class _FullScreenImageState extends State<FullScreenImage> {
                                 curve: Curves.easeInOut,
                               );
                             },
+                            tooltip: 'Previous image',
                           ),
                         ),
                       )
@@ -320,6 +322,7 @@ class _FullScreenImageState extends State<FullScreenImage> {
                                 curve: Curves.easeInOut,
                               );
                             },
+                            tooltip: 'Next image',
                           ),
                         ),
                       )

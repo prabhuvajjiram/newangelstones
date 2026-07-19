@@ -143,8 +143,8 @@ class _AdvancedSearchFiltersState extends State<AdvancedSearchFilters> {
               Text(
                 'Advanced Filters',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               Row(
                 children: [
@@ -161,6 +161,7 @@ class _AdvancedSearchFiltersState extends State<AdvancedSearchFilters> {
                   IconButton(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close),
+                    tooltip: 'Close filters',
                   ),
                 ],
               ),
@@ -274,7 +275,8 @@ class _AdvancedSearchFiltersState extends State<AdvancedSearchFilters> {
                     'Availability',
                     SwitchListTile(
                       title: const Text('In Stock Only'),
-                      subtitle: const Text('Show only items currently available'),
+                      subtitle:
+                          const Text('Show only items currently available'),
                       value: _currentFilters.inStockOnly,
                       onChanged: (value) {
                         setState(() {
@@ -317,8 +319,8 @@ class _AdvancedSearchFiltersState extends State<AdvancedSearchFilters> {
         Text(
           title,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+                fontWeight: FontWeight.w600,
+              ),
         ),
         const SizedBox(height: 8),
         child,
@@ -350,9 +352,9 @@ class _AdvancedSearchFiltersState extends State<AdvancedSearchFilters> {
               child: Text('All ${hint.toLowerCase()}'),
             ),
             ...items.map((item) => DropdownMenuItem<String>(
-              value: item,
-              child: Text(item),
-            )),
+                  value: item,
+                  child: Text(item),
+                )),
           ],
           onChanged: onChanged,
         ),

@@ -18,12 +18,12 @@ class EnhancedCartScreen extends StatefulWidget {
 class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
   final _formKey = GlobalKey<FormState>();
   final _notesController = TextEditingController();
-  
+
   // Helper method to extract type and color from item
   String _getItemDisplayName(Map<String, dynamic> item) {
     final String type = (item['type'] ?? '') as String;
     final String color = (item['color'] ?? '') as String;
-    
+
     if (type.isNotEmpty && color.isNotEmpty) {
       return '$type + $color';
     } else if (type.isNotEmpty) {
@@ -138,7 +138,7 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
     if (cartItems.isEmpty && savedItems.isEmpty) {
       return _buildEmptyStateWithScrollView();
     }
-    
+
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       child: Column(
@@ -166,7 +166,7 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
                 );
               },
             ),
-            
+
             // Optional note section
             Padding(
               padding: const EdgeInsets.all(16),
@@ -185,7 +185,7 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
                 ),
               ),
             ),
-            
+
             // Action buttons section
             Padding(
               padding: const EdgeInsets.all(16),
@@ -194,11 +194,11 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
                 children: [
                   // Request quote button
                   AppButton(
-                      onPressed: () {
-                        // Navigate to quote request screen with cart items
-                        final cartItems = cart.items;
-                        context.pushNamed('quote-request', extra: cartItems);
-                      },
+                    onPressed: () {
+                      // Navigate to quote request screen with cart items
+                      final cartItems = cart.items;
+                      context.pushNamed('quote-request', extra: cartItems);
+                    },
                     color: const Color(0xFFFFD700), // Gold color
                     textColor: Colors.black,
                     child: const Row(
@@ -218,7 +218,7 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  
+
                   // Back to inventory button
                   AppButton(
                     onPressed: () => context.go('/'),
@@ -241,7 +241,7 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Proceed to checkout button
                   ElevatedButton.icon(
                     icon: const Icon(Icons.shopping_cart_checkout),
@@ -257,7 +257,7 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
               ),
             ),
           ],
-          
+
           // Saved for later section
           Padding(
             padding: const EdgeInsets.all(16),
@@ -313,7 +313,7 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // No product icon or placeholder image
-              
+
               // Product details
               Expanded(
                 child: Column(
@@ -331,7 +331,8 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
                           'Code: ${item['code']}',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          style:
+                              TextStyle(fontSize: 12, color: Colors.grey[600]),
                         ),
                       ),
                     const SizedBox(height: 12),
@@ -348,17 +349,18 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.remove, size: 16),
+                                tooltip: 'Decrease quantity',
                                 onPressed: () {
-                                  final currentQty = item['quantity'] as int? ?? 1;
+                                  final currentQty =
+                                      item['quantity'] as int? ?? 1;
                                   if (currentQty > 1) {
                                     cart.updateQuantity(item, currentQty - 1);
                                   }
                                 },
-                                padding: const EdgeInsets.all(4),
-                                constraints: const BoxConstraints(),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
                                 child: Text(
                                   '${item['quantity'] ?? 1}',
                                   style: const TextStyle(fontSize: 14),
@@ -366,12 +368,12 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
                               ),
                               IconButton(
                                 icon: const Icon(Icons.add, size: 16),
+                                tooltip: 'Increase quantity',
                                 onPressed: () {
-                                  final currentQty = item['quantity'] as int? ?? 1;
+                                  final currentQty =
+                                      item['quantity'] as int? ?? 1;
                                   cart.updateQuantity(item, currentQty + 1);
                                 },
-                                padding: const EdgeInsets.all(4),
-                                constraints: const BoxConstraints(),
                               ),
                             ],
                           ),
@@ -380,9 +382,9 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
                         // 3-dot menu (Target style)
                         IconButton(
                           icon: const Icon(Icons.more_vert),
-                          onPressed: () => _showCartItemOptions(context, item, cart, savedItemsState),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
+                          tooltip: 'Cart item options',
+                          onPressed: () => _showCartItemOptions(
+                              context, item, cart, savedItemsState),
                         ),
                       ],
                     ),
@@ -413,7 +415,7 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // No product icon or placeholder image
-              
+
               // Product details
               Expanded(
                 child: Column(
@@ -431,7 +433,8 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
                           'Code: ${item['code']}',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          style:
+                              TextStyle(fontSize: 12, color: Colors.grey[600]),
                         ),
                       ),
                     const SizedBox(height: 12),
@@ -442,9 +445,9 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
                         // 3-dot menu (Target style)
                         IconButton(
                           icon: const Icon(Icons.more_vert),
-                          onPressed: () => _showSavedItemOptions(context, item, cart, savedItemsState),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
+                          tooltip: 'Saved item options',
+                          onPressed: () => _showSavedItemOptions(
+                              context, item, cart, savedItemsState),
                         ),
                       ],
                     ),
@@ -484,7 +487,8 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.delete_outline, color: Colors.red),
-              title: const Text('Remove item', style: TextStyle(color: Colors.red)),
+              title: const Text('Remove item',
+                  style: TextStyle(color: Colors.red)),
               onTap: () {
                 Navigator.pop(context);
                 cart.removeItem(item);
@@ -521,11 +525,13 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.delete_outline, color: Colors.red),
-              title: const Text('Remove item', style: TextStyle(color: Colors.red)),
+              title: const Text('Remove item',
+                  style: TextStyle(color: Colors.red)),
               onTap: () {
                 Navigator.pop(context);
                 savedItemsState.removeItem(item);
-                final itemId = item['id']?.toString() ?? item['code']?.toString();
+                final itemId =
+                    item['id']?.toString() ?? item['code']?.toString();
                 if (itemId != null) {
                   UnifiedSavedItemsService.removeItem(context, itemId);
                 }
@@ -551,12 +557,14 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
       color: (item['color'] ?? '') as String,
       size: (item['size'] ?? '') as String,
       location: (item['location'] ?? '') as String,
-      quantity: item['quantity'] is int ? item['quantity'] as int : int.tryParse(item['quantity']?.toString() ?? '0') ?? 0,
+      quantity: item['quantity'] is int
+          ? item['quantity'] as int
+          : int.tryParse(item['quantity']?.toString() ?? '0') ?? 0,
       type: (item['type'] ?? '') as String,
       design: (item['design'] ?? '') as String,
       finish: (item['finish'] ?? '') as String,
     );
-    
+
     // Navigate to the inventory item details screen
     GoRouter.of(context).pushNamed(
       'inventory-item-details',
@@ -564,14 +572,14 @@ class _EnhancedCartScreenState extends State<EnhancedCartScreen> {
     );
   }
 
-
   // Show dialog to confirm clearing the cart
   void _showClearCartDialog(BuildContext context, CartState cart) {
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear Cart'),
-        content: const Text('Are you sure you want to remove all items from your cart?'),
+        content: const Text(
+            'Are you sure you want to remove all items from your cart?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

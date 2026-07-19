@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/inventory_item.dart';
 import '../services/inventory_service.dart';
+import '../services/accessibility_service.dart';
 import '../widgets/inventory_table_section.dart';
 
 class InventoryScreen extends StatefulWidget {
@@ -143,7 +144,18 @@ class _InventoryScreenState extends State<InventoryScreen> {
     setState(() {
       _futureInventory = request;
     });
-    await request;
+    final items = await request;
+    if (!mounted) return;
+    final hasActiveSearch = _searchQuery.isNotEmpty ||
+        _selectedType != null ||
+        _selectedColor != null ||
+        _selectedLocation != null;
+    if (hasActiveSearch) {
+      AccessibilityService.announce(
+        context,
+        '${items.length} inventory ${items.length == 1 ? 'item' : 'items'} found',
+      );
+    }
   }
 
   Future<void> _refreshData() async {
@@ -195,37 +207,42 @@ class _InventoryScreenState extends State<InventoryScreen> {
               child: Column(
                 children: [
                   // Search bar
-                  Semantics(
-                    label: 'Search inventory',
-                    textField: true,
-                    child: TextField(
-                      controller: _searchController,
-                      focusNode: _searchFocusNode,
-                      decoration: InputDecoration(
-                        hintText: 'Search code, size, color, type, or location',
-                        prefixIcon: const Icon(Icons.search),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
+                  FocusTraversalGroup(
+                    policy: OrderedTraversalPolicy(),
+                    child: Semantics(
+                      label: 'Search inventory',
+                      textField: true,
+                      child: TextField(
+                        controller: _searchController,
+                        focusNode: _searchFocusNode,
+                        decoration: InputDecoration(
+                          hintText:
+                              'Search code, size, color, type, or location',
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          suffixIcon: _searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  tooltip: 'Clear inventory search',
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    _searchQuery = '';
+                                    _loadInventory();
+                                    // Clear focus to dismiss keyboard
+                                    _searchFocusNode.unfocus();
+                                  },
+                                )
+                              : null,
                         ),
-                        suffixIcon: _searchQuery.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  _searchQuery = '';
-                                  _loadInventory();
-                                  // Clear focus to dismiss keyboard
-                                  _searchFocusNode.unfocus();
-                                },
-                              )
-                            : null,
+                        onChanged: _onSearchChanged,
+                        // Dismiss keyboard when done/submit button is pressed
+                        textInputAction: TextInputAction.search,
+                        onSubmitted: (_) {
+                          _searchFocusNode.unfocus();
+                        },
                       ),
-                      onChanged: _onSearchChanged,
-                      // Dismiss keyboard when done/submit button is pressed
-                      textInputAction: TextInputAction.search,
-                      onSubmitted: (_) {
-                        _searchFocusNode.unfocus();
-                      },
                     ),
                   ),
                   const SizedBox(height: 8),
