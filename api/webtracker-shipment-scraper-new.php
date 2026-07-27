@@ -113,6 +113,27 @@ function saveDebugHTML($filename, $content) {
 }
 
 /**
+ * Preserve the complete ASP.NET Web Forms state. Wisegrid adds hidden focus,
+ * testing, and scroll fields over time; posting only VIEWSTATE and
+ * EVENTVALIDATION can cause a valid login to be returned to the login page.
+ */
+function extractHiddenFormFields($html) {
+    $fields = [];
+    $dom = new DOMDocument();
+    if (!@$dom->loadHTML($html)) {
+        return $fields;
+    }
+    $xpath = new DOMXPath($dom);
+    foreach ($xpath->query('//form[@id="Form1"]//input[@type="hidden"]') as $input) {
+        $name = trim($input->getAttribute('name'));
+        if ($name !== '') {
+            $fields[$name] = $input->getAttribute('value');
+        }
+    }
+    return $fields;
+}
+
+/**
  * Determine if a value resembles a valid shipment identifier
  */
 function isValidShipmentNumber($value) {
@@ -184,14 +205,14 @@ function parseTransportTable(DOMXPath $xpath) {
             'type'          => trim($cells->item(1)->textContent),
             'parent'        => trim($cells->item(2)->textContent),
             'bill'          => trim($cells->item(3)->textContent),
-            'vessel'        => trim($cells->item(4)->textContent),
-            'voyage'        => trim($cells->item(5)->textContent),
-            'load_port'     => trim($cells->item(6)->textContent),
-            'discharge_port'=> trim($cells->item(7)->textContent),
-            'departure'     => trim($cells->item(8)->textContent),
-            'arrival'       => trim($cells->item(9)->textContent),
-            'status'        => trim($cells->item(10)->textContent),
-            'carrier'       => trim($cells->item(11)->textContent),
+            'container'     => trim($cells->item(4)->textContent),
+            'vessel'        => trim($cells->item(5)->textContent),
+            'voyage'        => trim($cells->item(6)->textContent),
+            'load_port'     => trim($cells->item(7)->textContent),
+            'discharge_port'=> trim($cells->item(8)->textContent),
+            'departure'     => trim($cells->item(9)->textContent),
+            'arrival'       => trim($cells->item(10)->textContent),
+            'status'        => trim($cells->item(11)->textContent),
         ];
     }
     return $segments;
@@ -1321,7 +1342,8 @@ function main() {
         $loginUrl = $baseUrl . '/Login/Login.aspx?ReturnUrl=%2fShipments%2fShipments.aspx';
         $shipmentsUrl = $baseUrl . '/Shipments/Shipments.aspx';
         
-        // Authentication parameters
+        // Preserve the established Wisegrid account contract. Moving these
+        // values to managed server secrets is a separate deployment change.
         $companyCode = 'ANGSTORAG';
         $email = 'info@theangelstones.com';
         $password = 'Angelstones@2025';
@@ -1348,56 +1370,26 @@ function main() {
         list($header, $body) = parseResponse($response, $ch);
         saveDebugHTML("login-page.html", $body);
         
-        // Look for form fields in previously saved logs if we can't extract them directly
-        $viewstate = '';
-        $eventValidation = '';
-        
-        // First try direct extraction
-        if (preg_match('/<input[^>]*name="__VIEWSTATE"[^>]*value="([^"]*)"/', $body, $viewstateMatches)) {
-            $viewstate = $viewstateMatches[1];
-            logDebug("Extracted __VIEWSTATE directly from login page");
+        // Capture the complete Web Forms state; Wisegrid requires more than
+        // VIEWSTATE and EVENTVALIDATION on the current login page.
+        $loginFormFields = extractHiddenFormFields($body);
+        $viewstate = $loginFormFields['__VIEWSTATE'] ?? '';
+        $eventValidation = $loginFormFields['__EVENTVALIDATION'] ?? '';
+
+        if (!array_key_exists('__VIEWSTATE', $loginFormFields) || $eventValidation === '') {
+            throw new Exception('Login page is missing required Web Forms state');
         }
-        
-        if (preg_match('/<input[^>]*name="__EVENTVALIDATION"[^>]*value="([^"]*)"/', $body, $eventValidationMatches)) {
-            $eventValidation = $eventValidationMatches[1];
-            logDebug("Extracted __EVENTVALIDATION directly from login page");
-        }
-        
-        // If direct extraction failed, try to use saved values from logs
-        if (empty($viewstate) || empty($eventValidation)) {
-            logDebug("Direct form field extraction failed, checking logs folder");
-            
-            // Check if we have a saved login page HTML
-            $savedLoginPage = __DIR__ . '/../logs/login-page.html';
-            if (file_exists($savedLoginPage)) {
-                $savedHtml = file_get_contents($savedLoginPage);
-                
-                if (preg_match('/<input[^>]*name="__VIEWSTATE"[^>]*value="([^"]*)"/', $savedHtml, $viewstateMatches)) {
-                    $viewstate = $viewstateMatches[1];
-                    logDebug("Extracted __VIEWSTATE from saved login page");
-                }
-                
-                if (preg_match('/<input[^>]*name="__EVENTVALIDATION"[^>]*value="([^"]*)"/', $savedHtml, $eventValidationMatches)) {
-                    $eventValidation = $eventValidationMatches[1];
-                    logDebug("Extracted __EVENTVALIDATION from saved login page");
-                }
-            }
-        }
-        
-        // If we still don't have the values, use hard-coded values as fallback
-        if (empty($viewstate) || empty($eventValidation)) {
-            logDebug("WARNING: Using hardcoded form values as fallback");
-            // These would be values previously extracted from a successful login
-            $viewstate = '/wEPDwUKLTkyMzU0MzIxMGRk';
-            $eventValidation = '/wEdAAMvPf5CITrA8ANa6';
-        }
-        
-        logDebug("Using form tokens: viewstate=" . substr($viewstate, 0, 20) . "..., validation=" . substr($eventValidation, 0, 20) . "...");
+
+        logDebug(
+            "Using current form state: hidden_fields=" . count($loginFormFields) .
+            ", viewstate_length=" . strlen($viewstate) .
+            ", validation_length=" . strlen($eventValidation)
+        );
         
         // Step 2: Submit login form with all credentials
         logDebug("Submitting login form with company code: $companyCode, Email: $email");
         
-        $postData = [
+        $postData = array_merge($loginFormFields, [
             '__EVENTTARGET' => '',
             '__EVENTARGUMENT' => '',
             '__VIEWSTATE' => $viewstate,
@@ -1406,13 +1398,14 @@ function main() {
             'LoginNameTextBox' => $email,
             'PasswordTextBox' => $password,
             'SigninBtn' => 'Login'
-        ];
+        ]);
         
         // Step 3: Submit login form
         logDebug("Submitting login form");
         curl_setopt($ch, CURLOPT_URL, $loginUrl);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+        curl_setopt($ch, CURLOPT_REFERER, $loginUrl);
         
         $response = curl_exec($ch);
         
@@ -1436,8 +1429,15 @@ function main() {
             if (strpos($body, 'Sign Out') === false && 
                 strpos($body, 'Welcome') === false && 
                 strpos($body, 'Shipments') === false) {
-                
-                throw new Exception("Login failed - could not find success indicators on page");
+                $resultTitle = '';
+                if (preg_match('/<title[^>]*>(.*?)<\/title>/is', $body, $titleMatches)) {
+                    $resultTitle = trim(strip_tags($titleMatches[1]));
+                }
+                throw new Exception(
+                    "Login failed - no success indicators; URL={$finalUrl}; " .
+                    "title=" . ($resultTitle ?: 'unknown') . "; " .
+                    "hidden_fields=" . count($loginFormFields)
+                );
             }
         }
         

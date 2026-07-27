@@ -14,11 +14,14 @@ $baseUrl = $config['baseUrl'];
 $authToken = $config['authToken'];
 
 // Function to simulate API calls
-function callApi($endpoint, $token) {
+function callApi($endpoint, $token, $id = null) {
     global $baseUrl;
     
     // Build full URL
-    $url = "$baseUrl/api/shipping_endpoints.php?endpoint=$endpoint";
+    $url = "$baseUrl/api/shipping_endpoints.php?endpoint=" . urlencode($endpoint);
+    if ($id !== null && $id !== '') {
+        $url .= '&id=' . urlencode($id);
+    }
     
     // Initialize cURL
     $ch = curl_init();
@@ -90,7 +93,7 @@ if ($result['success'] && !empty($result['data']['shipments'])) {
     $shipmentId = $result['data']['shipments'][0];
     
     echo "Testing getShippingDetails endpoint with ID: $shipmentId...\n";
-    $detailResult = callApi("getShippingDetails/$shipmentId", $authToken);
+    $detailResult = callApi('getShippingDetails', $authToken, $shipmentId);
     
     if ($detailResult['success']) {
         echo "SUCCESS (HTTP {$detailResult['status']})\n";
@@ -99,6 +102,14 @@ if ($result['success'] && !empty($result['data']['shipments'])) {
     } else {
         echo "FAILED (HTTP {$detailResult['status']})\n";
         echo "Error: " . json_encode($detailResult['data']) . "\n";
+    }
+
+    echo "\nTesting getShippingDetailsV2 with ID: $shipmentId...\n";
+    $v2Result = callApi('getShippingDetailsV2', $authToken, $shipmentId);
+    if ($v2Result['success'] && ($v2Result['data']['apiVersion'] ?? null) === '2') {
+        echo "SUCCESS (HTTP {$v2Result['status']}) - versioned contract returned\n";
+    } else {
+        echo "FAILED (HTTP {$v2Result['status']}) - versioned contract unavailable\n";
     }
 } else {
     echo "Skipping getShippingDetails test - no shipments available\n";
