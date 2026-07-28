@@ -1,0 +1,67 @@
+# robots.txt for theangelstones.com
+# Last updated: 2026-02-25
+
+User-agent: *
+
+# Block sensitive system folders and files
+Disallow: /includes/
+Disallow: /config/
+Disallow: /cache/
+Disallow: /cgi-bin/
+Disallow: /admin/
+Disallow: /wp-admin/
+Disallow: /wp-includes/
+Disallow: /wp-content/plugins/
+Disallow: /wp-content/cache/
+Disallow: /wp-json/
+Disallow: /xmlrpc.php
+Disallow: /feed/
+Disallow: /*/feed/
+Disallow: /*/feed/rss/$
+Disallow: /trackback/
+
+# Block search and filter pages (specific patterns only — do NOT block all query strings)
+Disallow: /search/
+Disallow: /?s=
+
+# Block admin and utility pages from indexing
+Disallow: /promotions.html
+Disallow: /clear-cache.php
+Disallow: /upgrademautic.php
+
+# Block error pages
+Disallow: /404.html
+Disallow: /500.html
+Disallow: /error/
+Disallow: /errors/
+
+# Block development and testing files
+Disallow: /*.php$
+Disallow: /*.sql$
+Disallow: /*.log$
+Disallow: /*.bak$
+Disallow: /*.old$
+Disallow: /*.swp$
+Disallow: /*.tmp$
+
+# Allow important assets for page rendering
+Allow: /*.js$
+Allow: /*.css$
+Allow: /*.js?*
+Allow: /*.css?*
+
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.png$
+Allow: /*.gif$
+Allow: /*.webp$
+Allow: /*.svg$
+Allow: /*.ico$
+
+Allow: /*.woff$
+Allow: /*.woff2$
+Allow: /*.ttf$
+Allow: /*.eot$
+
+# Sitemap
+Sitemap: https://www.theangelstones.com/sitemap.xml

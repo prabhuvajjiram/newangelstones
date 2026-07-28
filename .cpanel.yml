@@ -1,9 +1,0 @@
-deployment:
-  tasks:
-    - export DEPLOYPATH=/home/theangel/public_html
-    - /usr/bin/env rsync -av --delete --exclude-from=.deployignore ./ $DEPLOYPATH
-    - /bin/find $DEPLOYPATH -type f \( -name "*.sql" -o -name "*.log" -o -name "*.map" -o -name "*.bak" -o -name "*.old" -o -name "*.orig-bak" -o -name "*.xlsx" -o -name "*.xls" -o -name "*token*.json" -o -name "cookies.txt" -o -name "users.txt" -o -name "payment_email_log.txt" -o -name "Angestonescrm.json" \) -delete
-    - /bin/find $DEPLOYPATH -type d \( -name "secure_storage" -o -name "mobile_app" -o -name ".idx" -o -name ".kiro" \) -prune -exec /bin/rm -rf {} \;
-    - /bin/chmod -R 755 $DEPLOYPATH
-    - /bin/find $DEPLOYPATH -type d -exec chmod 755 {} \;
-    - /bin/find $DEPLOYPATH -type f -exec chmod 644 {} \;

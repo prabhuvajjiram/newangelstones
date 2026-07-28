@@ -1,10 +1,27 @@
 {
-  "dependencies": {
-    "@playwright/test": "^1.52.0",
-    "cheerio": "^1.0.0",
-    "playwright": "^1.52.0"
+  "name": "angelstones-platform",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace @angelstones/web",
+    "build:web": "npm run build --workspace @angelstones/web",
+    "build:web:cpanel": "npm run build:cpanel --workspace @angelstones/web",
+    "build:web:cpanel:new": "NEXT_PUBLIC_BASE_PATH=/new npm run build:cpanel --workspace @angelstones/web",
+    "prepare:cpanel": "npm run build:web:cpanel && node scripts/package-cpanel.mjs",
+    "prepare:cpanel:new": "npm run build:web:cpanel:new && CPANEL_PACKAGE_NAME=cpanel-new CPANEL_BASE_PATH=/new node scripts/package-cpanel.mjs",
+    "qa:cpanel": "node scripts/qa-cpanel.mjs",
+    "qa:cpanel:new": "CPANEL_PACKAGE_NAME=cpanel-new CPANEL_BASE_PATH=/new node scripts/qa-cpanel.mjs",
+    "test:web:e2e": "playwright test tests/next-cpanel.spec.js",
+    "test:accessibility": "playwright test tests/accessibility.spec.js",
+    "test:staging": "playwright test tests/staging-cpanel.spec.js"
   },
   "devDependencies": {
-    "terser": "^5.46.1"
+    "@axe-core/playwright": "^4.12.1",
+    "@playwright/test": "^1.52.0",
+    "cheerio": "^1.0.0",
+    "sharp": "0.35.3"
   }
 }

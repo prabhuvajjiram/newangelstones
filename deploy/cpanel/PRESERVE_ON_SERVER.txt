@@ -1,0 +1,67 @@
+This package is an overlay. It must not be deployed with delete or mirror-delete enabled.
+This checklist is a private release artifact kept beside the ZIP. Do not upload
+it into public_html.
+
+The following existing server paths are intentionally absent and must be preserved unchanged:
+
+/crm/
+/chat/
+/creditapp/
+/giveaway/
+/forms/
+/uploads/
+/logs/
+/cache/
+/.well-known/
+/APIDownload/
+/app/
+/mobile_app/
+/api/shipment_db_config.php
+/api/admin_auth.php
+/api/admin_guard.php
+/api/config.php
+/api/promotions_api.php
+/api/upload_image.php
+/api/webtracker-shipment-scraper-new.php
+/promotions.html
+/order_quote_form.php
+/process_order_quote.php
+/payment-confirmation.php
+/receipt-generator.php
+/send_email.php
+/send_payment_email.php
+/dailysesbouncereport.php
+/mauticseshandler.php
+/upgrademautic.php
+/update-colors-json.php
+/turnstile-config.php (outside public_html on the current server)
+all server-only environment, credential, token, database, upload and generated-document files
+
+The new Next.js public site does not link to, import from, package, or call /crm.
+It also does not overwrite the preserved legacy/mobile API endpoints, root
+directory-listing helpers, or SpecialsManager.
+
+Product image updates retain the existing hybrid workflow:
+- Upload a JPG, JPEG, PNG or GIF into /images/products/<category>/.
+- /get_directory_files.php discovers the image and stores its directory result
+  under /cache/ for up to one hour.
+- The public collection and inventory pages merge that live API result over
+  their packaged image fallback, so a site rebuild is not required for a new
+  image in an existing product collection.
+- An inventory reference image filename must contain its AG-, AS- or DF- design
+  number so it can be matched to the corresponding inventory record.
+- A later package rebuild creates the optimized inventory thumbnail; until
+  then, the uploaded source image is used directly.
+
+The package intentionally includes /update-sitemap.php. It replaces the old
+cron implementation so future scheduled runs retain the new static routes,
+color pages, resource pages, location pages and curated design pages.
+
+/update-colors-json.php may continue supporting legacy/mobile color data, but
+the public website does not change that API or its JSON response. The website
+build scans the verified /images/colors/ library to create complete color SEO
+pages and preserve existing color URLs. /get_color_images.php is consumed
+read-only so a newly uploaded color sample can appear in the main color grid
+without changing the mobile API. Creating the new color's dedicated static SEO
+detail page and sitemap entry still requires a fresh Next.js build and overlay
+package; the color JSON cron alone cannot create static HTML.

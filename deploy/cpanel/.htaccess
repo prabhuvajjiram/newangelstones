@@ -1,0 +1,82 @@
+# Angel Granites Next.js static export + CRM-free PHP API overlay
+Options -Indexes
+DirectoryIndex index.html index.php
+ErrorDocument 404 /404.html
+
+RewriteEngine On
+
+# Canonical HTTPS + www host.
+RewriteCond %{HTTPS} !=on [OR]
+RewriteCond %{HTTP_HOST} !^www\.theangelstones\.com$ [NC]
+RewriteRule ^ https://www.theangelstones.com%{REQUEST_URI} [R=301,L]
+
+# Preserve old legal links while using the themed canonical routes.
+RewriteRule ^privacy-policy\.html$ /privacy-policy/ [R=301,L]
+RewriteRule ^terms-of-service\.html$ /terms-of-service/ [R=301,L]
+RewriteRule ^sms-terms\.html$ /sms-terms/ [R=301,L]
+RewriteRule ^discovered\.html$ /monuments/ [R=301,L]
+RewriteRule ^colors/granite/?$ /granite-colors/ [R=301,L]
+
+# Preserve collection deep links used by the legacy one-page catalog.
+RewriteCond %{QUERY_STRING} (^|&)category=mbna_2025(&|$) [NC]
+RewriteRule ^$ /mbna-2025/ [R=301,L,QSD]
+RewriteCond %{QUERY_STRING} (^|&)category=monuments(&|$) [NC]
+RewriteRule ^$ /monuments/ [R=301,L,QSD]
+RewriteCond %{QUERY_STRING} (^|&)category=columbarium(&|$) [NC]
+RewriteRule ^$ /columbarium/ [R=301,L,QSD]
+RewriteCond %{QUERY_STRING} (^|&)category=designs(&|$) [NC]
+RewriteRule ^$ /designs/ [R=301,L,QSD]
+RewriteCond %{QUERY_STRING} (^|&)category=benches(&|$) [NC]
+RewriteRule ^$ /benches/ [R=301,L,QSD]
+
+# Static export routes are real files/directories. PHP endpoints remain real files.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Never use the legacy PHP SPA fallback for the new public site.
+RewriteRule ^ - [R=404,L]
+
+<FilesMatch "\.(sql|log|bak|backup|old|orig-bak|map|xlsx|xls|ini|ya?ml|lock)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+<FilesMatch "^(?:(?:.*-)?PRESERVE_ON_SERVER\.txt|(?:package|cpanel(?:-new)?)-manifest\.json)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+<IfModule mod_mime.c>
+  AddType text/plain .txt
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+  <FilesMatch "\.(?:css|js|woff|woff2|ttf|otf)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  <FilesMatch "\.(?:jpg|jpeg|png|gif|webp|svg|ico|mp4|webm|pdf|html|xml|json)$">
+    Header set Cache-Control "public, max-age=3600, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css application/javascript application/json image/svg+xml
+</IfModule>

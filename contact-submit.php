@@ -52,6 +52,9 @@ $ch = curl_init('https://challenges.cloudflare.com/turnstile/v0/siteverify');
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
 curl_setopt($ch, CURLOPT_TIMEOUT, 20);
 
 $response = curl_exec($ch);
@@ -105,14 +108,28 @@ curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $forwardData);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+curl_setopt($ch, CURLOPT_POSTREDIR, CURL_REDIR_POST_ALL);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
 curl_setopt($ch, CURLOPT_TIMEOUT, 20);
 
 $mauticResponse = curl_exec($ch);
 $mauticHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-if ($mauticResponse === false) {
+if (
+    $mauticResponse === false ||
+    $mauticHttpCode < 200 ||
+    $mauticHttpCode >= 300
+) {
+    error_log(
+        'Contact form Mautic delivery failed: ' .
+        ($mauticResponse === false
+            ? curl_error($ch)
+            : 'HTTP ' . $mauticHttpCode)
+    );
     curl_close($ch);
-    http_response_code(500);
+    http_response_code(502);
     exit(json_encode(['success' => false, 'message' => 'Could not submit your message. Please try again.']));
 }
 

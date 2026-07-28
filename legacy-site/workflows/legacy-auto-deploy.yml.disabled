@@ -1,0 +1,68 @@
+name: 🚀 Auto Deploy to cPanel (FTPS, v5)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: FTP Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy to cPanel with FTPS and deletion
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_HOST }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        protocol: ftps
+        port: 21
+        server-dir: ${{ secrets.FTP_REMOTE_DIR }}
+        local-dir: ./
+        delete: true
+        #max-ftp-threads: 10             # ✅ Upload multiple files in parallel
+        exclude: |
+          **/.git*
+          **/.github*
+          **/.idx/**
+          **/.kiro/**
+          README.md
+          .env
+          *.env
+          **/.env
+          **/.env.*
+          **/*.log
+          **/*.sql
+          **/*.map
+          **/*.bak
+          **/*.backup*
+          **/*.old
+          **/*.orig-bak
+          **/*.xlsx
+          **/*.xls
+          **/*.ini
+          **/*.yml
+          **/*.yaml
+          **/*.lock
+          **/*token*.json
+          **/cookies.txt
+          **/users.txt
+          **/payment_email_log.txt
+          **/Angestonescrm.json
+          **/secure_storage/**
+          **/mobile_app/**
+          **/tests/**
+          **/test/**
+          **/test*.php
+          **/*test*.php
+          **/quick_debug.php
+          **/check_db.php
+          **/troubleshoot*.php
+          **/check_all_tables.php
+          node_modules/
+          dist/

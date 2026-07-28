@@ -218,3 +218,11 @@ chat/users.txt
 chat/.ringcentral_token.json
 chat/secure_storage/
 payment_email_log.txt
+
+# Next.js and cPanel build artifacts
+apps/web/.next/
+apps/web/out/
+apps/web/tsconfig.tsbuildinfo
+dist/
+test-results/
+playwright-report/

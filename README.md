@@ -1,177 +1,65 @@
-# Angel Stones
+# Angel Stones platform
 
-PHP and HTML5 based product catalog and showcase application.
-For mobile users, a Flutter app skeleton is available in `mobile_app/`. See that directory for setup instructions.
+This repository contains the current Angel Granites public website, its cPanel
+deployment overlay, the Angel Granites mobile app and the preserved operational
+services that remain deployed beside the public site.
 
-## SEO Features
+## Active project layout
 
-### Dynamic Sitemap
-- Automatically generates `sitemap.xml` with all color pages and images
-- Updates automatically when new colors are added
-- Includes proper XML formatting and SEO metadata
+- `apps/web/` — Next.js public website.
+- `images/` — shared product, color, flyer and website media.
+- `mobile_app/` — Flutter app for Apple, Android and Microsoft platforms.
+- `api/` — mobile and preserved server APIs.
+- `deploy/cpanel/` — production `.htaccess` and server-preservation notes.
+- `scripts/` — static-export packaging and cPanel validation.
+- `tests/` — current Next.js, staging and accessibility tests.
+- `docs/` — migration, staging and production-preservation documentation.
+- `contact-submit.php`, `inventory-proxy.php`, `update-sitemap.php` — PHP
+  endpoints intentionally included in the public-site overlay.
+- `crm/`, `chat/`, `creditapp/`, `giveaway/`, `forms/`, `app/`, `cache/` and
+  related PHP utilities — separately deployed operational applications. These
+  are preserved in place and are not included in the public-site package.
+- `legacy-site/` — archived, retired public-theme code. It is not part of the
+  current build or deployment.
 
-### Color JSON API
-- Structured data for all colors in `/api/color.json`
-- Includes high-quality images, descriptions, and metadata
-- Used for both display and SEO purposes
+## Development
 
-## API Documentation
-
-The application provides the following API endpoints:
-
-## Maintenance Scripts
-
-### Update Sitemap
-```bash
-php update-sitemap.php
+```sh
+npm install
+npm run dev:web
 ```
 
-### Update Color JSON
-```bash
-php update-colors-json.php
+Build the current public site:
+
+```sh
+npm run build:web
 ```
 
-### 1. Directory Files API
+## cPanel production package
 
-This API retrieves the list of files and directories from a specified location.
-
-#### Endpoints
-
-##### Get All Product Categories
-
-```
-GET get_directory_files.php?directory=products
+```sh
+NEXT_TELEMETRY_DISABLED=1 CI=1 npm run prepare:cpanel
+npm run qa:cpanel
 ```
 
-###### Example (curl):
-```bash
-curl -X GET "http://localhost/newangelstones/get_directory_files.php?directory=products"
+The reviewed deployment directory is written to `dist/cpanel/`. Create a ZIP
+from the contents of that directory only after QA and business approval.
+
+Production deployment is an overlay. Never use delete or mirror-delete, and do
+not overwrite or remove the preserved operational paths listed in
+`deploy/cpanel/PRESERVE_ON_SERVER.txt`.
+
+## Tests
+
+The Playwright suites expect a built package served at the URL documented by
+each suite:
+
+```sh
+npm run test:web:e2e
+npm run test:accessibility
+npm run test:staging
 ```
 
-###### Response:
-```json
-{
-  "success": true,
-  "files": [
-    {
-      "name": "Category1",
-      "path": "images/products/Category1",
-      "thumbnail": "images/products/Category1/sample.jpg"
-    },
-    {
-      "name": "Category2",
-      "path": "images/products/Category2",
-      "thumbnail": "images/products/Category2/sample.jpg"
-    }
-  ]
-}
-```
-
-##### Get Category Contents
-
-```
-GET get_directory_files.php?directory=products/{category_name}
-```
-
-###### Example (curl):
-```bash
-curl -X GET "http://localhost/newangelstones/get_directory_files.php?directory=products/MBNA_2025"
-```
-
-###### Response:
-```json
-{
-  "success": true,
-  "files": [
-    {
-      "name": "product1",
-      "path": "images/products/MBNA_2025/product1.png",
-      "size": 68492,
-      "type": "image/png",
-      "extension": "png",
-      "fullname": "product1.png"
-    },
-    {
-      "name": "product2",
-      "path": "images/products/MBNA_2025/product2.png",
-      "size": 85236,
-      "type": "image/png",
-      "extension": "png",
-      "fullname": "product2.png"
-    }
-  ]
-}
-```
-
-##### Search Products
-
-```
-GET get_directory_files.php?search={search_term}
-```
-
-###### Example (curl):
-```bash
-curl -X GET "http://localhost/newangelstones/get_directory_files.php?search=stone"
-```
-
-###### Response:
-```json
-{
-  "success": true,
-  "files": [
-    {
-      "name": "bluestone",
-      "path": "images/products/Stones/bluestone.jpg",
-      "category": "Stones",
-      "size": 125600,
-      "type": "image/jpeg",
-      "extension": "jpg",
-      "fullname": "bluestone.jpg"
-    }
-  ]
-}
-```
-
-### 2. Image Serving API
-
-This API serves images with cache control to prevent browser caching.
-
-#### Endpoint
-
-```
-GET serve_image.php?path={image_path}
-```
-
-###### Example (curl):
-```bash
-curl -X GET "http://localhost/newangelstones/serve_image.php?path=images/products/MBNA_2025/product1.png" --output product1.png
-```
-
-## Frontend Features
-
-The application includes the following key features:
-
-1. Thumbnail-first approach:
-   - Initially shows thumbnails when a category is opened
-   - Clicking on a thumbnail displays the main carousel view
-   - Search results also follow the thumbnail-first pattern
-
-2. Horizontally scrollable thumbnails layout:
-   - Main image display (65% height) with thumbnails below (35% height)
-   - Horizontally scrollable thumbnails with proper styling and active state indication
-   - Fullscreen view with navigation controls
-   - Mobile-responsive design that adjusts thumbnail sizes based on screen width
-
-3. Image handling:
-   - Improved error handling for image loading with fallbacks
-   - Special handling for the MBNA_2025 category using PNG files by default
-   - Loading indicators and error messages for better user experience
-
-## Browser Support
-
-The application is designed to work with modern browsers including:
-- Chrome
-- Firefox
-- Edge
-- Safari
-\nSee [docs/git-conflict-resolution.md](docs/git-conflict-resolution.md) for help resolving merge conflicts.
+The Microsoft Store workflow remains under `.github/workflows/`. Automatic
+whole-repository FTP deployment is retired because it could delete preserved
+server applications.

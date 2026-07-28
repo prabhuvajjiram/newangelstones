@@ -32,9 +32,91 @@ header('Pragma: no-cache');
 header('Expires: 0');
 header('Cloudflare-CDN-Cache-Control: no-cache'); // Specific Cloudflare directive
 
+/**
+ * Return the inventory list in a compact wire format while preserving every
+ * field used by intelligent search, filters, cards, and detail lookups.
+ */
+function compact_inventory_payload($payload) {
+    if (!is_array($payload)) {
+        return $payload;
+    }
+
+    $records = [];
+    if (isset($payload['data']) && is_array($payload['data'])) {
+        $records = $payload['data'];
+    } elseif (isset($payload['Data']) && is_array($payload['Data'])) {
+        $records = $payload['Data'];
+    }
+
+    $items = array_map(function ($record) {
+        return [
+            'c' => $record['EndProductCode'] ?? '',
+            'd' => $record['EndProductDescription'] ?? '',
+            't' => $record['Ptype'] ?? '',
+            'g' => $record['PColor'] ?? '',
+            'n' => $record['PDesign'] ?? '',
+            'f' => $record['PFinish'] ?? '',
+            's' => $record['Size'] ?? '',
+            'l' => $record['Locationname'] ?? '',
+            'q' => $record['Qty'] ?? ''
+        ];
+    }, $records);
+
+    return [
+        'success' => $payload['success'] ?? true,
+        'data' => $items,
+        'count' => count($items),
+        'cached' => $payload['cached'] ?? false
+    ];
+}
+
+/**
+ * Send JSON with explicit gzip support. Apache may also compress JSON, but
+ * doing it here keeps the endpoint efficient on cPanel variants and the local
+ * PHP preview server.
+ */
+function send_json_payload($payload, $compact = false) {
+    if ($compact) {
+        $payload = compact_inventory_payload($payload);
+    }
+
+    $json = json_encode($payload, JSON_UNESCAPED_SLASHES);
+    if ($json === false) {
+        http_response_code(500);
+        $json = '{"success":false,"error":"Failed to encode inventory response"}';
+    }
+
+    $accept_encoding = strtolower((string) ($_SERVER['HTTP_ACCEPT_ENCODING'] ?? ''));
+    if (
+        strlen($json) > 1024 &&
+        strpos($accept_encoding, 'gzip') !== false &&
+        function_exists('gzencode')
+    ) {
+        $compressed = gzencode($json, 6);
+        if ($compressed !== false) {
+            header('Content-Encoding: gzip');
+            header('Vary: Accept-Encoding', false);
+            header('Content-Length: ' . strlen($compressed));
+            echo $compressed;
+            exit;
+        }
+    }
+
+    echo $json;
+    exit;
+}
+
 // Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
+    exit;
+}
+if (!in_array($_SERVER['REQUEST_METHOD'], ['GET', 'POST'], true)) {
+    http_response_code(405);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Method not allowed'
+    ]);
     exit;
 }
 
@@ -49,6 +131,83 @@ $org_id = 2;
 
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
+
+// Local cPanel preview: use the deployed public proxy when the private API key
+// is intentionally not installed on the developer machine. The browser still
+// calls this same-origin endpoint, credentials are never exposed, and deployed
+// hosts continue to require their configured private key.
+$request_host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+if (substr($request_host, 0, 1) === '[' && strpos($request_host, ']') !== false) {
+    $request_host = trim(substr($request_host, 0, strpos($request_host, ']') + 1), '[]');
+} else {
+    $request_host = preg_replace('/:\d+$/', '', $request_host);
+}
+$is_local_preview = in_array($request_host, ['127.0.0.1', 'localhost', '::1'], true);
+
+if ($api_key === '' && $is_local_preview && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $allowed_preview_params = [
+        'page',
+        'pageSize',
+        'ptype',
+        'pcolor',
+        'pdesign',
+        'pfinish',
+        'psize',
+        'locid',
+        'description',
+        'hasdesc',
+        'action',
+        'epcode',
+        'format'
+    ];
+    $preview_params = array_intersect_key(
+        $_GET,
+        array_flip($allowed_preview_params)
+    );
+    $preview_url = 'https://www.theangelstones.com/inventory-proxy.php';
+    if ($preview_params !== []) {
+        $preview_url .= '?' . http_build_query($preview_params);
+    }
+
+    $preview_ch = curl_init($preview_url);
+    curl_setopt_array($preview_ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => false,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_SSL_VERIFYHOST => 2,
+        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_TIMEOUT => 60,
+        CURLOPT_HTTPHEADER => ['Accept: application/json']
+    ]);
+    $preview_response = curl_exec($preview_ch);
+    $preview_status = curl_getinfo($preview_ch, CURLINFO_HTTP_CODE);
+    $preview_error = curl_error($preview_ch);
+
+    if ($preview_response === false || $preview_status !== 200) {
+        http_response_code(502);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Live inventory preview is temporarily unavailable',
+            'detail' => $preview_error ?: 'Upstream status ' . $preview_status
+        ]);
+        exit;
+    }
+
+    $preview_payload = json_decode($preview_response, true);
+    if (!is_array($preview_payload)) {
+        http_response_code(502);
+        send_json_payload([
+            'success' => false,
+            'error' => 'Live inventory preview returned invalid JSON'
+        ]);
+    }
+
+    http_response_code(200);
+    send_json_payload(
+        $preview_payload,
+        ($_GET['format'] ?? '') === 'compact'
+    );
+}
 
 if ($api_key === '') {
     http_response_code(503);
@@ -66,7 +225,7 @@ $start_time = microtime(true);
 $request_log = [
     'timestamp' => date('Y-m-d H:i:s'),
     'method' => $_SERVER['REQUEST_METHOD'],
-    'ip' => $_SERVER['REMOTE_ADDR'],
+    'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
     'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown',
     'get_params' => $_GET,
     'post_params' => $_POST
@@ -77,7 +236,15 @@ $params = array_merge($_GET, $_POST);
 
 // Check if this is a request for item details
 if (isset($params['action']) && $params['action'] === 'getDetails' && isset($params['epcode'])) {
-    $epcode = $params['epcode'];
+    $epcode = trim((string) $params['epcode']);
+    if ($epcode === '' || strlen($epcode) > 160 || preg_match('/[\x00-\x1F\x7F]/', $epcode)) {
+        http_response_code(400);
+        send_json_payload([
+            'success' => false,
+            'error' => 'Invalid inventory product code',
+            'stones' => []
+        ]);
+    }
     
     // Auto-cleanup old cache files (older than 7 days) - runs randomly 1% of the time
     if (CACHE_ENABLED && rand(1, 100) === 1) {
@@ -126,7 +293,10 @@ if (isset($params['action']) && $params['action'] === 'getDetails' && isset($par
         'Content-Type: application/json',
         'X-API-Key: ' . $api_key
     ]);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
     curl_setopt($ch, CURLOPT_TIMEOUT, 60);
     
     $response = curl_exec($ch);
@@ -134,12 +304,16 @@ if (isset($params['action']) && $params['action'] === 'getDetails' && isset($par
     $curl_error = curl_error($ch);
     
     if ($curl_error || $http_code !== 200) {
-        echo json_encode([
+        error_log(
+            'Inventory detail upstream failure: ' .
+            ($curl_error ?: 'HTTP ' . $http_code)
+        );
+        http_response_code(502);
+        send_json_payload([
             'success' => false,
-            'error' => $curl_error ?: 'API returned status code: ' . $http_code,
+            'error' => 'Detailed inventory is temporarily unavailable',
             'stones' => []
         ]);
-        exit;
     }
     
     $data = json_decode($response, true);
@@ -178,15 +352,23 @@ if (isset($params['action']) && $params['action'] === 'getDetails' && isset($par
 }
 
 // Get parameters from request or set defaults
-$page = isset($params['page']) ? intval($params['page']) : 1;
-$pageSize = isset($params['pageSize']) ? intval($params['pageSize']) : 1000;
-$ptype = isset($params['ptype']) ? $params['ptype'] : '';
-$pcolor = isset($params['pcolor']) ? $params['pcolor'] : '';
-$pdesign = isset($params['pdesign']) ? $params['pdesign'] : '';
-$pfinish = isset($params['pfinish']) ? $params['pfinish'] : '';
-$psize = isset($params['psize']) ? $params['psize'] : '';
-$locid = isset($params['locid']) ? $params['locid'] : '';  // Empty string for all locations
-$description = isset($params['description']) ? $params['description'] : '';
+function bounded_request_string($params, $key, $maximum_length = 160) {
+    if (!isset($params[$key]) || is_array($params[$key])) {
+        return '';
+    }
+    $value = trim((string) $params[$key]);
+    return substr($value, 0, $maximum_length);
+}
+
+$page = max(1, min(10000, isset($params['page']) ? intval($params['page']) : 1));
+$pageSize = max(1, min(1000, isset($params['pageSize']) ? intval($params['pageSize']) : 1000));
+$ptype = bounded_request_string($params, 'ptype');
+$pcolor = bounded_request_string($params, 'pcolor');
+$pdesign = bounded_request_string($params, 'pdesign');
+$pfinish = bounded_request_string($params, 'pfinish');
+$psize = bounded_request_string($params, 'psize');
+$locid = bounded_request_string($params, 'locid');
+$description = bounded_request_string($params, 'description', 500);
 $hasdesc = isset($params['hasdesc']) ? $params['hasdesc'] === 'true' : false;
 
 // Create cache key based on request parameters (excluding timestamp which is just for cache-busting)
@@ -198,7 +380,9 @@ $cache_params = [
     'pdesign' => $pdesign,
     'pfinish' => $pfinish,
     'psize' => $psize,
-    'locid' => $locid
+    'locid' => $locid,
+    'description' => $description,
+    'hasdesc' => $hasdesc
 ];
 $cache_key = 'inventory_' . md5(json_encode($cache_params)) . '.json';
 $cache_file = CACHE_DIR . '/' . $cache_key;
@@ -262,15 +446,20 @@ function save_to_cache($cache_file, $data) {
 }
 
 // Check if we should force refresh (bypass cache)
-$force_refresh = isset($params['force_refresh']) && $params['force_refresh'] === 'true';
+$force_refresh =
+    $is_local_preview &&
+    isset($params['force_refresh']) &&
+    $params['force_refresh'] === 'true';
 
 // Try to get cached data first (unless force refresh is requested)
 if (!$force_refresh && CACHE_ENABLED) {
     $cached_data = get_cached_data($cache_file);
     if ($cached_data !== null) {
-        // Return cached data
-        echo json_encode($cached_data);
-        exit;
+        // Return cached data, optionally using the compact browser wire format.
+        send_json_payload(
+            $cached_data,
+            ($_GET['format'] ?? '') === 'compact'
+        );
     }
 }
 
@@ -291,7 +480,7 @@ $api_params = [
 
 // Function to handle errors and return consistent JSON response
 function return_error($message, $code = 500, $additional_data = []) {
-    global $start_time, $request_log, $api_params;
+    global $start_time, $request_log, $api_params, $is_local_preview;
     
     $execution_time = microtime(true) - $start_time;
     
@@ -299,12 +488,18 @@ function return_error($message, $code = 500, $additional_data = []) {
         'success' => false,
         'error' => $message,
         'error_code' => $code,
-        'execution_time' => round($execution_time, 4) . 's',
-        'debug' => array_merge($additional_data, [
+        'execution_time' => round($execution_time, 4) . 's'
+    ];
+    if (
+        $is_local_preview &&
+        isset($_GET['debug']) &&
+        $_GET['debug'] === 'true'
+    ) {
+        $response['debug'] = array_merge($additional_data, [
             'request' => $request_log,
             'api_params' => $api_params
-        ])
-    ];
+        ]);
+    }
     
     http_response_code($code);
     echo json_encode($response);
@@ -320,9 +515,9 @@ curl_setopt_array($ch, [
     CURLOPT_POST => true,
     CURLOPT_POSTFIELDS => json_encode($api_params),
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_FOLLOWLOCATION => true,
-    CURLOPT_SSL_VERIFYPEER => false, // For development only - should be true in production
-    CURLOPT_SSL_VERIFYHOST => false, // For development only - should be 2 in production
+    CURLOPT_FOLLOWLOCATION => false,
+    CURLOPT_SSL_VERIFYPEER => true,
+    CURLOPT_SSL_VERIFYHOST => 2,
     CURLOPT_TIMEOUT => 60,
     CURLOPT_CONNECTTIMEOUT => 15,
     CURLOPT_HTTPHEADER => [
@@ -336,9 +531,13 @@ $response = curl_exec($ch);
 
 // Check for cURL errors
 if (curl_errno($ch)) {
+    error_log(
+        'Inventory upstream cURL failure: ' .
+        curl_errno($ch) . ' ' . curl_error($ch)
+    );
     return_error(
-        'cURL error: ' . curl_error($ch), 
-        500, 
+        'Inventory service is temporarily unavailable',
+        502,
         [
             'curl_error_code' => curl_errno($ch),
             'curl_error_message' => curl_error($ch),
@@ -350,10 +549,12 @@ if (curl_errno($ch)) {
 // Check HTTP status code
 $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 if ($http_code != 200) {
+    error_log('Inventory upstream returned HTTP ' . $http_code);
     return_error(
-        'API returned non-200 HTTP status: ' . $http_code, 
-        $http_code, 
+        'Inventory service is temporarily unavailable',
+        502,
         [
+            'upstream_status' => $http_code,
             'curl_info' => curl_getinfo($ch),
             'response_sample' => substr($response, 0, 1000) . (strlen($response) > 1000 ? '...' : '')
         ]
@@ -385,9 +586,10 @@ $debug_info = [
 
 // Handle JSON parsing errors
 if ($json_error !== JSON_ERROR_NONE) {
+    error_log('Inventory upstream returned invalid JSON: ' . json_last_error_msg());
     return_error(
-        'Failed to parse API response: ' . json_last_error_msg(),
-        500,
+        'Inventory service returned an invalid response',
+        502,
         [
             'response_sample' => substr($response, 0, 1000) . (strlen($response) > 1000 ? '...' : '')
         ]
@@ -397,8 +599,8 @@ if ($json_error !== JSON_ERROR_NONE) {
 // Check if data is properly structured
 if (!is_array($data)) {
     return_error(
-        'API response is not a valid array',
-        500,
+        'Inventory service returned an invalid response',
+        502,
         [
             'response_type' => gettype($data),
             'response_sample' => substr($response, 0, 1000) . (strlen($response) > 1000 ? '...' : '')
@@ -476,4 +678,7 @@ if (isset($_GET['debug']) && $_GET['debug'] === 'true') {
 }
 
 // Return the JSON response
-echo json_encode($result);
+send_json_payload(
+    $result,
+    ($_GET['format'] ?? '') === 'compact'
+);
