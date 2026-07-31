@@ -192,7 +192,7 @@ class ImageSyncService {
   }
   
   /// Sync color images
-  /// Note: All 40 color images are bundled in assets/colors/, so we skip downloading
+  /// All reviewed color images are bundled in assets/colors/, so we skip downloading.
   Future<void> _syncColorImages() async {
     try {
       debugPrint('🔄 Syncing color images...');

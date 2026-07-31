@@ -125,7 +125,7 @@ export default function GraniteColorsPage() {
           </p>
         </div>
       </section>
-      <section className="section catalog-section">
+      <section className="section catalog-section" id="color-catalog">
         <div className="shell">
           <div className="section-heading color-catalog-heading">
             <span className="eyebrow">Polished stone samples</span>
@@ -133,6 +133,10 @@ export default function GraniteColorsPage() {
             <p>
               Search by a color name or family. Each sample opens a dedicated page
               with specification guidance and a direct current-inventory search.
+              {" "}For a currently requested monument color, compare{" "}
+              <Link className="text-link" href="/colors/blue-silk-granite/">
+                Silk Blue Granite, also called Blue Silk Granite
+              </Link>.
             </p>
           </div>
           <ColorGrid colors={graniteColors} />

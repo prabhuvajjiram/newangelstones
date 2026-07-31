@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ColorDetailClose } from "@/components/color-detail-close";
 import { SeoBreadcrumbs } from "@/components/seo-breadcrumbs";
 import { getColor, graniteColors } from "@/data/catalog";
 import { curatedDesigns } from "@/data/designs";
@@ -18,15 +19,39 @@ export async function generateMetadata({
   const { slug } = await params;
   const color = getColor(slug);
   if (!color) return {};
+  const isSilkBlue = color.slug === "blue-silk-granite";
+  const title = isSilkBlue
+    ? "Silk Blue Granite for Monuments & Headstones"
+    : `${color.name} Monument Stone`;
+  const description = isSilkBlue
+    ? "Silk Blue (Blue Silk) granite for wholesale monuments and headstones. Compare the polished sample, monument uses, finishes and current U.S. inventory."
+    : color.description;
   return {
-    title: `${color.name} Monument Stone`,
-    description: color.description,
+    title,
+    description,
+    keywords: isSilkBlue
+      ? [
+          "Silk Blue Granite",
+          "Blue Silk Granite",
+          "Silk Blue granite monument",
+          "Silk Blue granite headstone"
+        ]
+      : undefined,
     alternates: { canonical: `/colors/${color.slug}/` },
     openGraph: {
-      title: `${color.name} | Angel Granites`,
-      description: color.description,
+      title: isSilkBlue
+        ? "Silk Blue Granite for Monuments | Angel Granites"
+        : `${color.name} | Angel Granites`,
+      description,
       url: `${site.url}/colors/${color.slug}/`,
-      images: [color.image]
+      images: [
+        {
+          url: color.image,
+          alt: isSilkBlue
+            ? "Silk Blue Granite, also called Blue Silk Granite, polished monument stone sample"
+            : `${color.name} polished monument stone sample`
+        }
+      ]
     }
   };
 }
@@ -39,6 +64,13 @@ export default async function ColorDetailPage({
   const { slug } = await params;
   const color = getColor(slug);
   if (!color) notFound();
+  const isSilkBlue = color.slug === "blue-silk-granite";
+  const colorIndex = graniteColors.findIndex((item) => item.slug === color.slug);
+  const previousColor =
+    graniteColors[
+      (colorIndex - 1 + graniteColors.length) % graniteColors.length
+    ];
+  const nextColor = graniteColors[(colorIndex + 1) % graniteColors.length];
   const related = graniteColors
     .filter((item) => item.slug !== color.slug && item.family === color.family)
     .slice(0, 4);
@@ -70,30 +102,46 @@ export default async function ColorDetailPage({
     /\bgranite\b/gi,
     color.material.toLowerCase()
   );
+  const pageUrl = `${site.url}/colors/${color.slug}/`;
+  const imageUrl = `${site.url}${encodeURI(color.image)}`;
   const schema = {
     "@context": "https://schema.org",
-    "@type": "Product",
-    name: color.name,
+    "@type": "ItemPage",
+    "@id": `${pageUrl}#webpage`,
+    url: pageUrl,
+    name: `${color.name} Monument Stone`,
     description: color.description,
-    image: `${site.url}${encodeURI(color.image)}`,
-    sku: color.sku,
-    material: color.material,
-    color: color.name,
-    category: `${color.family} monument ${color.material.toLowerCase()}`,
-    url: `${site.url}/colors/${color.slug}/`,
-    brand: { "@type": "Brand", name: "Angel Stones" },
-    additionalProperty: [
-      {
-        "@type": "PropertyValue",
-        name: "Color family",
-        value: color.family
-      },
-      {
-        "@type": "PropertyValue",
-        name: "Reference number",
-        value: color.sku
-      }
-    ]
+    inLanguage: "en-US",
+    keywords: [
+      color.name,
+      ...(isSilkBlue ? ["Blue Silk Granite"] : []),
+      `${color.family} monument stone`,
+      `${color.material} headstone color`,
+      "wholesale monument granite"
+    ].join(", "),
+    primaryImageOfPage: {
+      "@type": "ImageObject",
+      "@id": `${pageUrl}#primaryimage`,
+      url: imageUrl,
+      contentUrl: imageUrl,
+      caption: `${color.name} polished natural-stone color sample`
+    },
+    about: {
+      "@type": "Thing",
+      "@id": `${pageUrl}#stone-color`,
+      name: color.name,
+      alternateName: isSilkBlue ? "Blue Silk Granite" : undefined,
+      description: color.description,
+      identifier: color.sku,
+      image: imageUrl
+    },
+    isPartOf: {
+      "@type": "WebSite",
+      "@id": `${site.url}/#website`,
+      name: site.name,
+      url: `${site.url}/`
+    },
+    publisher: { "@id": `${site.url}/#organization` }
   };
 
   return (
@@ -107,8 +155,42 @@ export default async function ColorDetailPage({
           </nav>
           <div className="color-detail-grid">
             <figure>
-              <img src={color.image} alt={`${color.name} polished stone sample`} />
-              <figcaption>Natural stone varies by block and lighting.</figcaption>
+              <div className="color-detail-image">
+                <img
+                  src={color.image}
+                  alt={`${color.name} polished stone sample`}
+                />
+                <ColorDetailClose />
+                <nav
+                  className="color-detail-image-nav"
+                  aria-label="Browse granite colors"
+                >
+                  <Link
+                    className="color-detail-arrow color-detail-arrow--previous"
+                    href={`/colors/${previousColor.slug}/`}
+                    aria-label={`Previous color: ${previousColor.name}`}
+                    title={`Previous: ${previousColor.name}`}
+                    rel="prev"
+                  >
+                    <span aria-hidden="true">←</span>
+                  </Link>
+                  <Link
+                    className="color-detail-arrow color-detail-arrow--next"
+                    href={`/colors/${nextColor.slug}/`}
+                    aria-label={`Next color: ${nextColor.name}`}
+                    title={`Next: ${nextColor.name}`}
+                    rel="next"
+                  >
+                    <span aria-hidden="true">→</span>
+                  </Link>
+                </nav>
+              </div>
+              <figcaption>
+                <span>
+                  Color {colorIndex + 1} of {graniteColors.length}
+                </span>
+                <span>Natural stone varies by block and lighting.</span>
+              </figcaption>
             </figure>
             <div>
               <span className="eyebrow">{color.material} color · {color.sku}</span>
@@ -117,6 +199,9 @@ export default async function ColorDetailPage({
               <dl className="stone-specs">
                 <div><dt>Material</dt><dd>Natural {color.material.toLowerCase()}</dd></div>
                 <div><dt>Color family</dt><dd>{color.family}</dd></div>
+                {isSilkBlue ? (
+                  <div><dt>Also known as</dt><dd>Blue Silk Granite</dd></div>
+                ) : null}
                 <div><dt>Typical use</dt><dd>Monuments, bases and memorials</dd></div>
                 <div><dt>Availability</dt><dd>Confirm with our sales team</dd></div>
               </dl>
@@ -167,19 +252,35 @@ export default async function ColorDetailPage({
             <span className="eyebrow">Stone specification</span>
             <h2>{color.name} for headstones and monuments.</h2>
             <p>
-              {familyGuidance} Use this polished sample to compare the general
-              character of {color.name}, then connect the color choice to the
-              monument design, component dimensions, finish schedule and current
-              material availability.
+              {isSilkBlue ? (
+                <>
+                  Silk Blue Granite—also searched as Blue Silk Granite—shows a
+                  dark blue-gray field with flowing lighter movement. Monument
+                  dealers use this color for headstones, tablets, bases and
+                  coordinated memorial components. Compare the current stone and
+                  planned finish before approving a close match.
+                </>
+              ) : (
+                <>
+                  {familyGuidance} Use this polished sample to compare the general
+                  character of {color.name}, then connect the color choice to the
+                  monument design, component dimensions, finish schedule and
+                  current material availability.
+                </>
+              )}
             </p>
           </div>
           <div className="advantage-grid">
             <article>
-              <h3>Expect natural variation</h3>
+              <h3>
+                {isSilkBlue
+                  ? "Compare Silk Blue movement"
+                  : "Expect natural variation"}
+              </h3>
               <p>
-                Natural stone varies. Grain, movement and tone can differ
-                between blocks and may appear different under showroom,
-                outdoor and photographic lighting.
+                {isSilkBlue
+                  ? "The blue-gray tone and lighter flowing pattern vary naturally by block. Review the current material when movement, orientation or component matching is important."
+                  : "Natural stone varies. Grain, movement and tone can differ between blocks and may appear different under showroom, outdoor and photographic lighting."}
               </p>
             </article>
             <article>

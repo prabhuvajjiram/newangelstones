@@ -19,7 +19,7 @@ credentials, uploads, generated documents or operational data.
 | Special flyers and downloadable PDFs | Dedicated `/flyers/` page and homepage section | Covered |
 | Featured monument collections | Benches, in-stock, columbarium, designs and MBNA collections | Covered |
 | Product/design search | Collection search plus curated crawlable design detail pages | Covered and expanded |
-| Granite color browsing | 57 crawlable color pages, family navigation and inventory deep links | Covered and expanded |
+| Granite color browsing | 63 unique crawlable color pages, family navigation, inventory deep links and redirects from retired aliases | Covered and expanded |
 | Current inventory API | Dedicated inventory proxy, intelligent search, images-first results and detail dialog | Covered and expanded |
 | Products and finishing services | Dedicated `/products-services/` page | Covered and expanded |
 | Contact/quote form | Themed contact page using the existing protected PHP endpoint | Covered |

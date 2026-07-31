@@ -201,6 +201,25 @@ for (const reference of localReferences) {
   }
 }
 
+const silkBluePagePath = path.join(
+  packageDirectory,
+  "colors/blue-silk-granite/index.html"
+);
+if (fs.existsSync(silkBluePagePath)) {
+  const silkBluePage = fs.readFileSync(silkBluePagePath, "utf8");
+  for (const expected of [
+    "Silk Blue Granite for Monuments &amp; Headstones",
+    "Blue Silk Granite",
+    "https://www.theangelstones.com/colors/blue-silk-granite/"
+  ]) {
+    if (!silkBluePage.includes(expected)) {
+      failures.push(`Silk Blue SEO page is missing: ${expected}`);
+    }
+  }
+} else {
+  failures.push("Silk Blue canonical color page is missing.");
+}
+
 const requiredPhonePlacements = [
   ["contact/index.html", "+1 706-262-7177"],
   ["locations/elberton-ga/index.html", "+1 706-262-7177"]
@@ -224,6 +243,16 @@ function attribute(tag, name) {
   return (
     tag.match(new RegExp(`\\b${name}=["']([^"']*)["']`, "i"))?.[1]?.trim() ?? ""
   );
+}
+
+function visitStructuredData(value, visitor) {
+  if (Array.isArray(value)) {
+    value.forEach((item) => visitStructuredData(item, visitor));
+    return;
+  }
+  if (!value || typeof value !== "object") return;
+  visitor(value);
+  Object.values(value).forEach((item) => visitStructuredData(item, visitor));
 }
 
 for (const file of htmlFiles) {
@@ -295,13 +324,36 @@ for (const file of htmlFiles) {
   if (!jsonLdBlocks.length) {
     failures.push(`Structured data is missing: ${page}`);
   }
+  const parsedJsonLd = [];
   jsonLdBlocks.forEach((block, index) => {
     try {
-      JSON.parse(block[1]);
+      const structuredData = JSON.parse(block[1]);
+      parsedJsonLd.push(structuredData);
+      visitStructuredData(structuredData, (item) => {
+        const types = Array.isArray(item["@type"])
+          ? item["@type"]
+          : [item["@type"]];
+        if (
+          types.includes("Product") &&
+          !item.offers &&
+          !item.review &&
+          !item.aggregateRating
+        ) {
+          failures.push(
+            `Product structured data lacks offers, review or aggregateRating: ${page}`
+          );
+        }
+      });
     } catch {
       failures.push(`Invalid JSON-LD block ${index + 1}: ${page}`);
     }
   });
+  if (
+    /^(?:colors|designs)\/[^/]+\/index\.html$/.test(page) &&
+    !parsedJsonLd.some((item) => item?.["@type"] === "ItemPage")
+  ) {
+    failures.push(`Reference detail page is missing ItemPage schema: ${page}`);
+  }
 
   const images = [...contents.matchAll(/<img\b[^>]*>/gi)].map(
     (match) => match[0]
@@ -476,6 +528,32 @@ if (
 ) {
   failures.push("Legacy generic granite-color redirect is missing.");
 }
+for (const [retiredColor, primaryColor] of [
+  ["forest-green", "rain-forest-green"],
+  ["galaxy", "galaxy-black"],
+  ["green", "green-breeze"],
+  ["green-dream", "tropical-green"],
+  ["jet-black", "premium-black"],
+  ["nh-red", "strawberry-red"],
+  ["oriental-green", "sanfrancisco-green"],
+  ["silk-blue", "blue-silk"],
+  ["white-and-red", "redwood-red-cats-eye"]
+]) {
+  if (
+    !htaccess.includes(
+      `RewriteRule ^colors/${retiredColor}-granite/?$ ${basePath}/colors/${primaryColor}-granite/ [R=301,L]`
+    )
+  ) {
+    failures.push(`Retired color redirect is missing: ${retiredColor}`);
+  }
+}
+if (
+  !htaccess.includes(
+    `RewriteRule ^colors/picasso-granite/?$ ${basePath}/colors/green-wave-quartzite/ [R=301,L]`
+  )
+) {
+  failures.push("Retired Picasso redirect to Green Wave Quartzite is missing.");
+}
 for (const [legacyCategory, route] of [
   ["mbna_2025", "mbna-2025"],
   ["monuments", "monuments"],
@@ -533,19 +611,6 @@ const colorStems = new Set(
     .filter((file) => /^images\/colors\/[^/]+\.(?:jpe?g|png|webp)$/i.test(file))
     .map((file) => normalizeColorStem(path.basename(file)))
 );
-for (const legacyColorStem of [
-  "forest-green",
-  "galaxy",
-  "green",
-  "green-dream",
-  "jet-black",
-  "nh-red",
-  "oriental-green",
-  "silk-blue",
-  "white-and-red"
-]) {
-  colorStems.add(legacyColorStem);
-}
 const expectedColorPages = new Set(
   [...colorStems].map((stem) =>
     /(?:quartzite|marble|sandstone)$/.test(stem)
@@ -560,7 +625,7 @@ for (const expectedColorPage of expectedColorPages) {
 }
 if (colorPages.length !== expectedColorPages.size) {
   failures.push(
-    `Expected ${expectedColorPages.size} color pages from the image library and preserved aliases, found ${colorPages.length}.`
+    `Expected ${expectedColorPages.size} unique color pages from the image library, found ${colorPages.length}.`
   );
 }
 const designPages = [...relativeFiles].filter(

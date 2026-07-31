@@ -17,6 +17,18 @@ RewriteRule ^sms-terms\.html$ /sms-terms/ [R=301,L]
 RewriteRule ^discovered\.html$ /monuments/ [R=301,L]
 RewriteRule ^colors/granite/?$ /granite-colors/ [R=301,L]
 
+# Consolidate retired color aliases into their primary catalog records.
+RewriteRule ^colors/forest-green-granite/?$ /colors/rain-forest-green-granite/ [R=301,L]
+RewriteRule ^colors/galaxy-granite/?$ /colors/galaxy-black-granite/ [R=301,L]
+RewriteRule ^colors/green-granite/?$ /colors/green-breeze-granite/ [R=301,L]
+RewriteRule ^colors/green-dream-granite/?$ /colors/tropical-green-granite/ [R=301,L]
+RewriteRule ^colors/jet-black-granite/?$ /colors/premium-black-granite/ [R=301,L]
+RewriteRule ^colors/nh-red-granite/?$ /colors/strawberry-red-granite/ [R=301,L]
+RewriteRule ^colors/oriental-green-granite/?$ /colors/sanfrancisco-green-granite/ [R=301,L]
+RewriteRule ^colors/silk-blue-granite/?$ /colors/blue-silk-granite/ [R=301,L]
+RewriteRule ^colors/white-and-red-granite/?$ /colors/redwood-red-cats-eye-granite/ [R=301,L]
+RewriteRule ^colors/picasso-granite/?$ /colors/green-wave-quartzite/ [R=301,L]
+
 # Preserve collection deep links used by the legacy one-page catalog.
 RewriteCond %{QUERY_STRING} (^|&)category=mbna_2025(&|$) [NC]
 RewriteRule ^$ /mbna-2025/ [R=301,L,QSD]

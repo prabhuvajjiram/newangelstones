@@ -79,3 +79,32 @@ test("inventory dialog is keyboard operable and accessible", async ({ page }) =>
   await expect(dialog).toHaveCount(0);
   await expect(firstItem).toBeFocused();
 });
+
+test("collection image lightbox is keyboard operable and accessible", async ({
+  page
+}) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("angel-theme", "dark");
+  });
+  await page.goto("http://127.0.0.1:8089/benches/", {
+    waitUntil: "networkidle"
+  });
+
+  const trigger = page.getByRole("button", {
+    name: /^View .* larger$/
+  }).first();
+  await trigger.click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Close image preview" })
+  ).toBeFocused();
+  await scan(page, "collection image lightbox");
+
+  const initialLabel = await dialog.getAttribute("aria-label");
+  await page.keyboard.press("ArrowRight");
+  await expect(dialog).not.toHaveAttribute("aria-label", initialLabel);
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+});

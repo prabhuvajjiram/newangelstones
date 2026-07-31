@@ -37,6 +37,14 @@ export default async function DesignDetailPage({
 }) {
   const design = getCuratedDesign((await params).slug);
   if (!design) notFound();
+  const designIndex = curatedDesigns.findIndex(
+    (item) => item.slug === design.slug
+  );
+  const previousDesign =
+    curatedDesigns[
+      (designIndex - 1 + curatedDesigns.length) % curatedDesigns.length
+    ];
+  const nextDesign = curatedDesigns[(designIndex + 1) % curatedDesigns.length];
   const related = curatedDesigns
     .filter((item) => item.slug !== design.slug)
     .sort(
@@ -52,29 +60,44 @@ export default async function DesignDetailPage({
     )
     .slice(0, 3);
   const path = `/designs/${design.slug}/`;
-  const productSchema = {
+  const pageUrl = `${site.url}${path}`;
+  const imageUrl = `${site.url}${encodeURI(design.image)}`;
+  const pageSchema = {
     "@context": "https://schema.org",
-    "@type": "Product",
+    "@type": "ItemPage",
+    "@id": `${pageUrl}#webpage`,
+    url: pageUrl,
     name: `${design.code} ${design.name}`,
     description: design.description,
-    image: `${site.url}${encodeURI(design.image)}`,
-    sku: design.code,
-    category: design.productType,
-    material: "Granite",
-    brand: { "@type": "Brand", name: "Angel Stones" },
-    url: `${site.url}${path}`,
-    additionalProperty: [
-      {
-        "@type": "PropertyValue",
-        name: "Reference colors",
-        value: design.referenceColors.join(", ")
-      },
-      {
-        "@type": "PropertyValue",
-        name: "Reference finish",
-        value: design.referenceFinish
-      }
-    ]
+    inLanguage: "en-US",
+    keywords: [
+      design.code,
+      design.productType,
+      "granite monument design",
+      ...design.referenceColors
+    ].join(", "),
+    primaryImageOfPage: {
+      "@type": "ImageObject",
+      "@id": `${pageUrl}#primaryimage`,
+      url: imageUrl,
+      contentUrl: imageUrl,
+      caption: `${design.code} ${design.name} granite design reference`
+    },
+    about: {
+      "@type": "Thing",
+      "@id": `${pageUrl}#design-reference`,
+      name: `${design.code} ${design.name}`,
+      description: design.description,
+      identifier: design.code,
+      image: imageUrl
+    },
+    isPartOf: {
+      "@type": "WebSite",
+      "@id": `${site.url}/#website`,
+      name: site.name,
+      url: `${site.url}/`
+    },
+    publisher: { "@id": `${site.url}/#organization` }
   };
 
   return (
@@ -88,12 +111,43 @@ export default async function DesignDetailPage({
           </nav>
           <div className="design-detail-grid">
             <figure>
-              <img
-                src={design.image}
-                alt={`${design.code} ${design.name} granite design reference`}
-              />
+              <div className="design-detail-image">
+                <img
+                  src={design.image}
+                  alt={`${design.code} ${design.name} granite design reference`}
+                />
+                <nav
+                  className="color-detail-image-nav"
+                  aria-label="Browse curated monument designs"
+                >
+                  <Link
+                    className="color-detail-arrow color-detail-arrow--previous"
+                    href={`/designs/${previousDesign.slug}/`}
+                    aria-label={`Previous design: ${previousDesign.code} ${previousDesign.name}`}
+                    title={`Previous: ${previousDesign.code} ${previousDesign.name}`}
+                    rel="prev"
+                  >
+                    <span aria-hidden="true">←</span>
+                  </Link>
+                  <Link
+                    className="color-detail-arrow color-detail-arrow--next"
+                    href={`/designs/${nextDesign.slug}/`}
+                    aria-label={`Next design: ${nextDesign.code} ${nextDesign.name}`}
+                    title={`Next: ${nextDesign.code} ${nextDesign.name}`}
+                    rel="next"
+                  >
+                    <span aria-hidden="true">→</span>
+                  </Link>
+                </nav>
+              </div>
               <figcaption>
-                Design reference photograph; color and natural stone movement vary.
+                <span>
+                  Design {designIndex + 1} of {curatedDesigns.length}
+                </span>
+                <span>
+                  Design reference photograph; color and natural stone movement
+                  vary.
+                </span>
               </figcaption>
             </figure>
             <div>
@@ -176,7 +230,7 @@ export default async function DesignDetailPage({
       </section>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }}
       />
       <SeoBreadcrumbs
         items={[

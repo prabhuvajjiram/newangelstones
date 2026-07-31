@@ -9,7 +9,7 @@ test.describe("Next.js cPanel public site", () => {
       }
     });
 
-    await page.goto("http://127.0.0.1:8089/", { waitUntil: "domcontentloaded" });
+    await page.goto("http://127.0.0.1:8089/", { waitUntil: "networkidle" });
     const heroVideo = page.locator("video.hero-video");
     await expect(heroVideo).toHaveCount(1);
     await expect
@@ -65,10 +65,14 @@ test.describe("Next.js cPanel public site", () => {
       waitUntil: "networkidle"
     });
     const cards = page.locator(".color-card");
-    await expect(cards).toHaveCount(57);
+    await expect(cards).toHaveCount(63);
     await expect(page.locator(".color-family-grid article")).toHaveCount(6);
     await expect(page.locator("h1")).toContainText("Granite colors");
     const images = cards.locator("img");
+    const imageSources = await images.evaluateAll((elements) =>
+      elements.map((image) => new URL(image.src).pathname.toLowerCase())
+    );
+    expect(new Set(imageSources).size).toBe(imageSources.length);
     for (let index = 0; index < (await images.count()); index += 1) {
       await images.nth(index).scrollIntoViewIfNeeded();
       await expect
@@ -90,7 +94,7 @@ test.describe("Next.js cPanel public site", () => {
         contentType: "application/json",
         body: JSON.stringify({
           success: true,
-          count: 2,
+          count: 3,
           colors: [
             {
               name: "Bahama Blue",
@@ -99,6 +103,10 @@ test.describe("Next.js cPanel public site", () => {
             {
               name: "Test Gold",
               path: "images/colors/Rustic%20Brown.webp"
+            },
+            {
+              name: "PICASSO",
+              path: "images/colors/PICASSO.webp"
             }
           ]
         })
@@ -108,8 +116,9 @@ test.describe("Next.js cPanel public site", () => {
     await page.goto("http://127.0.0.1:8089/granite-colors/", {
       waitUntil: "networkidle"
     });
-    await expect(page.locator(".color-card")).toHaveCount(58);
+    await expect(page.locator(".color-card")).toHaveCount(64);
     await expect(page.getByText("Test Gold Granite", { exact: true })).toBeVisible();
+    await expect(page.getByText("PICASSO Granite", { exact: true })).toHaveCount(0);
     await expect(
       page.getByRole("link", { name: /Test Gold Granite/ })
     ).toHaveAttribute("href", /\/inventory\/\?search=Test(?:%20|\+)Gold/);
@@ -455,8 +464,14 @@ test.describe("Next.js cPanel public site", () => {
     await expect(page.locator(".design-detail h1")).toBeVisible();
     await expect(page.locator(".design-detail figure img")).toHaveJSProperty("complete", true);
     await expect(page.getByText("Reference configurations are shown")).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: /^Previous design:/ })
+    ).toHaveAttribute("rel", "prev");
+    await expect(
+      page.getByRole("link", { name: /^Next design:/ })
+    ).toHaveAttribute("rel", "next");
 
-    await page.goto("http://127.0.0.1:8089/colors/forest-green-granite/", {
+    await page.goto("http://127.0.0.1:8089/colors/rain-forest-green-granite/", {
       waitUntil: "networkidle"
     });
     const colorImage = page.locator(".color-detail figure img");
@@ -465,6 +480,29 @@ test.describe("Next.js cPanel public site", () => {
     await expect(page.getByRole("link", { name: "Search inventory by color" })).toHaveAttribute(
       "href",
       /\/inventory\/\?search=/
+    );
+    const previousColor = page.getByRole("link", {
+      name: /^Previous color:/
+    });
+    const nextColor = page.getByRole("link", { name: /^Next color:/ });
+    await expect(previousColor).toBeVisible();
+    await expect(nextColor).toBeVisible();
+    await expect(previousColor).toHaveAttribute("rel", "prev");
+    await expect(nextColor).toHaveAttribute("rel", "next");
+    const nextColorHref = await nextColor.getAttribute("href");
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const control of [previousColor, nextColor]) {
+      const box = await control.boundingBox();
+      expect(box?.width).toBeGreaterThanOrEqual(48);
+      expect(box?.height).toBeGreaterThanOrEqual(48);
+    }
+    await nextColor.click();
+    await expect(page).toHaveURL(
+      `http://127.0.0.1:8089${nextColorHref}`
+    );
+    await expect(page.locator(".color-detail h1")).not.toHaveText(
+      "Rain Forest Green Granite"
     );
 
     await page.goto("http://127.0.0.1:8089/contact/", {
@@ -475,12 +513,147 @@ test.describe("Next.js cPanel public site", () => {
       "15 Blackwell St, Barre, VT 05641"
     );
 
-    await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("http://127.0.0.1:8089/", { waitUntil: "domcontentloaded" });
     const menu = page.locator(".menu-toggle");
     await expect(menu).toBeVisible();
     await menu.click();
     await expect(page.locator("#primary-navigation")).toHaveClass(/is-open/);
+  });
+
+  test("collection lightbox supports sequential mobile and keyboard navigation", async ({
+    page
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("http://127.0.0.1:8089/benches/", {
+      waitUntil: "networkidle"
+    });
+
+    const trigger = page.getByRole("button", {
+      name: /^View .* larger$/
+    }).first();
+    await trigger.click();
+
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText(/Design \d+ of \d+/)).toBeVisible();
+    const previousImage = dialog.getByRole("button", {
+      name: /^Previous image:/
+    });
+    const nextImage = dialog.getByRole("button", { name: /^Next image:/ });
+    for (const control of [previousImage, nextImage]) {
+      await expect(control).toBeVisible();
+      const box = await control.boundingBox();
+      expect(box?.width).toBeGreaterThanOrEqual(48);
+      expect(box?.height).toBeGreaterThanOrEqual(48);
+    }
+
+    const initialLabel = await dialog.getAttribute("aria-label");
+    await page.keyboard.press("ArrowRight");
+    await expect(dialog).not.toHaveAttribute("aria-label", initialLabel);
+    const afterKeyboardLabel = await dialog.getAttribute("aria-label");
+    await previousImage.click();
+    await expect(dialog).not.toHaveAttribute("aria-label", afterKeyboardLabel);
+
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+  });
+
+  test("color detail closes back to the visitor's filtered color catalog", async ({
+    page
+  }) => {
+    await page.route("**/get_color_images.php**", (route) => route.abort());
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("http://127.0.0.1:8089/granite-colors/", {
+      waitUntil: "networkidle"
+    });
+
+    const search = page.getByRole("searchbox", {
+      name: "Search granite colors"
+    });
+    await search.fill("Premium Black");
+    const colorCard = page.locator(".color-card").filter({
+      hasText: "Premium Black"
+    });
+    await expect(colorCard).toHaveCount(1);
+    await colorCard.click();
+
+    const closeColor = page.getByRole("link", {
+      name: "Close color detail and return to granite colors"
+    });
+    await expect(closeColor).toBeVisible();
+    const closeBox = await closeColor.boundingBox();
+    expect(closeBox?.width).toBeGreaterThanOrEqual(48);
+    expect(closeBox?.height).toBeGreaterThanOrEqual(48);
+    await closeColor.click();
+
+    await expect(page).toHaveURL("http://127.0.0.1:8089/granite-colors/");
+    await expect(search).toHaveValue("Premium Black");
+    await expect(colorCard).toHaveCount(1);
+
+    await colorCard.click();
+    await page.keyboard.press("Escape");
+    await expect(page).toHaveURL("http://127.0.0.1:8089/granite-colors/");
+    await expect(search).toHaveValue("Premium Black");
+  });
+
+  test("Silk Blue and Blue Silk resolve to one canonical SEO color page", async ({
+    page
+  }) => {
+    await page.route("**/inventory-proxy.php?**", async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ success: true, data: [] })
+      });
+    });
+    await page.route("**/get_color_images.php**", async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: true,
+          colors: [
+            {
+              name: "Blue Silk",
+              path: "images/colors/Blue Silk.jpg"
+            }
+          ]
+        })
+      });
+    });
+    await page.goto("http://127.0.0.1:8089/granite-colors/", {
+      waitUntil: "networkidle"
+    });
+    const search = page.getByRole("searchbox", {
+      name: "Search granite colors"
+    });
+    for (const query of ["Silk Blue", "Blue Silk"]) {
+      await search.fill(query);
+      const results = page.locator(".color-card");
+      await expect(results).toHaveCount(1);
+      await expect(results).toContainText("Silk Blue Granite");
+      await expect(results).toHaveAttribute(
+        "href",
+        "/colors/blue-silk-granite/"
+      );
+    }
+
+    await page.locator(".color-card").click();
+    await expect(page).toHaveTitle(
+      "Silk Blue Granite for Monuments & Headstones | Angel Granites"
+    );
+    await expect(page.locator("h1")).toHaveText("Silk Blue Granite");
+    await expect(page.getByText("Blue Silk Granite", { exact: true })).toBeVisible();
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      "https://www.theangelstones.com/colors/blue-silk-granite/"
+    );
+    const structuredData = (
+      await page
+        .locator('script[type="application/ld+json"]')
+        .allTextContents()
+    ).map((value) => JSON.parse(value));
+    const itemPage = structuredData.find((item) => item["@type"] === "ItemPage");
+    expect(itemPage.about.alternateName).toBe("Blue Silk Granite");
   });
 
   test("inventory deep links prefill the intelligent search", async ({ page }) => {
@@ -816,6 +989,12 @@ test.describe("Next.js cPanel public site", () => {
     await page.route("https://www.googletagmanager.com/**", (route) =>
       route.abort()
     );
+    await page.route("**/inventory-proxy.php?**", async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ success: true, data: [] })
+      });
+    });
     const routes = [
       "/",
       "/inventory/",
@@ -850,6 +1029,19 @@ test.describe("Next.js cPanel public site", () => {
       await expect(
         page.locator('script[type="application/ld+json"]')
       ).not.toHaveCount(0);
+      if (route.startsWith("/colors/") || route.startsWith("/designs/")) {
+        const structuredData = (
+          await page
+            .locator('script[type="application/ld+json"]')
+            .allTextContents()
+        ).map((value) => JSON.parse(value));
+        expect(
+          structuredData.some((item) => item["@type"] === "ItemPage")
+        ).toBe(true);
+        expect(
+          structuredData.some((item) => item["@type"] === "Product")
+        ).toBe(false);
+      }
     }
 
     await expect(
@@ -865,7 +1057,7 @@ test.describe("Next.js cPanel public site", () => {
     expect(
       (sitemap.match(/<loc>https:\/\/www\.theangelstones\.com\/colors\//g) || [])
         .length
-    ).toBe(57);
+    ).toBe(63);
   });
 
   test("agent guidance is valid Markdown with canonical catalog links", async ({

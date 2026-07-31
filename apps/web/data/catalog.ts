@@ -333,21 +333,29 @@ function colorFamily(name: string): GraniteColorFamily {
   if (/(gray|grey|barre|silver|white|mist|impala|marble)/.test(normalized)) {
     return "Gray";
   }
-  if (/(blue|pearl)/.test(normalized)) return "Blue";
-  if (/(red|pink|rose|rubin|strawberry|adhoni)/.test(normalized)) {
+  if (/(blue|pearl|opal)/.test(normalized)) return "Blue";
+  if (
+    /(red|pink|rose|rubin|strawberry|adhoni|romantica|halmstad|lila)/.test(
+      normalized
+    )
+  ) {
     return "Red & Pink";
   }
   return "Brown & Multicolor";
 }
 
 const colorNameOverrides: Record<string, string> = {
+  "blue-silk": "Silk Blue",
   "bluepearl": "Blue Pearl",
   "canada-black": "Canada Black",
   "costa-emeralda": "Costa Emeralda",
-  "picasso": "Picasso",
   "redwood-brown-cats-eye": "Redwood Brown (Cat's Eye)",
   "redwood-red-cats-eye": "Redwood Red (Cat's Eye)",
   "visount-white": "Visount White"
+};
+
+const colorAliases: Record<string, string[]> = {
+  "blue-silk": ["Blue Silk Granite"]
 };
 
 function normalizedColorStem(filename: string): string {
@@ -381,9 +389,13 @@ function colorDisplayName(stem: string): {
 }
 
 function colorDescription(
+  stem: string,
   name: string,
   material: GraniteColorMaterial
 ): string {
+  if (stem === "blue-silk") {
+    return "Silk Blue Granite, also known as Blue Silk Granite, is shown as a polished blue-gray natural-stone reference for wholesale monuments, headstones, tablets and bases. Compare its flowing light movement, planned finish, component matching and current U.S. inventory before ordering.";
+  }
   return `${name} is shown as a polished natural ${material.toLowerCase()} color reference for wholesale monuments, headstones and memorial components. Compare natural variation, finish, component matching and current inventory with Angel Granites before ordering.`;
 }
 
@@ -409,18 +421,6 @@ function selectColorImages(): Array<{ stem: string; image: string }> {
   }));
 }
 
-const legacyColorAliases = [
-  { stem: "forest-green", imageStem: "rain-forest-green" },
-  { stem: "galaxy", imageStem: "galaxy-black" },
-  { stem: "green", imageStem: "green-breeze" },
-  { stem: "green-dream", imageStem: "tropical-green" },
-  { stem: "jet-black", imageStem: "premium-black" },
-  { stem: "nh-red", imageStem: "strawberry-red" },
-  { stem: "oriental-green", imageStem: "sanfrancisco-green" },
-  { stem: "silk-blue", imageStem: "blue-silk" },
-  { stem: "white-and-red", imageStem: "redwood-red-cats-eye" }
-] as const;
-
 function buildColor(
   stem: string,
   image: string
@@ -431,13 +431,14 @@ function buildColor(
   return {
     slug,
     name,
-    description: colorDescription(name, material),
+    description: colorDescription(stem, name, material),
     image,
     sku: `GC-${stem.toUpperCase()}`,
     material,
     family,
     searchTerms: [
       name,
+      ...(colorAliases[stem] ?? []),
       `${name} monument color`,
       `${name} headstone`,
       `${family.toLowerCase()} monument stone`,
@@ -447,18 +448,9 @@ function buildColor(
 }
 
 const selectedColorImages = selectColorImages();
-const selectedColorImageByStem = new Map(
-  selectedColorImages.map((color) => [color.stem, color.image])
-);
 
-export const graniteColors: GraniteColor[] = [
-  ...selectedColorImages.map(({ stem, image }) => buildColor(stem, image)),
-  ...legacyColorAliases.flatMap(({ stem, imageStem }) => {
-    if (selectedColorImageByStem.has(stem)) return [];
-    const image = selectedColorImageByStem.get(imageStem);
-    return image ? [buildColor(stem, image)] : [];
-  })
-]
+export const graniteColors: GraniteColor[] = selectedColorImages
+  .map(({ stem, image }) => buildColor(stem, image))
   .sort((left, right) =>
     left.name.localeCompare(right.name, undefined, { numeric: true })
   );

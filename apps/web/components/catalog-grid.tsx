@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CatalogImage } from "@/data/catalog";
 import { designHrefByImage } from "@/data/designs";
 import {
@@ -21,6 +21,8 @@ export function CatalogGrid({
   const [query, setQuery] = useState("");
   const [active, setActive] = useState<CatalogImage | null>(null);
   const [availableImages, setAvailableImages] = useState(images);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const lightboxTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -56,6 +58,49 @@ export function CatalogGrid({
         )
       : availableImages;
   }, [availableImages, query]);
+
+  const activeIndex = active
+    ? filtered.findIndex((image) => image.src === active.src)
+    : -1;
+
+  function closeLightbox() {
+    setActive(null);
+    window.requestAnimationFrame(() => lightboxTriggerRef.current?.focus());
+  }
+
+  function moveLightbox(direction: -1 | 1) {
+    if (activeIndex < 0 || filtered.length < 2) return;
+    setActive(
+      filtered[
+        (activeIndex + direction + filtered.length) % filtered.length
+      ]
+    );
+  }
+
+  useEffect(() => {
+    if (!active) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeLightbox();
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        moveLightbox(-1);
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        moveLightbox(1);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  });
 
   return (
     <>
@@ -101,7 +146,10 @@ export function CatalogGrid({
                 className="product-card"
                 type="button"
                 key={image.src}
-                onClick={() => setActive(image)}
+                onClick={(event) => {
+                  lightboxTriggerRef.current = event.currentTarget;
+                  setActive(image);
+                }}
                 aria-label={`View ${image.name} larger`}
               >
                 {content}
@@ -124,21 +172,58 @@ export function CatalogGrid({
           role="dialog"
           aria-modal="true"
           aria-label={`${active.name} image preview`}
-          onClick={() => setActive(null)}
+          onClick={closeLightbox}
         >
           <button
+            ref={closeButtonRef}
             className="lightbox-close"
             type="button"
-            onClick={() => setActive(null)}
+            onClick={closeLightbox}
             aria-label="Close image preview"
           >
             ×
           </button>
           <figure onClick={(event) => event.stopPropagation()}>
-            <img src={active.src} alt={`${active.name} granite monument design`} />
+            <div className="lightbox-media">
+              <img
+                src={active.src}
+                alt={`${active.name} granite monument design`}
+              />
+              {filtered.length > 1 ? (
+                <nav
+                  className="lightbox-image-nav"
+                  aria-label={`Browse ${collectionName}`}
+                >
+                  <button
+                    className="lightbox-arrow lightbox-arrow--previous"
+                    type="button"
+                    onClick={() => moveLightbox(-1)}
+                    aria-label={`Previous image: ${
+                      filtered[
+                        (activeIndex - 1 + filtered.length) % filtered.length
+                      ].name
+                    }`}
+                  >
+                    <span aria-hidden="true">←</span>
+                  </button>
+                  <button
+                    className="lightbox-arrow lightbox-arrow--next"
+                    type="button"
+                    onClick={() => moveLightbox(1)}
+                    aria-label={`Next image: ${
+                      filtered[(activeIndex + 1) % filtered.length].name
+                    }`}
+                  >
+                    <span aria-hidden="true">→</span>
+                  </button>
+                </nav>
+              ) : null}
+            </div>
             <figcaption>
               <div>
-                <span>Design reference</span>
+                <span>
+                  Design {activeIndex + 1} of {filtered.length}
+                </span>
                 <strong>{active.name}</strong>
               </div>
               <a href={`/contact/?design=${encodeURIComponent(active.name)}`}>

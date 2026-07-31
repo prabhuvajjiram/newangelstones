@@ -13,14 +13,20 @@ type DisplayColor = GraniteColor & {
   hasDetailPage: boolean;
 };
 
+const retiredLiveColorKeys = new Set(["picasso"]);
+const catalogContextKey = "angel-color-catalog-context";
+const restoreRequestKey = "angel-color-catalog-restore";
+
 function colorKey(value: string): string {
   const normalized = value
     .toLowerCase()
     .replace(/\b(?:granite|quartzite|marble|sandstone)\b/g, "")
+    .replace(/\bcat(?:['’]?s)?\s+eye\b/g, "cats eye")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
   if (normalized === "bluepearl") return "blue-pearl";
   if (normalized === "pacific-grey") return "pacific-gray";
+  if (normalized === "silk-blue") return "blue-silk";
   return normalized;
 }
 
@@ -39,8 +45,12 @@ function liveFamily(name: string): GraniteColorFamily {
   if (/(gray|grey|barre|silver|white|mist|impala|marble)/.test(normalized)) {
     return "Gray";
   }
-  if (/(blue|pearl)/.test(normalized)) return "Blue";
-  if (/(red|pink|rose|rubin|strawberry|adhoni)/.test(normalized)) {
+  if (/(blue|pearl|opal)/.test(normalized)) return "Blue";
+  if (
+    /(red|pink|rose|rubin|strawberry|adhoni|romantica|halmstad|lila)/.test(
+      normalized
+    )
+  ) {
     return "Red & Pink";
   }
   return "Brown & Multicolor";
@@ -51,6 +61,39 @@ export function ColorGrid({ colors }: { colors: GraniteColor[] }) {
   const [availableColors, setAvailableColors] = useState<DisplayColor[]>(
     colors.map((color) => ({ ...color, hasDetailPage: true }))
   );
+
+  useEffect(() => {
+    if (window.sessionStorage.getItem(restoreRequestKey) !== "1") return;
+    window.sessionStorage.removeItem(restoreRequestKey);
+
+    const storedContext = window.sessionStorage.getItem(catalogContextKey);
+    window.sessionStorage.removeItem(catalogContextKey);
+    if (!storedContext) return;
+
+    try {
+      const context = JSON.parse(storedContext) as {
+        query?: string;
+        scrollY?: number;
+        savedAt?: number;
+      };
+      if (
+        typeof context.savedAt !== "number" ||
+        Date.now() - context.savedAt > 30 * 60 * 1000
+      ) {
+        return;
+      }
+      if (typeof context.query === "string") setQuery(context.query);
+      if (typeof context.scrollY === "number") {
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => {
+            window.scrollTo({ top: context.scrollY });
+          });
+        });
+      }
+    } catch {
+      // Invalid session context should never prevent the color catalog loading.
+    }
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -64,6 +107,7 @@ export function ColorGrid({ colors }: { colors: GraniteColor[] }) {
         );
         for (const liveColor of liveColors) {
           const key = colorKey(liveColor.name);
+          if (retiredLiveColorKeys.has(key)) continue;
           const existing = merged.get(key);
           if (existing) {
             merged.set(key, { ...existing, image: liveColor.src });
@@ -134,7 +178,22 @@ export function ColorGrid({ colors }: { colors: GraniteColor[] }) {
             ? `/colors/${color.slug}/`
             : `/inventory/?search=${encodeURIComponent(color.name)}`;
           return (
-            <Link href={href} className="color-card" key={color.slug}>
+            <Link
+              href={href}
+              className="color-card"
+              key={color.slug}
+              onClick={() => {
+                if (!color.hasDetailPage) return;
+                window.sessionStorage.setItem(
+                  catalogContextKey,
+                  JSON.stringify({
+                    query,
+                    scrollY: window.scrollY,
+                    savedAt: Date.now()
+                  })
+                );
+              }}
+            >
               <span className="color-card-image">
                 <img
                   src={color.image}
